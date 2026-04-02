@@ -175,5 +175,18 @@ def inspect(
     run_inspect(workspace=workspace, run_id=run_id)
 
 
+@app.command(name="convert-file")
+def convert_file(
+    pdf_path: Path = typer.Argument(..., help="Path to the PDF file to convert."),
+    output_dir: Path | None = typer.Option(
+        None, "--output", "-o", help="Output directory (default: same as PDF)."
+    ),
+) -> None:
+    """Convert a single PDF file to Markdown (standalone)."""
+    from arxiv_paper_pipeline.cli.cmd_convert_file import run_convert_file
+
+    run_convert_file(pdf_path, output_dir=output_dir)
+
+
 if __name__ == "__main__":
     app()
