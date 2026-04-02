@@ -1,0 +1,41 @@
+# arxiv-paper-pipeline configuration
+# Copy this to config.toml and adjust as needed.
+
+[arxiv]
+base_url = "https://export.arxiv.org/api/query"
+min_interval_seconds = 5.0
+single_connection = true
+default_page_size = 100
+max_page_size = 500
+daily_query_cache = true
+
+[cache]
+enabled = true
+search_snapshot_ttl_hours = 24
+cache_dir = "~/.cache/arxiv-paper-pipeline"
+
+[conversion]
+backend = "docling"
+timeout_seconds = 300
+
+[download]
+max_per_run = 20
+
+[llm]
+enabled = false
+temperature = 0
+profile = "default"
+
+[screen]
+cheap_top_k = 50
+download_top_n = 8
+final_score_threshold = 0.70
+llm_score_threshold = 0.60
+
+[search]
+primary_months = 6
+fallback_months = 12
+max_query_variants = 5
+min_candidates = 40
+min_highscore = 10
+min_downloads = 5

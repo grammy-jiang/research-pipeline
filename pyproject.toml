@@ -1,0 +1,68 @@
+[build-system]
+requires = ["uv_build>=0.10.12,<0.11.0"]
+build-backend = "uv_build"
+
+[project]
+name = "arxiv-paper-pipeline"
+version = "0.1.0"
+description = "A pipeline for searching, screening, downloading, converting, and summarizing papers from arXiv."
+readme = "README.md"
+authors = [
+  {name = "Grammy Jiang", email = "grammy.jiang@gmail.com"}
+]
+requires-python = ">=3.12"
+dependencies = [
+  "pydantic>=2.0,<3",
+  "typer>=0.12,<1",
+  "requests>=2.31,<3",
+  "tomli>=2.0;python_version<'3.11'",
+  "rank-bm25>=0.2,<1",
+  "mcp[cli]>=1.0",
+  "lxml>=6.0.2"
+]
+
+[project.optional-dependencies]
+docling = ["docling>=2.0"]
+llm = []
+dev = [
+  "pytest>=8.0",
+  "pytest-cov>=5.0",
+  "vcrpy>=6.0",
+  "ruff>=0.4",
+  "black>=24.0",
+  "isort>=5.0",
+  "mypy>=1.10",
+  "types-requests>=2.31",
+  "pre-commit>=4.0"
+]
+
+[project.scripts]
+arxiv-paper-pipeline = "arxiv_paper_pipeline.cli.app:app"
+
+[tool.bandit]
+exclude_dirs = ["tests"]
+
+[tool.black]
+line-length = 88
+
+[tool.isort]
+profile = "black"
+
+[tool.mypy]
+python_version = "3.12"
+strict = true
+warn_return_any = true
+warn_unused_configs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+  "live: marks tests that require live arXiv access (deselect with '-m \"not live\"')"
+]
+
+[tool.ruff]
+line-length = 88
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W", "UP", "B", "SIM"]
+ignore = ["B008"]
