@@ -63,6 +63,8 @@ def plan_topic(params: PlanTopicInput) -> ToolResult:
         plan = QueryPlan(
             topic_raw=params.topic,
             topic_normalized=params.topic.lower().strip(),
+            must_terms=params.topic.lower().split()[:5],
+            nice_terms=[],
             query_variants=[],
             candidate_categories=[],
             negative_terms=[],

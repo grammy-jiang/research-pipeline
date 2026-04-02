@@ -1,0 +1,22 @@
+{
+  "topic_raw": "local memory system for AI agents",
+  "topic_normalized": "local memory system for ai agents",
+  "must_terms": [
+    "local",
+    "memory",
+    "system",
+    "for",
+    "ai"
+  ],
+  "nice_terms": [],
+  "negative_terms": [],
+  "candidate_categories": [],
+  "query_variants": [],
+  "primary_months": 6,
+  "fallback_months": 12,
+  "sparsity_thresholds": {
+    "min_candidates": 40,
+    "min_highscore": 10,
+    "min_downloads": 5
+  }
+}
