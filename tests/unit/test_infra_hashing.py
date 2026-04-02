@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from arxiv_paper_pipeline.infra.hashing import sha256_bytes, sha256_file, sha256_str
+from research_pipeline.infra.hashing import sha256_bytes, sha256_file, sha256_str
 
 
 class TestSha256Bytes:

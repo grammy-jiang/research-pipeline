@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from arxiv_paper_pipeline.arxiv.parser import (
+from research_pipeline.arxiv.parser import (
     parse_atom_response,
     parse_total_results,
 )

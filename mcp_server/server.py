@@ -1,4 +1,4 @@
-"""MCP server entry point for arxiv-paper-pipeline.
+"""MCP server entry point for research-pipeline.
 
 Exposes pipeline stages as MCP tools via stdio transport.
 Run with: python -m mcp_server.server
@@ -19,7 +19,7 @@ from mcp_server.schemas import (
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
-    SearchArxivInput,
+    SearchInput,
     SummarizePapersInput,
 )
 from mcp_server.tools import (
@@ -31,17 +31,17 @@ from mcp_server.tools import (
     plan_topic,
     run_pipeline,
     screen_candidates,
-    search_arxiv,
+    search,
     summarize_papers,
 )
 
 logger = logging.getLogger(__name__)
 
 mcp = FastMCP(
-    "arxiv-paper-pipeline",
+    "research-pipeline",
     instructions=(
-        "MCP server for arXiv paper research: search, screen, download, "
-        "convert, extract, summarize papers."
+        "MCP server for academic paper research: search multiple sources, "
+        "screen, download, convert, extract, summarize papers."
     ),
 )
 
@@ -62,19 +62,27 @@ def tool_plan_topic(
 
 
 @mcp.tool()
-def tool_search_arxiv(
+def tool_search(
     workspace: str = "./workspace",
     run_id: str = "",
     topic: str = "",
     resume: bool = False,
+    source: str = "",
 ) -> dict:
-    """Search arXiv using the query plan and return deduplicated candidates.
+    """Search arXiv and/or Google Scholar for academic papers.
 
-    Executes API queries with rate limiting, parses Atom responses,
-    and deduplicates across query variants.
+    Queries enabled sources with rate limiting, parses responses,
+    and deduplicates across sources and query variants.
+    Use source='arxiv', 'scholar', 'all', or '' (config default).
     """
-    result = search_arxiv(
-        SearchArxivInput(workspace=workspace, run_id=run_id, topic=topic, resume=resume)
+    result = search(
+        SearchInput(
+            workspace=workspace,
+            run_id=run_id,
+            topic=topic,
+            resume=resume,
+            source=source,
+        )
     )
     return result.model_dump()
 
@@ -121,7 +129,7 @@ def tool_convert_pdfs(
 ) -> dict:
     """Convert downloaded PDFs to Markdown using Docling.
 
-    Requires the docling extra: pip install 'arxiv-paper-pipeline[docling]'.
+    Requires the docling extra: pip install 'research-pipeline[docling]'.
     """
     result = convert_pdfs(
         ConvertPdfsInput(workspace=workspace, run_id=run_id, force=force)

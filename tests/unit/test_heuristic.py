@@ -2,8 +2,8 @@
 
 from datetime import UTC, datetime, timedelta
 
-from arxiv_paper_pipeline.models.candidate import CandidateRecord
-from arxiv_paper_pipeline.screening.heuristic import score_candidates, select_topk
+from research_pipeline.models.candidate import CandidateRecord
+from research_pipeline.screening.heuristic import score_candidates, select_topk
 
 
 def _make_candidate(

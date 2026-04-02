@@ -24,8 +24,8 @@ class PlanTopicInput(CommonParams):
     topic: str = Field(description="Natural language research topic.")
 
 
-class SearchArxivInput(CommonParams):
-    """Input for the search_arxiv tool."""
+class SearchInput(CommonParams):
+    """Input for the search tool."""
 
     topic: str = Field(
         default="",
@@ -34,6 +34,13 @@ class SearchArxivInput(CommonParams):
     resume: bool = Field(
         default=False,
         description="Resume from existing search results if available.",
+    )
+    source: str = Field(
+        default="",
+        description=(
+            "Search source(s): 'arxiv', 'scholar', 'all', or ''"
+            " (empty = use config default)."
+        ),
     )
 
 

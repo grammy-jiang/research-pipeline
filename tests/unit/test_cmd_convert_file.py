@@ -7,8 +7,8 @@ from unittest.mock import MagicMock, patch
 import pytest
 import typer
 
-from arxiv_paper_pipeline.cli.cmd_convert_file import run_convert_file
-from arxiv_paper_pipeline.models.conversion import ConvertManifestEntry
+from research_pipeline.cli.cmd_convert_file import run_convert_file
+from research_pipeline.models.conversion import ConvertManifestEntry
 
 
 def _make_entry(
@@ -49,7 +49,7 @@ class TestFileNotFound:
         assert "PDF file not found" in capsys.readouterr().err
 
 
-_BACKEND = "arxiv_paper_pipeline.conversion.docling_backend.DoclingBackend"
+_BACKEND = "research_pipeline.conversion.docling_backend.DoclingBackend"
 
 
 class TestNonPdfExtension:

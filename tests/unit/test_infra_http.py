@@ -1,6 +1,6 @@
 """Unit tests for infra.http module."""
 
-from arxiv_paper_pipeline.infra.http import create_session
+from research_pipeline.infra.http import create_session
 
 
 class TestCreateSession:
@@ -15,4 +15,4 @@ class TestCreateSession:
     def test_user_agent_contains_package_name(self) -> None:
         session = create_session()
         ua = session.headers["User-Agent"]
-        assert "arxiv-paper-pipeline" in ua
+        assert "research-pipeline" in ua

@@ -5,14 +5,14 @@ from datetime import UTC, datetime
 import pytest
 from pydantic import ValidationError
 
-from arxiv_paper_pipeline.models.candidate import CandidateRecord
-from arxiv_paper_pipeline.models.extraction import ChunkMetadata
-from arxiv_paper_pipeline.models.manifest import (
+from research_pipeline.models.candidate import CandidateRecord
+from research_pipeline.models.extraction import ChunkMetadata
+from research_pipeline.models.manifest import (
     RunManifest,
     StageRecord,
 )
-from arxiv_paper_pipeline.models.query_plan import QueryPlan
-from arxiv_paper_pipeline.models.screening import (
+from research_pipeline.models.query_plan import QueryPlan
+from research_pipeline.models.screening import (
     CheapScoreBreakdown,
 )
 

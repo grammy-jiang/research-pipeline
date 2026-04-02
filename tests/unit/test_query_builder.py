@@ -1,6 +1,6 @@
 """Unit tests for arxiv.query_builder module."""
 
-from arxiv_paper_pipeline.arxiv.query_builder import (
+from research_pipeline.arxiv.query_builder import (
     build_api_url,
     build_category_filter,
     build_field_query,
@@ -8,7 +8,7 @@ from arxiv_paper_pipeline.arxiv.query_builder import (
     build_query_from_plan,
     canonical_cache_key,
 )
-from arxiv_paper_pipeline.models.query_plan import QueryPlan
+from research_pipeline.models.query_plan import QueryPlan
 
 
 class TestBuildFieldQuery:

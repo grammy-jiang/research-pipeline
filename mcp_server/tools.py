@@ -19,7 +19,7 @@ from mcp_server.schemas import (
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
-    SearchArxivInput,
+    SearchInput,
     SummarizePapersInput,
     ToolResult,
 )
@@ -36,14 +36,14 @@ def _resolve_run_id(run_id: str) -> str:
     """Generate a run ID if not provided."""
     if run_id:
         return run_id
-    from arxiv_paper_pipeline.infra.clock import utc_now
+    from research_pipeline.infra.clock import utc_now
 
     return utc_now().strftime("%Y%m%dT%H%M%SZ")
 
 
 def _get_run_root(ws: Path, rid: str) -> Path:
     """Compute the run root directory from workspace and run ID."""
-    from arxiv_paper_pipeline.infra.paths import run_dir
+    from research_pipeline.infra.paths import run_dir
 
     return run_dir(ws, rid)
 
@@ -51,9 +51,9 @@ def _get_run_root(ws: Path, rid: str) -> Path:
 def plan_topic(params: PlanTopicInput) -> ToolResult:
     """Create a query plan from a natural language topic."""
     try:
-        from arxiv_paper_pipeline.config.loader import load_config
-        from arxiv_paper_pipeline.models.query_plan import QueryPlan
-        from arxiv_paper_pipeline.storage.workspace import init_run
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.query_plan import QueryPlan
+        from research_pipeline.storage.workspace import init_run
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -83,18 +83,25 @@ def plan_topic(params: PlanTopicInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def search_arxiv(params: SearchArxivInput) -> ToolResult:
-    """Search arXiv using the query plan."""
+def search(params: SearchInput) -> ToolResult:
+    """Search arXiv and/or Google Scholar using the query plan."""
     try:
-        from arxiv_paper_pipeline.arxiv.client import ArxivClient
-        from arxiv_paper_pipeline.arxiv.dedup import dedup_across_queries
-        from arxiv_paper_pipeline.arxiv.query_builder import build_query_from_plan
-        from arxiv_paper_pipeline.arxiv.rate_limit import ArxivRateLimiter
-        from arxiv_paper_pipeline.infra.cache import FileCache
-        from arxiv_paper_pipeline.infra.http import create_session
-        from arxiv_paper_pipeline.models.query_plan import QueryPlan
-        from arxiv_paper_pipeline.storage.workspace import get_stage_dir
+        from concurrent.futures import ThreadPoolExecutor, as_completed
 
+        from research_pipeline.arxiv.client import ArxivClient
+        from research_pipeline.arxiv.dedup import dedup_across_queries
+        from research_pipeline.arxiv.query_builder import build_query_from_plan
+        from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.infra.cache import FileCache
+        from research_pipeline.infra.clock import date_window
+        from research_pipeline.infra.http import create_session
+        from research_pipeline.models.candidate import CandidateRecord
+        from research_pipeline.models.query_plan import QueryPlan
+        from research_pipeline.sources.base import dedup_cross_source
+        from research_pipeline.storage.workspace import get_stage_dir
+
+        config = load_config()
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
         run_root = _get_run_root(ws, rid)
@@ -110,62 +117,150 @@ def search_arxiv(params: SearchArxivInput) -> ToolResult:
                 artifacts={"candidates": str(candidates_path)},
             )
 
-        # Load query plan
+        # Load or create query plan
         plan_path = get_stage_dir(run_root, "plan") / "query_plan.json"
-        if not plan_path.exists():
+        if plan_path.exists():
+            plan_data = json.loads(plan_path.read_text())
+            plan = QueryPlan.model_validate(plan_data)
+        elif params.topic:
+            plan = QueryPlan(
+                topic_raw=params.topic,
+                topic_normalized=params.topic.lower().strip(),
+                must_terms=params.topic.lower().split()[:3],
+                nice_terms=params.topic.lower().split()[3:6],
+            )
+            plan_path.parent.mkdir(parents=True, exist_ok=True)
+            plan_path.write_text(plan.model_dump_json(indent=2))
+        else:
             return ToolResult(
                 success=False,
-                message="No query plan found. Run plan_topic first.",
+                message="No query plan found and no topic provided.",
             )
 
-        plan_data = json.loads(plan_path.read_text())
-        plan_obj = QueryPlan.model_validate(plan_data)
-        queries = build_query_from_plan(plan_obj)
-        rate_limiter = ArxivRateLimiter()
-        session = create_session()
-        cache = FileCache(ws / ".cache" / "http")
-        client = ArxivClient(
-            session=session,
-            rate_limiter=rate_limiter,
-            cache=cache,
-        )
+        # Resolve sources
+        if params.source:
+            if params.source.lower() == "all":
+                sources = ["arxiv", "scholar"]
+            else:
+                sources = [s.strip() for s in params.source.split(",")]
+        else:
+            sources = config.sources.enabled
 
-        all_candidates = []
-        for query in queries:
-            candidates, _raw_paths = client.search(query)
-            all_candidates.extend(candidates)
+        # Shared cache from config (same as CLI)
+        cache: FileCache | None = None
+        if config.cache.enabled:
+            cache_dir = Path(config.cache.cache_dir).expanduser()
+            cache = FileCache(
+                cache_dir, ttl_hours=config.cache.search_snapshot_ttl_hours
+            )
 
-        deduped = dedup_across_queries(all_candidates)
+        all_candidates: list[CandidateRecord] = []
+        source_counts: dict[str, int] = {}
+
+        def _do_arxiv() -> list[CandidateRecord]:
+            rate_limiter = ArxivRateLimiter(
+                min_interval=config.arxiv.min_interval_seconds
+            )
+            session = create_session(config.contact_email)
+            client = ArxivClient(
+                session=session,
+                rate_limiter=rate_limiter,
+                cache=cache,
+                base_url=config.arxiv.base_url,
+                request_timeout=config.arxiv.request_timeout_seconds,
+            )
+            queries = build_query_from_plan(plan)
+            date_from, date_to = date_window(plan.primary_months)
+            arxiv_lists = []
+            for q in queries:
+                candidates, _ = client.search(
+                    query=q,
+                    max_results=config.arxiv.default_page_size,
+                    date_from=date_from,
+                    date_to=date_to,
+                )
+                arxiv_lists.append(candidates)
+            result = dedup_across_queries(arxiv_lists)
+            logger.info("arXiv: %d candidates", len(result))
+            return result
+
+        def _do_scholar() -> list[CandidateRecord]:
+            backend = config.sources.scholar_backend
+            if backend == "serpapi":
+                from research_pipeline.sources.scholar_source import SerpAPISource
+
+                source_obj = SerpAPISource(
+                    api_key=config.sources.serpapi_key,
+                    min_interval=config.sources.serpapi_min_interval,
+                )
+            else:
+                from research_pipeline.sources.scholar_source import ScholarlySource
+
+                source_obj = ScholarlySource(  # type: ignore[assignment]
+                    min_interval=config.sources.scholar_min_interval,
+                )
+            result = source_obj.search(
+                topic=plan.topic_raw,
+                must_terms=plan.must_terms,
+                nice_terms=plan.nice_terms,
+                max_results=min(config.arxiv.default_page_size, 20),
+            )
+            logger.info("Scholar (%s): %d candidates", backend, len(result))
+            return result
+
+        # Run sources in parallel
+        futures = {}
+        with ThreadPoolExecutor(max_workers=len(sources)) as executor:
+            if "arxiv" in sources:
+                futures[executor.submit(_do_arxiv)] = "arxiv"
+            if "scholar" in sources:
+                futures[executor.submit(_do_scholar)] = "scholar"
+
+            for future in as_completed(futures):
+                source_name = futures[future]
+                try:
+                    candidates = future.result()
+                    all_candidates.extend(candidates)
+                    source_counts[source_name] = len(candidates)
+                except Exception as exc:
+                    logger.error("%s search failed: %s", source_name, exc)
+                    source_counts[source_name] = -1  # indicates failure
+
+        deduped = dedup_cross_source(all_candidates)
 
         stage_dir.mkdir(parents=True, exist_ok=True)
         with candidates_path.open("w") as fh:
             for c in deduped:
                 fh.write(c.model_dump_json() + "\n")
 
+        source_summary = ", ".join(
+            f"{k}: {v}" if v >= 0 else f"{k}: FAILED" for k, v in source_counts.items()
+        )
         logger.info("Search returned %d unique candidates", len(deduped))
         return ToolResult(
             success=True,
-            message=f"Found {len(deduped)} unique candidates.",
+            message=(f"Found {len(deduped)} unique candidates " f"({source_summary})."),
             artifacts={
                 "candidates": str(candidates_path),
                 "count": len(deduped),
+                "sources": source_counts,
             },
         )
     except Exception as exc:
-        logger.error("search_arxiv failed: %s", exc)
+        logger.error("search failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
 def screen_candidates(params: ScreenCandidatesInput) -> ToolResult:
     """Two-stage relevance screening of candidates."""
     try:
-        from arxiv_paper_pipeline.config.loader import load_config
-        from arxiv_paper_pipeline.models.candidate import CandidateRecord
-        from arxiv_paper_pipeline.screening.heuristic import (
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.candidate import CandidateRecord
+        from research_pipeline.screening.heuristic import (
             score_candidates,
             select_topk,
         )
-        from arxiv_paper_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.storage.workspace import get_stage_dir
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -235,11 +330,11 @@ def screen_candidates(params: ScreenCandidatesInput) -> ToolResult:
 def download_pdfs(params: DownloadPdfsInput) -> ToolResult:
     """Download shortlisted PDFs from arXiv."""
     try:
-        from arxiv_paper_pipeline.arxiv.rate_limit import ArxivRateLimiter
-        from arxiv_paper_pipeline.config.loader import load_config
-        from arxiv_paper_pipeline.download.pdf import download_batch
-        from arxiv_paper_pipeline.infra.http import create_session
-        from arxiv_paper_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.download.pdf import download_batch
+        from research_pipeline.infra.http import create_session
+        from research_pipeline.storage.workspace import get_stage_dir
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -293,9 +388,9 @@ def download_pdfs(params: DownloadPdfsInput) -> ToolResult:
 def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
     """Convert downloaded PDFs to Markdown."""
     try:
-        from arxiv_paper_pipeline.conversion.docling_backend import DoclingBackend
-        from arxiv_paper_pipeline.models.download import DownloadManifestEntry
-        from arxiv_paper_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.conversion.docling_backend import DoclingBackend
+        from research_pipeline.models.download import DownloadManifestEntry
+        from research_pipeline.storage.workspace import get_stage_dir
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -348,7 +443,7 @@ def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
             success=False,
             message=(
                 "Docling is not installed. "
-                "Install with: pip install 'arxiv-paper-pipeline[docling]'"
+                "Install with: pip install 'research-pipeline[docling]'"
             ),
         )
     except Exception as exc:
@@ -359,9 +454,9 @@ def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
 def extract_content(params: ExtractContentInput) -> ToolResult:
     """Extract structured content from converted Markdown."""
     try:
-        from arxiv_paper_pipeline.extraction.extractor import extract_from_markdown
-        from arxiv_paper_pipeline.models.download import DownloadManifestEntry
-        from arxiv_paper_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.extraction.extractor import extract_from_markdown
+        from research_pipeline.models.download import DownloadManifestEntry
+        from research_pipeline.storage.workspace import get_stage_dir
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -414,10 +509,10 @@ def extract_content(params: ExtractContentInput) -> ToolResult:
 def summarize_papers(params: SummarizePapersInput) -> ToolResult:
     """Generate per-paper summaries and cross-paper synthesis."""
     try:
-        from arxiv_paper_pipeline.models.download import DownloadManifestEntry
-        from arxiv_paper_pipeline.storage.workspace import get_stage_dir
-        from arxiv_paper_pipeline.summarization.per_paper import summarize_paper
-        from arxiv_paper_pipeline.summarization.synthesis import synthesize
+        from research_pipeline.models.download import DownloadManifestEntry
+        from research_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.summarization.per_paper import summarize_paper
+        from research_pipeline.summarization.synthesis import synthesize
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -480,7 +575,7 @@ def summarize_papers(params: SummarizePapersInput) -> ToolResult:
 def run_pipeline(params: RunPipelineInput) -> ToolResult:
     """Run the full pipeline end-to-end."""
     try:
-        from arxiv_paper_pipeline.pipeline.orchestrator import run_pipeline as _run
+        from research_pipeline.pipeline.orchestrator import run_pipeline as _run
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -509,7 +604,7 @@ def run_pipeline(params: RunPipelineInput) -> ToolResult:
 def get_run_manifest(params: GetRunManifestInput) -> ToolResult:
     """Inspect a run's manifest and artifacts."""
     try:
-        from arxiv_paper_pipeline.storage.manifests import load_manifest
+        from research_pipeline.storage.manifests import load_manifest
 
         ws = _resolve_workspace(params.workspace)
         rid = params.run_id
@@ -535,7 +630,7 @@ def get_run_manifest(params: GetRunManifestInput) -> ToolResult:
 def convert_file(params: ConvertFileInput) -> ToolResult:
     """Convert a single PDF file to Markdown (standalone, no workspace needed)."""
     try:
-        from arxiv_paper_pipeline.conversion.docling_backend import DoclingBackend
+        from research_pipeline.conversion.docling_backend import DoclingBackend
 
         pdf_path = Path(params.pdf_path).expanduser().resolve()
         if not pdf_path.exists():
@@ -566,7 +661,7 @@ def convert_file(params: ConvertFileInput) -> ToolResult:
             success=False,
             message=(
                 "Docling is not installed. "
-                "Install with: pip install 'arxiv-paper-pipeline[docling]'"
+                "Install with: pip install 'research-pipeline[docling]'"
             ),
         )
     except Exception as exc:

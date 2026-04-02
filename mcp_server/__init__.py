@@ -1,4 +1,4 @@
-"""MCP server adapter for arxiv-paper-pipeline.
+"""MCP server adapter for research-pipeline.
 
 Thin wrapper that exposes core pipeline stages as MCP tools.
 """

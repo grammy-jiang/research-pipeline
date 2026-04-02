@@ -4,7 +4,7 @@ import json
 import time
 from pathlib import Path
 
-from arxiv_paper_pipeline.infra.cache import FileCache
+from research_pipeline.infra.cache import FileCache
 
 
 class TestFileCache:

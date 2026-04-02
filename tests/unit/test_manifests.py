@@ -4,8 +4,8 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from arxiv_paper_pipeline.models.manifest import RunManifest, StageRecord
-from arxiv_paper_pipeline.storage.manifests import (
+from research_pipeline.models.manifest import RunManifest, StageRecord
+from research_pipeline.storage.manifests import (
     load_manifest,
     read_jsonl,
     save_manifest,

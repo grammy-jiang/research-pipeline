@@ -2,15 +2,15 @@
 
 from pathlib import Path
 
-from arxiv_paper_pipeline.config.loader import load_config
-from arxiv_paper_pipeline.config.models import PipelineConfig
+from research_pipeline.config.loader import load_config
+from research_pipeline.config.models import PipelineConfig
 
 
 class TestLoadConfig:
     def test_defaults_without_file(self, tmp_path: Path, monkeypatch: object) -> None:
         monkeypatch.chdir(tmp_path)  # type: ignore[attr-defined]
         # Ensure no env var override
-        monkeypatch.delenv("ARXIV_PAPER_PIPELINE_CONFIG", raising=False)  # type: ignore[attr-defined]
+        monkeypatch.delenv("RESEARCH_PIPELINE_CONFIG", raising=False)  # type: ignore[attr-defined]
         config = load_config()
         assert isinstance(config, PipelineConfig)
         assert config.arxiv.min_interval_seconds == 5.0
@@ -33,7 +33,7 @@ max_per_run = 5
 
     def test_auto_detect_config_toml(self, tmp_path: Path, monkeypatch: object) -> None:
         monkeypatch.chdir(tmp_path)  # type: ignore[attr-defined]
-        monkeypatch.delenv("ARXIV_PAPER_PIPELINE_CONFIG", raising=False)  # type: ignore[attr-defined]
+        monkeypatch.delenv("RESEARCH_PIPELINE_CONFIG", raising=False)  # type: ignore[attr-defined]
         toml_content = """\
 [download]
 max_per_run = 3
@@ -46,17 +46,17 @@ max_per_run = 3
         self, tmp_path: Path, monkeypatch: object
     ) -> None:
         monkeypatch.chdir(tmp_path)  # type: ignore[attr-defined]
-        monkeypatch.setenv("ARXIV_PAPER_PIPELINE_WORKSPACE", "/tmp/custom_ws")  # type: ignore[attr-defined]
+        monkeypatch.setenv("RESEARCH_PIPELINE_WORKSPACE", "/tmp/custom_ws")  # type: ignore[attr-defined]
         config = load_config()
         assert config.workspace == "/tmp/custom_ws"
-        monkeypatch.delenv("ARXIV_PAPER_PIPELINE_WORKSPACE")  # type: ignore[attr-defined]
+        monkeypatch.delenv("RESEARCH_PIPELINE_WORKSPACE")  # type: ignore[attr-defined]
 
     def test_env_var_disable_llm(self, tmp_path: Path, monkeypatch: object) -> None:
         monkeypatch.chdir(tmp_path)  # type: ignore[attr-defined]
-        monkeypatch.setenv("ARXIV_PAPER_PIPELINE_DISABLE_LLM", "1")  # type: ignore[attr-defined]
+        monkeypatch.setenv("RESEARCH_PIPELINE_DISABLE_LLM", "1")  # type: ignore[attr-defined]
         config = load_config()
         assert config.llm.enabled is False
-        monkeypatch.delenv("ARXIV_PAPER_PIPELINE_DISABLE_LLM")  # type: ignore[attr-defined]
+        monkeypatch.delenv("RESEARCH_PIPELINE_DISABLE_LLM")  # type: ignore[attr-defined]
 
     def test_env_var_config_path(self, tmp_path: Path, monkeypatch: object) -> None:
         monkeypatch.chdir(tmp_path)  # type: ignore[attr-defined]
@@ -66,10 +66,10 @@ max_per_run = 99
 """
         toml_path = tmp_path / "env-config.toml"
         toml_path.write_text(toml_content, encoding="utf-8")
-        monkeypatch.setenv("ARXIV_PAPER_PIPELINE_CONFIG", str(toml_path))  # type: ignore[attr-defined]
+        monkeypatch.setenv("RESEARCH_PIPELINE_CONFIG", str(toml_path))  # type: ignore[attr-defined]
         config = load_config()
         assert config.download.max_per_run == 99
-        monkeypatch.delenv("ARXIV_PAPER_PIPELINE_CONFIG")  # type: ignore[attr-defined]
+        monkeypatch.delenv("RESEARCH_PIPELINE_CONFIG")  # type: ignore[attr-defined]
 
 
 class TestPipelineConfigDefaults:

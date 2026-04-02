@@ -3,7 +3,7 @@
 import time
 from unittest.mock import patch
 
-from arxiv_paper_pipeline.arxiv.rate_limit import ArxivRateLimiter
+from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 
 
 class TestArxivRateLimiter:

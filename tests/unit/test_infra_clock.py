@@ -2,7 +2,7 @@
 
 from datetime import UTC, datetime
 
-from arxiv_paper_pipeline.infra.clock import date_window, format_arxiv_date, utc_now
+from research_pipeline.infra.clock import date_window, format_arxiv_date, utc_now
 
 
 class TestUtcNow:

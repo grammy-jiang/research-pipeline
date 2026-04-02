@@ -2,8 +2,9 @@
 
 from datetime import UTC, datetime
 
-from arxiv_paper_pipeline.arxiv.dedup import dedup_across_queries, dedup_by_version
-from arxiv_paper_pipeline.models.candidate import CandidateRecord
+from research_pipeline.arxiv.dedup import dedup_across_queries, dedup_by_version
+from research_pipeline.models.candidate import CandidateRecord
+from research_pipeline.sources.base import dedup_cross_source
 
 
 def _make_candidate(
@@ -91,3 +92,50 @@ class TestDedupAcrossQueries:
         list1 = [_make_candidate("2401.11111")]
         result = dedup_across_queries([list1])
         assert len(result) == 1
+
+
+class TestDedupCrossSource:
+    def test_dedup_by_arxiv_id(self) -> None:
+        candidates = [
+            _make_candidate("2401.11111", title="Paper A"),
+            _make_candidate("2401.11111", title="Paper A (arxiv)"),
+        ]
+        result = dedup_cross_source(candidates)
+        assert len(result) == 1
+
+    def test_dedup_by_title(self) -> None:
+        c1 = _make_candidate("2401.11111", title="Same Title")
+        c2 = _make_candidate("2401.22222", title="same title")
+        result = dedup_cross_source([c1, c2])
+        assert len(result) == 1
+
+    def test_scholar_placeholder_ids_not_deduped_by_id(self) -> None:
+        c1 = _make_candidate("scholar-abc123", title="Paper One")
+        c2 = _make_candidate("scholar-def456", title="Paper Two")
+        result = dedup_cross_source([c1, c2])
+        assert len(result) == 2
+
+    def test_scholar_and_arxiv_dedup_by_title(self) -> None:
+        c1 = _make_candidate("2401.11111", title="AI Memory Systems")
+        c2 = _make_candidate("scholar-abc", title="AI Memory Systems")
+        result = dedup_cross_source([c1, c2])
+        assert len(result) == 1
+
+    def test_empty_list(self) -> None:
+        result = dedup_cross_source([])
+        assert result == []
+
+    def test_preserves_order(self) -> None:
+        c1 = _make_candidate("2401.11111", title="First")
+        c2 = _make_candidate("2401.22222", title="Second")
+        c3 = _make_candidate("2401.33333", title="Third")
+        result = dedup_cross_source([c1, c2, c3])
+        assert [c.title for c in result] == ["First", "Second", "Third"]
+
+    def test_no_duplicates(self) -> None:
+        candidates = [
+            _make_candidate("2401.11111", title="Paper A"),
+            _make_candidate("2401.22222", title="Paper B"),
+        ]
+        result = dedup_cross_source(candidates)
+        assert len(result) == 2

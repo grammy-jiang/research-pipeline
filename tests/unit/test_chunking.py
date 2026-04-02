@@ -1,6 +1,6 @@
 """Unit tests for extraction.chunking module."""
 
-from arxiv_paper_pipeline.extraction.chunking import chunk_markdown
+from research_pipeline.extraction.chunking import chunk_markdown
 
 
 class TestChunkMarkdown:

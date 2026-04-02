@@ -13,7 +13,7 @@ from mcp_server.schemas import (
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
-    SearchArxivInput,
+    SearchInput,
     SummarizePapersInput,
     ToolResult,
 )
@@ -42,11 +42,16 @@ class TestPlanTopicInput:
         assert p.workspace == "./workspace"
 
 
-class TestSearchArxivInput:
+class TestSearchInput:
     def test_defaults(self) -> None:
-        p = SearchArxivInput()
+        p = SearchInput()
         assert p.topic == ""
         assert p.resume is False
+        assert p.source == ""
+
+    def test_custom_source(self) -> None:
+        p = SearchInput(source="scholar")
+        assert p.source == "scholar"
 
 
 class TestScreenCandidatesInput:

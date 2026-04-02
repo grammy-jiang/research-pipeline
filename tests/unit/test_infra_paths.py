@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from arxiv_paper_pipeline.infra.paths import (
+from research_pipeline.infra.paths import (
     STAGE_NAMES,
     generate_run_id,
     logs_dir,

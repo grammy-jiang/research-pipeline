@@ -8,7 +8,7 @@ from mcp_server.schemas import (
     GetRunManifestInput,
     PlanTopicInput,
     ScreenCandidatesInput,
-    SearchArxivInput,
+    SearchInput,
 )
 from mcp_server.tools import (
     _resolve_run_id,
@@ -17,7 +17,7 @@ from mcp_server.tools import (
     get_run_manifest,
     plan_topic,
     screen_candidates,
-    search_arxiv,
+    search,
 )
 
 
@@ -76,10 +76,10 @@ class TestPlanTopic:
         assert result.success is True
 
 
-class TestSearchArxiv:
+class TestSearch:
     def test_no_plan_fails(self, tmp_path: Path) -> None:
-        result = search_arxiv(
-            SearchArxivInput(
+        result = search(
+            SearchInput(
                 workspace=str(tmp_path),
                 run_id="no-plan-run",
             )

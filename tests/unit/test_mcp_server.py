@@ -5,12 +5,12 @@ from mcp_server.server import mcp
 
 class TestServerRegistration:
     def test_server_name(self) -> None:
-        assert mcp.name == "arxiv-paper-pipeline"
+        assert mcp.name == "research-pipeline"
 
     def test_all_tools_registered(self) -> None:
         expected_tools = {
             "tool_plan_topic",
-            "tool_search_arxiv",
+            "tool_search",
             "tool_screen_candidates",
             "tool_download_pdfs",
             "tool_convert_pdfs",
