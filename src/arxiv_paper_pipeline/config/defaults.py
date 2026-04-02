@@ -8,6 +8,7 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "default_page_size": 100,
         "max_page_size": 500,
         "daily_query_cache": True,
+        "request_timeout_seconds": 60,
     },
     "search": {
         "primary_months": 6,

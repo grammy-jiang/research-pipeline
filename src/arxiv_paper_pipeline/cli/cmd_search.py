@@ -75,6 +75,7 @@ def run_search(
         cache=cache,
         session=session,
         base_url=config.arxiv.base_url,
+        request_timeout=config.arxiv.request_timeout_seconds,
     )
 
     queries = build_query_from_plan(plan)

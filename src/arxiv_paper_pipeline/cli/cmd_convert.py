@@ -53,7 +53,7 @@ def run_convert(
         if not pdf_path.exists():
             typer.echo(f"Warning: PDF not found: {pdf_path}", err=True)
             continue
-        result = converter.convert(pdf_path, md_dir)
+        result = converter.convert(pdf_path, md_dir, force=force)
         results.append(result)
 
     conv_path = get_stage_dir(run_root, "convert_root") / "convert_manifest.jsonl"

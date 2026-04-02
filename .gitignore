@@ -465,3 +465,7 @@ package
 .ionide
 
 # End of https://www.toptal.com/developers/gitignore/api/git,node,python,jetbrains,svelte,visualstudiocode
+
+### Project ###
+# Pipeline run artifacts
+runs/

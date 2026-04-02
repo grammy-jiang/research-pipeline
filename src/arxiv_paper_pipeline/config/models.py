@@ -14,6 +14,7 @@ class ArxivConfig(BaseModel):
     default_page_size: int = int(DEFAULTS["arxiv"]["default_page_size"])
     max_page_size: int = int(DEFAULTS["arxiv"]["max_page_size"])
     daily_query_cache: bool = bool(DEFAULTS["arxiv"]["daily_query_cache"])
+    request_timeout_seconds: int = int(DEFAULTS["arxiv"]["request_timeout_seconds"])
 
 
 class SearchConfig(BaseModel):

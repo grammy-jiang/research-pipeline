@@ -125,6 +125,7 @@ def run_pipeline(
         session=session,
         base_url=config.arxiv.base_url,
         contact_email=config.contact_email,
+        request_timeout=config.arxiv.request_timeout_seconds,
     )
 
     # --- Stage: plan ---

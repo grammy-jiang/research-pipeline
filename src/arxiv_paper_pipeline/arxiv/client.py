@@ -35,11 +35,13 @@ class ArxivClient:
         session: requests.Session | None = None,
         base_url: str = "https://export.arxiv.org/api/query",
         contact_email: str = "",
+        request_timeout: int = 60,
     ) -> None:
         self.rate_limiter = rate_limiter or ArxivRateLimiter()
         self.cache = cache
         self.session = session or create_session(contact_email)
         self.base_url = base_url
+        self.request_timeout = request_timeout
 
     def _fetch_page(self, url: str, cache_key: str) -> str:
         """Fetch a single page, using cache if available.
@@ -62,7 +64,7 @@ class ArxivClient:
 
         self.rate_limiter.wait()
         logger.info("Fetching: %s", url[:120])
-        response = self.session.get(url, timeout=30)
+        response = self.session.get(url, timeout=self.request_timeout)
         response.raise_for_status()
 
         xml_text = response.text

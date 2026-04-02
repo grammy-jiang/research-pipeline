@@ -35,12 +35,15 @@ class DoclingBackend(ConverterBackend):
         config_hash = sha256_str(f"timeout={self.timeout_seconds}")[:8]
         return f"docling/{self.version}/{config_hash}"
 
-    def convert(self, pdf_path: Path, output_dir: Path) -> ConvertManifestEntry:
+    def convert(
+        self, pdf_path: Path, output_dir: Path, *, force: bool = False
+    ) -> ConvertManifestEntry:
         """Convert a PDF to Markdown using Docling.
 
         Args:
             pdf_path: Path to the source PDF.
             output_dir: Directory to write Markdown output.
+            force: Re-convert even if output already exists.
 
         Returns:
             Conversion manifest entry.
@@ -57,6 +60,11 @@ class DoclingBackend(ConverterBackend):
         if stem[-2] == "v" and stem[-1].isdigit():
             arxiv_id = stem[:-2]
             version = stem[-2:]
+
+        # Remove existing output when force is set
+        if force and md_path.exists():
+            logger.info("Force mode: removing existing %s", md_path)
+            md_path.unlink()
 
         # Check if already converted with same fingerprint
         if md_path.exists():
