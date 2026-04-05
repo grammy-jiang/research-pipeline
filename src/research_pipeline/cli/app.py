@@ -313,5 +313,50 @@ def convert_file(
     run_convert_file(pdf_path, output_dir=output_dir, backend=backend)
 
 
+@app.command()
+def expand(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(
+        ..., "--run-id", help="Run ID to store expanded candidates."
+    ),
+    paper_ids: str = typer.Option(
+        ...,
+        "--paper-ids",
+        help="Comma-separated arXiv IDs or S2 paper IDs to expand.",
+    ),
+    direction: str = typer.Option(
+        "both",
+        "--direction",
+        "-d",
+        help="citations, references, or both.",
+    ),
+    limit: int = typer.Option(
+        50,
+        "--limit",
+        help="Max related papers per seed paper per direction.",
+    ),
+) -> None:
+    """Expand citation graph for specified papers.
+
+    Fetches papers that cite or are referenced by the given seed
+    papers using the Semantic Scholar API. Requires explicit
+    paper IDs — no autonomous selection.
+
+    Example: research-pipeline expand --run-id <ID> --paper-ids 2401.12345,2401.67890
+    """
+    from research_pipeline.cli.cmd_expand import run_expand
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    ids = [p.strip() for p in paper_ids.split(",") if p.strip()]
+    run_expand(
+        paper_ids=ids,
+        direction=direction,
+        limit_per_paper=limit,
+        **opts,
+    )
+
+
 if __name__ == "__main__":
     app()
