@@ -1,4 +1,6 @@
-"""Docling-based PDF-to-Markdown converter backend."""
+"""Marker-based PDF-to-Markdown converter backend."""
+
+from __future__ import annotations
 
 import logging
 from pathlib import Path
@@ -12,35 +14,54 @@ from research_pipeline.models.conversion import ConvertManifestEntry
 logger = logging.getLogger(__name__)
 
 
-@register_backend("docling")
-class DoclingBackend(ConverterBackend):
-    """PDF-to-Markdown conversion using Docling (MIT license)."""
+@register_backend("marker")
+class MarkerBackend(ConverterBackend):
+    """PDF-to-Markdown conversion using Marker (GPL-3.0 code, Open Rail-M models).
 
-    def __init__(self, timeout_seconds: int = 300) -> None:
-        self.timeout_seconds = timeout_seconds
+    Supports optional LLM-assisted conversion for improved accuracy on
+    complex layouts and equations.
+    """
+
+    def __init__(
+        self,
+        *,
+        force_ocr: bool = False,
+        use_llm: bool = False,
+        llm_service: str | None = None,
+        llm_api_key: str | None = None,
+    ) -> None:
+        self.force_ocr = force_ocr
+        self.use_llm = use_llm
+        self.llm_service = llm_service
+        self.llm_api_key = llm_api_key
         self._version: str | None = None
 
     @property
     def version(self) -> str:
-        """Get the installed Docling version."""
+        """Get the installed Marker version."""
         if self._version is None:
             try:
-                import docling
+                import marker
 
-                self._version = getattr(docling, "__version__", "unknown")
+                self._version = getattr(marker, "__version__", "unknown")
             except ImportError:
                 self._version = "not_installed"
         return self._version
 
     def fingerprint(self) -> str:
         """Return converter fingerprint."""
-        config_hash = sha256_str(f"timeout={self.timeout_seconds}")[:8]
-        return f"docling/{self.version}/{config_hash}"
+        config_parts = [
+            f"force_ocr={self.force_ocr}",
+            f"use_llm={self.use_llm}",
+            f"llm_service={self.llm_service or 'none'}",
+        ]
+        config_hash = sha256_str("|".join(config_parts))[:8]
+        return f"marker/{self.version}/{config_hash}"
 
     def convert(
         self, pdf_path: Path, output_dir: Path, *, force: bool = False
     ) -> ConvertManifestEntry:
-        """Convert a PDF to Markdown using Docling.
+        """Convert a PDF to Markdown using Marker.
 
         Args:
             pdf_path: Path to the source PDF.
@@ -55,7 +76,6 @@ class DoclingBackend(ConverterBackend):
         md_path = output_dir / md_filename
         pdf_hash = sha256_file(pdf_path)
 
-        # Parse arXiv ID and version from filename
         stem = pdf_path.stem
         arxiv_id = stem
         version = "v1"
@@ -63,12 +83,15 @@ class DoclingBackend(ConverterBackend):
             arxiv_id = stem[:-2]
             version = stem[-2:]
 
-        # Remove existing output when force is set
         if force and md_path.exists():
             logger.info("Force mode: removing existing %s", md_path)
             md_path.unlink()
 
-        # Check if already converted with same fingerprint
+        config_hash = sha256_str(
+            f"force_ocr={self.force_ocr}|use_llm={self.use_llm}"
+            f"|llm_service={self.llm_service or 'none'}"
+        )[:8]
+
         if md_path.exists():
             logger.info("Markdown already exists, skipping: %s", md_path)
             return ConvertManifestEntry(
@@ -77,20 +100,30 @@ class DoclingBackend(ConverterBackend):
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="marker",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
                 warnings=[],
                 status="skipped_exists",
             )
 
         try:
-            from docling.document_converter import DocumentConverter
+            from marker.converters.pdf import PdfConverter
+            from marker.models import create_model_dict
 
-            converter = DocumentConverter()
-            result = converter.convert(str(pdf_path))
-            markdown_text = result.document.export_to_markdown()
+            models = create_model_dict()
+
+            converter_kwargs: dict[str, object] = {}
+            if self.force_ocr:
+                converter_kwargs["force_ocr"] = True
+            if self.use_llm and self.llm_service:
+                converter_kwargs["use_llm"] = True
+                converter_kwargs["llm_service"] = self.llm_service
+
+            converter = PdfConverter(artifact_dict=models, **converter_kwargs)
+            rendered = converter(str(pdf_path))
+            markdown_text = rendered.markdown
 
             md_path.write_text(markdown_text, encoding="utf-8")
             logger.info("Converted %s → %s", pdf_path.name, md_path.name)
@@ -101,9 +134,9 @@ class DoclingBackend(ConverterBackend):
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="marker",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
                 warnings=[],
                 status="converted",
@@ -111,8 +144,8 @@ class DoclingBackend(ConverterBackend):
 
         except ImportError:
             msg = (
-                "Docling is not installed. Install with: "
-                "pip install 'research-pipeline[docling]'"
+                "Marker is not installed. Install with: "
+                "pip install 'research-pipeline[marker]'"
             )
             logger.error(msg)
             return ConvertManifestEntry(
@@ -121,28 +154,27 @@ class DoclingBackend(ConverterBackend):
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="marker",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
-                warnings=[],
+                warnings=[msg],
                 status="failed",
                 error=msg,
             )
-
         except Exception as exc:
-            logger.error("Conversion failed for %s: %s", pdf_path.name, exc)
+            logger.error("Marker conversion failed for %s: %s", pdf_path.name, exc)
             return ConvertManifestEntry(
                 arxiv_id=arxiv_id,
                 version=version,
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="marker",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
-                warnings=[],
+                warnings=[str(exc)],
                 status="failed",
                 error=str(exc),
             )

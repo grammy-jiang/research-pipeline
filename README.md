@@ -12,8 +12,9 @@ Scholar.
 
 - **7-stage pipeline**: plan → search → screen → download → convert → extract → summarize
 - **Modular CLI** with independent, composable stage commands
-- **MCP server** for AI agent integration (10 tools via stdio transport)
+- **MCP server** for AI agent integration (12 tools via stdio transport)
 - **Multi-source search**: arXiv API + Google Scholar (free & SerpAPI)
+- **Multi-backend PDF conversion**: Docling (MIT), Marker (highest accuracy), PyMuPDF4LLM (fastest)
 - **Idempotent & resumable** — every stage can be re-run safely
 - **arXiv polite-mode** — strict rate limiting, single connection, caching
 - **Deterministic tool chain** with optional LLM judgment
@@ -26,14 +27,16 @@ Scholar.
 # From PyPI
 pip install research-pipeline
 
-# With PDF conversion support (Docling)
-pip install research-pipeline[docling]
+# With PDF conversion backends
+pip install research-pipeline[docling]       # MIT license, great tables/equations
+pip install research-pipeline[marker]        # Highest accuracy (95.7%), GPL-3.0
+pip install research-pipeline[pymupdf4llm]   # Fastest (10-50x), AGPL
 
 # With Google Scholar support
 pip install research-pipeline[scholar]
 
 # With all extras
-pip install research-pipeline[docling,scholar]
+pip install research-pipeline[docling,marker,pymupdf4llm,scholar]
 ```
 
 ### Development install
@@ -63,6 +66,10 @@ research-pipeline inspect --run-id <RUN_ID>
 
 # Standalone PDF conversion (no workspace required)
 research-pipeline convert-file paper.pdf -o paper.md
+
+# Use a specific conversion backend
+research-pipeline convert --run-id <RUN_ID> --backend marker
+research-pipeline convert-file paper.pdf --backend pymupdf4llm
 ```
 
 ## Commands
@@ -73,7 +80,7 @@ research-pipeline convert-file paper.pdf -o paper.md
 | `search` | Execute multi-source search (arXiv + Scholar) |
 | `screen` | Two-stage relevance filtering (BM25 + optional LLM) |
 | `download` | Download shortlisted PDFs with rate limiting |
-| `convert` | PDF → Markdown via Docling |
+| `convert` | PDF → Markdown (docling, marker, or pymupdf4llm) |
 | `extract` | Structured content extraction & chunking |
 | `summarize` | Per-paper summaries + cross-paper synthesis |
 | `run` | End-to-end orchestration of all stages |
@@ -90,7 +97,7 @@ uv run python -m mcp_server
 
 # Available tools: plan_topic, search, screen_candidates, download_pdfs,
 # convert_pdfs, extract_content, summarize_papers, run_pipeline,
-# get_run_manifest, convert_file
+# get_run_manifest, convert_file, list_backends
 ```
 
 ## Configuration

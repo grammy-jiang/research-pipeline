@@ -16,6 +16,7 @@ from mcp_server.schemas import (
     DownloadPdfsInput,
     ExtractContentInput,
     GetRunManifestInput,
+    ListBackendsInput,
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
@@ -25,6 +26,26 @@ from mcp_server.schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _backend_kwargs(
+    backend_name: str,
+    config: object,
+) -> dict[str, object]:
+    """Build constructor kwargs for a converter backend from config."""
+    if backend_name == "docling":
+        return {"timeout_seconds": config.conversion.timeout_seconds}  # type: ignore[union-attr]
+    if backend_name == "marker":
+        mc = config.conversion.marker  # type: ignore[union-attr]
+        kwargs: dict[str, object] = {"force_ocr": mc.force_ocr}
+        if mc.use_llm:
+            kwargs["use_llm"] = True
+            if mc.llm_service:
+                kwargs["llm_service"] = mc.llm_service
+            if mc.llm_api_key:
+                kwargs["llm_api_key"] = mc.llm_api_key
+        return kwargs
+    return {}
 
 
 def _resolve_workspace(workspace: str) -> Path:
@@ -390,13 +411,20 @@ def download_pdfs(params: DownloadPdfsInput) -> ToolResult:
 def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
     """Convert downloaded PDFs to Markdown."""
     try:
-        from research_pipeline.conversion.docling_backend import DoclingBackend
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.conversion.registry import (
+            _ensure_builtins_registered,
+            get_backend,
+        )
         from research_pipeline.models.download import DownloadManifestEntry
         from research_pipeline.storage.workspace import get_stage_dir
+
+        _ensure_builtins_registered()
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
         run_root = _get_run_root(ws, rid)
+        config = load_config()
 
         download_dir = get_stage_dir(run_root, "download")
         manifest_path = download_dir / "download_manifest.jsonl"
@@ -409,7 +437,10 @@ def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
         convert_dir = get_stage_dir(run_root, "convert")
         convert_dir.mkdir(parents=True, exist_ok=True)
 
-        backend = DoclingBackend()
+        backend_name = params.backend or config.conversion.backend
+        kwargs = _backend_kwargs(backend_name, config)
+        backend = get_backend(backend_name, **kwargs)
+
         entries = []
         for line in manifest_path.read_text().strip().split("\n"):
             if line:
@@ -421,7 +452,7 @@ def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
                 continue
             pdf_path = Path(entry.local_path)
             if pdf_path.exists():
-                result = backend.convert(pdf_path, convert_dir)
+                result = backend.convert(pdf_path, convert_dir, force=params.force)
                 results.append(result)
 
         conv_manifest = convert_dir / "convert_manifest.jsonl"
@@ -433,19 +464,23 @@ def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
         logger.info("Converted %d/%d PDFs", success_count, len(results))
         return ToolResult(
             success=True,
-            message=f"Converted {success_count}/{len(results)} PDFs to Markdown.",
+            message=(
+                f"Converted {success_count}/{len(results)} PDFs to Markdown "
+                f"(backend={backend_name})."
+            ),
             artifacts={
                 "manifest": str(conv_manifest),
                 "convert_dir": str(convert_dir),
                 "converted": success_count,
+                "backend": backend_name,
             },
         )
-    except ImportError:
+    except ImportError as exc:
         return ToolResult(
             success=False,
             message=(
-                "Docling is not installed. "
-                "Install with: pip install 'research-pipeline[docling]'"
+                f"Converter backend is not installed: {exc}. "
+                "Install the corresponding extra."
             ),
         )
     except Exception as exc:
@@ -632,7 +667,13 @@ def get_run_manifest(params: GetRunManifestInput) -> ToolResult:
 def convert_file(params: ConvertFileInput) -> ToolResult:
     """Convert a single PDF file to Markdown (standalone, no workspace needed)."""
     try:
-        from research_pipeline.conversion.docling_backend import DoclingBackend
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.conversion.registry import (
+            _ensure_builtins_registered,
+            get_backend,
+        )
+
+        _ensure_builtins_registered()
 
         pdf_path = Path(params.pdf_path).expanduser().resolve()
         if not pdf_path.exists():
@@ -645,27 +686,61 @@ def convert_file(params: ConvertFileInput) -> ToolResult:
         output_dir = output_dir.expanduser().resolve()
         output_dir.mkdir(parents=True, exist_ok=True)
 
-        backend = DoclingBackend()
+        config = load_config()
+        backend_name = params.backend or config.conversion.backend
+        kwargs = _backend_kwargs(backend_name, config)
+        backend = get_backend(backend_name, **kwargs)
+
         result = backend.convert(pdf_path, output_dir)
 
         md_path = output_dir / f"{pdf_path.stem}.md"
-        logger.info("Converted %s → %s (status=%s)", pdf_path, md_path, result.status)
+        logger.info(
+            "Converted %s → %s (status=%s, backend=%s)",
+            pdf_path,
+            md_path,
+            result.status,
+            backend_name,
+        )
         return ToolResult(
             success=result.status in ("converted", "skipped_exists"),
-            message=f"Conversion {result.status}: {pdf_path.name} → {md_path.name}",
+            message=(
+                f"Conversion {result.status}: {pdf_path.name} → {md_path.name} "
+                f"(backend={backend_name})"
+            ),
             artifacts={
                 "markdown_path": str(md_path) if md_path.exists() else "",
                 "status": result.status,
+                "backend": backend_name,
             },
         )
-    except ImportError:
+    except ImportError as exc:
         return ToolResult(
             success=False,
             message=(
-                "Docling is not installed. "
-                "Install with: pip install 'research-pipeline[docling]'"
+                f"Converter backend is not installed: {exc}. "
+                "Install the corresponding extra."
             ),
         )
     except Exception as exc:
         logger.error("convert_file failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def list_backends(params: ListBackendsInput) -> ToolResult:
+    """List available converter backends."""
+    try:
+        from research_pipeline.conversion.registry import (
+            _ensure_builtins_registered,
+        )
+        from research_pipeline.conversion.registry import list_backends as _list
+
+        _ensure_builtins_registered()
+        backends = _list()
+        return ToolResult(
+            success=True,
+            message=f"Available backends: {', '.join(backends)}",
+            artifacts={"backends": backends},
+        )
+    except Exception as exc:
+        logger.error("list_backends failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

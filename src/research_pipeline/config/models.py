@@ -43,11 +43,21 @@ class DownloadConfig(BaseModel):
     max_per_run: int = int(DEFAULTS["download"]["max_per_run"])
 
 
+class MarkerConfig(BaseModel):
+    """Marker-specific conversion parameters."""
+
+    force_ocr: bool = False
+    use_llm: bool = False
+    llm_service: str = ""
+    llm_api_key: str = ""
+
+
 class ConversionConfig(BaseModel):
     """Conversion parameters."""
 
     backend: str = str(DEFAULTS["conversion"]["backend"])
     timeout_seconds: int = int(DEFAULTS["conversion"]["timeout_seconds"])
+    marker: MarkerConfig = Field(default_factory=MarkerConfig)
 
 
 class LLMConfig(BaseModel):

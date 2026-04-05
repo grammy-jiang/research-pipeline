@@ -78,15 +78,27 @@ writes. Respects arXiv's polite-mode guidelines.
 
 ### 5. Convert
 
-Converts downloaded PDFs to Markdown using Docling, preserving document
-structure (headings, tables, equations).
+Converts downloaded PDFs to Markdown using a pluggable backend system.
+Three backends are available out of the box:
+
+| Backend | Package | License | Strengths |
+|---------|---------|---------|----------|
+| `docling` | `docling>=2.0` | MIT | Great table/equation preservation |
+| `marker` | `marker-pdf>=1.10` | GPL-3.0 / Open Rail-M | Highest accuracy (95.7%), optional LLM boost |
+| `pymupdf4llm` | `pymupdf4llm>=0.0.17` | AGPL | 10-50x faster, CPU-only, no LaTeX |
+
+Backends are discovered via the **registry pattern**
+(`src/research_pipeline/conversion/registry.py`). Each backend class uses
+`@register_backend("name")` to self-register. The CLI `--backend` flag and
+config `conversion.backend` select the active backend at runtime.
 
 | Property | Value |
 |----------|-------|
 | Input | `download/pdf/*.pdf` |
 | Output | `convert/markdown/*.md`, `convert/convert_manifest.jsonl` |
 | Implementation | `src/research_pipeline/cli/cmd_convert.py` |
-| Backend | `src/research_pipeline/conversion/docling_backend.py` |
+| Registry | `src/research_pipeline/conversion/registry.py` |
+| Backends | `docling_backend.py`, `marker_backend.py`, `pymupdf4llm_backend.py` |
 | Model | `src/research_pipeline/models/conversion.py` (`ConvertManifestEntry`) |
 
 ### 6. Extract
@@ -190,12 +202,13 @@ to the same logic used by the CLI. The server uses FastMCP with stdio transport.
 | `search` | `search` | Search sources for papers |
 | `screen_candidates` | `screen` | Score and filter candidates |
 | `download_pdfs` | `download` | Download shortlisted PDFs |
-| `convert_pdfs` | `convert` | Convert PDFs to Markdown |
+| `convert_pdfs` | `convert` | Convert PDFs to Markdown (supports backend selection) |
 | `extract_content` | `extract` | Chunk and index content |
 | `summarize_papers` | `summarize` | Generate summaries |
 | `run_pipeline` | `run` | Run full pipeline |
 | `get_run_manifest` | `inspect` | Read run manifest |
-| `convert_file` | `convert-file` | Convert single PDF |
+| `convert_file` | `convert-file` | Convert single PDF (supports backend selection) |
+| `list_backends` | — | List available converter backends |
 
 ## Source tree
 
@@ -208,7 +221,7 @@ src/research_pipeline/
 ├── sources/        # Multi-source search adapters
 ├── screening/      # BM25 heuristic scoring, LLM judge interface
 ├── download/       # Rate-limited PDF downloader
-├── conversion/     # PDF→Markdown backends
+├── conversion/     # PDF→Markdown backends (registry + docling/marker/pymupdf4llm)
 ├── extraction/     # Markdown chunking and retrieval
 ├── summarization/  # Per-paper and cross-paper synthesis
 ├── pipeline/       # Orchestrator and stage sequencing

@@ -16,6 +16,7 @@ from mcp_server.schemas import (
     DownloadPdfsInput,
     ExtractContentInput,
     GetRunManifestInput,
+    ListBackendsInput,
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
@@ -28,6 +29,7 @@ from mcp_server.tools import (
     download_pdfs,
     extract_content,
     get_run_manifest,
+    list_backends,
     plan_topic,
     run_pipeline,
     screen_candidates,
@@ -126,13 +128,18 @@ def tool_convert_pdfs(
     workspace: str = "./workspace",
     run_id: str = "",
     force: bool = False,
+    backend: str = "",
 ) -> dict:
-    """Convert downloaded PDFs to Markdown using Docling.
+    """Convert downloaded PDFs to Markdown.
 
-    Requires the docling extra: pip install 'research-pipeline[docling]'.
+    Supports multiple backends: docling, marker, pymupdf4llm.
+    Use backend='' to use the config default.
+    Requires the corresponding extra to be installed.
     """
     result = convert_pdfs(
-        ConvertPdfsInput(workspace=workspace, run_id=run_id, force=force)
+        ConvertPdfsInput(
+            workspace=workspace, run_id=run_id, force=force, backend=backend
+        )
     )
     return result.model_dump()
 
@@ -200,13 +207,28 @@ def tool_get_run_manifest(
 def tool_convert_file(
     pdf_path: str,
     output_dir: str = "",
+    backend: str = "",
 ) -> dict:
     """Convert a single PDF file to Markdown (standalone, no pipeline workspace needed).
 
-    Uses Docling to convert any PDF to Markdown. Useful for ad-hoc
+    Supports multiple backends: docling, marker, pymupdf4llm.
+    Use backend='' to use the config default. Useful for ad-hoc
     document conversion without running the full pipeline.
     """
-    result = convert_file(ConvertFileInput(pdf_path=pdf_path, output_dir=output_dir))
+    result = convert_file(
+        ConvertFileInput(pdf_path=pdf_path, output_dir=output_dir, backend=backend)
+    )
+    return result.model_dump()
+
+
+@mcp.tool()
+def tool_list_backends() -> dict:
+    """List available PDF-to-Markdown converter backends.
+
+    Returns the names of all registered backends (docling, marker, pymupdf4llm).
+    Each backend requires its corresponding extra to be installed.
+    """
+    result = list_backends(ListBackendsInput())
     return result.model_dump()
 
 

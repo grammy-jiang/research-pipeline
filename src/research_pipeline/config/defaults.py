@@ -30,6 +30,12 @@ DEFAULTS: dict[str, dict[str, object]] = {
     "conversion": {
         "backend": "docling",
         "timeout_seconds": 300,
+        "marker": {
+            "force_ocr": False,
+            "use_llm": False,
+            "llm_service": "",
+            "llm_api_key": "",
+        },
     },
     "llm": {
         "enabled": False,

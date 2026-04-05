@@ -174,18 +174,25 @@ def convert(
     workspace: Path | None = typer.Option(None, "--workspace", "-w"),
     run_id: str = typer.Option(..., "--run-id", help="Run ID with downloaded PDFs."),
     force: bool = typer.Option(False, "--force"),
+    backend: str | None = typer.Option(
+        None,
+        "--backend",
+        "-b",
+        help="Converter backend: docling, marker, pymupdf4llm (default: from config).",
+    ),
 ) -> None:
-    """Convert PDFs to Markdown using Docling.
+    """Convert PDFs to Markdown.
 
-    Preserves document structure (headings, tables, equations).
-    Use --force to reconvert. Requires Docling installation.
+    Supports multiple backends: docling, marker, pymupdf4llm.
+    Use --backend to override the config default.
+    Requires the corresponding extra to be installed.
 
-    Example: research-pipeline convert --run-id <RUN_ID>
+    Example: research-pipeline convert --run-id <RUN_ID> --backend marker
     """
     from research_pipeline.cli.cmd_convert import run_convert
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_convert(force=force, **opts)
+    run_convert(force=force, backend=backend, **opts)
 
 
 @app.command()
@@ -287,17 +294,23 @@ def convert_file(
     output_dir: Path | None = typer.Option(
         None, "--output", "-o", help="Output directory (default: same as PDF)."
     ),
+    backend: str | None = typer.Option(
+        None,
+        "--backend",
+        "-b",
+        help="Converter backend: docling, marker, pymupdf4llm (default: from config).",
+    ),
 ) -> None:
     """Convert a single PDF to Markdown (standalone, no pipeline).
 
-    Uses Docling for structure-aware conversion. Output defaults
-    to the same directory as the input PDF.
+    Supports multiple backends: docling, marker, pymupdf4llm.
+    Output defaults to the same directory as the input PDF.
 
-    Example: research-pipeline convert-file paper.pdf -o ./output/
+    Example: research-pipeline convert-file paper.pdf -o ./output/ --backend marker
     """
     from research_pipeline.cli.cmd_convert_file import run_convert_file
 
-    run_convert_file(pdf_path, output_dir=output_dir)
+    run_convert_file(pdf_path, output_dir=output_dir, backend=backend)
 
 
 if __name__ == "__main__":

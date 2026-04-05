@@ -1,4 +1,11 @@
-"""Docling-based PDF-to-Markdown converter backend."""
+"""PyMuPDF4LLM-based PDF-to-Markdown converter backend.
+
+A fast, lightweight converter (~10-50x faster than Docling) that trades
+equation rendering quality for speed. Best for pre-screening or when
+LaTeX equations are not critical.
+"""
+
+from __future__ import annotations
 
 import logging
 from pathlib import Path
@@ -12,35 +19,39 @@ from research_pipeline.models.conversion import ConvertManifestEntry
 logger = logging.getLogger(__name__)
 
 
-@register_backend("docling")
-class DoclingBackend(ConverterBackend):
-    """PDF-to-Markdown conversion using Docling (MIT license)."""
+@register_backend("pymupdf4llm")
+class PyMuPDF4LLMBackend(ConverterBackend):
+    """PDF-to-Markdown conversion using pymupdf4llm (AGPL license).
 
-    def __init__(self, timeout_seconds: int = 300) -> None:
-        self.timeout_seconds = timeout_seconds
+    Very fast CPU-only converter. Good for quick screening.
+    Does not render LaTeX equations.
+    """
+
+    def __init__(self, *, page_chunks: bool = False) -> None:
+        self.page_chunks = page_chunks
         self._version: str | None = None
 
     @property
     def version(self) -> str:
-        """Get the installed Docling version."""
+        """Get the installed pymupdf4llm version."""
         if self._version is None:
             try:
-                import docling
+                import pymupdf4llm
 
-                self._version = getattr(docling, "__version__", "unknown")
+                self._version = getattr(pymupdf4llm, "__version__", "unknown")
             except ImportError:
                 self._version = "not_installed"
         return self._version
 
     def fingerprint(self) -> str:
         """Return converter fingerprint."""
-        config_hash = sha256_str(f"timeout={self.timeout_seconds}")[:8]
-        return f"docling/{self.version}/{config_hash}"
+        config_hash = sha256_str(f"page_chunks={self.page_chunks}")[:8]
+        return f"pymupdf4llm/{self.version}/{config_hash}"
 
     def convert(
         self, pdf_path: Path, output_dir: Path, *, force: bool = False
     ) -> ConvertManifestEntry:
-        """Convert a PDF to Markdown using Docling.
+        """Convert a PDF to Markdown using pymupdf4llm.
 
         Args:
             pdf_path: Path to the source PDF.
@@ -55,7 +66,6 @@ class DoclingBackend(ConverterBackend):
         md_path = output_dir / md_filename
         pdf_hash = sha256_file(pdf_path)
 
-        # Parse arXiv ID and version from filename
         stem = pdf_path.stem
         arxiv_id = stem
         version = "v1"
@@ -63,12 +73,12 @@ class DoclingBackend(ConverterBackend):
             arxiv_id = stem[:-2]
             version = stem[-2:]
 
-        # Remove existing output when force is set
         if force and md_path.exists():
             logger.info("Force mode: removing existing %s", md_path)
             md_path.unlink()
 
-        # Check if already converted with same fingerprint
+        config_hash = sha256_str(f"page_chunks={self.page_chunks}")[:8]
+
         if md_path.exists():
             logger.info("Markdown already exists, skipping: %s", md_path)
             return ConvertManifestEntry(
@@ -77,20 +87,20 @@ class DoclingBackend(ConverterBackend):
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="pymupdf4llm",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
                 warnings=[],
                 status="skipped_exists",
             )
 
         try:
-            from docling.document_converter import DocumentConverter
+            import pymupdf4llm
 
-            converter = DocumentConverter()
-            result = converter.convert(str(pdf_path))
-            markdown_text = result.document.export_to_markdown()
+            markdown_text = pymupdf4llm.to_markdown(
+                str(pdf_path), page_chunks=self.page_chunks
+            )
 
             md_path.write_text(markdown_text, encoding="utf-8")
             logger.info("Converted %s → %s", pdf_path.name, md_path.name)
@@ -101,9 +111,9 @@ class DoclingBackend(ConverterBackend):
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="pymupdf4llm",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
                 warnings=[],
                 status="converted",
@@ -111,8 +121,8 @@ class DoclingBackend(ConverterBackend):
 
         except ImportError:
             msg = (
-                "Docling is not installed. Install with: "
-                "pip install 'research-pipeline[docling]'"
+                "pymupdf4llm is not installed. Install with: "
+                "pip install 'research-pipeline[pymupdf4llm]'"
             )
             logger.error(msg)
             return ConvertManifestEntry(
@@ -121,28 +131,27 @@ class DoclingBackend(ConverterBackend):
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="pymupdf4llm",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
-                warnings=[],
+                warnings=[msg],
                 status="failed",
                 error=msg,
             )
-
         except Exception as exc:
-            logger.error("Conversion failed for %s: %s", pdf_path.name, exc)
+            logger.error("pymupdf4llm conversion failed for %s: %s", pdf_path.name, exc)
             return ConvertManifestEntry(
                 arxiv_id=arxiv_id,
                 version=version,
                 pdf_path=str(pdf_path),
                 pdf_sha256=pdf_hash,
                 markdown_path=str(md_path),
-                converter_name="docling",
+                converter_name="pymupdf4llm",
                 converter_version=self.version,
-                converter_config_hash=sha256_str(f"timeout={self.timeout_seconds}")[:8],
+                converter_config_hash=config_hash,
                 converted_at=utc_now(),
-                warnings=[],
+                warnings=[str(exc)],
                 status="failed",
                 error=str(exc),
             )

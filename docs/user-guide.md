@@ -15,14 +15,20 @@
 # Install the base package
 pip install research-pipeline
 
-# With PDF conversion support (Docling)
+# With PDF conversion support (Docling — MIT license)
 pip install research-pipeline[docling]
+
+# With Marker backend (highest accuracy — GPL-3.0)
+pip install research-pipeline[marker]
+
+# With PyMuPDF4LLM backend (fastest — AGPL)
+pip install research-pipeline[pymupdf4llm]
 
 # With Google Scholar support
 pip install research-pipeline[scholar]
 
 # With all extras
-pip install research-pipeline[docling,scholar]
+pip install research-pipeline[docling,marker,pymupdf4llm,scholar]
 ```
 
 ### From source (development)
@@ -40,7 +46,9 @@ uv sync --extra dev --extra docling --extra scholar
 | Extra | Purpose |
 |---|---|
 | `dev` | Development tools (pytest, black, ruff, mypy, pre-commit) |
-| `docling` | PDF → Markdown conversion via Docling |
+| `docling` | PDF → Markdown conversion via Docling (MIT) |
+| `marker` | PDF → Markdown conversion via Marker (GPL-3.0, highest accuracy) |
+| `pymupdf4llm` | PDF → Markdown conversion via PyMuPDF4LLM (AGPL, fastest) |
 | `scholar` | Google Scholar search via the scholarly library |
 | `serpapi` | Google Scholar search via SerpAPI (requires API key) |
 
@@ -75,8 +83,14 @@ final_score_threshold = 0.70    # Minimum heuristic score
 max_per_run = 20                # Maximum PDFs per run
 
 [conversion]
-backend = "docling"             # PDF conversion backend
-timeout_seconds = 300           # Per-file timeout
+backend = "docling"             # PDF conversion backend (docling, marker, pymupdf4llm)
+timeout_seconds = 300           # Per-file timeout (docling)
+
+[conversion.marker]             # Marker-specific settings
+force_ocr = false               # Force OCR even for text PDFs
+use_llm = false                 # Enable LLM-assisted conversion
+llm_service = ""                # LLM service (e.g. "marker.v2")
+llm_api_key = ""                # API key for LLM service
 
 [llm]
 enabled = false                 # LLM-based features (experimental)
@@ -131,6 +145,8 @@ research-pipeline download --run-id <RUN_ID>
 
 # 5. Convert PDFs to Markdown
 research-pipeline convert --run-id <RUN_ID>
+# Or use a specific backend
+research-pipeline convert --run-id <RUN_ID> --backend marker
 # Output: runs/<run_id>/convert/markdown/*.md
 
 # 6. Extract and chunk content
@@ -156,6 +172,9 @@ Convert a single PDF to Markdown without creating a workspace or run:
 
 ```bash
 research-pipeline convert-file paper.pdf -o paper.md
+
+# Use a specific backend
+research-pipeline convert-file paper.pdf -o paper.md --backend marker
 ```
 
 ### Common options
@@ -186,12 +205,13 @@ uv run python -m mcp_server
 | `search` | Search arXiv and Google Scholar |
 | `screen_candidates` | Screen papers by relevance |
 | `download_pdfs` | Download shortlisted papers |
-| `convert_pdfs` | Convert PDFs to Markdown |
+| `convert_pdfs` | Convert PDFs to Markdown (supports backend selection) |
 | `extract_content` | Chunk and extract content |
 | `summarize_papers` | Generate summaries |
 | `run_pipeline` | Run the full pipeline |
 | `get_run_manifest` | Inspect a run's manifest |
-| `convert_file` | Convert a single PDF file |
+| `convert_file` | Convert a single PDF file (supports backend selection) |
+| `list_backends` | List available converter backends |
 
 ### MCP client configuration
 
@@ -267,6 +287,24 @@ Some complex PDFs may hit the timeout. Increase it:
 ```toml
 [conversion]
 timeout_seconds = 600
+```
+
+### Marker conversion fails
+
+Ensure the `marker` extra is installed:
+
+```bash
+uv sync --extra marker
+```
+
+Marker requires PyTorch. On first use it downloads model weights (~1 GB).
+
+### PyMuPDF4LLM conversion
+
+The fastest backend but does not render LaTeX equations:
+
+```bash
+uv sync --extra pymupdf4llm
 ```
 
 ### Google Scholar access

@@ -11,7 +11,10 @@ from research_pipeline.arxiv.query_builder import build_query_from_plan
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
-from research_pipeline.conversion.docling_backend import DoclingBackend
+from research_pipeline.conversion.registry import (
+    _ensure_builtins_registered,
+    get_backend,
+)
 from research_pipeline.download.pdf import download_batch
 from research_pipeline.extraction.extractor import extract_from_markdown
 from research_pipeline.infra.cache import FileCache
@@ -33,6 +36,25 @@ from research_pipeline.summarization.per_paper import summarize_paper
 from research_pipeline.summarization.synthesis import synthesize
 
 logger = logging.getLogger(__name__)
+
+
+def _create_converter(config: PipelineConfig) -> "ConverterBackend":  # noqa: F821
+    """Create a converter backend from pipeline config."""
+    _ensure_builtins_registered()
+    backend_name = config.conversion.backend
+    kwargs: dict[str, object] = {}
+    if backend_name == "docling":
+        kwargs["timeout_seconds"] = config.conversion.timeout_seconds
+    elif backend_name == "marker":
+        mc = config.conversion.marker
+        kwargs["force_ocr"] = mc.force_ocr
+        if mc.use_llm:
+            kwargs["use_llm"] = True
+            if mc.llm_service:
+                kwargs["llm_service"] = mc.llm_service
+            if mc.llm_api_key:
+                kwargs["llm_api_key"] = mc.llm_api_key
+    return get_backend(backend_name, **kwargs)
 
 
 def _is_stage_complete(manifest: RunManifest, stage: str) -> bool:
@@ -376,7 +398,7 @@ def run_pipeline(
         started = utc_now()
         logger.info("Stage: convert")
         md_dir = get_stage_dir(run_root, "convert")
-        converter = DoclingBackend(timeout_seconds=config.conversion.timeout_seconds)
+        converter = _create_converter(config)
 
         convert_entries = []
         for dl_entry in entries:

@@ -15,8 +15,14 @@ search_snapshot_ttl_hours = 24
 cache_dir = "~/.cache/arxiv-paper-pipeline"
 
 [conversion]
-backend = "docling"
-timeout_seconds = 300
+backend = "docling" # docling, marker, or pymupdf4llm
+timeout_seconds = 300 # Per-file timeout (docling)
+
+[conversion.marker]
+force_ocr = false # Force OCR even for text PDFs
+use_llm = false # Enable LLM-assisted conversion
+llm_service = "" # LLM service name
+llm_api_key = "" # API key for LLM service
 
 [download]
 max_per_run = 20

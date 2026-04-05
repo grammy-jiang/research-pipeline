@@ -19,6 +19,7 @@ class TestServerRegistration:
             "tool_run_pipeline",
             "tool_get_run_manifest",
             "tool_convert_file",
+            "tool_list_backends",
         }
         registered = set(mcp._tool_manager._tools.keys())
         assert expected_tools.issubset(
@@ -26,5 +27,5 @@ class TestServerRegistration:
         ), f"Missing tools: {expected_tools - registered}"
 
     def test_tool_count(self) -> None:
-        # 9 pipeline tools + 1 convert_file = 10
-        assert len(mcp._tool_manager._tools) == 10
+        # 9 pipeline tools + 1 convert_file + 1 list_backends = 11
+        assert len(mcp._tool_manager._tools) == 11

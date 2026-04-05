@@ -13,12 +13,15 @@ class ConverterBackend(ABC):
     """Abstract interface for PDF-to-Markdown converter backends."""
 
     @abstractmethod
-    def convert(self, pdf_path: Path, output_dir: Path) -> ConvertManifestEntry:
+    def convert(
+        self, pdf_path: Path, output_dir: Path, *, force: bool = False
+    ) -> ConvertManifestEntry:
         """Convert a single PDF to Markdown.
 
         Args:
             pdf_path: Path to the source PDF.
             output_dir: Directory to write Markdown output.
+            force: Re-convert even if output already exists.
 
         Returns:
             Manifest entry recording the conversion result.

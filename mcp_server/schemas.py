@@ -69,6 +69,13 @@ class ConvertPdfsInput(CommonParams):
         default=False,
         description="Re-convert even if Markdown files already exist.",
     )
+    backend: str = Field(
+        default="",
+        description=(
+            "Converter backend: 'docling', 'marker', 'pymupdf4llm', "
+            "or '' (use config default)."
+        ),
+    )
 
 
 class ExtractContentInput(CommonParams):
@@ -110,6 +117,19 @@ class ConvertFileInput(BaseModel):
         default="",
         description="Output directory for Markdown. Default: same dir as PDF.",
     )
+    backend: str = Field(
+        default="",
+        description=(
+            "Converter backend: 'docling', 'marker', 'pymupdf4llm', "
+            "or '' (use config default)."
+        ),
+    )
+
+
+class ListBackendsInput(BaseModel):
+    """Input for the list_backends tool."""
+
+    # No parameters needed; included for consistency.
 
 
 class ToolResult(BaseModel):

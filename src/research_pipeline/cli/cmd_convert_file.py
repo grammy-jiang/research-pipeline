@@ -8,17 +8,45 @@ import typer
 logger = logging.getLogger(__name__)
 
 
+def _backend_kwargs(
+    backend_name: str,
+    config: "PipelineConfig",  # noqa: F821
+) -> dict[str, object]:
+    """Build constructor kwargs for a converter backend from config."""
+    if backend_name == "docling":
+        return {"timeout_seconds": config.conversion.timeout_seconds}
+    if backend_name == "marker":
+        mc = config.conversion.marker
+        kwargs: dict[str, object] = {"force_ocr": mc.force_ocr}
+        if mc.use_llm:
+            kwargs["use_llm"] = True
+            if mc.llm_service:
+                kwargs["llm_service"] = mc.llm_service
+            if mc.llm_api_key:
+                kwargs["llm_api_key"] = mc.llm_api_key
+        return kwargs
+    return {}
+
+
 def run_convert_file(
     pdf_path: Path,
     output_dir: Path | None = None,
+    backend: str | None = None,
 ) -> None:
     """Convert a single PDF file to Markdown (standalone, no workspace needed).
 
     Args:
         pdf_path: Path to the source PDF file.
         output_dir: Directory to write output. Defaults to same directory as PDF.
+        backend: Converter backend name. Defaults to config value.
     """
-    from research_pipeline.conversion.docling_backend import DoclingBackend
+    from research_pipeline.config.loader import load_config
+    from research_pipeline.conversion.registry import (
+        _ensure_builtins_registered,
+        get_backend,
+    )
+
+    _ensure_builtins_registered()
 
     pdf_path = pdf_path.expanduser().resolve()
     if not pdf_path.exists():
@@ -31,15 +59,24 @@ def run_convert_file(
     out = (output_dir or pdf_path.parent).expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
 
-    backend = DoclingBackend()
-    logger.info("Converting %s → %s/", pdf_path, out)
+    config = load_config()
+    backend_name = backend or config.conversion.backend
+    kwargs = _backend_kwargs(backend_name, config)
 
     try:
-        result = backend.convert(pdf_path, out)
+        converter = get_backend(backend_name, **kwargs)
+    except ValueError as exc:
+        typer.echo(f"Error: {exc}", err=True)
+        raise typer.Exit(1) from None
+
+    logger.info("Converting %s → %s/ (backend=%s)", pdf_path, out, backend_name)
+
+    try:
+        result = converter.convert(pdf_path, out)
     except ImportError:
         typer.echo(
-            "Error: Docling is not installed. "
-            "Install with: pipx inject research-pipeline docling",
+            f"Error: Backend {backend_name!r} is not installed. "
+            f"Install with: pipx inject research-pipeline <package>",
             err=True,
         )
         raise typer.Exit(1) from None
