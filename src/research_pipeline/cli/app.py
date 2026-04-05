@@ -434,5 +434,28 @@ def convert_fine(
     run_convert_fine(paper_ids=ids, force=force, backend=backend, **opts)
 
 
+@app.command()
+def index(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    list_papers: bool = typer.Option(False, "--list", help="List indexed papers."),
+    gc: bool = typer.Option(False, "--gc", help="Garbage collect stale entries."),
+    db_path: str | None = typer.Option(
+        None, "--db-path", help="Path to index database."
+    ),
+) -> None:
+    """Manage the global paper index for incremental runs.
+
+    Browse indexed papers or clean stale entries.
+
+    Example: research-pipeline index --list
+    """
+    from research_pipeline.cli.cmd_index import run_index
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_index(list_papers=list_papers, gc=gc, db_path=db_path)
+
+
 if __name__ == "__main__":
     app()

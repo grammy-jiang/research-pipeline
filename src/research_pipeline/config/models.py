@@ -199,6 +199,14 @@ class QualityConfig(BaseModel):
     min_quality_score: float = 0.0
 
 
+class IncrementalConfig(BaseModel):
+    """Incremental run configuration."""
+
+    enabled: bool = False
+    global_index_path: str = ""
+    reuse_artifacts: bool = True
+
+
 class PipelineConfig(BaseModel):
     """Top-level pipeline configuration."""
 
@@ -211,5 +219,6 @@ class PipelineConfig(BaseModel):
     cache: CacheConfig = Field(default_factory=CacheConfig)
     sources: SourcesConfig = Field(default_factory=SourcesConfig)
     quality: QualityConfig = Field(default_factory=QualityConfig)
+    incremental: IncrementalConfig = Field(default_factory=IncrementalConfig)
     workspace: str = "runs"
     contact_email: str = ""
