@@ -52,12 +52,93 @@ class MarkerConfig(BaseModel):
     llm_api_key: str = ""
 
 
+class MathpixAccount(BaseModel):
+    """Single Mathpix account credentials."""
+
+    app_id: str
+    app_key: str
+
+
+class MathpixConfig(BaseModel):
+    """Mathpix cloud OCR parameters."""
+
+    app_id: str = ""
+    app_key: str = ""
+    accounts: list[MathpixAccount] = Field(default_factory=list)
+
+
+class DatalabAccount(BaseModel):
+    """Single Datalab account credentials."""
+
+    api_key: str
+    mode: str = "balanced"
+
+
+class DatalabConfig(BaseModel):
+    """Datalab (hosted Marker) cloud parameters."""
+
+    api_key: str = ""
+    mode: str = "balanced"
+    accounts: list[DatalabAccount] = Field(default_factory=list)
+
+
+class LlamaParseAccount(BaseModel):
+    """Single LlamaParse account credentials."""
+
+    api_key: str
+    tier: str = "agentic"
+
+
+class LlamaParseConfig(BaseModel):
+    """LlamaParse cloud parameters."""
+
+    api_key: str = ""
+    tier: str = "agentic"
+    accounts: list[LlamaParseAccount] = Field(default_factory=list)
+
+
+class MistralOcrAccount(BaseModel):
+    """Single Mistral OCR account credentials."""
+
+    api_key: str
+    model: str = "mistral-ocr-latest"
+
+
+class MistralOcrConfig(BaseModel):
+    """Mistral OCR cloud parameters."""
+
+    api_key: str = ""
+    model: str = "mistral-ocr-latest"
+    accounts: list[MistralOcrAccount] = Field(default_factory=list)
+
+
+class OpenAIVisionAccount(BaseModel):
+    """Single OpenAI Vision account credentials."""
+
+    api_key: str
+    model: str = "gpt-4o"
+
+
+class OpenAIVisionConfig(BaseModel):
+    """OpenAI GPT-4o vision parameters."""
+
+    api_key: str = ""
+    model: str = "gpt-4o"
+    accounts: list[OpenAIVisionAccount] = Field(default_factory=list)
+
+
 class ConversionConfig(BaseModel):
     """Conversion parameters."""
 
     backend: str = str(DEFAULTS["conversion"]["backend"])
+    fallback_backends: list[str] = Field(default_factory=list)
     timeout_seconds: int = int(DEFAULTS["conversion"]["timeout_seconds"])
     marker: MarkerConfig = Field(default_factory=MarkerConfig)
+    mathpix: MathpixConfig = Field(default_factory=MathpixConfig)
+    datalab: DatalabConfig = Field(default_factory=DatalabConfig)
+    llamaparse: LlamaParseConfig = Field(default_factory=LlamaParseConfig)
+    mistral_ocr: MistralOcrConfig = Field(default_factory=MistralOcrConfig)
+    openai_vision: OpenAIVisionConfig = Field(default_factory=OpenAIVisionConfig)
 
 
 class LLMConfig(BaseModel):
@@ -84,6 +165,20 @@ class SourcesConfig(BaseModel):
     scholar_min_interval: float = float(DEFAULTS["sources"]["scholar_min_interval"])
     serpapi_key: str = str(DEFAULTS["sources"]["serpapi_key"])
     serpapi_min_interval: float = float(DEFAULTS["sources"]["serpapi_min_interval"])
+
+    # Semantic Scholar
+    semantic_scholar_enabled: bool = False
+    semantic_scholar_api_key: str = ""
+    semantic_scholar_min_interval: float = 1.0
+
+    # OpenAlex
+    openalex_enabled: bool = False
+    openalex_api_key: str = ""
+    openalex_min_interval: float = 0.2
+
+    # DBLP
+    dblp_enabled: bool = False
+    dblp_min_interval: float = 2.0
 
 
 class PipelineConfig(BaseModel):

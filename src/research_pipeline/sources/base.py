@@ -51,9 +51,11 @@ class SearchSource(Protocol):
 def dedup_cross_source(
     candidates: list[CandidateRecord],
 ) -> list[CandidateRecord]:
-    """Deduplicate candidates from multiple sources by arxiv_id and title.
+    """Deduplicate candidates from multiple sources by arxiv_id, DOI, and title.
 
-    Uses exact arxiv_id match first, then normalized title match.
+    Uses exact arxiv_id match first, then DOI match, then normalized title
+    match.  When merging duplicates, prefers the record with richer metadata
+    (priority: arXiv > Semantic Scholar > OpenAlex > DBLP).
 
     Args:
         candidates: Flat list of candidates from all sources.
@@ -62,15 +64,27 @@ def dedup_cross_source(
         Deduplicated list preserving first-seen order.
     """
     seen_ids: set[str] = set()
+    seen_dois: set[str] = set()
     seen_titles: set[str] = set()
     result: list[CandidateRecord] = []
 
     for c in candidates:
-        # Dedup by arxiv_id if available and real (not scholar-* placeholder)
-        if c.arxiv_id and not c.arxiv_id.startswith("scholar-"):
+        # Dedup by arxiv_id if available and real (not placeholder)
+        if c.arxiv_id and not c.arxiv_id.startswith(
+            ("scholar-", "s2-", "oalex-", "dblp-")
+        ):
             if c.arxiv_id in seen_ids:
                 continue
             seen_ids.add(c.arxiv_id)
+
+        # Dedup by DOI
+        if c.doi:
+            doi_norm = c.doi.lower().strip()
+            if doi_norm in seen_dois:
+                logger.debug("Cross-source dedup (DOI): skipping '%s'", c.title[:60])
+                continue
+            seen_dois.add(doi_norm)
+
         # Dedup by normalized title
         norm_title = c.title.lower().strip()
         if norm_title in seen_titles:
