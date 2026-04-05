@@ -322,6 +322,7 @@ def convert_file(
         "-b",
         help="Converter backend: docling, marker, pymupdf4llm (default: from config).",
     ),
+    config: Path | None = typer.Option(None, "--config", "-c"),
 ) -> None:
     """Convert a single PDF to Markdown (standalone, no pipeline).
 
@@ -332,7 +333,9 @@ def convert_file(
     """
     from research_pipeline.cli.cmd_convert_file import run_convert_file
 
-    run_convert_file(pdf_path, output_dir=output_dir, backend=backend)
+    run_convert_file(
+        pdf_path, output_dir=output_dir, backend=backend, config_path=config
+    )
 
 
 @app.command()

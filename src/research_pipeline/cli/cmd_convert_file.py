@@ -14,6 +14,7 @@ def run_convert_file(
     pdf_path: Path,
     output_dir: Path | None = None,
     backend: str | None = None,
+    config_path: Path | None = None,
 ) -> None:
     """Convert a single PDF file to Markdown (standalone, no workspace needed).
 
@@ -21,6 +22,7 @@ def run_convert_file(
         pdf_path: Path to the source PDF file.
         output_dir: Directory to write output. Defaults to same directory as PDF.
         backend: Converter backend name. Defaults to config value.
+        config_path: Path to config TOML file. Defaults to standard search.
     """
     from research_pipeline.config.loader import load_config
     from research_pipeline.conversion.base import ConverterBackend
@@ -43,7 +45,7 @@ def run_convert_file(
     out = (output_dir or pdf_path.parent).expanduser().resolve()
     out.mkdir(parents=True, exist_ok=True)
 
-    config = load_config()
+    config = load_config(config_path)
     backend_name = backend or config.conversion.backend
 
     # Build backend(s) with multi-account + fallback support
