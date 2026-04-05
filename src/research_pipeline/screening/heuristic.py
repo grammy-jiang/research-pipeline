@@ -97,8 +97,10 @@ def score_candidates(
 
     if use_semantic:
         w = weights or {
-            "bm25_title": 0.20,
-            "bm25_abstract": 0.25,
+            "bm25_must_title": 0.12,
+            "bm25_nice_title": 0.08,
+            "bm25_must_abstract": 0.15,
+            "bm25_nice_abstract": 0.10,
             "semantic_similarity": 0.25,
             "cat_match": 0.12,
             "negative_penalty": 0.08,
@@ -106,30 +108,50 @@ def score_candidates(
         }
     else:
         w = weights or {
-            "bm25_title": 0.30,
-            "bm25_abstract": 0.35,
+            "bm25_must_title": 0.20,
+            "bm25_nice_title": 0.10,
+            "bm25_must_abstract": 0.25,
+            "bm25_nice_abstract": 0.10,
             "cat_match": 0.15,
             "negative_penalty": 0.10,
             "recency_bonus": 0.10,
         }
 
-    query_terms = must_terms + nice_terms
     titles = [c.title for c in candidates]
     abstracts = [c.abstract for c in candidates]
 
-    raw_title_scores = _compute_bm25_scores(titles, query_terms)
-    raw_abstract_scores = _compute_bm25_scores(abstracts, query_terms)
+    # Score must_terms and nice_terms separately so must_terms dominate
+    raw_must_title = _compute_bm25_scores(titles, must_terms)
+    raw_nice_title = (
+        _compute_bm25_scores(titles, nice_terms)
+        if nice_terms
+        else [0.0] * len(candidates)
+    )
+    raw_must_abstract = _compute_bm25_scores(abstracts, must_terms)
+    raw_nice_abstract = (
+        _compute_bm25_scores(abstracts, nice_terms)
+        if nice_terms
+        else [0.0] * len(candidates)
+    )
 
-    title_scores = _normalize_scores(raw_title_scores)
-    abstract_scores = _normalize_scores(raw_abstract_scores)
+    must_title_scores = _normalize_scores(raw_must_title)
+    nice_title_scores = _normalize_scores(raw_nice_title)
+    must_abstract_scores = _normalize_scores(raw_must_abstract)
+    nice_abstract_scores = _normalize_scores(raw_nice_abstract)
 
     target_set = set(target_categories)
     neg_lower = {t.lower() for t in negative_terms}
 
     breakdowns: list[CheapScoreBreakdown] = []
     for i, candidate in enumerate(candidates):
-        bm25_title = title_scores[i]
-        bm25_abstract = abstract_scores[i]
+        bm25_title = (
+            w.get("bm25_must_title", 0.0) * must_title_scores[i]
+            + w.get("bm25_nice_title", 0.0) * nice_title_scores[i]
+        )
+        bm25_abstract = (
+            w.get("bm25_must_abstract", 0.0) * must_abstract_scores[i]
+            + w.get("bm25_nice_abstract", 0.0) * nice_abstract_scores[i]
+        )
 
         # Category match: 1.0 if primary category matches, 0.5 if any category matches
         cat_match = 0.0
@@ -151,8 +173,8 @@ def score_candidates(
         sem_score = semantic_scores[i] if use_semantic else None
 
         cheap_score = (
-            w["bm25_title"] * bm25_title
-            + w["bm25_abstract"] * bm25_abstract
+            bm25_title
+            + bm25_abstract
             + w["cat_match"] * cat_match
             - w["negative_penalty"] * neg_penalty
             + w["recency_bonus"] * recency
@@ -161,10 +183,16 @@ def score_candidates(
             cheap_score += w.get("semantic_similarity", 0.0) * sem_score
         cheap_score = max(0.0, min(1.0, cheap_score))
 
+        # Store combined BM25 scores in the breakdown for compatibility
+        combined_bm25_title = must_title_scores[i] * 0.67 + nice_title_scores[i] * 0.33
+        combined_bm25_abstract = (
+            must_abstract_scores[i] * 0.67 + nice_abstract_scores[i] * 0.33
+        )
+
         breakdowns.append(
             CheapScoreBreakdown(
-                bm25_title=round(bm25_title, 4),
-                bm25_abstract=round(bm25_abstract, 4),
+                bm25_title=round(combined_bm25_title, 4),
+                bm25_abstract=round(combined_bm25_abstract, 4),
                 cat_match=round(cat_match, 4),
                 negative_penalty=round(neg_penalty, 4),
                 recency_bonus=round(recency, 4),
