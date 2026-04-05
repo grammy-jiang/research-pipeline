@@ -1,4 +1,4 @@
-# AGENTS.md — research-pipeline
+# AGENTS.md
 
 ## Project overview
 
@@ -7,10 +7,14 @@ searching, screening, downloading, converting, and summarizing academic papers
 from arXiv and Google Scholar. It provides both a Typer CLI and an MCP
 (Model Context Protocol) server.
 
-- **Language**: Python 3.12+
-- **Build system**: uv (uv_build backend)
-- **Package**: `research-pipeline` (importable as `research_pipeline`)
-- **Version**: defined in `src/research_pipeline/__init__.py`
+| Key | Value |
+|-----|-------|
+| Language | Python 3.12+ |
+| Build system | uv (`uv_build` backend) |
+| Package name | `research-pipeline` (PyPI) / `research_pipeline` (import) |
+| Version | defined in `src/research_pipeline/__init__.py` |
+| License | MIT |
+| Entry point | `research-pipeline` CLI (registered in `pyproject.toml`) |
 
 ## Repository layout
 
@@ -196,3 +200,20 @@ uv run python -m mcp_server
 - Test fixtures directories may be empty in git — they're populated by tests
 - The `config.toml` file is gitignored (may contain API keys); use
   `config.example.toml` as the template
+
+## Commit and PR guidelines
+
+- Commit message format: `<type>: <short description>` (e.g., `feat: add DOI
+  lookup source`, `fix: handle empty search results`)
+- Types: `feat`, `fix`, `refactor`, `docs`, `test`, `chore`, `ci`
+- Always run `uv run pre-commit run --all-files` and
+  `uv run pytest tests/unit/ -x -q` before committing
+- Keep PRs focused on a single concern
+
+## Related documentation
+
+- [docs/architecture.md](docs/architecture.md) — system design, stage I/O
+  contracts, cross-cutting concerns
+- [docs/user-guide.md](docs/user-guide.md) — installation, configuration
+  reference, CLI usage, MCP setup
+- [config.example.toml](config.example.toml) — annotated configuration template

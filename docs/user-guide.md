@@ -2,10 +2,30 @@
 
 ## Prerequisites
 
-- Python 3.12 or later
-- [uv](https://docs.astral.sh/uv/) package manager
+| Requirement | Minimum version |
+|-------------|----------------|
+| Python | 3.12+ |
+| [uv](https://docs.astral.sh/uv/) | latest |
 
 ## Installation
+
+### From PyPI
+
+```bash
+# Install the base package
+pip install research-pipeline
+
+# With PDF conversion support (Docling)
+pip install research-pipeline[docling]
+
+# With Google Scholar support
+pip install research-pipeline[scholar]
+
+# With all extras
+pip install research-pipeline[docling,scholar]
+```
+
+### From source (development)
 
 ```bash
 git clone https://github.com/grammy-jiang/research-pipeline.git

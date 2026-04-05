@@ -7,7 +7,7 @@ searching, screening, downloading, converting, and summarizing academic papers
 from arXiv and Google Scholar. It provides a Typer CLI (`research-pipeline`) and
 an MCP server (10 tools via stdio). The codebase is ~4,500 lines of Python
 across 40+ modules. Version is defined in `src/research_pipeline/__init__.py`
-(currently `0.2.0`).
+(currently `0.1.0`).
 
 ## Environment and bootstrap
 
@@ -20,7 +20,7 @@ uv sync --extra dev --extra docling --extra scholar
 
 # Verify install works
 uv run python -c "import research_pipeline; print(research_pipeline.__version__)"
-# Expected output: 0.2.0
+# Expected output: 0.1.0
 ```
 
 The project requires Python 3.12+. The `.python-version` file pins `3.12`. The

@@ -1,5 +1,9 @@
 # research-pipeline
 
+[![PyPI version](https://img.shields.io/pypi/v/research-pipeline.svg)](https://pypi.org/project/research-pipeline/)
+[![Python 3.12+](https://img.shields.io/pypi/pyversions/research-pipeline.svg)](https://pypi.org/project/research-pipeline/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A production-grade, deterministic Python pipeline for searching, screening,
 downloading, converting, and summarizing academic papers from arXiv and Google
 Scholar.
@@ -19,14 +23,24 @@ Scholar.
 ## Installation
 
 ```bash
-# With uv (recommended)
-uv sync --extra dev
+# From PyPI
+pip install research-pipeline
 
 # With PDF conversion support (Docling)
-uv sync --extra dev --extra docling
+pip install research-pipeline[docling]
 
 # With Google Scholar support
-uv sync --extra dev --extra scholar
+pip install research-pipeline[scholar]
+
+# With all extras
+pip install research-pipeline[docling,scholar]
+```
+
+### Development install
+
+```bash
+# With uv (recommended)
+uv sync --extra dev --extra docling --extra scholar
 ```
 
 ## Quick start
