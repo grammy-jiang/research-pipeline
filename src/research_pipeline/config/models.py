@@ -184,6 +184,19 @@ class SourcesConfig(BaseModel):
     dblp_min_interval: float = 2.0
 
 
+class QualityConfig(BaseModel):
+    """Quality evaluation parameters."""
+
+    enabled: bool = False
+    citation_weight: float = 0.35
+    venue_weight: float = 0.25
+    author_weight: float = 0.25
+    recency_weight: float = 0.15
+    venue_data_path: str = ""
+    author_cache_ttl_hours: float = 168.0
+    min_quality_score: float = 0.0
+
+
 class PipelineConfig(BaseModel):
     """Top-level pipeline configuration."""
 
@@ -195,5 +208,6 @@ class PipelineConfig(BaseModel):
     llm: LLMConfig = Field(default_factory=LLMConfig)
     cache: CacheConfig = Field(default_factory=CacheConfig)
     sources: SourcesConfig = Field(default_factory=SourcesConfig)
+    quality: QualityConfig = Field(default_factory=QualityConfig)
     workspace: str = "runs"
     contact_email: str = ""

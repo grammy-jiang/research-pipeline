@@ -288,6 +288,28 @@ def inspect(
     run_inspect(workspace=workspace, run_id=run_id)
 
 
+@app.command()
+def quality(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(
+        ..., "--run-id", help="Run ID with search/screen results."
+    ),
+) -> None:
+    """Compute quality scores for candidate papers.
+
+    Evaluates papers on citation impact, venue reputation, author
+    credibility, and recency. Requires a completed search or screen stage.
+
+    Example: research-pipeline quality --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_quality import run_quality
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    run_quality(**opts)
+
+
 @app.command(name="convert-file")
 def convert_file(
     pdf_path: Path = typer.Argument(..., help="Path to the PDF file to convert."),
