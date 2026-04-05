@@ -36,6 +36,25 @@ DEFAULTS: dict[str, dict[str, object]] = {
             "llm_service": "",
             "llm_api_key": "",
         },
+        "mathpix": {
+            "app_id": "",
+            "app_key": "",
+        },
+        "datalab": {
+            "api_key": "",
+            "mode": "balanced",
+        },
+        "llamaparse": {
+            "api_key": "",
+        },
+        "mistral_ocr": {
+            "api_key": "",
+            "model": "mistral-ocr-latest",
+        },
+        "openai_vision": {
+            "api_key": "",
+            "model": "gpt-4o",
+        },
     },
     "llm": {
         "enabled": False,

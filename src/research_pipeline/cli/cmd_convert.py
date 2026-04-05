@@ -6,6 +6,8 @@ from pathlib import Path
 import typer
 
 from research_pipeline.config.loader import load_config
+from research_pipeline.conversion.base import ConverterBackend
+from research_pipeline.conversion.fallback import FallbackConverter
 from research_pipeline.conversion.registry import (
     _ensure_builtins_registered,
     get_backend,
@@ -17,13 +19,17 @@ from research_pipeline.storage.workspace import get_stage_dir, init_run
 logger = logging.getLogger(__name__)
 
 
-def _backend_kwargs(
+def _backend_kwargs_list(
     backend_name: str,
     config: "PipelineConfig",  # noqa: F821
-) -> dict[str, object]:
-    """Build constructor kwargs for a converter backend from config."""
+) -> list[dict[str, object]]:
+    """Build constructor kwargs for each account of a converter backend.
+
+    Returns a list of kwargs dicts — one per account. If no multi-account
+    config is set, returns a single-element list with the default credentials.
+    """
     if backend_name == "docling":
-        return {"timeout_seconds": config.conversion.timeout_seconds}
+        return [{"timeout_seconds": config.conversion.timeout_seconds}]
     if backend_name == "marker":
         mc = config.conversion.marker
         kwargs: dict[str, object] = {"force_ocr": mc.force_ocr}
@@ -33,17 +39,67 @@ def _backend_kwargs(
                 kwargs["llm_service"] = mc.llm_service
             if mc.llm_api_key:
                 kwargs["llm_api_key"] = mc.llm_api_key
-        return kwargs
+        return [kwargs]
+    if backend_name == "mathpix":
+        mp = config.conversion.mathpix
+        if mp.accounts:
+            return [
+                {"app_id": acct.app_id, "app_key": acct.app_key} for acct in mp.accounts
+            ]
+        return [{"app_id": mp.app_id, "app_key": mp.app_key}]
+    if backend_name == "datalab":
+        dl = config.conversion.datalab
+        if dl.accounts:
+            return [
+                {"api_key": acct.api_key, "mode": acct.mode} for acct in dl.accounts
+            ]
+        return [{"api_key": dl.api_key, "mode": dl.mode}]
+    if backend_name == "llamaparse":
+        lp = config.conversion.llamaparse
+        if lp.accounts:
+            return [
+                {"api_key": acct.api_key, "tier": acct.tier} for acct in lp.accounts
+            ]
+        return [{"api_key": lp.api_key, "tier": lp.tier}]
+    if backend_name == "mistral_ocr":
+        mo = config.conversion.mistral_ocr
+        if mo.accounts:
+            return [
+                {"api_key": acct.api_key, "model": acct.model} for acct in mo.accounts
+            ]
+        return [{"api_key": mo.api_key, "model": mo.model}]
+    if backend_name == "openai_vision":
+        ov = config.conversion.openai_vision
+        if ov.accounts:
+            return [
+                {"api_key": acct.api_key, "model": acct.model} for acct in ov.accounts
+            ]
+        return [{"api_key": ov.api_key, "model": ov.model}]
     # pymupdf4llm and others: no special kwargs
-    return {}
+    return [{}]
 
 
-def _create_converter(config: "PipelineConfig") -> "ConverterBackend":  # noqa: F821
-    """Create a converter backend from pipeline config."""
+def _create_converter(config: "PipelineConfig") -> ConverterBackend:  # noqa: F821
+    """Create a converter backend from pipeline config.
+
+    If ``fallback_backends`` is configured, creates a FallbackConverter wrapping
+    all backends (primary + fallbacks) with all their accounts. Otherwise,
+    creates the primary backend only (with multi-account fallback if configured).
+    """
     _ensure_builtins_registered()
-    backend_name = config.conversion.backend
-    kwargs = _backend_kwargs(backend_name, config)
-    return get_backend(backend_name, **kwargs)
+
+    primary = config.conversion.backend
+    backend_names = [primary] + list(config.conversion.fallback_backends)
+
+    all_backends: list[ConverterBackend] = []
+    for name in backend_names:
+        kwargs_list = _backend_kwargs_list(name, config)
+        for kwargs in kwargs_list:
+            all_backends.append(get_backend(name, **kwargs))
+
+    if len(all_backends) == 1:
+        return all_backends[0]
+    return FallbackConverter(all_backends)
 
 
 def run_convert(

@@ -45,6 +45,21 @@ def _backend_kwargs(
             if mc.llm_api_key:
                 kwargs["llm_api_key"] = mc.llm_api_key
         return kwargs
+    if backend_name == "mathpix":
+        mp = config.conversion.mathpix  # type: ignore[union-attr]
+        return {"app_id": mp.app_id, "app_key": mp.app_key}
+    if backend_name == "datalab":
+        dl = config.conversion.datalab  # type: ignore[union-attr]
+        return {"api_key": dl.api_key, "mode": dl.mode}
+    if backend_name == "llamaparse":
+        lp = config.conversion.llamaparse  # type: ignore[union-attr]
+        return {"api_key": lp.api_key}
+    if backend_name == "mistral_ocr":
+        mo = config.conversion.mistral_ocr  # type: ignore[union-attr]
+        return {"api_key": mo.api_key, "model": mo.model}
+    if backend_name == "openai_vision":
+        ov = config.conversion.openai_vision  # type: ignore[union-attr]
+        return {"api_key": ov.api_key, "model": ov.model}
     return {}
 
 
