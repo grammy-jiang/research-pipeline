@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "research-pipeline"
-version = "0.2.0"
+version = "0.3.0"
 description = "A multi-source pipeline for searching, screening, downloading, converting, and summarizing academic papers from arXiv, Google Scholar, and more."
 readme = "README.md"
 license = "MIT"
@@ -54,6 +54,20 @@ marker = [
 ]
 pymupdf4llm = [
   "pymupdf4llm>=0.0.17"
+]
+mathpix = []
+datalab = [
+  "datalab-python-sdk>=0.1"
+]
+llamaparse = [
+  "llama-cloud>=1.0"
+]
+mistral-ocr = [
+  "mistralai>=1.0"
+]
+openai-vision = [
+  "openai>=1.0",
+  "PyMuPDF>=1.24"
 ]
 llm = []
 scholar = ["scholarly>=1.7"]

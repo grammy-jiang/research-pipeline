@@ -15,8 +15,22 @@ search_snapshot_ttl_hours = 24
 cache_dir = "~/.cache/arxiv-paper-pipeline"
 
 [conversion]
-backend = "docling" # docling, marker, or pymupdf4llm
+backend = "docling" # docling, marker, pymupdf4llm, mathpix, datalab, llamaparse, mistral_ocr, openai_vision
+fallback_backends = [] # Ordered list of fallback backends when primary fails, e.g. ["datalab", "mistral_ocr"]
 timeout_seconds = 300 # Per-file timeout (docling)
+rough_max_workers = 4 # Parallel workers for convert-rough (pymupdf4llm, fast)
+fine_max_workers = 2 # Parallel workers for convert-fine (high-quality backend)
+
+# RESEARCH_PIPELINE_DATALAB_API_KEY
+# Single account (backward compatible):
+[conversion.datalab]
+api_key = ""
+mode = "balanced" # fast, balanced, or accurate
+
+# RESEARCH_PIPELINE_LLAMAPARSE_API_KEY
+[conversion.llamaparse]
+api_key = ""
+tier = "agentic" # fast (1 credit), cost-effective (3), agentic (10), agentic-plus (45)
 
 [conversion.marker]
 force_ocr = false # Force OCR even for text PDFs
@@ -24,19 +38,55 @@ use_llm = false # Enable LLM-assisted conversion
 llm_service = "" # LLM service name
 llm_api_key = "" # API key for LLM service
 
+# Online/cloud backends — set API keys via config or env vars
+# RESEARCH_PIPELINE_MATHPIX_APP_ID / RESEARCH_PIPELINE_MATHPIX_APP_KEY
+[conversion.mathpix]
+app_id = ""
+app_key = ""
+
+# RESEARCH_PIPELINE_MISTRAL_API_KEY
+[conversion.mistral_ocr]
+api_key = ""
+model = "mistral-ocr-latest"
+
+# RESEARCH_PIPELINE_OPENAI_API_KEY
+[conversion.openai_vision]
+api_key = ""
+model = "gpt-4o"
+
 [download]
 max_per_run = 20
+
+# Incremental runs — dedup against previous runs
+[incremental]
+enabled = false
+global_index_path = "" # SQLite index path (empty = ~/.cache/research-pipeline/paper_index.db)
+reuse_artifacts = true # Symlink existing PDFs/markdown instead of re-downloading
 
 [llm]
 enabled = false
 temperature = 0
 profile = "default"
 
+# Quality evaluation (runs before download)
+[quality]
+enabled = false
+citation_weight = 0.35 # Weight for citation impact score
+venue_weight = 0.25 # Weight for venue reputation
+author_weight = 0.25 # Weight for author credibility (h-index)
+recency_weight = 0.15 # Weight for recency bonus
+venue_data_path = "" # Custom venue rankings JSON (empty = bundled CORE data)
+author_cache_ttl_hours = 168.0 # Author data cache TTL (7 days)
+min_quality_score = 0.0 # Minimum quality score for CLI batch mode (0 = no filter)
+
 [screen]
 cheap_top_k = 50
 download_top_n = 8
 final_score_threshold = 0.70
 llm_score_threshold = 0.60
+use_semantic_reranking = false # Enable SPECTER2 semantic re-ranking
+embedding_model = "allenai/specter2" # HuggingFace model for embeddings
+embedding_batch_size = 32 # Batch size for embedding inference
 
 [search]
 primary_months = 6
@@ -45,3 +95,12 @@ max_query_variants = 5
 min_candidates = 40
 min_highscore = 10
 min_downloads = 5
+
+# Multi-source search configuration
+[sources]
+default_sources = ["arxiv"] # Sources to search: arxiv, scholar, semantic_scholar, openalex, dblp
+semantic_scholar_api_key = "" # S2 API key (optional, higher rate limits)
+semantic_scholar_min_interval = 1.0 # Seconds between S2 requests
+openalex_min_interval = 0.1 # Seconds between OpenAlex requests
+openalex_email = "" # Polite pool email for OpenAlex
+dblp_min_interval = 1.0 # Seconds between DBLP requests

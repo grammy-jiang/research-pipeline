@@ -5,16 +5,26 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A production-grade, deterministic Python pipeline for searching, screening,
-downloading, converting, and summarizing academic papers from arXiv and Google
-Scholar.
+downloading, converting, and summarizing academic papers from arXiv, Google
+Scholar, Semantic Scholar, OpenAlex, and DBLP.
 
 ## Features
 
-- **7-stage pipeline**: plan → search → screen → download → convert → extract → summarize
+- **Multi-stage pipeline**: plan → search → screen → download → convert → extract → summarize
+- **5 new auxiliary commands**: `expand` (citation graph), `quality` (evaluation scoring), `convert-rough` / `convert-fine` (two-tier conversion), `index` (incremental runs)
 - **Modular CLI** with independent, composable stage commands
 - **MCP server** for AI agent integration (12 tools via stdio transport)
-- **Multi-source search**: arXiv API + Google Scholar (free & SerpAPI)
-- **Multi-backend PDF conversion**: Docling (MIT), Marker (highest accuracy), PyMuPDF4LLM (fastest)
+- **Multi-source search**: arXiv + Google Scholar + Semantic Scholar + OpenAlex + DBLP
+- **Cross-source enrichment** — fill missing abstracts via DOI lookup
+- **Semantic re-ranking** — optional SPECTER2 embeddings for similarity scoring
+- **Citation graph expansion** — discover related papers via Semantic Scholar citations
+- **Quality evaluation** — composite scoring: citation impact, venue reputation, author h-index, recency
+- **Multi-backend PDF conversion**: 3 local (Docling, Marker, PyMuPDF4LLM) + 5 cloud (Mathpix, Datalab, LlamaParse, Mistral OCR, OpenAI Vision)
+- **Two-tier conversion** — fast `convert-rough` for all papers, high-quality `convert-fine` for selected ones
+- **Multi-account rotation** — rotate between accounts per service on quota exhaustion
+- **Cross-service fallback** — automatic failover to next backend when all accounts are exhausted
+- **Incremental runs** — SQLite global index deduplicates papers across runs
+- **Retry & error recovery** — `@retry` decorator with exponential backoff, jitter, and Retry-After support
 - **Idempotent & resumable** — every stage can be re-run safely
 - **arXiv polite-mode** — strict rate limiting, single connection, caching
 - **Deterministic tool chain** with optional LLM judgment
@@ -27,10 +37,17 @@ Scholar.
 # From PyPI
 pip install research-pipeline
 
-# With PDF conversion backends
+# With local PDF conversion backends
 pip install research-pipeline[docling]       # MIT license, great tables/equations
 pip install research-pipeline[marker]        # Highest accuracy (95.7%), GPL-3.0
 pip install research-pipeline[pymupdf4llm]   # Fastest (10-50x), AGPL
+
+# With cloud PDF conversion backends (require API keys)
+pip install research-pipeline[mathpix]       # Best LaTeX, 1K free pages/mo
+pip install research-pipeline[datalab]       # Hosted Marker, $5 free credit
+pip install research-pipeline[llamaparse]    # 1K free pages/day
+pip install research-pipeline[mistral-ocr]   # Mistral OCR, free credits
+pip install research-pipeline[openai-vision] # GPT-4o vision
 
 # With Google Scholar support
 pip install research-pipeline[scholar]
@@ -70,6 +87,19 @@ research-pipeline convert-file paper.pdf -o paper.md
 # Use a specific conversion backend
 research-pipeline convert --run-id <RUN_ID> --backend marker
 research-pipeline convert-file paper.pdf --backend pymupdf4llm
+
+# Two-tier conversion: rough (fast) then fine (high-quality)
+research-pipeline convert-rough --run-id <RUN_ID>
+research-pipeline convert-fine --run-id <RUN_ID>
+
+# Evaluate paper quality (citation impact, venue, author)
+research-pipeline quality --run-id <RUN_ID>
+
+# Expand via citation graph (Semantic Scholar)
+research-pipeline expand --run-id <RUN_ID> --direction both
+
+# Manage global paper index (incremental dedup)
+research-pipeline index --list
 ```
 
 ## Commands
@@ -77,15 +107,20 @@ research-pipeline convert-file paper.pdf --backend pymupdf4llm
 | Command | Purpose |
 |---|---|
 | `plan` | Normalize topic → structured query plan |
-| `search` | Execute multi-source search (arXiv + Scholar) |
-| `screen` | Two-stage relevance filtering (BM25 + optional LLM) |
-| `download` | Download shortlisted PDFs with rate limiting |
-| `convert` | PDF → Markdown (docling, marker, or pymupdf4llm) |
+| `search` | Execute multi-source search (arXiv, Scholar, Semantic Scholar, OpenAlex, DBLP) |
+| `screen` | Two-stage relevance filtering (BM25 + optional SPECTER2 + optional LLM) |
+| `download` | Download shortlisted PDFs with rate limiting and retry |
+| `convert` | PDF → Markdown (8 backends, multi-account rotation, cross-service fallback) |
+| `convert-rough` | Fast Tier 2 conversion (pymupdf4llm) for all downloaded PDFs |
+| `convert-fine` | High-quality Tier 3 conversion for selected papers |
 | `extract` | Structured content extraction & chunking |
 | `summarize` | Per-paper summaries + cross-paper synthesis |
+| `expand` | Citation graph expansion via Semantic Scholar API |
+| `quality` | Composite quality evaluation (citations, venue, author, recency) |
 | `run` | End-to-end orchestration of all stages |
 | `inspect` | View run manifests and artifacts |
 | `convert-file` | Standalone PDF → Markdown conversion |
+| `index` | Manage the global paper index for incremental runs |
 
 ## MCP server
 
@@ -138,6 +173,16 @@ runs/<run_id>/
 ├── convert/
 │   ├── markdown/*.md          # Converted Markdown
 │   └── convert_manifest.jsonl
+├── convert_rough/             # Tier 2: fast conversion (all PDFs)
+│   ├── markdown/*.md
+│   └── convert_manifest.jsonl
+├── convert_fine/              # Tier 3: high-quality conversion (selected)
+│   ├── markdown/*.md
+│   └── convert_manifest.jsonl
+├── quality/                   # Quality evaluation scores
+│   └── quality_scores.jsonl
+├── expand/                    # Citation graph expansion
+│   └── expanded_candidates.jsonl
 ├── extract/*.extract.json     # Chunked & indexed extraction
 ├── summarize/
 │   ├── *.summary.json         # Per-paper summaries

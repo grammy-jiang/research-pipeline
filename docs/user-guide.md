@@ -24,6 +24,13 @@ pip install research-pipeline[marker]
 # With PyMuPDF4LLM backend (fastest — AGPL)
 pip install research-pipeline[pymupdf4llm]
 
+# With online/cloud backends
+pip install research-pipeline[mathpix]       # Mathpix (best LaTeX, 1K free/mo)
+pip install research-pipeline[datalab]       # Datalab (hosted Marker, $5 free credit)
+pip install research-pipeline[llamaparse]    # LlamaParse (1K free pages/day)
+pip install research-pipeline[mistral-ocr]   # Mistral OCR (per-token, free credits)
+pip install research-pipeline[openai-vision] # OpenAI GPT-4o vision (per-token)
+
 # With Google Scholar support
 pip install research-pipeline[scholar]
 
@@ -49,6 +56,11 @@ uv sync --extra dev --extra docling --extra scholar
 | `docling` | PDF → Markdown conversion via Docling (MIT) |
 | `marker` | PDF → Markdown conversion via Marker (GPL-3.0, highest accuracy) |
 | `pymupdf4llm` | PDF → Markdown conversion via PyMuPDF4LLM (AGPL, fastest) |
+| `mathpix` | Mathpix cloud OCR (best LaTeX, 1K free pages/mo) |
+| `datalab` | Datalab hosted Marker ($5 free credit) |
+| `llamaparse` | LlamaParse cloud parsing (1K free pages/day) |
+| `mistral-ocr` | Mistral Document AI OCR (per-token, free credits) |
+| `openai-vision` | OpenAI GPT-4o vision (per-token) |
 | `scholar` | Google Scholar search via the scholarly library |
 | `serpapi` | Google Scholar search via SerpAPI (requires API key) |
 
@@ -78,13 +90,20 @@ min_candidates = 40             # Minimum candidate threshold
 cheap_top_k = 50                # Papers kept after heuristic pass
 download_top_n = 8              # Papers selected for download
 final_score_threshold = 0.70    # Minimum heuristic score
+use_semantic_reranking = false  # Enable SPECTER2 semantic re-ranking
+embedding_model = "allenai/specter2"  # HuggingFace embedding model
+embedding_batch_size = 32       # Batch size for embeddings
 
 [download]
 max_per_run = 20                # Maximum PDFs per run
 
 [conversion]
-backend = "docling"             # PDF conversion backend (docling, marker, pymupdf4llm)
+backend = "docling"             # Backend: docling, marker, pymupdf4llm, mathpix,
+                                #   datalab, llamaparse, mistral_ocr, openai_vision
+fallback_backends = []          # Ordered list of backup backends (see below)
 timeout_seconds = 300           # Per-file timeout (docling)
+rough_max_workers = 4           # Parallel workers for convert-rough
+fine_max_workers = 2            # Parallel workers for convert-fine
 
 [conversion.marker]             # Marker-specific settings
 force_ocr = false               # Force OCR even for text PDFs
@@ -92,8 +111,48 @@ use_llm = false                 # Enable LLM-assisted conversion
 llm_service = ""                # LLM service (e.g. "marker.v2")
 llm_api_key = ""                # API key for LLM service
 
+[conversion.mathpix]            # Mathpix cloud OCR
+app_id = ""                     # RESEARCH_PIPELINE_MATHPIX_APP_ID
+app_key = ""                    # RESEARCH_PIPELINE_MATHPIX_APP_KEY
+
+[conversion.datalab]            # Datalab (hosted Marker)
+api_key = ""                    # RESEARCH_PIPELINE_DATALAB_API_KEY
+mode = "balanced"               # fast, balanced, or accurate
+
+[conversion.llamaparse]         # LlamaParse
+api_key = ""                    # RESEARCH_PIPELINE_LLAMAPARSE_API_KEY
+tier = "agentic"                # fast (1 credit), cost-effective (3), agentic (10), agentic-plus (45)
+
+[conversion.mistral_ocr]        # Mistral OCR
+api_key = ""                    # RESEARCH_PIPELINE_MISTRAL_API_KEY
+model = "mistral-ocr-latest"
+
+[conversion.openai_vision]      # OpenAI GPT-4o vision
+api_key = ""                    # RESEARCH_PIPELINE_OPENAI_API_KEY
+model = "gpt-4o"
+
 [llm]
 enabled = false                 # LLM-based features (experimental)
+
+[sources]
+default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
+semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)
+semantic_scholar_min_interval = 1.0
+openalex_min_interval = 0.1
+openalex_email = ""             # Polite pool email
+dblp_min_interval = 1.0
+
+[quality]
+enabled = false                 # Enable quality evaluation
+citation_weight = 0.35          # Weight for citation impact
+venue_weight = 0.25             # Weight for venue reputation
+author_weight = 0.25            # Weight for author h-index
+recency_weight = 0.15           # Weight for recency bonus
+
+[incremental]
+enabled = false                 # Enable incremental dedup across runs
+global_index_path = ""          # SQLite path (empty = default cache dir)
+reuse_artifacts = true          # Symlink existing PDFs/markdown
 ```
 
 ### Environment variables
@@ -117,7 +176,7 @@ Run all stages in sequence:
 research-pipeline run "transformer architectures for time series forecasting"
 ```
 
-This creates a run directory at `runs/<run_id>/` and executes all 7 stages.
+This creates a run directory at `runs/<run_id>/` and executes all 7 core stages.
 
 ### Stage-by-stage execution
 
@@ -156,6 +215,32 @@ research-pipeline extract --run-id <RUN_ID>
 # 7. Generate summaries and synthesis
 research-pipeline summarize --run-id <RUN_ID>
 # Output: runs/<run_id>/summarize/synthesis.md
+```
+
+### Auxiliary commands
+
+These commands extend the core pipeline with additional capabilities:
+
+```bash
+# Citation graph expansion via Semantic Scholar
+research-pipeline expand --run-id <RUN_ID> --direction both --limit 20
+# Output: runs/<run_id>/expand/expanded_candidates.jsonl
+
+# Quality evaluation (citation impact, venue, author, recency)
+research-pipeline quality --run-id <RUN_ID>
+# Output: runs/<run_id>/quality/quality_scores.jsonl
+
+# Two-tier conversion: rough (fast, all PDFs) then fine (high-quality, selected)
+research-pipeline convert-rough --run-id <RUN_ID>
+# Output: runs/<run_id>/convert_rough/markdown/*.md
+research-pipeline convert-fine --run-id <RUN_ID>
+# Or convert-fine for specific papers only
+research-pipeline convert-fine --run-id <RUN_ID> --paper-ids "2401.12345,2402.67890"
+# Output: runs/<run_id>/convert_fine/markdown/*.md
+
+# Manage global paper index for incremental dedup
+research-pipeline index --list
+research-pipeline index --gc
 ```
 
 ### Inspecting runs
@@ -317,3 +402,89 @@ uv sync --extra serpapi
 ```
 
 Set your API key in the config or environment.
+
+## Multi-account support
+
+Each online conversion backend supports **multiple accounts**. When a quota or
+rate limit is hit on one account, the pipeline automatically rotates to the next
+account before falling through to the next backend service.
+
+### Configuring multiple accounts
+
+Use TOML array-of-tables (`[[...]]`) syntax to define multiple accounts for
+any online backend:
+
+```toml
+[conversion]
+backend = "mathpix"
+
+# Multiple Mathpix accounts — tried in order
+[[conversion.mathpix.accounts]]
+app_id = "account-1-id"
+app_key = "account-1-key"
+
+[[conversion.mathpix.accounts]]
+app_id = "account-2-id"
+app_key = "account-2-key"
+
+# Multiple Datalab accounts
+[[conversion.datalab.accounts]]
+api_key = "datalab-key-1"
+mode = "fast"
+
+[[conversion.datalab.accounts]]
+api_key = "datalab-key-2"
+mode = "accurate"
+
+# LlamaParse
+[[conversion.llamaparse.accounts]]
+api_key = "llama-key-1"
+tier = "agentic"                # per-account tier override
+
+[[conversion.llamaparse.accounts]]
+api_key = "llama-key-2"
+tier = "cost-effective"
+
+# Mistral OCR
+[[conversion.mistral_ocr.accounts]]
+api_key = "mistral-key-1"
+
+[[conversion.mistral_ocr.accounts]]
+api_key = "mistral-key-2"
+model = "mistral-ocr-latest"
+
+# OpenAI Vision
+[[conversion.openai_vision.accounts]]
+api_key = "openai-key-1"
+
+[[conversion.openai_vision.accounts]]
+api_key = "openai-key-2"
+model = "gpt-4o-mini"
+```
+
+**Backward compatibility**: If no `[[...accounts]]` are defined, the top-level
+single credentials (e.g., `[conversion.mathpix] app_id = "..."`) are used as
+before.
+
+## Fallback backends
+
+Configure automatic cross-service failover with `fallback_backends`. When
+the primary backend (and all its accounts) is exhausted, the pipeline
+tries the next service:
+
+```toml
+[conversion]
+backend = "mathpix"
+fallback_backends = ["datalab", "mistral_ocr", "openai_vision"]
+```
+
+The execution order for the example above:
+
+1. Mathpix account 1 → Mathpix account 2 → ...
+2. Datalab account 1 → Datalab account 2 → ...
+3. Mistral OCR account 1 → Mistral OCR account 2 → ...
+4. OpenAI Vision account 1 → OpenAI Vision account 2 → ...
+
+The pipeline detects quota/rate-limit errors automatically (HTTP 429, "rate
+limit", "quota exceeded", "insufficient credits", etc.) and logs each rotation.
+Non-quota errors also trigger fallback to the next backend.

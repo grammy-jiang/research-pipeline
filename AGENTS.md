@@ -4,8 +4,8 @@
 
 **research-pipeline** is a deterministic, stage-based Python pipeline for
 searching, screening, downloading, converting, and summarizing academic papers
-from arXiv and Google Scholar. It provides both a Typer CLI and an MCP
-(Model Context Protocol) server.
+from arXiv, Google Scholar, Semantic Scholar, OpenAlex, and DBLP. It provides
+both a Typer CLI and an MCP (Model Context Protocol) server.
 
 | Key | Value |
 |-----|-------|
@@ -32,17 +32,18 @@ from arXiv and Google Scholar. It provides both a Typer CLI and an MCP
 │   ├── models/                   # Pydantic domain models
 │   ├── config/                   # Configuration loading & schemas
 │   ├── arxiv/                    # arXiv API client, parser, dedup
-│   ├── sources/                  # Multi-source adapter (arXiv, Scholar)
-│   ├── screening/                # Heuristic BM25 scoring, LLM judge
-│   ├── download/                 # Rate-limited PDF downloader
-│   ├── conversion/               # PDF→Markdown backends (Docling)
+│   ├── sources/                  # Multi-source adapter (arXiv, Scholar, S2, OpenAlex, DBLP)
+│   ├── screening/                # Heuristic BM25 scoring, SPECTER2 embeddings, LLM judge
+│   ├── download/                 # Rate-limited PDF downloader with retry
+│   ├── conversion/               # PDF→Markdown backends (3 local + 5 cloud + fallback)
+│   ├── quality/                  # Quality evaluation (citations, venue, author, composite)
 │   ├── extraction/               # Markdown chunking & retrieval
 │   ├── summarization/            # Per-paper + cross-paper synthesis
 │   ├── pipeline/                 # Orchestrator & stage sequencing
-│   ├── storage/                  # Workspace, manifests, artifacts
-│   ├── infra/                    # Cache, HTTP, logging, hashing, clock
+│   ├── storage/                  # Workspace, manifests, artifacts, global index
+│   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry
 │   └── llm/                      # LLM provider interface (experimental)
-├── mcp_server/                   # FastMCP server (10 tools)
+├── mcp_server/                   # FastMCP server
 │   ├── server.py                 # Server entry point
 │   ├── tools.py                  # Tool implementations
 │   └── schemas.py                # Input/output Pydantic schemas
@@ -128,16 +129,34 @@ uv run pre-commit run --all-files
 
 ## Architecture patterns
 
-1. **Stage-based pipeline**: 7 sequential stages —
+1. **Stage-based pipeline**: 7 core sequential stages —
    plan → search → screen → download → convert → extract → summarize
+   Plus 5 auxiliary commands: expand, quality, convert-rough, convert-fine, index
 2. **Each stage is idempotent** and can be re-run independently
 3. **Pydantic models** for all domain objects (`src/research_pipeline/models/`)
 4. **Configuration**: TOML config + env var overrides
    (`src/research_pipeline/config/`)
 5. **Manifest tracking**: every run has `run_manifest.json` with full artifact
    lineage and SHA-256 hashes
-6. **Rate limiting**: arXiv polite mode (3s floor, 5s default between requests)
-7. **Multi-source**: arXiv + Google Scholar with cross-source dedup
+6. **Rate limiting**: generic `RateLimiter` (`infra/rate_limit.py`) extended by
+   `ArxivRateLimiter` (3s floor). Each source has its own limiter.
+7. **Multi-source**: arXiv + Google Scholar + Semantic Scholar + OpenAlex + DBLP
+   with cross-source dedup (by arXiv ID, DOI, and normalized title)
+8. **Multi-account rotation**: online conversion backends support multiple
+   accounts per service via `[[conversion.<backend>.accounts]]` TOML config.
+   When a quota/rate limit is hit, the pipeline rotates to the next account.
+9. **Cross-service fallback**: `FallbackConverter` (`conversion/fallback.py`)
+   wraps multiple backends and tries them in order. Configure via
+   `conversion.fallback_backends` — an ordered list of backup backend names.
+10. **Retry & error recovery**: `@retry` decorator (`infra/retry.py`) with
+    exponential backoff, jitter, and Retry-After header support
+11. **Semantic re-ranking**: optional SPECTER2 embeddings for cosine similarity
+    scoring in the screen stage
+12. **Quality evaluation**: composite scoring — citation impact, venue reputation
+    (CORE rankings), author h-index, recency bonus
+13. **Two-tier conversion**: fast `convert-rough` (pymupdf4llm, all papers) then
+    high-quality `convert-fine` (primary backend, selected papers)
+14. **Incremental runs**: SQLite global paper index for cross-run dedup
 
 ## CLI entry point
 
@@ -156,6 +175,13 @@ research-pipeline convert --run-id <ID>
 research-pipeline extract --run-id <ID>
 research-pipeline summarize --run-id <ID>
 
+# Auxiliary commands
+research-pipeline expand --run-id <ID> --direction both
+research-pipeline quality --run-id <ID>
+research-pipeline convert-rough --run-id <ID>
+research-pipeline convert-fine --run-id <ID>
+research-pipeline index --list
+
 # Standalone PDF conversion (no workspace required)
 research-pipeline convert-file paper.pdf -o paper.md
 
@@ -165,7 +191,7 @@ research-pipeline inspect --run-id <ID>
 
 ## MCP server
 
-The MCP server wraps CLI logic into 10 tools for AI agent integration:
+The MCP server wraps CLI logic into tools for AI agent integration:
 
 ```bash
 # Run via module
@@ -185,6 +211,16 @@ uv run python -m mcp_server
 6. Add MCP tool in `mcp_server/tools.py` and schema in `mcp_server/schemas.py`
 7. Write unit tests in `tests/unit/test_<stage>.py`
 8. Run format, lint, type check, and tests before committing
+
+## Adding a new converter backend
+
+1. Create `src/research_pipeline/conversion/<name>_backend.py`
+2. Subclass `ConverterBackend` from `conversion/base.py`
+3. Decorate with `@register_backend("name")` from `conversion/registry.py`
+4. Add config model (`*Account` + `*Config`) in `config/models.py`
+5. Add account dispatch in `cli/cmd_convert.py` `_backend_kwargs_list()`
+6. Add optional dependency in `pyproject.toml` extras
+7. Write unit tests
 
 ## Adding a new source
 
