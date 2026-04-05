@@ -9,9 +9,33 @@ import requests
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.infra.clock import utc_now
 from research_pipeline.infra.hashing import sha256_file
+from research_pipeline.infra.retry import retry
 from research_pipeline.models.download import DownloadManifestEntry
 
 logger = logging.getLogger(__name__)
+
+
+@retry(
+    max_attempts=3, backoff_base=2.0, retryable_exceptions=(requests.RequestException,)
+)
+def _fetch_pdf_bytes(
+    session: requests.Session,
+    pdf_url: str,
+    timeout: int = 60,
+) -> requests.Response:
+    """Fetch PDF content with retry on transient failures.
+
+    Args:
+        session: HTTP session.
+        pdf_url: URL to download.
+        timeout: Request timeout in seconds.
+
+    Returns:
+        The HTTP response (streamed).
+    """
+    response = session.get(pdf_url, timeout=timeout, stream=True)
+    response.raise_for_status()
+    return response
 
 
 def download_pdf(
@@ -63,8 +87,7 @@ def download_pdf(
     logger.info("Downloading PDF: %s → %s", pdf_url, target_path)
 
     try:
-        response = session.get(pdf_url, timeout=60, stream=True)
-        response.raise_for_status()
+        response = _fetch_pdf_bytes(session, pdf_url)
 
         # Atomic write via temp file
         with tempfile.NamedTemporaryFile(

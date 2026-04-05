@@ -20,3 +20,7 @@ class DownloadManifestEntry(BaseModel):
         description="Download outcome."
     )
     error: str | None = Field(default=None, description="Error message if failed.")
+    retry_count: int = Field(default=0, description="Number of retry attempts made.")
+    last_error: str | None = Field(
+        default=None, description="Error from the last retry attempt."
+    )
