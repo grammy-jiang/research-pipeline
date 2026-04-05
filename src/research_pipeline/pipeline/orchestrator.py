@@ -347,7 +347,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "download")):
         started = utc_now()
         logger.info("Stage: download")
-        pdf_dir = get_stage_dir(run_root, "download") / "pdf"
+        pdf_dir = get_stage_dir(run_root, "download")
         pdf_dir.mkdir(parents=True, exist_ok=True)
 
         papers_to_download = [

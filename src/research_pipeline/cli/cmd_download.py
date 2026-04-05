@@ -56,7 +56,7 @@ def run_download(
     rate_limiter = ArxivRateLimiter(min_interval=config.arxiv.min_interval_seconds)
     session = create_session(config.contact_email)
 
-    pdf_dir = get_stage_dir(run_root, "download") / "pdf"
+    pdf_dir = get_stage_dir(run_root, "download")
     pdf_dir.mkdir(parents=True, exist_ok=True)
 
     entries = download_batch(
