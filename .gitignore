@@ -448,6 +448,17 @@ package
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
+
+### Research Pipeline ###
+# Pipeline run outputs (intermediate/temporary data)
+runs/
+workspace/
+
+# Local config (may contain API keys)
+config.toml
+
+# Claude Code local overrides
+CLAUDE.local.md
 !.vscode/tasks.json
 !.vscode/launch.json
 !.vscode/extensions.json

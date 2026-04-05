@@ -1,97 +1,128 @@
-# arxiv-paper-pipeline
+# research-pipeline
 
-A production-grade, deterministic Python pipeline for searching, screening, downloading, converting, and summarizing papers from arXiv.
+A production-grade, deterministic Python pipeline for searching, screening,
+downloading, converting, and summarizing academic papers from arXiv and Google
+Scholar.
 
 ## Features
 
+- **7-stage pipeline**: plan → search → screen → download → convert → extract → summarize
 - **Modular CLI** with independent, composable stage commands
+- **MCP server** for AI agent integration (10 tools via stdio transport)
+- **Multi-source search**: arXiv API + Google Scholar (free & SerpAPI)
 - **Idempotent & resumable** — every stage can be re-run safely
 - **arXiv polite-mode** — strict rate limiting, single connection, caching
 - **Deterministic tool chain** with optional LLM judgment
-- **Full artifact lineage** — every run is reproducible and auditable
-- **Offline-first testing** — no live arXiv calls in CI
+- **Full artifact lineage** — every run is reproducible and auditable via manifests
+- **Offline-first testing** — no live API calls in CI
 
 ## Installation
 
 ```bash
-# With uv
-uv add arxiv-paper-pipeline
-
-# With pip
-pip install arxiv-paper-pipeline
+# With uv (recommended)
+uv sync --extra dev
 
 # With PDF conversion support (Docling)
-pip install 'arxiv-paper-pipeline[docling]'
+uv sync --extra dev --extra docling
+
+# With Google Scholar support
+uv sync --extra dev --extra scholar
 ```
 
-## Quick Start
+## Quick start
 
 ```bash
-# Full pipeline
-arxiv-paper-pipeline run "transformer architectures for time series forecasting"
+# Full end-to-end pipeline
+research-pipeline run "transformer architectures for time series forecasting"
 
 # Or run stages individually
-arxiv-paper-pipeline plan "transformer architectures for time series forecasting"
-arxiv-paper-pipeline search --run-id <RUN_ID>
-arxiv-paper-pipeline screen --run-id <RUN_ID>
-arxiv-paper-pipeline download --run-id <RUN_ID>
-arxiv-paper-pipeline convert --run-id <RUN_ID>
-arxiv-paper-pipeline extract --run-id <RUN_ID>
-arxiv-paper-pipeline summarize --run-id <RUN_ID>
+research-pipeline plan "transformer architectures for time series forecasting"
+research-pipeline search --run-id <RUN_ID>
+research-pipeline screen --run-id <RUN_ID>
+research-pipeline download --run-id <RUN_ID>
+research-pipeline convert --run-id <RUN_ID>
+research-pipeline extract --run-id <RUN_ID>
+research-pipeline summarize --run-id <RUN_ID>
 
 # Inspect run status
-arxiv-paper-pipeline inspect --run-id <RUN_ID>
+research-pipeline inspect --run-id <RUN_ID>
+
+# Standalone PDF conversion (no workspace required)
+research-pipeline convert-file paper.pdf -o paper.md
 ```
 
 ## Commands
 
 | Command | Purpose |
 |---|---|
-| `plan` | Normalize topic → query plan |
-| `search` | Execute arXiv API search |
-| `screen` | Two-stage relevance filtering |
-| `download` | Download shortlisted PDFs |
-| `convert` | PDF → Markdown (Docling) |
-| `extract` | Structured content extraction |
-| `summarize` | Per-paper + cross-paper synthesis |
-| `run` | End-to-end orchestration |
-| `inspect` | View manifests and artifacts |
+| `plan` | Normalize topic → structured query plan |
+| `search` | Execute multi-source search (arXiv + Scholar) |
+| `screen` | Two-stage relevance filtering (BM25 + optional LLM) |
+| `download` | Download shortlisted PDFs with rate limiting |
+| `convert` | PDF → Markdown via Docling |
+| `extract` | Structured content extraction & chunking |
+| `summarize` | Per-paper summaries + cross-paper synthesis |
+| `run` | End-to-end orchestration of all stages |
+| `inspect` | View run manifests and artifacts |
+| `convert-file` | Standalone PDF → Markdown conversion |
+
+## MCP server
+
+The MCP server exposes all pipeline stages as tools for AI agent integration:
+
+```bash
+# Run via module
+uv run python -m mcp_server
+
+# Available tools: plan_topic, search, screen_candidates, download_pdfs,
+# convert_pdfs, extract_content, summarize_papers, run_pipeline,
+# get_run_manifest, convert_file
+```
 
 ## Configuration
 
-Copy `config.example.toml` to `config.toml` and adjust settings. Key environment variables:
+Copy `config.example.toml` to `config.toml` and adjust settings:
 
-```
-ARXIV_PAPER_PIPELINE_CONFIG       # Config file path
-ARXIV_PAPER_PIPELINE_CACHE_DIR    # Override cache directory
-ARXIV_PAPER_PIPELINE_WORKSPACE    # Override workspace directory
-ARXIV_PAPER_PIPELINE_DISABLE_LLM  # Force LLM off
+```bash
+cp config.example.toml config.toml
 ```
 
-## Artifact Layout
+Key environment variables:
+
+| Variable | Purpose |
+|---|---|
+| `ARXIV_PAPER_PIPELINE_CONFIG` | Config file path |
+| `ARXIV_PAPER_PIPELINE_CACHE_DIR` | Override cache directory |
+| `ARXIV_PAPER_PIPELINE_WORKSPACE` | Override workspace directory |
+| `ARXIV_PAPER_PIPELINE_DISABLE_LLM` | Force LLM off |
+
+## Artifact layout
+
+Each pipeline run produces outputs in `runs/<run_id>/`:
 
 ```
 runs/<run_id>/
-├── run_config.json
-├── run_manifest.json
-├── plan/query_plan.json
+├── run_config.json            # Configuration snapshot
+├── run_manifest.json          # Execution metadata & stage records
+├── plan/query_plan.json       # Normalized query plan
 ├── search/
-│   ├── raw/*.xml
-│   └── candidates.jsonl
+│   ├── raw/*.xml              # Raw API response pages
+│   └── candidates.jsonl       # Deduplicated candidates
 ├── screen/
-│   ├── cheap_scores.jsonl
-│   └── shortlist.json
+│   ├── cheap_scores.jsonl     # Heuristic scores
+│   └── shortlist.json         # Papers selected for download
 ├── download/
-│   ├── pdf/*.pdf
+│   ├── pdf/*.pdf              # Downloaded papers
 │   └── download_manifest.jsonl
 ├── convert/
-│   ├── markdown/*.md
+│   ├── markdown/*.md          # Converted Markdown
 │   └── convert_manifest.jsonl
-├── extract/*.extract.json
-└── summarize/
-    ├── *.summary.json
-    ├── synthesis.json
-    └── synthesis.md
+├── extract/*.extract.json     # Chunked & indexed extraction
+├── summarize/
+│   ├── *.summary.json         # Per-paper summaries
+│   ├── synthesis.json         # Cross-paper synthesis
+│   └── synthesis.md           # Human-readable synthesis
+└── logs/pipeline.jsonl        # Structured logs
 ```
 
 ## Development
@@ -100,15 +131,20 @@ runs/<run_id>/
 # Install dev dependencies
 uv sync --extra dev
 
-# Run tests
-uv run pytest -xvs
+# Run unit tests
+uv run pytest tests/unit/ -xvs
 
-# Format & lint
+# Format, lint, type check
 uv run isort . && uv run black . && uv run ruff check . --fix
-
-# Type check
 uv run mypy src/
+
+# Run all pre-commit hooks
+uv run pre-commit run --all-files
 ```
+
+See [docs/architecture.md](docs/architecture.md) for detailed architecture
+documentation and [docs/user-guide.md](docs/user-guide.md) for the full user
+guide.
 
 ## License
 
