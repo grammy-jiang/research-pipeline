@@ -35,6 +35,9 @@ class ScreenConfig(BaseModel):
     download_top_n: int = int(DEFAULTS["screen"]["download_top_n"])
     final_score_threshold: float = float(DEFAULTS["screen"]["final_score_threshold"])
     llm_score_threshold: float = float(DEFAULTS["screen"]["llm_score_threshold"])
+    use_semantic_reranking: bool = False
+    embedding_model: str = "allenai/specter2"
+    embedding_batch_size: int = 32
 
 
 class DownloadConfig(BaseModel):

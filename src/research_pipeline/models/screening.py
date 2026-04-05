@@ -15,6 +15,10 @@ class CheapScoreBreakdown(BaseModel):
     cat_match: float = Field(description="Category match bonus.")
     negative_penalty: float = Field(description="Penalty for negative term matches.")
     recency_bonus: float = Field(description="Bonus for recent papers.")
+    semantic_score: float | None = Field(
+        default=None,
+        description="SPECTER2 semantic similarity score (0-1). None when disabled.",
+    )
     cheap_score: float = Field(description="Aggregated heuristic score.")
 
 

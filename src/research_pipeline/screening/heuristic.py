@@ -73,6 +73,7 @@ def score_candidates(
     negative_terms: list[str],
     target_categories: list[str],
     weights: dict[str, float] | None = None,
+    semantic_scores: list[float] | None = None,
 ) -> list[CheapScoreBreakdown]:
     """Score all candidates using heuristic methods.
 
@@ -83,17 +84,34 @@ def score_candidates(
         negative_terms: Terms that reduce score.
         target_categories: Preferred arXiv categories.
         weights: Score component weights. Defaults provided.
+        semantic_scores: Pre-computed semantic similarity scores (0-1),
+            one per candidate. When provided, the "semantic_similarity"
+            weight is used. Pass None to disable.
 
     Returns:
         List of score breakdowns, one per candidate.
     """
-    w = weights or {
-        "bm25_title": 0.30,
-        "bm25_abstract": 0.35,
-        "cat_match": 0.15,
-        "negative_penalty": 0.10,
-        "recency_bonus": 0.10,
-    }
+    use_semantic = semantic_scores is not None and len(semantic_scores) == len(
+        candidates
+    )
+
+    if use_semantic:
+        w = weights or {
+            "bm25_title": 0.20,
+            "bm25_abstract": 0.25,
+            "semantic_similarity": 0.25,
+            "cat_match": 0.12,
+            "negative_penalty": 0.08,
+            "recency_bonus": 0.10,
+        }
+    else:
+        w = weights or {
+            "bm25_title": 0.30,
+            "bm25_abstract": 0.35,
+            "cat_match": 0.15,
+            "negative_penalty": 0.10,
+            "recency_bonus": 0.10,
+        }
 
     query_terms = must_terms + nice_terms
     titles = [c.title for c in candidates]
@@ -130,6 +148,8 @@ def score_candidates(
 
         recency = _recency_bonus(candidate.published)
 
+        sem_score = semantic_scores[i] if use_semantic else None
+
         cheap_score = (
             w["bm25_title"] * bm25_title
             + w["bm25_abstract"] * bm25_abstract
@@ -137,6 +157,8 @@ def score_candidates(
             - w["negative_penalty"] * neg_penalty
             + w["recency_bonus"] * recency
         )
+        if use_semantic and sem_score is not None:
+            cheap_score += w.get("semantic_similarity", 0.0) * sem_score
         cheap_score = max(0.0, min(1.0, cheap_score))
 
         breakdowns.append(
@@ -146,6 +168,7 @@ def score_candidates(
                 cat_match=round(cat_match, 4),
                 negative_penalty=round(neg_penalty, 4),
                 recency_bonus=round(recency, 4),
+                semantic_score=round(sem_score, 4) if sem_score is not None else None,
                 cheap_score=round(cheap_score, 4),
             )
         )
