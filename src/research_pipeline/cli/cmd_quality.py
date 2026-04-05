@@ -11,7 +11,7 @@ from research_pipeline.config.loader import load_config
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.quality.composite import compute_quality_score
 from research_pipeline.storage.manifests import read_jsonl, write_jsonl
-from research_pipeline.storage.workspace import get_stage_dir
+from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 logger = logging.getLogger(__name__)
 
@@ -33,10 +33,7 @@ def run_quality(
         return
 
     config = load_config(config_path)
-    if workspace:
-        config = config.model_copy(update={"workspace": str(workspace)})
-
-    ws = Path(config.workspace)
+    ws = workspace or Path(config.workspace)
     qc = config.quality
 
     weights = {
@@ -46,9 +43,11 @@ def run_quality(
         "recency_weight": qc.recency_weight,
     }
 
+    _run_id, run_root = init_run(ws, run_id)
+
     # Try to load candidates from screen stage, then search stage
-    screen_dir = get_stage_dir(ws, run_id, "screen")
-    search_dir = get_stage_dir(ws, run_id, "search")
+    screen_dir = get_stage_dir(run_root, "screen")
+    search_dir = get_stage_dir(run_root, "search")
 
     candidates_path = screen_dir / "shortlist.jsonl"
     if not candidates_path.exists():
@@ -62,7 +61,7 @@ def run_quality(
     candidates = [CandidateRecord(**r) for r in raw_records]
     logger.info("Scoring %d candidates from %s", len(candidates), candidates_path)
 
-    quality_dir = get_stage_dir(ws, run_id, "quality")
+    quality_dir = get_stage_dir(run_root, "quality")
     quality_dir.mkdir(parents=True, exist_ok=True)
 
     scores = []

@@ -25,6 +25,10 @@ class ConvertManifestEntry(BaseModel):
     status: Literal["converted", "skipped_exists", "failed"] = Field(
         description="Conversion outcome."
     )
+    tier: Literal["rough", "fine"] = Field(
+        default="rough",
+        description="Conversion tier: rough (pymupdf4llm) or fine (high-quality).",
+    )
     error: str | None = Field(default=None, description="Error message if failed.")
     retry_count: int = Field(default=0, description="Number of retry attempts made.")
     last_error: str | None = Field(

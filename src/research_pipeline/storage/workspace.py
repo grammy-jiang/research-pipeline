@@ -17,8 +17,12 @@ STAGE_SUBDIRS = {
     "download_root": "download",
     "convert": "convert/markdown",
     "convert_root": "convert",
+    "convert_rough": "convert_rough",
+    "convert_fine": "convert_fine",
     "extract": "extract",
     "summarize": "summarize",
+    "quality": "quality",
+    "expand": "expand",
     "logs": "logs",
 }
 

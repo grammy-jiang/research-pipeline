@@ -136,6 +136,8 @@ class ConversionConfig(BaseModel):
     backend: str = str(DEFAULTS["conversion"]["backend"])
     fallback_backends: list[str] = Field(default_factory=list)
     timeout_seconds: int = int(DEFAULTS["conversion"]["timeout_seconds"])
+    rough_max_workers: int = 4
+    fine_max_workers: int = 2
     marker: MarkerConfig = Field(default_factory=MarkerConfig)
     mathpix: MathpixConfig = Field(default_factory=MathpixConfig)
     datalab: DatalabConfig = Field(default_factory=DatalabConfig)

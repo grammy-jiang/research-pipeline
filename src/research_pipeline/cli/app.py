@@ -380,5 +380,59 @@ def expand(
     )
 
 
+@app.command(name="convert-rough")
+def convert_rough(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(..., "--run-id", help="Run ID with downloaded PDFs."),
+    force: bool = typer.Option(False, "--force"),
+) -> None:
+    """Rough-convert all downloaded PDFs using pymupdf4llm.
+
+    Fast CPU-only conversion for all papers (Tier 2). The agent
+    reads rough markdown to decide which papers need fine conversion.
+
+    Example: research-pipeline convert-rough --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_convert_rough import run_convert_rough
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    run_convert_rough(force=force, **opts)
+
+
+@app.command(name="convert-fine")
+def convert_fine(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(..., "--run-id", help="Run ID with downloaded PDFs."),
+    paper_ids: str = typer.Option(
+        ...,
+        "--paper-ids",
+        help="Comma-separated arXiv IDs to fine-convert.",
+    ),
+    force: bool = typer.Option(False, "--force"),
+    backend: str | None = typer.Option(
+        None,
+        "--backend",
+        "-b",
+        help="Converter backend override.",
+    ),
+) -> None:
+    """Fine-convert selected PDFs using high-quality backend.
+
+    Converts agent-selected papers with docling, marker, or cloud
+    backend (Tier 3). Requires explicit --paper-ids.
+
+    Example: research-pipeline convert-fine --run-id <ID> --paper-ids 2401.12345
+    """
+    from research_pipeline.cli.cmd_convert_fine import run_convert_fine
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    ids = [p.strip() for p in paper_ids.split(",") if p.strip()]
+    run_convert_fine(paper_ids=ids, force=force, backend=backend, **opts)
+
+
 if __name__ == "__main__":
     app()

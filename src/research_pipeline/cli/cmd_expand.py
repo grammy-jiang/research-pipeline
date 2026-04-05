@@ -12,7 +12,7 @@ from research_pipeline.config.loader import load_config
 from research_pipeline.infra.rate_limit import RateLimiter
 from research_pipeline.sources.citation_graph import CitationGraphClient
 from research_pipeline.storage.manifests import write_jsonl
-from research_pipeline.storage.workspace import get_stage_dir
+from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 logger = logging.getLogger(__name__)
 
@@ -40,14 +40,14 @@ def run_expand(
         return
 
     config = load_config(config_path)
-    if workspace:
-        config = config.model_copy(update={"workspace": str(workspace)})
+    ws = workspace or Path(config.workspace)
 
     if not run_id:
         logger.error("--run-id is required for the expand command.")
         return
 
-    expand_dir = get_stage_dir(Path(config.workspace), run_id, "expand")
+    _run_id, run_root = init_run(ws, run_id)
+    expand_dir = get_stage_dir(run_root, "expand")
     expand_dir.mkdir(parents=True, exist_ok=True)
 
     s2_api_key = config.sources.semantic_scholar_api_key
