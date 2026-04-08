@@ -36,11 +36,11 @@ class PyMuPDF4LLMBackend(ConverterBackend):
         """Get the installed pymupdf4llm version."""
         if self._version is None:
             try:
-                import pymupdf4llm
+                from importlib.metadata import version
 
-                self._version = getattr(pymupdf4llm, "__version__", "unknown")
-            except ImportError:
-                self._version = "not_installed"
+                self._version = version("pymupdf4llm")
+            except Exception:
+                self._version = "unknown"
         return self._version
 
     def fingerprint(self) -> str:

@@ -82,7 +82,7 @@ def run_convert_rough(
     # Add tier field to each record
     for rec in records:
         rec["tier"] = "rough"
-    write_jsonl(records, manifest_path)
+    write_jsonl(manifest_path, records)
 
     converted = sum(1 for r in results if r.status == "converted")
     skipped = sum(1 for r in results if r.status == "skipped_exists")

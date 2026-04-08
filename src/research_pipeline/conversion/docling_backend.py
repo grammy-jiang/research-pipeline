@@ -25,11 +25,11 @@ class DoclingBackend(ConverterBackend):
         """Get the installed Docling version."""
         if self._version is None:
             try:
-                import docling
+                from importlib.metadata import version
 
-                self._version = getattr(docling, "__version__", "unknown")
-            except ImportError:
-                self._version = "not_installed"
+                self._version = version("docling")
+            except Exception:
+                self._version = "unknown"
         return self._version
 
     def fingerprint(self) -> str:

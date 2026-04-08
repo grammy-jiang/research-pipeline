@@ -3,6 +3,7 @@
 import logging
 from pathlib import Path
 
+from research_pipeline.infra.logging import enable_run_logging
 from research_pipeline.infra.paths import generate_run_id, run_dir
 
 logger = logging.getLogger(__name__)
@@ -30,6 +31,9 @@ STAGE_SUBDIRS = {
 def init_run(workspace: Path, run_id: str | None = None) -> tuple[str, Path]:
     """Initialize a new run directory with all stage subdirectories.
 
+    Also attaches a JSONL file handler to the run's ``logs/`` directory
+    so all subsequent log messages are persisted.
+
     Args:
         workspace: Base workspace directory.
         run_id: Optional run ID. Generated if not provided.
@@ -45,6 +49,8 @@ def init_run(workspace: Path, run_id: str | None = None) -> tuple[str, Path]:
 
     for subdir in STAGE_SUBDIRS.values():
         (root / subdir).mkdir(parents=True, exist_ok=True)
+
+    enable_run_logging(root)
 
     logger.info("Initialized run directory: %s", root)
     return run_id, root

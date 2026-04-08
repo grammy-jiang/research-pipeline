@@ -55,3 +55,32 @@ def setup_logging(
         file_handler.setLevel(level)
         file_handler.setFormatter(JSONLFormatter())
         root.addHandler(file_handler)
+
+
+def enable_run_logging(run_root: Path) -> None:
+    """Attach a file handler to the run's logs directory.
+
+    Call this after ``init_run()`` so that all subsequent log messages
+    are captured in ``<run_root>/logs/pipeline.jsonl``.
+
+    Args:
+        run_root: Root directory of the pipeline run.
+    """
+    log_dir = run_root / "logs"
+    log_dir.mkdir(parents=True, exist_ok=True)
+    log_file = log_dir / "pipeline.jsonl"
+
+    root = logging.getLogger("research_pipeline")
+
+    # Avoid adding duplicate file handlers to the same log file
+    for handler in root.handlers:
+        if (
+            isinstance(handler, logging.FileHandler)
+            and Path(handler.baseFilename) == log_file.resolve()
+        ):
+            return
+
+    file_handler = logging.FileHandler(log_file, encoding="utf-8")
+    file_handler.setLevel(root.level)
+    file_handler.setFormatter(JSONLFormatter())
+    root.addHandler(file_handler)

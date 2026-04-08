@@ -177,6 +177,21 @@ def run_search(
                 candidates = future.result()
                 all_candidates.extend(candidates)
                 typer.echo(f"  {source_name}: {len(candidates)} candidates")
+            except ImportError as exc:
+                install_hint = (
+                    "Install with: pipx inject research-pipeline scholarly"
+                    if source_name == "scholar"
+                    else str(exc)
+                )
+                logger.error(
+                    "%s search failed (missing dependency): %s",
+                    source_name,
+                    exc,
+                )
+                typer.echo(
+                    f"  {source_name}: SKIPPED (not installed — {install_hint})",
+                    err=True,
+                )
             except Exception as exc:
                 logger.error("%s search failed: %s", source_name, exc)
                 typer.echo(f"  {source_name}: FAILED ({exc})", err=True)

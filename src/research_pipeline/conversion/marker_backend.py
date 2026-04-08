@@ -41,11 +41,11 @@ class MarkerBackend(ConverterBackend):
         """Get the installed Marker version."""
         if self._version is None:
             try:
-                import marker
+                from importlib.metadata import version
 
-                self._version = getattr(marker, "__version__", "unknown")
-            except ImportError:
-                self._version = "not_installed"
+                self._version = version("marker-pdf")
+            except Exception:
+                self._version = "unknown"
         return self._version
 
     def fingerprint(self) -> str:

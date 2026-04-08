@@ -97,7 +97,7 @@ def run_convert_fine(
     records = [r.model_dump(mode="json") for r in results]
     for rec in records:
         rec["tier"] = "fine"
-    write_jsonl(records, manifest_path)
+    write_jsonl(manifest_path, records)
 
     converted = sum(1 for r in results if r.status == "converted")
     skipped = sum(1 for r in results if r.status == "skipped_exists")
