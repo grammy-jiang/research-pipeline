@@ -9,6 +9,10 @@ from research_pipeline.arxiv.client import ArxivClient
 from research_pipeline.arxiv.dedup import dedup_across_queries
 from research_pipeline.arxiv.query_builder import build_query_from_plan
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
+from research_pipeline.cli.cmd_plan import (
+    _generate_query_variants,
+    _split_topic_terms,
+)
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
 from research_pipeline.conversion.registry import (
@@ -23,7 +27,10 @@ from research_pipeline.infra.http import create_session
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.manifest import RunManifest, StageRecord
 from research_pipeline.models.query_plan import QueryPlan
-from research_pipeline.models.screening import RelevanceDecision
+from research_pipeline.models.screening import (
+    RelevanceDecision,
+    parse_shortlist_lenient,
+)
 from research_pipeline.screening.heuristic import score_candidates, select_topk
 from research_pipeline.storage.manifests import (
     load_manifest,
@@ -157,14 +164,21 @@ def run_pipeline(
         logger.info("Stage: plan")
         plan_dir = get_stage_dir(run_root, "plan")
 
+        must_terms, nice_terms = _split_topic_terms(topic)
+        query_variants = _generate_query_variants(
+            must_terms,
+            nice_terms,
+            max_variants=config.search.max_query_variants,
+        )
+
         plan = QueryPlan(
             topic_raw=topic,
             topic_normalized=topic.lower().strip(),
-            must_terms=topic.lower().split()[:3],
-            nice_terms=topic.lower().split()[3:6],
+            must_terms=must_terms,
+            nice_terms=nice_terms,
             negative_terms=[],
             candidate_categories=[],
-            query_variants=[],
+            query_variants=query_variants,
         )
 
         plan_path = plan_dir / "query_plan.json"
@@ -341,7 +355,7 @@ def run_pipeline(
         raw_shortlist = json.loads(
             (screen_dir / "shortlist.json").read_text(encoding="utf-8")
         )
-        shortlist = [RelevanceDecision.model_validate(d) for d in raw_shortlist]
+        shortlist = [parse_shortlist_lenient(d) for d in raw_shortlist]
 
     # --- Stage: download ---
     if not (resume and _is_stage_complete(manifest, "download")):

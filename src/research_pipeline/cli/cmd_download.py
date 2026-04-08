@@ -10,7 +10,9 @@ from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.config.loader import load_config
 from research_pipeline.download.pdf import download_batch
 from research_pipeline.infra.http import create_session
-from research_pipeline.models.screening import RelevanceDecision
+from research_pipeline.models.screening import (
+    parse_shortlist_lenient,
+)
 from research_pipeline.storage.manifests import write_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 
@@ -41,7 +43,7 @@ def run_download(
         raise typer.Exit(1)
 
     raw = json.loads(shortlist_path.read_text(encoding="utf-8"))
-    shortlist = [RelevanceDecision.model_validate(d) for d in raw]
+    shortlist = [parse_shortlist_lenient(d) for d in raw]
 
     papers = [
         {
