@@ -460,5 +460,51 @@ def index(
     run_index(list_papers=list_papers, gc=gc, db_path=db_path)
 
 
+@app.command(name="install-skill")
+def install_skill(
+    target: str = typer.Option(
+        "",
+        "--target",
+        "-t",
+        help=(
+            "Target directory for skill installation. "
+            "Default: ~/.claude/skills/research-pipeline"
+        ),
+    ),
+    symlink: bool = typer.Option(
+        False,
+        "--symlink",
+        "-s",
+        help="Create a symlink instead of copying files.",
+    ),
+    force: bool = typer.Option(
+        False,
+        "--force",
+        "-f",
+        help="Overwrite existing skill directory.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Install the research-pipeline skill to ~/.claude/skills/.
+
+    Copies (or symlinks) the bundled SKILL.md, config.toml, and reference
+    docs so that Claude Code and GitHub Copilot can discover them.
+
+    Example: research-pipeline install-skill
+    Example: research-pipeline install-skill --symlink --force
+    """
+    from research_pipeline.cli.cmd_install_skill import (
+        DEFAULT_SKILL_DIR,
+        run_install_skill,
+    )
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+
+    target_path = Path(target) if target else DEFAULT_SKILL_DIR
+    run_install_skill(target=target_path, symlink=symlink, force=force)
+
+
 if __name__ == "__main__":
     app()

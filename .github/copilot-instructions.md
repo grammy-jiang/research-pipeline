@@ -136,9 +136,20 @@ src/research_pipeline/          # Main library (importable as research_pipeline)
   llm/                          # LLM provider interface (experimental)
 
 mcp_server/                     # FastMCP server (separate top-level package)
+    server.py                   # Server entry point, tool/resource/prompt registration
+    tools.py                    # 16 tool implementations (thin CLI adapters)
+    schemas.py                  # Pydantic input/output schemas
+    resources.py                # 12 resource handlers (URI template based)
+    prompts.py                  # 5 prompt templates for research workflows
+    completions.py              # Auto-complete handler
+
+.github/skills/research-pipeline/  # Bundled AI skill for Claude Code / Copilot
+    SKILL.md                    # Skill definition and workflow instructions
+    config.toml                 # Pipeline configuration template
+    references/                 # Reference docs (sub-agents, troubleshooting, etc.)
 
 tests/
-  unit/                         # 407 fast unit tests (no network)
+  unit/                         # 489+ fast unit tests (no network)
     test_<module>.py            # Each test file maps to a source module
   integration_offline/          # VCR-cassette offline integration tests
   live/                         # Tests with @pytest.mark.live (real arXiv API)
@@ -159,7 +170,9 @@ can be re-run independently.
 - **Retry**: `@retry` decorator (`infra/retry.py`) — exponential backoff, jitter,
   Retry-After header support
 - **CLI entry point**: registered in `pyproject.toml` as `research-pipeline`
-- **MCP server**: `python -m mcp_server` (tools wrapping CLI logic)
+- **MCP server**: `python -m mcp_server` — 16 tools (with annotations and
+  progress reporting), 12 resources (URI templates for run artifacts), 5
+  prompts (research workflow templates), auto-completions
 - **Multi-source search**: arXiv + Google Scholar + Semantic Scholar + OpenAlex +
   DBLP with cross-source dedup (arXiv ID, DOI, normalized title)
 - **Semantic re-ranking**: optional SPECTER2 embeddings in screen stage

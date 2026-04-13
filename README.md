@@ -13,7 +13,7 @@ Scholar, Semantic Scholar, OpenAlex, and DBLP.
 - **Multi-stage pipeline**: plan → search → screen → download → convert → extract → summarize
 - **5 new auxiliary commands**: `expand` (citation graph), `quality` (evaluation scoring), `convert-rough` / `convert-fine` (two-tier conversion), `index` (incremental runs)
 - **Modular CLI** with independent, composable stage commands
-- **MCP server** for AI agent integration (12 tools via stdio transport)
+- **MCP server** for AI agent integration (16 tools, 12 resources, 5 prompts, completions, progress reporting)
 - **Multi-source search**: arXiv + Google Scholar + Semantic Scholar + OpenAlex + DBLP
 - **Cross-source enrichment** — fill missing abstracts via DOI lookup
 - **Semantic re-ranking** — optional SPECTER2 embeddings for similarity scoring
@@ -121,18 +121,53 @@ research-pipeline index --list
 | `inspect` | View run manifests and artifacts |
 | `convert-file` | Standalone PDF → Markdown conversion |
 | `index` | Manage the global paper index for incremental runs |
+| `install-skill` | Install the Claude/Copilot skill to `~/.claude/skills/` |
 
 ## MCP server
 
-The MCP server exposes all pipeline stages as tools for AI agent integration:
+The MCP server provides full Model Context Protocol support for AI agent
+integration:
 
 ```bash
 # Run via module
 uv run python -m mcp_server
+```
 
-# Available tools: plan_topic, search, screen_candidates, download_pdfs,
-# convert_pdfs, extract_content, summarize_papers, run_pipeline,
-# get_run_manifest, convert_file, list_backends
+**16 tools** — all pipeline stages plus auxiliary commands:
+
+`plan_topic`, `search`, `screen_candidates`, `download_pdfs`, `convert_pdfs`,
+`extract_content`, `summarize_papers`, `run_pipeline`, `get_run_manifest`,
+`convert_file`, `list_backends`, `expand_citations`, `evaluate_quality`,
+`convert_rough`, `convert_fine`, `manage_index`
+
+**12 resources** — read pipeline artifacts via URI templates:
+
+`runs://list`, `runs://{run_id}/manifest`, `runs://{run_id}/plan`,
+`runs://{run_id}/candidates`, `runs://{run_id}/shortlist`,
+`runs://{run_id}/papers/{paper_id}`, `runs://{run_id}/markdown/{paper_id}`,
+`runs://{run_id}/summary/{paper_id}`, `runs://{run_id}/synthesis`,
+`runs://{run_id}/quality`, `config://current`, `index://papers`
+
+**5 prompts** — research workflow templates:
+
+`research_topic`, `analyze_paper`, `compare_papers`, `refine_search`,
+`quality_assessment`
+
+Plus: **tool annotations**, **auto-completions**, and **progress reporting**.
+
+## AI skill
+
+Install the bundled Claude Code / GitHub Copilot skill:
+
+```bash
+# Copy skill files to ~/.claude/skills/research-pipeline/
+research-pipeline install-skill
+
+# Or create a symlink (for development)
+research-pipeline install-skill --symlink
+
+# Force overwrite existing
+research-pipeline install-skill --force
 ```
 
 ## Configuration

@@ -275,14 +275,17 @@ All commands accept:
 
 ## MCP server
 
-The MCP server exposes pipeline functionality as tools for AI agent integration
-via the Model Context Protocol:
+The MCP server provides full Model Context Protocol support for AI agent
+integration via stdio transport:
 
 ```bash
 uv run python -m mcp_server
 ```
 
-### Available tools
+### Tools (16)
+
+All 16 tools include **annotations** (readOnlyHint, destructiveHint,
+idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 
 | Tool | Description |
 |---|---|
@@ -297,6 +300,47 @@ uv run python -m mcp_server
 | `get_run_manifest` | Inspect a run's manifest |
 | `convert_file` | Convert a single PDF file (supports backend selection) |
 | `list_backends` | List available converter backends |
+| `expand_citations` | Expand candidate pool via citation graph |
+| `evaluate_quality` | Compute composite quality scores |
+| `convert_rough` | Fast conversion of all PDFs (pymupdf4llm) |
+| `convert_fine` | High-quality conversion of selected papers |
+| `manage_index` | Manage the global paper index |
+
+### Resources (12)
+
+Read pipeline artifacts via URI templates:
+
+| URI | Description |
+|---|---|
+| `runs://list` | List all run IDs |
+| `runs://{run_id}/manifest` | Run manifest (stages, timestamps, hashes) |
+| `runs://{run_id}/plan` | Query plan for a run |
+| `runs://{run_id}/candidates` | Search candidates (JSONL) |
+| `runs://{run_id}/shortlist` | Screened shortlist |
+| `runs://{run_id}/papers/{paper_id}` | Downloaded PDF metadata |
+| `runs://{run_id}/markdown/{paper_id}` | Converted Markdown content |
+| `runs://{run_id}/summary/{paper_id}` | Per-paper summary |
+| `runs://{run_id}/synthesis` | Cross-paper synthesis report |
+| `runs://{run_id}/quality` | Quality evaluation scores |
+| `config://current` | Current pipeline configuration |
+| `index://papers` | Global paper index |
+
+### Prompts (5)
+
+Research workflow templates for AI agents:
+
+| Prompt | Description |
+|---|---|
+| `research_topic` | Plan and execute a research workflow on a topic |
+| `analyze_paper` | Deep analysis of a specific paper |
+| `compare_papers` | Compare papers within a run |
+| `refine_search` | Improve search results after screening |
+| `quality_assessment` | Interpret quality evaluation scores |
+
+### Completions
+
+Auto-complete support for: `run_id`, `paper_id`, `backend`, `direction`,
+`source`, `topic`.
 
 ### MCP client configuration
 
@@ -313,6 +357,26 @@ Add to your MCP client configuration (e.g., Claude Desktop):
   }
 }
 ```
+
+## AI skill
+
+The package includes a bundled skill for Claude Code and GitHub Copilot that
+provides step-by-step research workflow instructions, configuration, and
+reference documentation.
+
+```bash
+# Install skill to ~/.claude/skills/research-pipeline/
+research-pipeline install-skill
+
+# Create a symlink (useful during development)
+research-pipeline install-skill --symlink
+
+# Force overwrite existing skill
+research-pipeline install-skill --force
+```
+
+Once installed, Claude Code and GitHub Copilot will automatically discover the
+skill and use it when you ask about academic paper research.
 
 ## Run artifacts
 

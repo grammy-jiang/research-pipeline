@@ -43,10 +43,17 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── storage/                  # Workspace, manifests, artifacts, global index
 │   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry
 │   └── llm/                      # LLM provider interface (experimental)
-├── mcp_server/                   # FastMCP server
-│   ├── server.py                 # Server entry point
-│   ├── tools.py                  # Tool implementations
-│   └── schemas.py                # Input/output Pydantic schemas
+├── mcp_server/                   # FastMCP server (full MCP spec support)
+│   ├── server.py                 # Server entry point, registrations
+│   ├── tools.py                  # 16 tool implementations
+│   ├── schemas.py                # Input/output Pydantic schemas
+│   ├── resources.py              # 12 resource handlers
+│   ├── prompts.py                # 5 prompt templates
+│   └── completions.py            # Auto-complete handler
+├── .github/skills/research-pipeline/  # Bundled AI skill
+│   ├── SKILL.md                  # Skill definition and workflow
+│   ├── config.toml               # Pipeline configuration template
+│   └── references/               # Reference docs
 ├── tests/
 │   ├── unit/                     # Fast, isolated unit tests
 │   ├── integration_offline/      # VCR-cassette offline integration tests
@@ -191,7 +198,7 @@ research-pipeline inspect --run-id <ID>
 
 ## MCP server
 
-The MCP server wraps CLI logic into tools for AI agent integration:
+The MCP server provides full Model Context Protocol support:
 
 ```bash
 # Run via module
@@ -199,6 +206,18 @@ python -m mcp_server
 
 # Or via uv
 uv run python -m mcp_server
+```
+
+Features: 16 tools (with annotations & progress), 12 resources (URI templates),
+5 prompts, auto-completions. See `docs/user-guide.md` for the full reference.
+
+## AI skill
+
+Install the bundled Claude Code / GitHub Copilot skill:
+
+```bash
+research-pipeline install-skill          # Copy to ~/.claude/skills/
+research-pipeline install-skill --symlink  # Symlink for development
 ```
 
 ## Adding a new pipeline stage
