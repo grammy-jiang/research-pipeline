@@ -132,6 +132,71 @@ class ListBackendsInput(BaseModel):
     # No parameters needed; included for consistency.
 
 
+class ExpandCitationsInput(CommonParams):
+    """Input for the expand_citations tool."""
+
+    paper_ids: list[str] = Field(
+        description="arXiv IDs or Semantic Scholar paper IDs to expand.",
+    )
+    direction: str = Field(
+        default="both",
+        description="Expansion direction: 'citations', 'references', or 'both'.",
+    )
+    limit: int = Field(
+        default=50,
+        description="Max related papers per seed paper per direction.",
+    )
+
+
+class EvaluateQualityInput(CommonParams):
+    """Input for the evaluate_quality tool."""
+
+
+class ConvertRoughInput(CommonParams):
+    """Input for the convert_rough tool."""
+
+    force: bool = Field(
+        default=False,
+        description="Re-convert even if Markdown files already exist.",
+    )
+
+
+class ConvertFineInput(CommonParams):
+    """Input for the convert_fine tool."""
+
+    paper_ids: list[str] = Field(
+        description="arXiv IDs of papers to fine-convert.",
+    )
+    force: bool = Field(
+        default=False,
+        description="Re-convert even if Markdown files already exist.",
+    )
+    backend: str = Field(
+        default="",
+        description=(
+            "Converter backend override: 'docling', 'marker', 'pymupdf4llm', "
+            "or '' (use config default)."
+        ),
+    )
+
+
+class ManageIndexInput(BaseModel):
+    """Input for the manage_index tool."""
+
+    list_papers: bool = Field(
+        default=False,
+        description="List indexed papers (up to 100).",
+    )
+    gc: bool = Field(
+        default=False,
+        description="Garbage collect stale entries.",
+    )
+    db_path: str = Field(
+        default="",
+        description="Path to index database. Empty uses default.",
+    )
+
+
 class ToolResult(BaseModel):
     """Standard result envelope for MCP tool outputs."""
 

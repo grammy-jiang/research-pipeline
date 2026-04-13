@@ -6,10 +6,15 @@ from pydantic import ValidationError
 from mcp_server.schemas import (
     CommonParams,
     ConvertFileInput,
+    ConvertFineInput,
     ConvertPdfsInput,
+    ConvertRoughInput,
     DownloadPdfsInput,
+    EvaluateQualityInput,
+    ExpandCitationsInput,
     ExtractContentInput,
     GetRunManifestInput,
+    ManageIndexInput,
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
@@ -130,3 +135,68 @@ class TestToolResult:
     def test_failure(self) -> None:
         r = ToolResult(success=False, message="Error occurred")
         assert r.success is False
+
+
+class TestExpandCitationsInput:
+    def test_requires_paper_ids(self) -> None:
+        with pytest.raises(ValidationError):
+            ExpandCitationsInput()  # type: ignore[call-arg]
+
+    def test_valid(self) -> None:
+        p = ExpandCitationsInput(paper_ids=["2401.12345"])
+        assert p.paper_ids == ["2401.12345"]
+        assert p.direction == "both"
+        assert p.limit == 50
+
+    def test_custom_direction(self) -> None:
+        p = ExpandCitationsInput(
+            paper_ids=["2401.12345"], direction="citations", limit=20
+        )
+        assert p.direction == "citations"
+        assert p.limit == 20
+
+
+class TestEvaluateQualityInput:
+    def test_defaults(self) -> None:
+        p = EvaluateQualityInput()
+        assert p.workspace == "./workspace"
+        assert p.run_id == ""
+
+
+class TestConvertRoughInput:
+    def test_defaults(self) -> None:
+        p = ConvertRoughInput()
+        assert p.force is False
+        assert p.workspace == "./workspace"
+
+
+class TestConvertFineInput:
+    def test_requires_paper_ids(self) -> None:
+        with pytest.raises(ValidationError):
+            ConvertFineInput()  # type: ignore[call-arg]
+
+    def test_valid(self) -> None:
+        p = ConvertFineInput(paper_ids=["2401.12345"])
+        assert p.paper_ids == ["2401.12345"]
+        assert p.force is False
+        assert p.backend == ""
+
+    def test_with_backend(self) -> None:
+        p = ConvertFineInput(paper_ids=["2401.12345"], backend="marker")
+        assert p.backend == "marker"
+
+
+class TestManageIndexInput:
+    def test_defaults(self) -> None:
+        p = ManageIndexInput()
+        assert p.list_papers is False
+        assert p.gc is False
+        assert p.db_path == ""
+
+    def test_list_mode(self) -> None:
+        p = ManageIndexInput(list_papers=True)
+        assert p.list_papers is True
+
+    def test_gc_mode(self) -> None:
+        p = ManageIndexInput(gc=True)
+        assert p.gc is True

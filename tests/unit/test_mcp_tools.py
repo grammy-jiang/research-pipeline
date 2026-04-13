@@ -5,7 +5,12 @@ from pathlib import Path
 
 from mcp_server.schemas import (
     ConvertFileInput,
+    ConvertFineInput,
+    ConvertRoughInput,
+    EvaluateQualityInput,
+    ExpandCitationsInput,
     GetRunManifestInput,
+    ManageIndexInput,
     PlanTopicInput,
     ScreenCandidatesInput,
     SearchInput,
@@ -14,7 +19,12 @@ from mcp_server.tools import (
     _resolve_run_id,
     _resolve_workspace,
     convert_file,
+    convert_fine,
+    convert_rough,
+    evaluate_quality,
+    expand_citations,
     get_run_manifest,
+    manage_index,
     plan_topic,
     screen_candidates,
     search,
@@ -118,3 +128,83 @@ class TestConvertFile:
         result = convert_file(ConvertFileInput(pdf_path="/tmp/nonexistent_paper.pdf"))
         assert result.success is False
         assert "not found" in result.message.lower()
+
+
+class TestExpandCitations:
+    def test_no_paper_ids(self, tmp_path: Path) -> None:
+        result = expand_citations(
+            ExpandCitationsInput(
+                paper_ids=[],
+                workspace=str(tmp_path),
+                run_id="test-expand",
+            )
+        )
+        assert result.success is False
+        assert "paper" in result.message.lower()
+
+
+class TestEvaluateQuality:
+    def test_no_candidates(self, tmp_path: Path) -> None:
+        result = evaluate_quality(
+            EvaluateQualityInput(
+                workspace=str(tmp_path),
+                run_id="test-quality",
+            )
+        )
+        assert result.success is False
+        assert (
+            "candidates" in result.message.lower() or "search" in result.message.lower()
+        )
+
+
+class TestConvertRough:
+    def test_no_download_manifest(self, tmp_path: Path) -> None:
+        result = convert_rough(
+            ConvertRoughInput(
+                workspace=str(tmp_path),
+                run_id="test-rough",
+            )
+        )
+        assert result.success is False
+        assert "download" in result.message.lower()
+
+
+class TestConvertFine:
+    def test_no_paper_ids(self, tmp_path: Path) -> None:
+        result = convert_fine(
+            ConvertFineInput(
+                paper_ids=[],
+                workspace=str(tmp_path),
+                run_id="test-fine",
+            )
+        )
+        assert result.success is False
+        assert "paper" in result.message.lower()
+
+    def test_no_download_manifest(self, tmp_path: Path) -> None:
+        result = convert_fine(
+            ConvertFineInput(
+                paper_ids=["2401.12345"],
+                workspace=str(tmp_path),
+                run_id="test-fine",
+            )
+        )
+        assert result.success is False
+        assert "download" in result.message.lower()
+
+
+class TestManageIndex:
+    def test_default_usage_message(self, tmp_path: Path) -> None:
+        result = manage_index(ManageIndexInput(db_path=str(tmp_path / "test_index.db")))
+        assert result.success is True
+        assert "list_papers" in result.message.lower() or "gc" in result.message.lower()
+
+    def test_list_empty_index(self, tmp_path: Path) -> None:
+        result = manage_index(
+            ManageIndexInput(
+                list_papers=True,
+                db_path=str(tmp_path / "test_index.db"),
+            )
+        )
+        assert result.success is True
+        assert result.artifacts.get("count") == 0

@@ -6,17 +6,27 @@ These are pure adapter functions — no business logic.
 
 from __future__ import annotations
 
+import contextlib
 import json
 import logging
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from mcp.server.fastmcp import Context
 
 from mcp_server.schemas import (
     ConvertFileInput,
+    ConvertFineInput,
     ConvertPdfsInput,
+    ConvertRoughInput,
     DownloadPdfsInput,
+    EvaluateQualityInput,
+    ExpandCitationsInput,
     ExtractContentInput,
     GetRunManifestInput,
     ListBackendsInput,
+    ManageIndexInput,
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
@@ -26,6 +36,23 @@ from mcp_server.schemas import (
 )
 
 logger = logging.getLogger(__name__)
+
+
+def _report_progress(
+    ctx: Context | None, progress: float, total: float, message: str = ""
+) -> None:
+    """Safely report progress via MCP context if available."""
+    if ctx is not None:
+        with contextlib.suppress(Exception):
+            ctx.report_progress(progress, total, message)
+
+
+def _log_info(ctx: Context | None, message: str) -> None:
+    """Log via MCP context if available, always log via Python logger."""
+    logger.info(message)
+    if ctx is not None:
+        with contextlib.suppress(Exception):
+            ctx.info(message)
 
 
 def _backend_kwargs(
@@ -84,7 +111,7 @@ def _get_run_root(ws: Path, rid: str) -> Path:
     return run_dir(ws, rid)
 
 
-def plan_topic(params: PlanTopicInput) -> ToolResult:
+def plan_topic(params: PlanTopicInput, ctx: Context | None = None) -> ToolResult:
     """Create a query plan from a natural language topic."""
     try:
         from research_pipeline.config.loader import load_config
@@ -121,7 +148,7 @@ def plan_topic(params: PlanTopicInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def search(params: SearchInput) -> ToolResult:
+def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
     """Search arXiv and/or Google Scholar using the query plan."""
     try:
         from concurrent.futures import ThreadPoolExecutor, as_completed
@@ -289,7 +316,9 @@ def search(params: SearchInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def screen_candidates(params: ScreenCandidatesInput) -> ToolResult:
+def screen_candidates(
+    params: ScreenCandidatesInput, ctx: Context | None = None
+) -> ToolResult:
     """Two-stage relevance screening of candidates."""
     try:
         from research_pipeline.config.loader import load_config
@@ -365,7 +394,7 @@ def screen_candidates(params: ScreenCandidatesInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def download_pdfs(params: DownloadPdfsInput) -> ToolResult:
+def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> ToolResult:
     """Download shortlisted PDFs from arXiv."""
     try:
         from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
@@ -423,7 +452,7 @@ def download_pdfs(params: DownloadPdfsInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
+def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolResult:
     """Convert downloaded PDFs to Markdown."""
     try:
         from research_pipeline.config.loader import load_config
@@ -503,7 +532,9 @@ def convert_pdfs(params: ConvertPdfsInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def extract_content(params: ExtractContentInput) -> ToolResult:
+def extract_content(
+    params: ExtractContentInput, ctx: Context | None = None
+) -> ToolResult:
     """Extract structured content from converted Markdown."""
     try:
         from research_pipeline.extraction.extractor import extract_from_markdown
@@ -558,7 +589,9 @@ def extract_content(params: ExtractContentInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def summarize_papers(params: SummarizePapersInput) -> ToolResult:
+def summarize_papers(
+    params: SummarizePapersInput, ctx: Context | None = None
+) -> ToolResult:
     """Generate per-paper summaries and cross-paper synthesis."""
     try:
         from research_pipeline.models.download import DownloadManifestEntry
@@ -624,7 +657,7 @@ def summarize_papers(params: SummarizePapersInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def run_pipeline(params: RunPipelineInput) -> ToolResult:
+def run_pipeline(params: RunPipelineInput, ctx: Context | None = None) -> ToolResult:
     """Run the full pipeline end-to-end."""
     try:
         from research_pipeline.pipeline.orchestrator import run_pipeline as _run
@@ -653,7 +686,9 @@ def run_pipeline(params: RunPipelineInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def get_run_manifest(params: GetRunManifestInput) -> ToolResult:
+def get_run_manifest(
+    params: GetRunManifestInput, ctx: Context | None = None
+) -> ToolResult:
     """Inspect a run's manifest and artifacts."""
     try:
         from research_pipeline.storage.manifests import load_manifest
@@ -679,7 +714,7 @@ def get_run_manifest(params: GetRunManifestInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def convert_file(params: ConvertFileInput) -> ToolResult:
+def convert_file(params: ConvertFileInput, ctx: Context | None = None) -> ToolResult:
     """Convert a single PDF file to Markdown (standalone, no workspace needed)."""
     try:
         from research_pipeline.config.loader import load_config
@@ -741,7 +776,7 @@ def convert_file(params: ConvertFileInput) -> ToolResult:
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
-def list_backends(params: ListBackendsInput) -> ToolResult:
+def list_backends(params: ListBackendsInput, ctx: Context | None = None) -> ToolResult:
     """List available converter backends."""
     try:
         from research_pipeline.conversion.registry import (
@@ -758,4 +793,373 @@ def list_backends(params: ListBackendsInput) -> ToolResult:
         )
     except Exception as exc:
         logger.error("list_backends failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def expand_citations(
+    params: ExpandCitationsInput, ctx: Context | None = None
+) -> ToolResult:
+    """Expand citation graph for specified papers via Semantic Scholar."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.infra.rate_limit import RateLimiter
+        from research_pipeline.sources.citation_graph import CitationGraphClient
+        from research_pipeline.storage.manifests import write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        if not params.paper_ids:
+            return ToolResult(success=False, message="No paper IDs provided.")
+
+        config = load_config()
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _rid, run_root = init_run(ws, rid)
+
+        expand_dir = get_stage_dir(run_root, "expand")
+        expand_dir.mkdir(parents=True, exist_ok=True)
+
+        s2_api_key = config.sources.semantic_scholar_api_key
+        rate_limiter = RateLimiter(
+            min_interval=config.sources.semantic_scholar_min_interval,
+            name="s2_expand",
+        )
+        client = CitationGraphClient(
+            api_key=s2_api_key,
+            rate_limiter=rate_limiter,
+        )
+
+        _log_info(
+            ctx,
+            f"Expanding citations for {len(params.paper_ids)} papers "
+            f"(direction={params.direction})",
+        )
+
+        candidates = client.fetch_related(
+            paper_ids=params.paper_ids,
+            direction=params.direction,
+            limit_per_paper=params.limit,
+        )
+
+        _report_progress(
+            ctx,
+            len(params.paper_ids),
+            len(params.paper_ids),
+            "Expansion complete",
+        )
+
+        output_path = expand_dir / "expanded_candidates.jsonl"
+        records = [c.model_dump(mode="json") for c in candidates]
+        write_jsonl(records, output_path)
+
+        logger.info("Expansion complete: %d related papers", len(candidates))
+        return ToolResult(
+            success=True,
+            message=(
+                f"Expanded {len(params.paper_ids)} seed papers → "
+                f"{len(candidates)} related papers."
+            ),
+            artifacts={
+                "expanded_candidates": str(output_path),
+                "run_id": _rid,
+                "count": len(candidates),
+            },
+        )
+    except Exception as exc:
+        logger.error("expand_citations failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def evaluate_quality(
+    params: EvaluateQualityInput, ctx: Context | None = None
+) -> ToolResult:
+    """Compute composite quality scores for candidate papers."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.candidate import CandidateRecord
+        from research_pipeline.quality.composite import compute_quality_score
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        config = load_config()
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _rid, run_root = init_run(ws, rid)
+
+        qc = config.quality
+        weights = {
+            "citation_weight": qc.citation_weight,
+            "venue_weight": qc.venue_weight,
+            "author_weight": qc.author_weight,
+            "recency_weight": qc.recency_weight,
+        }
+
+        # Try screen shortlist first, then search candidates
+        screen_dir = get_stage_dir(run_root, "screen")
+        search_dir = get_stage_dir(run_root, "search")
+
+        candidates_path = screen_dir / "shortlist.jsonl"
+        if not candidates_path.exists():
+            candidates_path = search_dir / "candidates.jsonl"
+
+        if not candidates_path.exists():
+            return ToolResult(
+                success=False,
+                message="No candidates found. Run search or screen first.",
+            )
+
+        raw_records = read_jsonl(candidates_path)
+        candidates = [CandidateRecord(**r) for r in raw_records]
+
+        quality_dir = get_stage_dir(run_root, "quality")
+        quality_dir.mkdir(parents=True, exist_ok=True)
+
+        _log_info(ctx, f"Scoring quality for {len(candidates)} candidates")
+
+        scores = []
+        total = len(candidates)
+        for i, candidate in enumerate(candidates):
+            qs = compute_quality_score(
+                candidate,
+                weights=weights,
+                venue_data_path=qc.venue_data_path,
+            )
+            scores.append(qs.model_dump(mode="json"))
+            if (i + 1) % 10 == 0 or i == total - 1:
+                _report_progress(ctx, i + 1, total, "Scoring papers")
+
+        output_path = quality_dir / "quality_scores.jsonl"
+        write_jsonl(scores, output_path)
+
+        logger.info("Quality scoring complete: %d scores", len(scores))
+        return ToolResult(
+            success=True,
+            message=f"Quality scores computed for {len(scores)} candidates.",
+            artifacts={
+                "quality_scores": str(output_path),
+                "run_id": _rid,
+                "count": len(scores),
+            },
+        )
+    except Exception as exc:
+        logger.error("evaluate_quality failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def convert_rough(params: ConvertRoughInput, ctx: Context | None = None) -> ToolResult:
+    """Fast Tier 2 conversion of all downloaded PDFs via pymupdf4llm."""
+    try:
+        from research_pipeline.conversion.registry import (
+            _ensure_builtins_registered,
+            get_backend,
+        )
+        from research_pipeline.models.download import DownloadManifestEntry
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _rid, run_root = init_run(ws, rid)
+
+        dl_manifest_path = (
+            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+        )
+        if not dl_manifest_path.exists():
+            return ToolResult(
+                success=False,
+                message="No download manifest found. Run download first.",
+            )
+
+        raw = read_jsonl(dl_manifest_path)
+        entries = [DownloadManifestEntry.model_validate(d) for d in raw]
+
+        _ensure_builtins_registered()
+        converter = get_backend("pymupdf4llm")
+
+        rough_dir = get_stage_dir(run_root, "convert_rough")
+        rough_dir.mkdir(parents=True, exist_ok=True)
+
+        _log_info(ctx, f"Starting rough conversion of {len(entries)} entries")
+
+        results = []
+        eligible = [e for e in entries if e.status in ("downloaded", "skipped_exists")]
+        total = len(eligible)
+        for i, entry in enumerate(eligible):
+            pdf_path = Path(entry.local_path)
+            if not pdf_path.exists():
+                logger.warning("PDF not found: %s", pdf_path)
+                continue
+            _report_progress(ctx, i, total, f"Converting {pdf_path.name}")
+            result = converter.convert(pdf_path, rough_dir, force=params.force)
+            results.append(result)
+        _report_progress(ctx, total, total, "Rough conversion complete")
+
+        manifest_path = rough_dir / "convert_rough_manifest.jsonl"
+        records = [r.model_dump(mode="json") for r in results]
+        for rec in records:
+            rec["tier"] = "rough"
+        write_jsonl(manifest_path, records)
+
+        converted = sum(1 for r in results if r.status == "converted")
+        skipped = sum(1 for r in results if r.status == "skipped_exists")
+        failed = sum(1 for r in results if r.status == "failed")
+
+        logger.info(
+            "Rough conversion: %d converted, %d skipped, %d failed",
+            converted,
+            skipped,
+            failed,
+        )
+        return ToolResult(
+            success=True,
+            message=(
+                f"Rough conversion: {converted} converted, "
+                f"{skipped} skipped, {failed} failed."
+            ),
+            artifacts={
+                "manifest": str(manifest_path),
+                "run_id": _rid,
+                "converted": converted,
+                "skipped": skipped,
+                "failed": failed,
+            },
+        )
+    except Exception as exc:
+        logger.error("convert_rough failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def convert_fine(params: ConvertFineInput, ctx: Context | None = None) -> ToolResult:
+    """High-quality Tier 3 conversion of selected PDFs."""
+    try:
+        from research_pipeline.cli.cmd_convert import _create_converter
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.download import DownloadManifestEntry
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        if not params.paper_ids:
+            return ToolResult(success=False, message="No paper IDs provided.")
+
+        config = load_config()
+        if params.backend:
+            config.conversion.backend = params.backend
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _rid, run_root = init_run(ws, rid)
+
+        dl_manifest_path = (
+            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+        )
+        if not dl_manifest_path.exists():
+            return ToolResult(
+                success=False,
+                message="No download manifest found. Run download first.",
+            )
+
+        raw = read_jsonl(dl_manifest_path)
+        entries = [DownloadManifestEntry.model_validate(d) for d in raw]
+
+        id_set = set(params.paper_ids)
+        selected = [
+            e
+            for e in entries
+            if e.arxiv_id in id_set and e.status in ("downloaded", "skipped_exists")
+        ]
+
+        if not selected:
+            return ToolResult(
+                success=False,
+                message="No matching downloaded papers found for given IDs.",
+            )
+
+        converter = _create_converter(config)
+
+        fine_dir = get_stage_dir(run_root, "convert_fine")
+        fine_dir.mkdir(parents=True, exist_ok=True)
+
+        _log_info(ctx, f"Starting fine conversion of {len(selected)} papers")
+
+        results = []
+        total = len(selected)
+        for i, entry in enumerate(selected):
+            pdf_path = Path(entry.local_path)
+            if not pdf_path.exists():
+                logger.warning("PDF not found: %s", pdf_path)
+                continue
+            _report_progress(ctx, i, total, f"Converting {pdf_path.name}")
+            result = converter.convert(pdf_path, fine_dir, force=params.force)
+            results.append(result)
+        _report_progress(ctx, total, total, "Fine conversion complete")
+
+        manifest_path = fine_dir / "convert_fine_manifest.jsonl"
+        records = [r.model_dump(mode="json") for r in results]
+        for rec in records:
+            rec["tier"] = "fine"
+        write_jsonl(manifest_path, records)
+
+        converted = sum(1 for r in results if r.status == "converted")
+        skipped = sum(1 for r in results if r.status == "skipped_exists")
+        failed = sum(1 for r in results if r.status == "failed")
+
+        logger.info(
+            "Fine conversion: %d converted, %d skipped, %d failed",
+            converted,
+            skipped,
+            failed,
+        )
+        return ToolResult(
+            success=True,
+            message=(
+                f"Fine conversion: {converted} converted, "
+                f"{skipped} skipped, {failed} failed."
+            ),
+            artifacts={
+                "manifest": str(manifest_path),
+                "run_id": _rid,
+                "converted": converted,
+                "skipped": skipped,
+                "failed": failed,
+            },
+        )
+    except Exception as exc:
+        logger.error("convert_fine failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolResult:
+    """Manage the global paper index for incremental runs."""
+    try:
+        from research_pipeline.storage.global_index import GlobalPaperIndex
+
+        db_path_val = Path(params.db_path) if params.db_path else None
+        index = GlobalPaperIndex(db_path=db_path_val)
+
+        try:
+            if params.gc:
+                removed = index.garbage_collect()
+                return ToolResult(
+                    success=True,
+                    message=f"Garbage collected {removed} stale entries.",
+                    artifacts={"removed": removed},
+                )
+
+            if params.list_papers:
+                papers = index.list_papers(limit=100)
+                return ToolResult(
+                    success=True,
+                    message=f"Found {len(papers)} indexed papers.",
+                    artifacts={"papers": papers, "count": len(papers)},
+                )
+
+            return ToolResult(
+                success=True,
+                message=(
+                    "Use list_papers=true to browse or gc=true to "
+                    "clean stale entries."
+                ),
+            )
+        finally:
+            index.close()
+    except Exception as exc:
+        logger.error("manage_index failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
