@@ -137,11 +137,18 @@ src/research_pipeline/          # Main library (importable as research_pipeline)
 
 mcp_server/                     # FastMCP server (separate top-level package)
     server.py                   # Server entry point, tool/resource/prompt registration
-    tools.py                    # 16 tool implementations (thin CLI adapters)
+    tools.py                    # 16 pipeline tool implementations (thin CLI adapters)
     schemas.py                  # Pydantic input/output schemas
     resources.py                # 12 resource handlers (URI template based)
     prompts.py                  # 5 prompt templates for research workflows
     completions.py              # Auto-complete handler
+    workflow/                   # Harness-engineered research workflow
+      state.py                  # WorkflowState, stage transitions, persistence
+      telemetry.py              # Three-surface logging (cognitive/operational/contextual)
+      verification.py           # Structural output verification per stage
+      context.py                # Token budgets, 5-stage paper compaction (ACC)
+      monitoring.py             # Doom-loop detection, iteration drift tracking
+      research.py               # Main orchestrator (~1100 lines)
 
 .github/skills/research-pipeline/  # Bundled AI skill for Claude Code / Copilot
     SKILL.md                    # Skill definition and workflow instructions
@@ -170,9 +177,12 @@ can be re-run independently.
 - **Retry**: `@retry` decorator (`infra/retry.py`) — exponential backoff, jitter,
   Retry-After header support
 - **CLI entry point**: registered in `pyproject.toml` as `research-pipeline`
-- **MCP server**: `python -m mcp_server` — 16 tools (with annotations and
-  progress reporting), 12 resources (URI templates for run artifacts), 5
-  prompts (research workflow templates), auto-completions
+- **MCP server**: `python -m mcp_server` — 17 tools (with annotations and
+  progress reporting), 15 resources (URI templates for run artifacts and
+  workflow state), 6 prompts (research workflow templates), auto-completions,
+  harness-engineered research workflow with sampling, elicitation, and
+  6-layer harness (telemetry, context, governance, verification, monitoring,
+  recovery)
 - **Multi-source search**: arXiv + Google Scholar + Semantic Scholar + OpenAlex +
   DBLP with cross-source dedup (arXiv ID, DOI, normalized title)
 - **Semantic re-ranking**: optional SPECTER2 embeddings in screen stage

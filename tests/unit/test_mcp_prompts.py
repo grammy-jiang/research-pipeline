@@ -8,14 +8,15 @@ from mcp_server.server import mcp
 
 class TestPromptRegistration:
     def test_prompt_count(self) -> None:
-        """All 5 prompts should be registered."""
+        """All 6 prompts should be registered."""
         registered = mcp._prompt_manager._prompts
-        assert len(registered) == 5
+        assert len(registered) == 6
 
     def test_prompt_names(self) -> None:
         registered = set(mcp._prompt_manager._prompts.keys())
         expected = {
             "research_topic",
+            "research_workflow",
             "analyze_paper",
             "compare_papers",
             "refine_search",

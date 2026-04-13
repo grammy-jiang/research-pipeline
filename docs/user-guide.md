@@ -282,9 +282,9 @@ integration via stdio transport:
 uv run python -m mcp_server
 ```
 
-### Tools (16)
+### Tools (17)
 
-All 16 tools include **annotations** (readOnlyHint, destructiveHint,
+All 17 tools include **annotations** (readOnlyHint, destructiveHint,
 idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 
 | Tool | Description |
@@ -305,8 +305,9 @@ idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 | `convert_rough` | Fast conversion of all PDFs (pymupdf4llm) |
 | `convert_fine` | High-quality conversion of selected papers |
 | `manage_index` | Manage the global paper index |
+| `research_workflow` | **Server-driven orchestrated workflow** (see below) |
 
-### Resources (12)
+### Resources (15)
 
 Read pipeline artifacts via URI templates:
 
@@ -324,18 +325,62 @@ Read pipeline artifacts via URI templates:
 | `runs://{run_id}/quality` | Quality evaluation scores |
 | `config://current` | Current pipeline configuration |
 | `index://papers` | Global paper index |
+| `workflow://{run_id}/state` | Workflow state (stage statuses, execution log) |
+| `workflow://{run_id}/telemetry` | Telemetry events (JSONL) |
+| `workflow://{run_id}/budget` | Context budget usage |
 
-### Prompts (5)
+### Prompts (6)
 
 Research workflow templates for AI agents:
 
 | Prompt | Description |
 |---|---|
 | `research_topic` | Plan and execute a research workflow on a topic |
+| `research_workflow` | Harness-engineered workflow with sampling and elicitation |
 | `analyze_paper` | Deep analysis of a specific paper |
 | `compare_papers` | Compare papers within a run |
 | `refine_search` | Improve search results after screening |
 | `quality_assessment` | Interpret quality evaluation scores |
+
+### Research workflow tool
+
+The `research_workflow` tool provides a server-driven orchestrated workflow
+with 6 harness engineering layers:
+
+```
+Telemetry → Context → Execute → Verify → Govern → Monitor → Recovery → Telemetry
+```
+
+**Parameters:**
+
+| Parameter | Default | Description |
+|---|---|---|
+| `topic` | (required) | Research topic to investigate |
+| `workspace` | `./workspace` | Workspace directory |
+| `run_id` | auto | Run identifier |
+| `system_building` | `false` | Enable iterative synthesis mode |
+| `source` | config default | Search sources (`arxiv`, `scholar`, `all`) |
+| `max_iterations` | `3` | Maximum synthesis iterations |
+| `resume` | `false` | Resume from saved state |
+
+**Capabilities:**
+
+- **With sampling**: LLM-based paper analysis and cross-paper synthesis
+- **With elicitation**: user approval at 6 decision gates (plan, shortlist,
+  optional stages, conversion selection, iteration, report)
+- **Without sampling**: pipeline-only mode (plan through summarize)
+- **Without elicitation**: uses sensible defaults at all gates
+
+**Harness layers:**
+
+| Layer | Description |
+|---|---|
+| WL1 Telemetry | Three-surface logging (cognitive, operational, contextual) |
+| WL2 Context | Token budgets with 5-stage paper compaction |
+| WL3 Governance | Schema-level state machine with verify-before-commit |
+| WL4 Verification | Structural output validation (not LLM-as-judge) |
+| WL5 Monitoring | Doom-loop detection via MD5 fingerprinting |
+| WL6 Recovery | Persistent state after every stage for crash-recovery |
 
 ### Completions
 

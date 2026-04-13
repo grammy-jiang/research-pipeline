@@ -13,7 +13,8 @@ Scholar, Semantic Scholar, OpenAlex, and DBLP.
 - **Multi-stage pipeline**: plan → search → screen → download → convert → extract → summarize
 - **5 new auxiliary commands**: `expand` (citation graph), `quality` (evaluation scoring), `convert-rough` / `convert-fine` (two-tier conversion), `index` (incremental runs)
 - **Modular CLI** with independent, composable stage commands
-- **MCP server** for AI agent integration (16 tools, 12 resources, 5 prompts, completions, progress reporting)
+- **MCP server** for AI agent integration (17 tools, 15 resources, 6 prompts, completions, progress reporting)
+- **Harness-engineered research workflow** — server-driven orchestration with 6 layers: telemetry, context engineering, governance, structural verification, doom-loop monitoring, and crash recovery
 - **Multi-source search**: arXiv + Google Scholar + Semantic Scholar + OpenAlex + DBLP
 - **Cross-source enrichment** — fill missing abstracts via DOI lookup
 - **Semantic re-ranking** — optional SPECTER2 embeddings for similarity scoring
@@ -133,27 +134,50 @@ integration:
 uv run python -m mcp_server
 ```
 
-**16 tools** — all pipeline stages plus auxiliary commands:
+**17 tools** — all pipeline stages plus auxiliary commands and workflow:
 
 `plan_topic`, `search`, `screen_candidates`, `download_pdfs`, `convert_pdfs`,
 `extract_content`, `summarize_papers`, `run_pipeline`, `get_run_manifest`,
 `convert_file`, `list_backends`, `expand_citations`, `evaluate_quality`,
-`convert_rough`, `convert_fine`, `manage_index`
+`convert_rough`, `convert_fine`, `manage_index`, `research_workflow`
 
-**12 resources** — read pipeline artifacts via URI templates:
+**15 resources** — read pipeline artifacts via URI templates:
 
 `runs://list`, `runs://{run_id}/manifest`, `runs://{run_id}/plan`,
 `runs://{run_id}/candidates`, `runs://{run_id}/shortlist`,
 `runs://{run_id}/papers/{paper_id}`, `runs://{run_id}/markdown/{paper_id}`,
 `runs://{run_id}/summary/{paper_id}`, `runs://{run_id}/synthesis`,
-`runs://{run_id}/quality`, `config://current`, `index://papers`
+`runs://{run_id}/quality`, `config://current`, `index://papers`,
+`workflow://{run_id}/state`, `workflow://{run_id}/telemetry`,
+`workflow://{run_id}/budget`
 
-**5 prompts** — research workflow templates:
+**6 prompts** — research workflow templates:
 
-`research_topic`, `analyze_paper`, `compare_papers`, `refine_search`,
-`quality_assessment`
+`research_topic`, `research_workflow`, `analyze_paper`, `compare_papers`,
+`refine_search`, `quality_assessment`
 
 Plus: **tool annotations**, **auto-completions**, and **progress reporting**.
+
+### Harness-engineered workflow
+
+The `research_workflow` tool drives a server-side orchestrated research workflow
+with 6 harness engineering layers derived from a 79-paper synthesis:
+
+| Layer | Purpose |
+|-------|---------|
+| WL1 Telemetry | Three-surface logging (cognitive/operational/contextual) |
+| WL2 Context | Token budgets, 5-stage paper compaction (Tokalator/ACC) |
+| WL3 Governance | Schema-level state machine, verify-before-commit gates |
+| WL4 Verification | Structural output validation (not self-referential) |
+| WL5 Monitoring | Doom-loop detection, iteration drift tracking |
+| WL6 Recovery | Persistent state after every stage, crash-recovery |
+
+Features:
+- **Sampling-based analysis**: LLM paper analysis via `create_message()` (1 round per paper)
+- **Elicitation gates**: user approval at 6 decision points via `ctx.elicit()`
+- **Iterative synthesis**: system-building mode with gap analysis and convergence
+- **Bounded rationality**: max 3 iterations, 7 explicit stop conditions
+- **Graceful degradation**: works without sampling or elicitation capabilities
 
 ## AI skill
 
@@ -223,6 +247,9 @@ runs/<run_id>/
 │   ├── *.summary.json         # Per-paper summaries
 │   ├── synthesis.json         # Cross-paper synthesis
 │   └── synthesis.md           # Human-readable synthesis
+├── workflow/                  # Harness-engineered workflow state
+│   ├── state.json             # Workflow state (stage statuses, execution log)
+│   └── telemetry.jsonl        # Three-surface telemetry events
 └── logs/pipeline.jsonl        # Structured logs
 ```
 

@@ -6,7 +6,9 @@ Run with: python -m mcp_server.server
 
 from __future__ import annotations
 
+import json
 import logging
+from pathlib import Path
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
@@ -492,6 +494,58 @@ def tool_manage_index(
     return result.model_dump()
 
 
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
+async def tool_research_workflow(
+    topic: str,
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    config_path: str = "",
+    system_building: bool = False,
+    source: str = "",
+    max_iterations: int = 3,
+    resume: bool = False,
+) -> dict:
+    """Run a full harness-engineered research workflow.
+
+    Orchestrates the entire pipeline: plan → search → screen → download →
+    convert → extract → summarize, with optional sampling-based analysis,
+    iterative synthesis, and user elicitation at decision gates.
+
+    Features 6 harness engineering layers:
+    - Telemetry: three-surface logging (cognitive/operational/contextual)
+    - Context engineering: token budgets and paper compaction
+    - Governance: schema-level state machine with verify-before-commit
+    - Verification: structural output validation (not self-referential)
+    - Monitoring: doom-loop detection and iteration drift tracking
+    - Recovery: persistent state after every stage for crash-recovery
+
+    Degrades gracefully:
+    - Without sampling capability: pipeline-only mode (no LLM analysis)
+    - Without elicitation capability: uses sensible defaults at gates
+    """
+    from mcp_server.workflow.research import run_research_workflow
+
+    return await run_research_workflow(
+        topic=topic,
+        ctx=ctx,
+        workspace=workspace,
+        run_id=run_id,
+        config_path=config_path,
+        system_building=system_building,
+        source=source,
+        max_iterations=max_iterations,
+        resume=resume,
+    )
+
+
 # ---------------------------------------------------------------------------
 # Resources
 # ---------------------------------------------------------------------------
@@ -629,6 +683,61 @@ def resource_global_index() -> str:
     return resources.get_global_index()
 
 
+@mcp.resource(
+    "workflow://{run_id}/state",
+    name="workflow_state",
+    description=(
+        "Current workflow state including stage statuses, execution log, "
+        "iteration count, and content fingerprints."
+    ),
+    mime_type="application/json",
+)
+def resource_workflow_state(run_id: str) -> str:
+    """Read the workflow state for a run."""
+    from mcp_server.workflow.state import load_state
+
+    state = load_state("./workspace", run_id)
+    if state is None:
+        return json.dumps({"error": f"No workflow state found for run {run_id}"})
+    return state.model_dump_json(indent=2)
+
+
+@mcp.resource(
+    "workflow://{run_id}/telemetry",
+    name="workflow_telemetry",
+    description=(
+        "Workflow telemetry log: three-surface events "
+        "(cognitive, operational, contextual) as JSONL."
+    ),
+    mime_type="application/jsonl",
+)
+def resource_workflow_telemetry(run_id: str) -> str:
+    """Read workflow telemetry for a run."""
+    tel_path = Path("./workspace") / run_id / "workflow" / "telemetry.jsonl"
+    if not tel_path.exists():
+        return json.dumps({"error": f"No telemetry found for run {run_id}"})
+    return tel_path.read_text()
+
+
+@mcp.resource(
+    "workflow://{run_id}/budget",
+    name="workflow_budget",
+    description=(
+        "Context budget usage for a workflow run: tokens consumed vs limits "
+        "across system, paper, analysis, conversation, and output categories."
+    ),
+    mime_type="application/json",
+)
+def resource_workflow_budget(run_id: str) -> str:
+    """Read context budget for a run."""
+    from mcp_server.workflow.state import load_state
+
+    state = load_state("./workspace", run_id)
+    if state is None:
+        return json.dumps({"error": f"No workflow state found for run {run_id}"})
+    return state.context_budget.model_dump_json(indent=2)
+
+
 # ---------------------------------------------------------------------------
 # Prompts
 # ---------------------------------------------------------------------------
@@ -644,6 +753,42 @@ def resource_global_index() -> str:
 def prompt_research_topic(topic: str) -> list[dict[str, str]]:
     """Start a full research workflow for a topic."""
     return prompts.research_topic_prompt(topic)
+
+
+@mcp.prompt(
+    name="research_workflow",
+    description=(
+        "Harness-engineered workflow guidance: explains the 6-layer workflow "
+        "architecture, sampling-based analysis, elicitation gates, and "
+        "iterative synthesis with doom-loop detection."
+    ),
+)
+def prompt_research_workflow(topic: str) -> list[dict[str, str]]:
+    """Describe the harness-engineered research workflow."""
+    return [
+        {
+            "role": "user",
+            "content": (
+                f"Use the research_workflow tool to research: {topic}\n\n"
+                "This tool drives a full harness-engineered pipeline:\n"
+                "1. Plan: generate query variants from the topic\n"
+                "2. Search: query arXiv, Scholar, Semantic Scholar, etc.\n"
+                "3. Screen: BM25 + optional SPECTER2 scoring\n"
+                "4. Download: rate-limited PDF retrieval\n"
+                "5. Convert: PDF→Markdown (multi-backend)\n"
+                "6. Extract: chunk and index content\n"
+                "7. Summarize: per-paper + cross-paper synthesis\n\n"
+                "With sampling support, the server also:\n"
+                "- Analyzes papers via LLM (bounded: 1 round per paper)\n"
+                "- Synthesizes findings with gap classification\n"
+                "- Iterates if system_building=true (max 3 rounds)\n\n"
+                "Harness layers: telemetry, context budget, governance, "
+                "structural verification, doom-loop monitoring, recovery.\n\n"
+                "Set system_building=true for iterative synthesis with "
+                "gap analysis and convergence detection."
+            ),
+        }
+    ]
 
 
 @mcp.prompt(

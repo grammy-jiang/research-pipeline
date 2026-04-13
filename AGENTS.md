@@ -45,11 +45,18 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   └── llm/                      # LLM provider interface (experimental)
 ├── mcp_server/                   # FastMCP server (full MCP spec support)
 │   ├── server.py                 # Server entry point, registrations
-│   ├── tools.py                  # 16 tool implementations
+│   ├── tools.py                  # 16 pipeline tool implementations
 │   ├── schemas.py                # Input/output Pydantic schemas
 │   ├── resources.py              # 12 resource handlers
 │   ├── prompts.py                # 5 prompt templates
-│   └── completions.py            # Auto-complete handler
+│   ├── completions.py            # Auto-complete handler
+│   └── workflow/                 # Harness-engineered research workflow
+│       ├── state.py              # WorkflowState, stage transitions, persistence
+│       ├── telemetry.py          # Three-surface logging (cognitive/operational/contextual)
+│       ├── verification.py       # Structural output verification per stage
+│       ├── context.py            # Token budgets and paper compaction (ACC)
+│       ├── monitoring.py         # Doom-loop detection and iteration drift
+│       └── research.py           # Main orchestrator (~1100 lines)
 ├── .github/skills/research-pipeline/  # Bundled AI skill
 │   ├── SKILL.md                  # Skill definition and workflow
 │   ├── config.toml               # Pipeline configuration template
@@ -208,8 +215,13 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 16 tools (with annotations & progress), 12 resources (URI templates),
-5 prompts, auto-completions. See `docs/user-guide.md` for the full reference.
+Features: 17 tools (with annotations & progress), 15 resources (URI templates),
+6 prompts, auto-completions, harness-engineered research workflow.
+
+The `research_workflow` tool provides server-driven orchestration with 6 harness
+layers: telemetry, context engineering, governance, structural verification,
+doom-loop monitoring, and crash recovery. See `docs/user-guide.md` for the full
+reference.
 
 ## AI skill
 

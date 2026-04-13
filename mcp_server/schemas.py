@@ -197,6 +197,41 @@ class ManageIndexInput(BaseModel):
     )
 
 
+class ResearchWorkflowInput(CommonParams):
+    """Input for the research_workflow tool.
+
+    Drives the full harness-engineered research workflow with
+    sampling, elicitation, verification, and doom-loop detection.
+    """
+
+    topic: str = Field(description="Natural language research topic.")
+    config_path: str = Field(
+        default="",
+        description="Path to config.toml. Empty uses defaults.",
+    )
+    system_building: bool = Field(
+        default=False,
+        description=(
+            "Enable system-building mode with iterative synthesis, "
+            "gap analysis, and convergence loops."
+        ),
+    )
+    source: str = Field(
+        default="",
+        description=(
+            "Search sources: 'arxiv', 'scholar', 'all', " "or '' for config default."
+        ),
+    )
+    max_iterations: int = Field(
+        default=3,
+        description="Maximum synthesis iterations (system-building mode).",
+    )
+    resume: bool = Field(
+        default=False,
+        description="Resume from last saved state instead of starting fresh.",
+    )
+
+
 class ToolResult(BaseModel):
     """Standard result envelope for MCP tool outputs."""
 

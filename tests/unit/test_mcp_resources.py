@@ -13,12 +13,12 @@ from mcp_server.server import mcp
 
 class TestResourceRegistration:
     def test_resource_count(self) -> None:
-        """All 12 resources should be registered."""
+        """All 15 resources should be registered."""
         registered = mcp._resource_manager._resources
         templates = mcp._resource_manager._templates
         total = len(registered) + len(templates)
-        assert total == 12, (
-            f"Expected 12 resources/templates, got {total}: "
+        assert total == 15, (
+            f"Expected 15 resources/templates, got {total}: "
             f"{len(registered)} static + {len(templates)} templates"
         )
 
