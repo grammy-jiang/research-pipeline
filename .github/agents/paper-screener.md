@@ -127,6 +127,62 @@ Each line in `candidates.jsonl` is a JSON object with:
 [Brief table: title | reason for exclusion]
 ```
 
+## Structured Output: screening_results.json
+
+In **addition** to the Markdown report and shortlist.jsonl above, write a
+machine-readable JSON file with the structured screening results. This enables
+automated validation and downstream pipeline integration.
+
+```json
+{
+  "research_question": "How to build local memory systems for AI agents?",
+  "screening_date": "2025-01-20",
+  "total_candidates": 45,
+
+  "summary": {
+    "shortlisted": 12,
+    "borderline": 5,
+    "excluded": 28,
+    "coverage_assessment": "Good coverage of retrieval methods; weak on security models"
+  },
+
+  "candidates": [
+    {
+      "arxiv_id": "2401.12345",
+      "title": "Paper Title",
+      "verdict": "shortlisted",
+      "scores": {
+        "relevance": { "score": 9.0, "justification": "Directly addresses memory retrieval for agents" },
+        "methodology": { "score": 7.5, "justification": "Novel approach but limited ablations" },
+        "impact": { "score": 8.0, "justification": "2024 paper, 50+ citations, top venue" },
+        "practical": { "score": 8.5, "justification": "Code released, tested at scale" }
+      },
+      "final_score": 8.4,
+      "reasoning": "Core paper for the research question — novel architecture with strong results",
+      "key_contribution": "First to combine episodic and semantic memory for agent tasks"
+    }
+  ],
+
+  "coverage_gaps": [
+    {
+      "aspect": "Security and privacy of memory systems",
+      "severity": "medium",
+      "suggestion": "Search specifically for 'memory system security AI agent'"
+    }
+  ],
+
+  "screening_criteria_notes": "Prioritized papers with empirical evaluation over theoretical frameworks"
+}
+```
+
+**Schema rules**:
+- All fields are REQUIRED. The `candidates` array must include EVERY candidate (not just shortlisted).
+- `candidates[].verdict` MUST be one of: `"shortlisted"`, `"borderline"`, `"excluded"`.
+- `candidates[].scores.*.score` MUST be floats in range [0.0, 10.0].
+- `candidates[].scores.*.justification` MUST be ≥5 words.
+- `candidates[].final_score` MUST equal the weighted formula: $0.4R + 0.2M + 0.2I + 0.2P$.
+- `coverage_gaps[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.
+
 ## Output: shortlist.jsonl
 
 Write the shortlisted candidates as JSONL (same schema as input) so downstream

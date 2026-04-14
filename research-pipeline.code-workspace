@@ -1,0 +1,19 @@
+{
+	"folders": [
+		{
+			"path": "."
+		},
+		{
+			"path": "../agents.md"
+		},
+		{
+			"path": "../../.claude"
+		},
+		{
+			"path": "../../Documents/Research"
+		},
+		{
+			"path": "../deep-research"
+		}
+	]
+}

@@ -328,8 +328,34 @@ The final report MUST be written to the **CWD** (not `runs/`):
 - Use **LaTeX** for mathematical formulas: inline `$...$`, display `$$...$$`
 - Use **Markdown tables** for structured comparisons
 
-Consult `references/output-templates.md` for status table format and
-final report template.
+### Required Report Sections
+
+The final report MUST include ALL of the following (see `references/output-templates.md`
+for the full template):
+
+1. **Executive Summary** — scope, confidence level, verdict
+2. **Methodology** — search strategy, pipeline summary with Mermaid diagram
+3. **Papers Reviewed** — table with quality scores and relevance
+4. **Research Landscape** — themes with per-theme confidence and citations
+5. **Methodology Comparison** — approach × paper matrix with strengths/weaknesses
+6. **Confidence-Graded Findings** — 🟢 High / 🟡 Medium / 🔴 Low, each with
+   evidence count and supporting paper citations
+7. **Trade-Off Analysis** — decision table with evidence-backed pros/cons
+8. **Points of Agreement** — consensus findings with citations
+9. **Points of Contradiction** — with explanations for disagreements
+10. **Research Gaps** — classified as ACADEMIC vs ENGINEERING with severity
+11. **Reproducibility Notes** — code/data availability per paper
+12. **Practical Recommendations** — evidence-backed, with confidence level
+13. **Evidence Map** — research-question-aspect × paper matrix
+14. **Readiness Assessment** — (system-building mode) coverage matrix + gap plan
+
+### Confidence Level Rules
+
+- **🟢 High**: 3+ papers, consistent methodology, reproducible results
+- **🟡 Medium**: 1-2 papers, or consistent results with methodology caveats
+- **🔴 Low**: single source, contradicted by other papers, or preliminary/unreproduced
+
+Every finding, recommendation, and theme MUST include its confidence level.
 
 ## System-Building Mode
 
@@ -374,6 +400,7 @@ output.
 
 | Version | Key Changes |
 |---------|-------------|
+| v0.7.1 | Enhanced report template: methodology comparison, confidence-graded findings, trade-off analysis, gap classification, reproducibility notes; structured agent output schemas |
 | v10.4.0 | Sub-agents MUST use `model: "claude-opus-4.6"` for maximum reasoning quality |
 | v0.4.0 | Auto-merge two-tier converts; auto-generate query_variants; lenient shortlist parsing; scholarly installed |
 | v0.3.1 | Per-run file logging; version detection fixes; write_jsonl arg order fix |

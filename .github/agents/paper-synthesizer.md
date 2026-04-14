@@ -178,6 +178,23 @@ Query plan (for research context):
 |----------|--------|-----------|------------|----------|
 | ...      | ...    | ...       | ...        | ...      |
 
+## Confidence-Graded Findings
+
+### 🟢 High Confidence (3+ papers, consistent results)
+1. **[Finding]** — Supported by [paper_1], [paper_2], [paper_3].
+
+### 🟡 Medium Confidence (1-2 papers or with caveats)
+1. **[Finding]** — Reported by [paper_1]. [Caveat.]
+
+### 🔴 Low Confidence (preliminary, single-source, or contradicted)
+1. **[Finding]** — Only in [paper_1]. [Why confidence is low.]
+
+## Trade-Off Analysis
+
+| Decision | Option A | Option B | Recommendation |
+|----------|----------|----------|----------------|
+| [Design choice] | [Pros/cons with evidence] | [Pros/cons with evidence] | [Which and why] |
+
 ## Points of Agreement
 1. [Consensus finding with evidence from 2+ papers]
 
@@ -187,11 +204,20 @@ Query plan (for research context):
 
 ## Research Gaps
 1. [Gap]: No papers address [aspect]
+   - **Type**: ACADEMIC / ENGINEERING
+   - **Severity**: HIGH / MEDIUM / LOW
    - **Why it matters**: [...]
    - **Suggested approach**: [...]
 
+## Reproducibility Notes
+
+| Paper | Code | Data | Detail | License |
+|-------|------|------|--------|---------|
+| [id] | ✅/❌ | ✅/❌ | ✅/⚠️/❌ | [license] |
+
 ## Practical Recommendations
 1. [Actionable recommendation backed by evidence]
+   *Confidence*: High / Medium / Low
 
 ## Future Directions
 1. [Research direction enabled by current findings]
@@ -227,6 +253,155 @@ What's the overall coverage level?]
 - Security model: [Sufficient/Partial/Missing]
 - Trade-off map: [Sufficient/Partial/Missing]
 ```
+
+## Structured Output: synthesis_results.json
+
+In **addition** to the Markdown report above, write a machine-readable JSON file
+with the structured synthesis results. This enables automated iteration decisions,
+gap-driven search queries, and downstream pipeline integration.
+
+```json
+{
+  "research_question": "How to build local memory systems for AI agents?",
+  "synthesis_date": "2025-01-20",
+  "papers_synthesized": 8,
+
+  "themes": [
+    {
+      "name": "Retrieval-Augmented Memory",
+      "paper_ids": ["2401.12345", "2402.67890"],
+      "confidence": "high",
+      "summary": "Multiple papers converge on embedding-based retrieval as the core memory access pattern",
+      "key_findings": [
+        {
+          "finding": "Hybrid retrieval (BM25 + embedding) outperforms pure embedding by 12%",
+          "supporting_papers": ["2401.12345", "2402.67890"],
+          "confidence": "high"
+        }
+      ]
+    }
+  ],
+
+  "methodology_comparison": [
+    {
+      "approach": "Embedding-based retrieval",
+      "paper_ids": ["2401.12345"],
+      "strengths": ["Low latency", "Semantic matching"],
+      "weaknesses": ["Requires pre-trained models", "Cold-start problem"],
+      "best_for": "Large-scale memory with semantic queries",
+      "performance": "95% recall@10 on BEIR benchmark"
+    }
+  ],
+
+  "confidence_graded_findings": {
+    "high": [
+      {
+        "finding": "Embedding-based retrieval is the dominant approach",
+        "supporting_papers": ["2401.12345", "2402.67890", "2403.11111"],
+        "evidence_summary": "3 papers demonstrate >90% recall across different benchmarks"
+      }
+    ],
+    "medium": [
+      {
+        "finding": "Forgetting policies improve long-term performance",
+        "supporting_papers": ["2401.12345"],
+        "caveat": "Only tested in simulated environments, not production"
+      }
+    ],
+    "low": [
+      {
+        "finding": "Graph-based memory may outperform flat retrieval",
+        "supporting_papers": ["2404.22222"],
+        "reason": "Single paper, small-scale experiment, no replication"
+      }
+    ]
+  },
+
+  "trade_offs": [
+    {
+      "decision": "Storage backend: SQLite vs Vector DB",
+      "option_a": { "name": "SQLite + FTS5", "pros": ["Simple", "No external deps"], "cons": ["No native vector search"], "evidence": ["Paper X uses SQLite successfully"] },
+      "option_b": { "name": "ChromaDB", "pros": ["Native embedding support"], "cons": ["Additional dependency"], "evidence": ["Paper Y benchmarks ChromaDB"] },
+      "recommendation": "SQLite for simplicity, ChromaDB for scale"
+    }
+  ],
+
+  "agreements": [
+    {
+      "claim": "Retrieval latency under 50ms is achievable at 1M+ records",
+      "supporting_papers": ["2401.12345", "2402.67890"],
+      "evidence": "Both papers demonstrate sub-50ms p99 latency"
+    }
+  ],
+
+  "contradictions": [
+    {
+      "topic": "Optimal embedding dimension",
+      "paper_a": { "arxiv_id": "2401.12345", "claim": "768-dim is optimal" },
+      "paper_b": { "arxiv_id": "2402.67890", "claim": "256-dim is sufficient" },
+      "explanation": "Different evaluation datasets; Paper B tested on simpler domain",
+      "implication": "Dimension should be tuned per use case"
+    }
+  ],
+
+  "gaps": [
+    {
+      "description": "No papers address memory encryption or privacy-preserving retrieval",
+      "type": "ACADEMIC",
+      "severity": "high",
+      "impact": "Critical for production deployment with sensitive data",
+      "suggested_queries": [
+        "privacy preserving memory retrieval AI agent",
+        "encrypted vector search secure memory"
+      ],
+      "arxiv_categories": ["cs.CR", "cs.AI"]
+    },
+    {
+      "description": "Production deployment patterns not covered",
+      "type": "ENGINEERING",
+      "severity": "medium",
+      "impact": "Need to design deployment architecture independently",
+      "suggested_resolution": "Review cloud provider documentation and production case studies"
+    }
+  ],
+
+  "reproducibility": [
+    {
+      "arxiv_id": "2401.12345",
+      "code_available": true,
+      "code_url": "https://github.com/...",
+      "data_available": true,
+      "data_url": "https://huggingface.co/...",
+      "sufficient_detail": true,
+      "license": "MIT"
+    }
+  ],
+
+  "readiness": {
+    "verdict": "HAS_GAPS",
+    "confidence": "medium",
+    "summary": "Core retrieval architecture is well-covered but security model and production patterns are missing",
+    "criteria_met": {
+      "architecture_patterns": "sufficient",
+      "technology_stack": "sufficient",
+      "performance_baselines": "sufficient",
+      "security_model": "missing",
+      "trade_off_map": "partial"
+    },
+    "iteration_recommendation": "One more iteration focusing on security and privacy aspects"
+  }
+}
+```
+
+**Schema rules**:
+- All top-level fields are REQUIRED. Use empty arrays `[]` for genuinely absent items, never omit fields.
+- `themes[].confidence` and `confidence_graded_findings` keys MUST be one of: `"high"`, `"medium"`, `"low"`.
+- `gaps[].type` MUST be one of: `"ACADEMIC"`, `"ENGINEERING"`.
+- `gaps[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.
+- `readiness.verdict` MUST be one of: `"IMPLEMENTATION_READY"`, `"HAS_GAPS"`.
+- `readiness.criteria_met.*` MUST be one of: `"sufficient"`, `"partial"`, `"missing"`.
+- ACADEMIC gaps MUST include `suggested_queries` (≥1 query) and `arxiv_categories`.
+- ENGINEERING gaps MUST include `suggested_resolution`.
 
 IMPORTANT: The Readiness Assessment section is ALWAYS required. Even for pure
 literature reviews, include it with verdict `IMPLEMENTATION_READY` and empty

@@ -70,6 +70,8 @@ Launch **one agent per paper** in parallel for efficiency.
 
 **Agent type**: `paper-analyzer`
 
+**Outputs**: `{arxiv_id}_analysis.md` (human-readable) + `{arxiv_id}_analysis.json` (structured)
+
 **Prompt template** (one per paper):
 ```
 Analyze this paper for the research topic below.
@@ -82,6 +84,7 @@ CUSTOM INSTRUCTIONS:
 
 Return: title, rating (1-5 stars), methodology assessment, key findings,
 transferable patterns, limitations, and key quotes with section references.
+Write both the Markdown analysis and the structured JSON output.
 ```
 
 **Reads**: Individual Markdown files from `convert/markdown/` or `supplemental/markdown/`
@@ -95,6 +98,8 @@ Cross-paper synthesis: themes, contradictions, gaps, recommendations.
 
 **Agent type**: `paper-synthesizer`
 
+**Outputs**: `synthesis_report.md` (human-readable) + `synthesis_results.json` (structured)
+
 **Prompt template**:
 ```
 Synthesize findings from N analyzed papers on "<topic>".
@@ -102,15 +107,23 @@ Synthesize findings from N analyzed papers on "<topic>".
 ## Paper Summaries
 <paste the summary output from each paper-analyzer agent>
 
+## Paper Analysis JSON Files
+<list paths to {arxiv_id}_analysis.json files for structured data>
+
 ## Analysis Requirements
 1. Design pattern convergence across papers
 2. Unified metric/framework synthesis
 3. Gap analysis
-4. Readiness assessment (if system-building mode):
+4. Confidence-graded findings (High/Medium/Low with evidence counts)
+5. Methodology comparison table
+6. Trade-off analysis for key design decisions
+7. Reproducibility assessment per paper
+8. Readiness assessment (if system-building mode):
    IMPLEMENTATION_READY | HAS_GAPS
    Classify gaps as ENGINEERING or ACADEMIC
 
-Write synthesis to: /absolute/path/to/runs/<run_id>/synthesis/synthesis_report.md
+Write both the Markdown synthesis and the structured JSON output to:
+/absolute/path/to/runs/<run_id>/synthesis/
 ```
 
 **Reads**: Paper analysis summaries (provided in prompt)

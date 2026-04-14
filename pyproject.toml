@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "research-pipeline"
-version = "0.7.0"
+version = "0.7.1"
 description = "A multi-source pipeline for searching, screening, downloading, converting, and summarizing academic papers from arXiv, Google Scholar, and more."
 readme = "README.md"
 license = "MIT"

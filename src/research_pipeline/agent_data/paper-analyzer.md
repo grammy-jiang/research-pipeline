@@ -159,6 +159,102 @@ Extracted content (if available) at:
 - Overall: [1-5 stars]
 ```
 
+## Structured Output: {arxiv_id}_analysis.json
+
+In **addition** to the Markdown file above, write a machine-readable JSON file
+with the structured analysis results. This enables automated synthesis and
+cross-paper comparison.
+
+```json
+{
+  "arxiv_id": "2401.12345",
+  "title": "Paper Title",
+  "authors": ["Author A", "Author B"],
+  "published": "2024-01-15",
+  "venue": "NeurIPS 2024",
+  "analysis_date": "2025-01-20",
+
+  "ratings": {
+    "methodology": { "score": 4, "justification": "Clear novel approach with X limitation" },
+    "experimental_rigor": { "score": 3, "justification": "Missing ablations for Y" },
+    "novelty": { "score": 5, "justification": "First to propose Z" },
+    "practical_value": { "score": 4, "justification": "Released code, tested at scale" },
+    "overall": { "score": 4, "justification": "Strong contribution with minor gaps" }
+  },
+
+  "methodology_assessment": {
+    "approach": "Transformer-based retrieval with learned embeddings",
+    "novelty_claim": "First to combine X with Y for task Z",
+    "assumptions": ["Assumes access to pre-trained embeddings", "Requires GPU for inference"],
+    "scalability": "Tested up to 10M records; linear scaling demonstrated"
+  },
+
+  "key_findings": [
+    {
+      "finding": "Method achieves 95% recall at 10ms latency",
+      "evidence": "Table 3, Section 4.2",
+      "confidence": "high",
+      "conditions": "Tested on dataset X with Y parameters"
+    }
+  ],
+
+  "strengths": [
+    {
+      "claim": "Comprehensive evaluation across 5 benchmarks",
+      "evidence": "Section 4, Tables 2-6"
+    }
+  ],
+
+  "weaknesses": [
+    {
+      "claim": "No comparison with recent method Z (published same month)",
+      "evidence": "Section 4.1 — baseline list missing Z",
+      "severity": "medium"
+    }
+  ],
+
+  "limitations": [
+    "Requires pre-trained embeddings — cold-start not addressed",
+    "Evaluation only on English-language datasets"
+  ],
+
+  "evidence_quotes": [
+    {
+      "quote": "Our method outperforms all baselines by 15% on BEIR",
+      "section": "Section 4.2, paragraph 2",
+      "context": "Main results claim"
+    }
+  ],
+
+  "key_contributions": [
+    "Novel retrieval architecture combining X and Y",
+    "New benchmark dataset for task Z"
+  ],
+
+  "reproducibility": {
+    "code_available": true,
+    "code_url": "https://github.com/...",
+    "data_available": true,
+    "data_url": "https://huggingface.co/...",
+    "sufficient_detail": true,
+    "license": "MIT"
+  },
+
+  "relevance_to_topic": {
+    "relevance": "high",
+    "explanation": "Directly addresses the core retrieval challenge in our research question"
+  }
+}
+```
+
+**Schema rules**:
+- All fields are REQUIRED. Use `null` for genuinely unknown values, never omit fields.
+- `ratings.*.score` MUST be integers 1–5. `ratings.*.justification` MUST be ≥10 words.
+- `key_findings[].confidence` MUST be one of: `"high"`, `"medium"`, `"low"`.
+- `weaknesses[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.
+- `evidence_quotes[].quote` MUST be verbatim from the paper (not paraphrased).
+- `reproducibility` fields: use `null` if genuinely not determinable, `false` if checked and absent.
+
 ## Guidelines
 
 - **Read completely**: Read every section before writing analysis
