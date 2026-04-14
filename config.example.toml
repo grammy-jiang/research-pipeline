@@ -15,7 +15,7 @@ search_snapshot_ttl_hours = 24
 cache_dir = "~/.cache/arxiv-paper-pipeline"
 
 [conversion]
-backend = "docling" # docling, marker, pymupdf4llm, mathpix, datalab, llamaparse, mistral_ocr, openai_vision
+backend = "docling" # docling, marker, pymupdf4llm, mineru, mathpix, datalab, llamaparse, mistral_ocr, openai_vision
 fallback_backends = [] # Ordered list of fallback backends when primary fails, e.g. ["datalab", "mistral_ocr"]
 timeout_seconds = 300 # Per-file timeout (docling)
 rough_max_workers = 4 # Parallel workers for convert-rough (pymupdf4llm, fast)
@@ -43,6 +43,12 @@ llm_api_key = "" # API key for LLM service
 [conversion.mathpix]
 app_id = ""
 app_key = ""
+
+# MinerU (magic-pdf) — high-quality scientific PDF parser (TEDS 93.42%)
+# backend = "mineru"
+[conversion.mineru]
+parse_method = "auto" # "auto", "ocr", or "txt"
+timeout_seconds = 600
 
 # RESEARCH_PIPELINE_MISTRAL_API_KEY
 [conversion.mistral_ocr]

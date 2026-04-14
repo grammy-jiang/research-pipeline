@@ -132,6 +132,13 @@ class OpenAIVisionConfig(BaseModel):
     accounts: list[OpenAIVisionAccount] = Field(default_factory=list)
 
 
+class MinerUConfig(BaseModel):
+    """MinerU (magic-pdf) conversion configuration."""
+
+    parse_method: str = "auto"
+    timeout_seconds: int = 600
+
+
 class ConversionConfig(BaseModel):
     """Conversion parameters."""
 
@@ -144,6 +151,7 @@ class ConversionConfig(BaseModel):
     mathpix: MathpixConfig = Field(default_factory=MathpixConfig)
     datalab: DatalabConfig = Field(default_factory=DatalabConfig)
     llamaparse: LlamaParseConfig = Field(default_factory=LlamaParseConfig)
+    mineru: MinerUConfig = Field(default_factory=MinerUConfig)
     mistral_ocr: MistralOcrConfig = Field(default_factory=MistralOcrConfig)
     openai_vision: OpenAIVisionConfig = Field(default_factory=OpenAIVisionConfig)
 

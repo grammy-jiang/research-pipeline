@@ -70,6 +70,7 @@ def _ensure_builtins_registered() -> None:
     import research_pipeline.conversion.llamaparse_backend  # noqa: F401
     import research_pipeline.conversion.marker_backend  # noqa: F401
     import research_pipeline.conversion.mathpix_backend  # noqa: F401
+    import research_pipeline.conversion.mineru_backend  # noqa: F401
     import research_pipeline.conversion.mistral_ocr_backend  # noqa: F401
     import research_pipeline.conversion.openai_vision_backend  # noqa: F401
     import research_pipeline.conversion.pymupdf4llm_backend  # noqa: F401

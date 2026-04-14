@@ -24,6 +24,9 @@ pip install research-pipeline[marker]
 # With PyMuPDF4LLM backend (fastest — AGPL)
 pip install research-pipeline[pymupdf4llm]
 
+# With MinerU backend (TEDS 93.42% tables — MIT)
+pip install 'research-pipeline[mineru]'
+
 # With online/cloud backends
 pip install research-pipeline[mathpix]       # Mathpix (best LaTeX, 1K free/mo)
 pip install research-pipeline[datalab]       # Datalab (hosted Marker, $5 free credit)
@@ -59,6 +62,7 @@ uv sync --extra dev --extra docling --extra scholar
 | `docling` | PDF → Markdown conversion via Docling (MIT) |
 | `marker` | PDF → Markdown conversion via Marker (GPL-3.0, highest accuracy) |
 | `pymupdf4llm` | PDF → Markdown conversion via PyMuPDF4LLM (AGPL, fastest) |
+| `mineru` | PDF → Markdown conversion via MinerU / magic-pdf (MIT, TEDS 93.42%) |
 | `mathpix` | Mathpix cloud OCR (best LaTeX, 1K free pages/mo) |
 | `datalab` | Datalab hosted Marker ($5 free credit) |
 | `llamaparse` | LlamaParse cloud parsing (1K free pages/day) |
@@ -101,7 +105,7 @@ embedding_batch_size = 32       # Batch size for embeddings
 max_per_run = 20                # Maximum PDFs per run
 
 [conversion]
-backend = "docling"             # Backend: docling, marker, pymupdf4llm, mathpix,
+backend = "docling"             # Backend: docling, marker, pymupdf4llm, mineru, mathpix,
                                 #   datalab, llamaparse, mistral_ocr, openai_vision
 fallback_backends = []          # Ordered list of backup backends (see below)
 timeout_seconds = 300           # Per-file timeout (docling)
@@ -129,6 +133,10 @@ tier = "agentic"                # fast (1 credit), cost-effective (3), agentic (
 [conversion.mistral_ocr]        # Mistral OCR
 api_key = ""                    # RESEARCH_PIPELINE_MISTRAL_API_KEY
 model = "mistral-ocr-latest"
+
+[conversion.mineru]             # MinerU (magic-pdf) — TEDS 93.42% tables
+parse_method = "auto"           # "auto", "ocr", or "txt"
+timeout_seconds = 600
 
 [conversion.openai_vision]      # OpenAI GPT-4o vision
 api_key = ""                    # RESEARCH_PIPELINE_OPENAI_API_KEY
@@ -538,6 +546,28 @@ The fastest backend but does not render LaTeX equations:
 
 ```bash
 uv sync --extra pymupdf4llm
+```
+
+### MinerU conversion
+
+High-quality scientific PDF parser with excellent table recognition (TEDS 93.42%):
+
+```bash
+pip install 'research-pipeline[mineru]'
+# or
+pipx inject research-pipeline magic-pdf
+```
+
+MinerU supports three parse modes: `auto` (recommended), `ocr` (scanned docs),
+and `txt` (text extraction only). Configure in `config.toml`:
+
+```toml
+[conversion]
+backend = "mineru"
+
+[conversion.mineru]
+parse_method = "auto"
+timeout_seconds = 600
 ```
 
 ### Google Scholar access

@@ -75,6 +75,14 @@ def _backend_kwargs_list(
                 {"api_key": acct.api_key, "model": acct.model} for acct in ov.accounts
             ]
         return [{"api_key": ov.api_key, "model": ov.model}]
+    if backend_name == "mineru":
+        mn = config.conversion.mineru
+        return [
+            {
+                "parse_method": mn.parse_method,
+                "timeout_seconds": mn.timeout_seconds,
+            }
+        ]
     # pymupdf4llm and others: no special kwargs
     return [{}]
 

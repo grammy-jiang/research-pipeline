@@ -35,6 +35,7 @@ and generates evidence-backed summaries with sub-agent analysis.
 | Docling backend | `pipx inject research-pipeline docling` | Convert (MIT, good tables/equations) |
 | Marker backend | `pipx inject research-pipeline marker-pdf` | Convert (best accuracy 95.7%, GPL-3.0) |
 | PyMuPDF4LLM backend | `pipx inject research-pipeline pymupdf4llm` | Convert (fastest 10-50x, AGPL) |
+| MinerU backend | `pipx inject research-pipeline magic-pdf` | Convert (TEDS 93.42% tables, MIT) |
 | Scholar (free) | `pipx inject research-pipeline scholarly` | `--source scholar` or `--source all` |
 | Scholar (paid) | `pipx inject research-pipeline google-search-results` + set `RESEARCH_PIPELINE_SERPAPI_KEY` | Production Scholar |
 
@@ -85,7 +86,7 @@ Stage commands require `--run-id ID`.
 | 3b | Quality | `research-pipeline quality --run-id ID --config CFG` | _(optional stage)_ |
 | 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N`, `--reference-boost F`, `--bfs-depth D`, `--bfs-top-k K`, `--bfs-query "term1,term2"` |
 | 4 | Download | `research-pipeline download --run-id ID --config CFG` | `--force` |
-| 5 | Convert | `research-pipeline convert --run-id ID --config CFG` | `--backend docling\|marker\|pymupdf4llm`, `--force` |
+| 5 | Convert | `research-pipeline convert --run-id ID --config CFG` | `--backend docling\|marker\|pymupdf4llm\|mineru`, `--force` |
 | 5b | Rough | `research-pipeline convert-rough --run-id ID --config CFG` | `--force` |
 | 5c | Fine | `research-pipeline convert-fine --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--backend B`, `--force` |
 | 6 | Extract | `research-pipeline extract --run-id ID --config CFG` | — |
@@ -287,7 +288,7 @@ with sensible defaults.
 research-pipeline convert --run-id <RUN_ID> --config CFG
 ```
 
-Default backend: `docling`. Override with `--backend marker` or `--backend pymupdf4llm`.
+Default backend: `docling`. Override with `--backend marker`, `--backend pymupdf4llm`, or `--backend mineru`.
 
 **Two-tier conversion** (recommended for 10+ papers):
 
