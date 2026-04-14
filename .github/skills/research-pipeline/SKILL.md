@@ -15,7 +15,7 @@ description: >
   or simple PDF reading (use pdf-to-markdown skill instead).
 metadata:
   author: grammy-jiang
-  version: 1.2.0
+  version: 1.3.0
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -203,6 +203,21 @@ before scoring. Output includes `depth_tiers.json` with confidence-gated
 retrieval depth classification (high/medium/low) for adaptive expansion.
 Report: total scored, shortlist count, top 5 papers with scores.
 
+**Diversity-aware shortlisting** (v0.11.0+): Use `--diversity` to enable
+MMR-style reranking that balances relevance with coverage of different
+categories, time periods, and sources. Prevents echo-chamber shortlists.
+```bash
+research-pipeline screen --run-id <RUN_ID> --diversity --diversity-lambda 0.3 --config CFG
+```
+`--diversity-lambda` controls balance: 0.0 = pure relevance, 1.0 = pure
+diversity, 0.3 (default) gives moderate diversity.
+
+**LLM second-pass screening** (v0.11.0+): When LLM is configured
+(`[llm] enabled = true`), the screen stage automatically runs a second
+pass using the LLM judge on shortlisted papers. The final score becomes
+a 60/40 blend of heuristic and LLM scores. When LLM is not configured,
+screening uses heuristic-only mode (default).
+
 **Known limitation**: BM25 screening can be noisy with broad topic terms
 (e.g., "agent" + "evaluation"). If the shortlist contains many irrelevant
 papers, use the paper-screener sub-agent for intelligent re-screening.
@@ -292,6 +307,15 @@ bibliography files (`{arxiv_id}{version}.bibliography.json`) in
 DOIs that can seed citation graph expansion without the Semantic Scholar API.
 
 ### Step 7: Summarize
+
+Per-paper evidence-driven summarization + cross-paper synthesis.
+
+**LLM-powered summarization** (v0.11.0+): When LLM is configured
+(`[llm] enabled = true`), summarization uses the LLM provider for
+structured per-paper summaries (objective, methodology, findings,
+limitations) and cross-paper synthesis (agreements, disagreements,
+open questions). When LLM is not configured, uses template mode
+that extracts relevant sections and aggregates findings heuristically.
 
 ```bash
 research-pipeline summarize --run-id <RUN_ID> --config CFG
@@ -443,6 +467,16 @@ citations, gap classifications, tables, Mermaid diagrams, and LaTeX formulas.
 Conditional sections earn bonus credit when present.
 The verdict is PASS (score ≥ 0.7 with all core sections present) or FAIL.
 
+**RACE quality scoring** (v0.11.0+): Validation now includes RACE
+dimension scores in the output:
+- **R**eadability: sentence length, paragraph structure, heading density
+- **A**ctionability: actionable recommendations, specific findings
+- **C**omprehensiveness: section coverage, word count, citation diversity
+- **E**vidence: citation density, evidence quotes, confidence annotations
+
+The RACE overall score (0-1) appears in `validation_result.json` under
+`race_score`. Use it to identify weak areas in the report.
+
 ### Cross-Run Comparison
 
 When running iterative synthesis, compare runs to track progress:
@@ -495,6 +529,8 @@ output.
 
 | Version | Date | Type | Summary |
 |---------|------|------|---------|
+| v1.3.0 | 2026-04-16 | Feature | LLM provider abstraction (Ollama + OpenAI-compatible), LLM screening judge, LLM per-paper summarization, LLM cross-paper synthesis, diversity-aware shortlisting (`--diversity`), RACE report quality scoring |
+| v1.2.0 | 2026-04-15 | Feature | Safety-as-multiplicative-gate, BFS citation expansion (`--bfs-depth`), content sanitization, confidence-gated retrieval depth, enhanced checkpoint/resume, hybrid BM25+SPECTER2 retrieval |
 | v1.1.0 | 2026-04-14 | Feature | Backward-preference citation (`--reference-boost`), Q2D query augmentation, FTS5 index search (`--search`), bibliography extraction in extract stage, audit logging, tool integrity hashing |
 | v1.0.3 | 2026-04-15 | Quality | Release polish: engineering-gap regenerate-in-place, extract filename example, search-vs-supporting-API separation, screener input label |
 | v1.0.2 | 2026-04-15 | Quality | Final cleanup: version alignment, extract artifact naming ({arxiv_id}{version}.extract.json), quality_scores.jsonl extension fix, NOT_APPLICABLE in all readiness references |

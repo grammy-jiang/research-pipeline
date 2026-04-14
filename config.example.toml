@@ -67,6 +67,11 @@ reuse_artifacts = true # Symlink existing PDFs/markdown instead of re-downloadin
 enabled = false
 temperature = 0
 profile = "default"
+provider = "ollama" # "ollama" or "openai"
+base_url = "" # Provider URL (empty = provider default)
+api_key = "" # API key (required for openai provider)
+model = "" # Model name (empty = provider default)
+max_tokens = 4096 # Max output tokens
 
 # Quality evaluation (runs before download)
 [quality]
@@ -87,6 +92,8 @@ llm_score_threshold = 0.60
 use_semantic_reranking = false # Enable SPECTER2 semantic re-ranking
 embedding_model = "allenai/specter2" # HuggingFace model for embeddings
 embedding_batch_size = 32 # Batch size for embedding inference
+diversity = false # Enable MMR diversity-aware shortlisting
+diversity_lambda = 0.3 # Balance: 0.0 = relevance, 1.0 = diversity
 
 [search]
 primary_months = 6

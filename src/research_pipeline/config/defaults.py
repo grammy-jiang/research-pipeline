@@ -23,6 +23,8 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "download_top_n": 8,
         "final_score_threshold": 0.70,
         "llm_score_threshold": 0.60,
+        "diversity": False,
+        "diversity_lambda": 0.3,
     },
     "download": {
         "max_per_run": 20,
@@ -60,6 +62,11 @@ DEFAULTS: dict[str, dict[str, object]] = {
         "enabled": False,
         "temperature": 0,
         "profile": "default",
+        "provider": "ollama",
+        "base_url": "",
+        "api_key": "",
+        "model": "",
+        "max_tokens": 4096,
     },
     "cache": {
         "enabled": True,

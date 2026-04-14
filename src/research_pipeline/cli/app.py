@@ -132,6 +132,16 @@ def screen(
     workspace: Path | None = typer.Option(None, "--workspace", "-w"),
     run_id: str = typer.Option(..., "--run-id", help="Run ID with search results."),
     resume: bool = typer.Option(False, "--resume"),
+    diversity: bool | None = typer.Option(
+        None,
+        "--diversity/--no-diversity",
+        help="Enable diversity-aware MMR reranking (overrides config).",
+    ),
+    diversity_lambda: float | None = typer.Option(
+        None,
+        "--diversity-lambda",
+        help="Balance between relevance (0.0) and diversity (1.0). Default 0.3.",
+    ),
 ) -> None:
     """Score and rank candidates by relevance.
 
@@ -143,7 +153,12 @@ def screen(
     from research_pipeline.cli.cmd_screen import run_screen
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_screen(resume=resume, **opts)
+    run_screen(
+        resume=resume,
+        diversity=diversity,
+        diversity_lambda=diversity_lambda,
+        **opts,
+    )
 
 
 @app.command()

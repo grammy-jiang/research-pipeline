@@ -26,6 +26,7 @@ from research_pipeline.infra.cache import FileCache
 from research_pipeline.infra.clock import date_window, utc_now
 from research_pipeline.infra.http import create_session
 from research_pipeline.infra.sanitize import sanitize_text
+from research_pipeline.llm.providers import create_llm_provider
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.manifest import RunManifest, StageRecord
 from research_pipeline.models.query_plan import QueryPlan
@@ -381,6 +382,9 @@ def run_pipeline(
         request_timeout=config.arxiv.request_timeout_seconds,
     )
 
+    # LLM provider (None when disabled — all LLM features degrade gracefully)
+    llm_provider = create_llm_provider(config.llm)
+
     # --- Stage: plan ---
     if not (resume and _is_stage_complete(manifest, "plan")):
         started = utc_now()
@@ -552,6 +556,8 @@ def run_pipeline(
             candidates,
             scores,
             top_k=config.screen.cheap_top_k,
+            diversity=config.screen.diversity,
+            diversity_lambda=config.screen.diversity_lambda,
         )
 
         # Build shortlist
@@ -566,6 +572,29 @@ def run_pipeline(
                 download_reason="score_threshold",
             )
             shortlist.append(decision)
+
+        # Optional LLM second-pass screening
+        if llm_provider is not None:
+            from research_pipeline.screening.llm_judge import judge_batch
+
+            llm_candidates = [d.paper for d in shortlist]
+            judgments = judge_batch(
+                llm_candidates,
+                topic=plan.topic_raw,
+                must_terms=plan.must_terms,
+                llm_provider=llm_provider,
+            )
+            for i, judgment in enumerate(judgments):
+                if judgment is not None:
+                    shortlist[i] = shortlist[i].model_copy(
+                        update={
+                            "llm": judgment,
+                            "final_score": (
+                                0.6 * shortlist[i].cheap.cheap_score
+                                + 0.4 * judgment.llm_score
+                            ),
+                        }
+                    )
 
         shortlist_path = screen_dir / "shortlist.json"
         shortlist_path.write_text(
@@ -783,6 +812,7 @@ def run_pipeline(
                 version=conv_entry.version,
                 title=paper_title,
                 topic_terms=plan.must_terms + plan.nice_terms,
+                llm_provider=llm_provider,
             )
             summaries.append(summary)
 
@@ -793,7 +823,7 @@ def run_pipeline(
             sum_path.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
 
         # Cross-paper synthesis
-        report = synthesize(summaries, plan.topic_raw)
+        report = synthesize(summaries, plan.topic_raw, llm_provider=llm_provider)
         synthesis_path = sum_dir / "synthesis.md"
         synthesis_json = sum_dir / "synthesis.json"
         synthesis_json.write_text(report.model_dump_json(indent=2), encoding="utf-8")

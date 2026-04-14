@@ -133,6 +133,11 @@ model = "gpt-4o"
 
 [llm]
 enabled = false                 # LLM-based features (experimental)
+provider = "ollama"             # Provider: "ollama" or "openai"
+base_url = ""                   # Provider URL (empty = default)
+api_key = ""                    # API key (required for OpenAI)
+model = ""                      # Model name (empty = provider default)
+max_tokens = 4096               # Max output tokens
 
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp

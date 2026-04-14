@@ -38,7 +38,7 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── screening/                # Heuristic BM25 scoring, SPECTER2 embeddings, LLM judge, depth gate
 │   ├── download/                 # Rate-limited PDF downloader with retry
 │   ├── conversion/               # PDF→Markdown backends (3 local + 5 cloud + fallback)
-│   ├── quality/                  # Quality evaluation (citations, venue, author, composite, safety gate)
+│   ├── quality/                  # Quality evaluation (citations, venue, author, composite, safety gate, RACE)
 │   ├── extraction/               # Markdown chunking & hybrid BM25+embedding retrieval
 │   ├── summarization/            # Per-paper + cross-paper synthesis
 │   ├── pipeline/                 # Orchestrator, stage sequencing, enhanced checkpoints
@@ -46,7 +46,11 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry, sanitization, audit
 │   ├── skill_data/               # Bundled skill files for pip package
 │   ├── agent_data/               # Bundled sub-agent definitions for pip package
-│   └── llm/                      # LLM provider interface (experimental)
+│   ├── llm/                      # LLM provider interface + providers
+│   │   ├── base.py               # Abstract LLMProvider ABC
+│   │   ├── providers.py          # Ollama + OpenAI-compatible implementations
+│   │   ├── schemas.py            # Pydantic I/O schemas for LLM calls
+│   │   └── envelopes.py          # Input/output envelope wrappers
 ├── mcp_server/                   # FastMCP server (full MCP spec support)
 │   ├── server.py                 # Server entry point, registrations
 │   ├── tools.py                  # 16 pipeline tool implementations

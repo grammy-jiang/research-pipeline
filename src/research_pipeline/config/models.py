@@ -35,6 +35,8 @@ class ScreenConfig(BaseModel):
     download_top_n: int = int(DEFAULTS["screen"]["download_top_n"])
     final_score_threshold: float = float(DEFAULTS["screen"]["final_score_threshold"])
     llm_score_threshold: float = float(DEFAULTS["screen"]["llm_score_threshold"])
+    diversity: bool = bool(DEFAULTS["screen"]["diversity"])
+    diversity_lambda: float = float(DEFAULTS["screen"]["diversity_lambda"])
     use_semantic_reranking: bool = False
     embedding_model: str = "allenai/specter2"
     embedding_batch_size: int = 32
@@ -152,6 +154,11 @@ class LLMConfig(BaseModel):
     enabled: bool = bool(DEFAULTS["llm"]["enabled"])
     temperature: float = float(DEFAULTS["llm"]["temperature"])
     profile: str = str(DEFAULTS["llm"]["profile"])
+    provider: str = str(DEFAULTS["llm"]["provider"])
+    base_url: str = str(DEFAULTS["llm"]["base_url"])
+    api_key: str = str(DEFAULTS["llm"]["api_key"])
+    model: str = str(DEFAULTS["llm"]["model"])
+    max_tokens: int = int(DEFAULTS["llm"]["max_tokens"])
 
 
 class CacheConfig(BaseModel):

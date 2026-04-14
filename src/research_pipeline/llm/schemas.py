@@ -41,3 +41,11 @@ class SummarizationOutput(BaseModel):
     limitations: list[str]
     evidence: list[dict[str, str]]  # type: ignore[type-arg]
     uncertainties: list[str]
+
+
+class SynthesisOutput(BaseModel):
+    """Output schema for LLM cross-paper synthesis."""
+
+    agreements: list[dict[str, object]]  # type: ignore[type-arg]
+    disagreements: list[dict[str, object]]  # type: ignore[type-arg]
+    open_questions: list[str]

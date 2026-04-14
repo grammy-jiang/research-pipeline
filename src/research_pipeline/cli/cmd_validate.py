@@ -10,6 +10,8 @@ import logging
 import re
 from pathlib import Path
 
+from research_pipeline.quality.race_scoring import compute_race_score
+
 logger = logging.getLogger(__name__)
 
 # Core required section headings (always required, case-insensitive check)
@@ -242,6 +244,9 @@ def validate_report(report_path: Path) -> dict[str, object]:
 
     verdict = "PASS" if overall_score >= 0.7 and not missing_required else "FAIL"
 
+    # RACE report quality scoring (additive)
+    race = compute_race_score(text)
+
     return {
         "report_path": str(report_path),
         "verdict": verdict,
@@ -264,6 +269,7 @@ def validate_report(report_path: Path) -> dict[str, object]:
         },
         "quality_checks": quality_checks,
         "issues": issues,
+        "race_score": race.model_dump(),
     }
 
 

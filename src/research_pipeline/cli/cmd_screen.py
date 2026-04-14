@@ -22,6 +22,8 @@ def run_screen(
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
+    diversity: bool | None = None,
+    diversity_lambda: float | None = None,
 ) -> None:
     """Execute the screen stage: two-pass relevance filtering.
 
@@ -30,6 +32,8 @@ def run_screen(
         config_path: Path to config TOML.
         workspace: Workspace directory.
         run_id: Run ID with search results.
+        diversity: Enable diversity-aware MMR reranking. Overrides config.
+        diversity_lambda: Relevance vs diversity balance. Overrides config.
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
@@ -65,7 +69,20 @@ def run_screen(
         [s.model_dump(mode="json") for s in scores],
     )
 
-    top = select_topk(candidates, scores, top_k=config.screen.cheap_top_k)
+    use_diversity = diversity if diversity is not None else config.screen.diversity
+    use_lambda = (
+        diversity_lambda
+        if diversity_lambda is not None
+        else config.screen.diversity_lambda
+    )
+
+    top = select_topk(
+        candidates,
+        scores,
+        top_k=config.screen.cheap_top_k,
+        diversity=use_diversity,
+        diversity_lambda=use_lambda,
+    )
 
     shortlist = []
     for candidate, score in top[: config.screen.download_top_n]:
