@@ -775,6 +775,27 @@ def analyze_claims(
     run_analyze_claims(**opts)
 
 
+@app.command("score-claims")
+def score_claims(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str | None = typer.Option(None, "--run-id", "-r", help="Run ID."),
+) -> None:
+    """Score confidence for decomposed claims using multi-signal aggregation.
+
+    Computes per-claim confidence scores using evidence strength, hedging
+    language detection (LVU), citation density, and retrieval quality.
+    When an LLM is available, adds multi-sample consistency verification.
+
+    Example: research-pipeline score-claims --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_score_claims import run_score_claims
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    run_score_claims(**opts)
+
+
 @app.command("kg-stats")
 def kg_stats(
     db_path: Path | None = typer.Option(None, "--db", help="KG database path."),

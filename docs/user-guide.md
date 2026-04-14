@@ -255,6 +255,22 @@ Each claim is classified as **supported**, **partial**, **conflicting**,
 **inconclusive**, or **unsupported** based on BM25 retrieval against the
 source markdown chunks.
 
+### Confidence scoring (v0.12.5+)
+
+After claim decomposition, compute multi-signal confidence scores per claim:
+
+```bash
+# Score claims using evidence strength, hedging detection, citation density
+research-pipeline score-claims --run-id <RUN_ID>
+# Output: runs/<run_id>/summarize/claims/scored_claims.jsonl
+```
+
+Signals include **evidence strength** (from evidence class), **hedging language
+detection** (LVU — linguistic markers like "might", "possibly", "suggests"),
+**citation density** (number of supporting evidence chunks), and **retrieval
+quality** (max BM25 score). When an LLM is available, adds **multi-sample
+consistency verification** (M=5 samples at temperature 0.7).
+
 ### Knowledge graph (v0.12.4+)
 
 Build a typed knowledge graph from pipeline results:
@@ -535,7 +551,8 @@ runs/<run_id>/
 │   ├── synthesis.json         # Machine-readable cross-paper synthesis
 │   ├── synthesis.md           # Human-readable synthesis report
 │   └── claims/
-│       └── claim_decomposition.jsonl  # Atomic claims with evidence (v0.12.3+)
+│       ├── claim_decomposition.jsonl  # Atomic claims with evidence (v0.12.3+)
+│       └── scored_claims.jsonl        # Confidence-scored claims (v0.12.5+)
 └── logs/
     └── pipeline.jsonl         # Structured execution logs
 ```
