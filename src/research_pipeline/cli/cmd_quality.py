@@ -4,6 +4,7 @@ Computes multi-dimensional quality scores for paper candidates
 using citation metrics, venue reputation, and author credibility.
 """
 
+import json
 import logging
 from pathlib import Path
 
@@ -49,7 +50,7 @@ def run_quality(
     screen_dir = get_stage_dir(run_root, "screen")
     search_dir = get_stage_dir(run_root, "search")
 
-    candidates_path = screen_dir / "shortlist.jsonl"
+    candidates_path = screen_dir / "shortlist.json"
     if not candidates_path.exists():
         candidates_path = search_dir / "candidates.jsonl"
 
@@ -57,7 +58,10 @@ def run_quality(
         logger.error("No candidates found at %s", candidates_path)
         return
 
-    raw_records = read_jsonl(candidates_path)
+    if candidates_path.suffix == ".json":
+        raw_records = json.loads(candidates_path.read_text(encoding="utf-8"))
+    else:
+        raw_records = read_jsonl(candidates_path)
     candidates = [CandidateRecord(**r) for r in raw_records]
     logger.info("Scoring %d candidates from %s", len(candidates), candidates_path)
 

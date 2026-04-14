@@ -12,6 +12,7 @@ Detect from keywords: "build", "implement", "design", "create", "develop",
 2. **Check the verdict**:
    - `IMPLEMENTATION_READY` — sufficient for system design
    - `HAS_GAPS` — gaps need filling
+   - `NOT_APPLICABLE` — non-system-building goal (no iteration needed)
 
 3. **If `HAS_GAPS`**, process each gap by type:
 
@@ -21,7 +22,8 @@ Gaps in implementation details, best practices, configuration, tooling,
 deployment patterns, or integration approaches.
 
 **Action**: Fill using your own knowledge, web searches, and best practices.
-Append to the synthesis report as: `## Engineering Gap Resolution`
+Include the resolutions in the next regenerated synthesis report (under the
+relevant theme sections) rather than appending a separate section.
 
 ### Academic Gaps
 
@@ -38,7 +40,8 @@ approaches, theoretical foundations, or evaluation methodologies.
    ```
 3. Download, convert, extract, summarize the new papers
 4. Run paper-analyzer and paper-synthesizer on the new run
-5. **Merge** findings into original synthesis
+5. **Regenerate** the synthesis report from all collected evidence
+   (do not append-merge into the old synthesis — produce a fresh report)
 
 ## Iteration Rules
 
@@ -57,11 +60,24 @@ approaches, theoretical foundations, or evaluation methodologies.
 
 ## Convergence
 
-Stop iterating when:
-- Synthesizer returns `IMPLEMENTATION_READY`
+Stop iterating when **any** of the following conditions is met:
+
+### Hard stops
+- Synthesizer returns `IMPLEMENTATION_READY` or `NOT_APPLICABLE`
 - Maximum 3 iterations reached
-- No new academic gaps identified
-- New searches return no relevant papers
+
+### Diminishing-returns stops
+- No new academic gaps identified in the latest iteration
+- New searches return fewer than 2 relevant papers not already in the corpus
+- Confidence profile does not improve: no findings upgraded from 🔴→🟡 or 🟡→🟢
+- Coverage delta is negligible: fewer than 2 new themes or sub-themes discovered
+
+### How to evaluate coverage delta
+After each iteration, compare the new synthesis against the previous one:
+1. Count new themes and findings added
+2. Count confidence-level upgrades
+3. Count gaps resolved vs gaps remaining
+4. If (new findings + upgrades + gaps resolved) < 3, stop iterating
 
 Report to user: remaining gaps (if any), why iteration stopped,
 recommendations for manual investigation.

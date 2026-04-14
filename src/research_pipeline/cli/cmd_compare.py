@@ -15,15 +15,22 @@ from research_pipeline.storage.workspace import get_stage_dir, init_run
 logger = logging.getLogger(__name__)
 
 
+def _read_records(path: Path) -> list[dict]:  # type: ignore[type-arg]
+    """Read records from either a JSON array file or a JSONL file."""
+    if path.suffix == ".json":
+        return json.loads(path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
+    return read_jsonl(path)
+
+
 def _load_paper_ids(run_root: Path) -> set[str]:
     """Load paper IDs from a run's screen shortlist or search candidates."""
     for stage, filename in [
-        ("screen", "shortlist.jsonl"),
+        ("screen", "shortlist.json"),
         ("search", "candidates.jsonl"),
     ]:
         path = get_stage_dir(run_root, stage) / filename
         if path.exists():
-            records = read_jsonl(path)
+            records = _read_records(path)
             return {
                 r.get("arxiv_id", r.get("paper", {}).get("arxiv_id", ""))
                 for r in records
@@ -35,12 +42,12 @@ def _load_candidates_map(run_root: Path) -> dict[str, dict[str, object]]:
     """Load candidate records keyed by arxiv_id."""
     result = {}
     for stage, filename in [
-        ("screen", "shortlist.jsonl"),
+        ("screen", "shortlist.json"),
         ("search", "candidates.jsonl"),
     ]:
         path = get_stage_dir(run_root, stage) / filename
         if path.exists():
-            for r in read_jsonl(path):
+            for r in _read_records(path):
                 aid = r.get("arxiv_id", r.get("paper", {}).get("arxiv_id", ""))
                 if aid:
                     result[aid] = r

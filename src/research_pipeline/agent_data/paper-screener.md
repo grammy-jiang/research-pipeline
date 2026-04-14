@@ -85,7 +85,7 @@ Where $R$ = Topic Relevance, $M$ = Methodology Rigor, $I$ = Recency & Impact, $P
 - Are there code/data artifacts mentioned?
 - Is the approach reproducible?
 
-## Candidate Record Fields
+## Input: candidates.jsonl
 
 Each line in `candidates.jsonl` is a JSON object with:
 - `arxiv_id`: Paper identifier

@@ -18,7 +18,13 @@ More AND-ed terms exponentially reduce recall. Move excess to `nice_terms`.
 
 ### 3. Generate Synonym-Expanded Query Variants
 
-For each key concept, identify alternate terminology authors may use:
+The CLI now **auto-generates Q2D (Query-to-Document) variants** that mimic
+academic phrasing (e.g., "this paper presents …", "we propose a method for …",
+"a survey of …"). These are added automatically alongside keyword reordering
+variants, so you get document-style recall for free.
+
+You should still add **synonym-expanded variants** manually. For each key
+concept, identify alternate terminology authors may use:
 
 | Concept | Synonyms |
 |---------|----------|
@@ -41,6 +47,25 @@ Example for "harness engineering of AI agents":
 "agent evaluation benchmark framework"
 "model harness code optimization"
 ```
+
+### 3b. Expand Beyond Synonyms
+
+Synonym expansion alone is insufficient. Also consider:
+
+| Expansion Type | Examples | Why |
+|---------------|---------|-----|
+| **Acronyms** | RAG → Retrieval-Augmented Generation; RL → Reinforcement Learning | Many papers use only the acronym or only the full form |
+| **Benchmark names** | MMLU, HumanEval, SWE-bench, MATH | Papers may not mention the task name, only the benchmark |
+| **Dataset names** | MS MARCO, Natural Questions, HotpotQA | Important for retrieval/QA topics |
+| **Canonical system names** | LangChain, LlamaIndex, AutoGPT, CrewAI | Papers often reference specific systems |
+| **Task reformulations** | "code generation" ↔ "program synthesis" ↔ "automated programming" | Different communities use different terms |
+| **Exclusion terms** | Add `negative_terms` for known irrelevant senses | e.g., "agent" in chemistry vs AI |
+| **Terminology drift** | "prompt engineering" (2023) ↔ "instruction tuning" (2022) | Vocabulary shifts across years and subfields |
+
+For each query variant, verify:
+- Would this catch a paper that uses **only** the acronym?
+- Would this catch a paper from a **different subfield** studying the same problem?
+- Are there **known system names** that should be explicit search terms?
 
 ### 4. Include a Core-Concept-Only Variant
 

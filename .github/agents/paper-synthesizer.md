@@ -53,7 +53,7 @@ You have NO follow-up interaction — your output must be complete and self-cont
 
 ## How You Are Invoked
 
-You are launched via `runSubagent` with a prompt that provides:
+You are launched via the **task tool** with a prompt that provides:
 - **Workspace path**: absolute path to the research-pipeline workspace
 - **Run ID**: the pipeline run containing analyzed papers
 - **Research topic**: the user's research question
@@ -65,7 +65,7 @@ You are launched via `runSubagent` with a prompt that provides:
 2. Read `{workspace}/runs/{run_id}/screen/screening_report.md` for screening context
 3. List and read all analysis files from `{workspace}/runs/{run_id}/analysis/`
 4. Perform multi-phase synthesis using the framework below
-5. Write `{workspace}/runs/{run_id}/synthesis/synthesis_report.md`
+5. Write `{workspace}/runs/{run_id}/summarize/synthesis_report.md`
 6. Return a comprehensive summary in your final message
 
 ## Synthesis Framework
@@ -180,7 +180,7 @@ Query plan (for research context):
 
 ## Confidence-Graded Findings
 
-### 🟢 High Confidence (3+ papers, consistent results)
+### 🟢 High Confidence (3+ papers, consistent results — heuristic guideline)
 1. **[Finding]** — Supported by [paper_1], [paper_2], [paper_3].
 
 ### 🟡 Medium Confidence (1-2 papers or with caveats)
@@ -230,7 +230,7 @@ Query plan (for research context):
 
 ## Readiness Assessment
 
-### Verdict: [IMPLEMENTATION_READY | HAS_GAPS]
+### Verdict: [IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE]
 
 ### Assessment Summary
 [2-3 sentences: Is this synthesis sufficient to design and build the system?
@@ -393,19 +393,28 @@ gap-driven search queries, and downstream pipeline integration.
 }
 ```
 
-**Schema rules**:
-- All top-level fields are REQUIRED. Use empty arrays `[]` for genuinely absent items, never omit fields.
+**Schema rules** (see also: Schema Governance in `references/sub-agents.md`):
+- All top-level fields are REQUIRED. Use `[]` for absent arrays, `null` for unknown scalars, never omit fields.
 - `themes[].confidence` and `confidence_graded_findings` keys MUST be one of: `"high"`, `"medium"`, `"low"`.
 - `gaps[].type` MUST be one of: `"ACADEMIC"`, `"ENGINEERING"`.
 - `gaps[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.
-- `readiness.verdict` MUST be one of: `"IMPLEMENTATION_READY"`, `"HAS_GAPS"`.
+- `readiness.verdict` MUST be one of: `"IMPLEMENTATION_READY"`, `"HAS_GAPS"`, `"NOT_APPLICABLE"`.
 - `readiness.criteria_met.*` MUST be one of: `"sufficient"`, `"partial"`, `"missing"`.
 - ACADEMIC gaps MUST include `suggested_queries` (≥1 query) and `arxiv_categories`.
 - ENGINEERING gaps MUST include `suggested_resolution`.
 
-IMPORTANT: The Readiness Assessment section is ALWAYS required. Even for pure
-literature reviews, include it with verdict `IMPLEMENTATION_READY` and empty
-gap tables. The parent agent depends on this section to decide next steps.
+IMPORTANT: The Readiness Assessment section is **conditional** — include it
+only when the research goal is system-building (i.e., the user intends to build
+or implement something based on the research). For pure literature reviews or
+surveys, omit it from the Markdown report.
+
+In the structured JSON output, always include the `readiness` field:
+- For system-building goals: populate `verdict`, `criteria_met`, and gap details
+- For non-system-building goals: set `readiness.verdict` to `"NOT_APPLICABLE"`
+  with `readiness.note` explaining it's a survey/review (no implementation target)
+
+The parent agent uses the JSON `readiness` field to decide next steps, so it
+must always be present in JSON even when the Markdown section is omitted.
 
 ## Guidelines
 
@@ -424,8 +433,8 @@ Your final message back to the parent agent must include:
 2. Key themes identified (with paper counts per theme)
 3. Top 3 actionable recommendations
 4. Most significant research gaps found
-5. **Readiness verdict**: `IMPLEMENTATION_READY` or `HAS_GAPS`
-6. If `HAS_GAPS`:
+5. **Readiness verdict**: `IMPLEMENTATION_READY`, `HAS_GAPS`, or `NOT_APPLICABLE`
+6. If `HAS_GAPS` (system-building mode only):
    - List of engineering gaps (with severity)
    - List of academic gaps (with suggested search queries)
 7. Path to the synthesis report file

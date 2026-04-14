@@ -37,7 +37,7 @@ def _resolve_sources(source_arg: str | None, config_sources: list[str]) -> list[
     """
     if source_arg:
         if source_arg.lower() == "all":
-            return ["arxiv", "scholar"]
+            return ["arxiv", "scholar", "huggingface"]
         return [s.strip() for s in source_arg.split(",")]
     return config_sources
 
@@ -111,6 +111,29 @@ def _search_scholar(plan: QueryPlan, config: PipelineConfig) -> list[CandidateRe
     return result
 
 
+def _search_huggingface(
+    plan: QueryPlan, config: PipelineConfig
+) -> list[CandidateRecord]:
+    """Search HuggingFace daily papers and return candidates."""
+    from research_pipeline.sources.huggingface_source import HuggingFaceSource
+
+    source = HuggingFaceSource(
+        min_interval=config.sources.huggingface_min_interval,
+        limit=config.sources.huggingface_limit,
+    )
+    date_from, date_to = date_window(plan.primary_months)
+    result = source.search(
+        topic=plan.topic_raw,
+        must_terms=plan.must_terms,
+        nice_terms=plan.nice_terms,
+        max_results=min(config.arxiv.default_page_size, 20),
+        date_from=date_from,
+        date_to=date_to,
+    )
+    logger.info("HuggingFace: %d candidates", len(result))
+    return result
+
+
 def run_search(
     topic: str | None = None,
     resume: bool = False,
@@ -130,7 +153,7 @@ def run_search(
         config_path: Path to config TOML.
         workspace: Workspace directory.
         run_id: Run ID (required for resume or to use existing plan).
-        source: Source override (arxiv, scholar, all).
+        source: Source override (arxiv, scholar, huggingface, all).
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
@@ -170,6 +193,8 @@ def run_search(
             futures[executor.submit(_search_arxiv, plan, config, search_dir)] = "arxiv"
         if "scholar" in sources:
             futures[executor.submit(_search_scholar, plan, config)] = "scholar"
+        if "huggingface" in sources:
+            futures[executor.submit(_search_huggingface, plan, config)] = "huggingface"
 
         for future in as_completed(futures):
             source_name = futures[future]

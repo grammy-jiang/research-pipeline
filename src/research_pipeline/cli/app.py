@@ -362,6 +362,12 @@ def expand(
         "--limit",
         help="Max related papers per seed paper per direction.",
     ),
+    reference_boost: float = typer.Option(
+        1.0,
+        "--reference-boost",
+        help="Multiplier for backward (reference) limit when direction=both. "
+        "E.g. 2.0 fetches 2x more references than citations.",
+    ),
 ) -> None:
     """Expand citation graph for specified papers.
 
@@ -379,6 +385,7 @@ def expand(
         paper_ids=ids,
         direction=direction,
         limit_per_paper=limit,
+        reference_boost=reference_boost,
         **opts,
     )
 
@@ -442,22 +449,35 @@ def index(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
     list_papers: bool = typer.Option(False, "--list", help="List indexed papers."),
     gc: bool = typer.Option(False, "--gc", help="Garbage collect stale entries."),
+    search: str | None = typer.Option(
+        None, "--search", help="Full-text search across paper titles and abstracts."
+    ),
+    search_limit: int = typer.Option(
+        50, "--search-limit", help="Max results for --search."
+    ),
     db_path: str | None = typer.Option(
         None, "--db-path", help="Path to index database."
     ),
 ) -> None:
     """Manage the global paper index for incremental runs.
 
-    Browse indexed papers or clean stale entries.
+    Browse indexed papers, full-text search, or clean stale entries.
 
     Example: research-pipeline index --list
+    Example: research-pipeline index --search "transformer attention"
     """
     from research_pipeline.cli.cmd_index import run_index
     from research_pipeline.infra.logging import setup_logging
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
-    run_index(list_papers=list_papers, gc=gc, db_path=db_path)
+    run_index(
+        list_papers=list_papers,
+        gc=gc,
+        search=search,
+        search_limit=search_limit,
+        db_path=db_path,
+    )
 
 
 @app.command(name="setup")

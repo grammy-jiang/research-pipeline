@@ -79,6 +79,11 @@ def _make_full_report() -> str:
         "- [2401.12345] Paper A",
         "- [2401.67890] Paper B",
         "- [2401.11111] Paper C",
+        "",
+        "## Appendix: Run Metadata",
+        "Run ID: test-run-001",
+        "Sources: arXiv, Google Scholar",
+        "Date: 2026-04-15",
     ]
     return "\n".join(sections)
 
@@ -96,13 +101,13 @@ class TestExtractHeadings:
 class TestCheckSections:
     def test_full_report_has_all_sections(self) -> None:
         text = _make_full_report()
-        present, missing_req, missing_opt = _check_sections(text)
+        present, missing_req, present_cond, missing_opt = _check_sections(text)
         assert len(missing_req) == 0
         assert len(present) == len(REQUIRED_SECTIONS)
 
     def test_missing_sections_detected(self) -> None:
         text = "# Report\n## Executive Summary\nHello"
-        present, missing_req, _ = _check_sections(text)
+        present, missing_req, _, _ = _check_sections(text)
         assert "executive summary" in present
         assert len(missing_req) > 0
 

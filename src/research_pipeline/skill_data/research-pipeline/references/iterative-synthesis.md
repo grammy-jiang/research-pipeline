@@ -12,6 +12,7 @@ Detect from keywords: "build", "implement", "design", "create", "develop",
 2. **Check the verdict**:
    - `IMPLEMENTATION_READY` — sufficient for system design
    - `HAS_GAPS` — gaps need filling
+   - `NOT_APPLICABLE` — non-system-building goal (no iteration needed)
 
 3. **If `HAS_GAPS`**, process each gap by type:
 
@@ -21,7 +22,8 @@ Gaps in implementation details, best practices, configuration, tooling,
 deployment patterns, or integration approaches.
 
 **Action**: Fill using your own knowledge, web searches, and best practices.
-Append to the synthesis report as: `## Engineering Gap Resolution`
+Include the resolutions in the next regenerated synthesis report (under the
+relevant theme sections) rather than appending a separate section.
 
 ### Academic Gaps
 
@@ -58,7 +60,7 @@ approaches, theoretical foundations, or evaluation methodologies.
 ## Convergence
 
 Stop iterating when:
-- Synthesizer returns `IMPLEMENTATION_READY`
+- Synthesizer returns `IMPLEMENTATION_READY` or `NOT_APPLICABLE`
 - Maximum 3 iterations reached
 - No new academic gaps identified
 - New searches return no relevant papers

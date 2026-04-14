@@ -15,6 +15,8 @@ logger = logging.getLogger(__name__)
 def run_index(
     list_papers: bool = False,
     gc: bool = False,
+    search: str | None = None,
+    search_limit: int = 50,
     db_path: str | None = None,
 ) -> None:
     """Manage the global paper index.
@@ -22,6 +24,8 @@ def run_index(
     Args:
         list_papers: List indexed papers.
         gc: Garbage collect stale entries.
+        search: Full-text search query (FTS5).
+        search_limit: Maximum number of search results.
         db_path: Path to index database.
     """
     from pathlib import Path
@@ -33,6 +37,23 @@ def run_index(
         if gc:
             removed = index.garbage_collect()
             typer.echo(f"Garbage collected {removed} stale entries.")
+            return
+
+        if search:
+            results = index.search_fulltext(search, limit=search_limit)
+            if not results:
+                typer.echo(f"No papers matching '{search}'.")
+                return
+            typer.echo(f"{'arXiv ID':<20} {'Title':<50} {'Run ID'}")
+            typer.echo("-" * 100)
+            for p in results:
+                title = (p.get("title") or "N/A")[:48]
+                typer.echo(
+                    f"{p.get('arxiv_id', 'N/A'):<20} "
+                    f"{title:<50} "
+                    f"{p.get('run_id', 'N/A')}"
+                )
+            typer.echo(f"\n{len(results)} result(s) for '{search}'")
             return
 
         if list_papers:
@@ -52,6 +73,9 @@ def run_index(
             typer.echo(f"\nTotal: {len(papers)} entries")
             return
 
-        typer.echo("Use --list to browse or --gc to clean stale entries.")
+        typer.echo(
+            "Use --list to browse, --search QUERY to search, "
+            "or --gc to clean stale entries."
+        )
     finally:
         index.close()

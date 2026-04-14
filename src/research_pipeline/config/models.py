@@ -185,6 +185,11 @@ class SourcesConfig(BaseModel):
     dblp_enabled: bool = False
     dblp_min_interval: float = 2.0
 
+    # HuggingFace daily papers
+    huggingface_enabled: bool = False
+    huggingface_min_interval: float = 0.5
+    huggingface_limit: int = 100
+
 
 class QualityConfig(BaseModel):
     """Quality evaluation parameters."""

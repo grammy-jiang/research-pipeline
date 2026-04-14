@@ -33,7 +33,7 @@ where $w_c = 0.35$, $w_v = 0.25$, $w_a = 0.25$, $w_r = 0.15$.
 | Stage | Status | Details |
 |-------|--------|---------|
 | Plan | ✅ Done | Topic: "...", N query variants |
-| Search | ✅ Done | N candidates (arXiv: X, Scholar: Y) |
+| Search | ✅ Done | N candidates (arXiv: X, Scholar: Y, HuggingFace: Z) |
 | Screen | ✅ Done | N → M shortlisted |
 | Quality | ⬜ Optional | — |
 | Expand | ⬜ Optional | — |
@@ -57,9 +57,43 @@ NOT inside `runs/<run_id>/`.
 
 ## Final Research Report Template
 
-The final report MUST follow this structure. Every section is required
-unless marked (optional). Sections marked **[EVIDENCE REQUIRED]** must
-cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
+The final report MUST follow this structure. Sections are divided into
+**core** (always required) and **conditional** (include when evidence
+justifies them). Sections marked **[EVIDENCE REQUIRED]** must cite
+specific papers with `[arxiv_id]` or `[Author, Year]` references.
+
+### Section Classification
+
+**Core sections** — always required:
+1. Executive Summary
+2. Research Question
+3. Methodology
+4. Papers Reviewed
+5. Research Landscape
+6. Research Gaps
+7. Practical Recommendations
+8. References
+9. Appendix: Run Metadata
+
+**Conditional sections** — include only when justified by evidence:
+| Section | Include When |
+|---------|-------------|
+| Methodology Comparison | 2+ distinct approaches studied |
+| Confidence-Graded Findings | Meaningful distinctions exist between confidence levels |
+| Trade-Off Analysis | Real alternative approaches with evidence-backed pros/cons |
+| Points of Agreement | 2+ papers materially agree on a finding |
+| Points of Contradiction | 2+ papers materially disagree |
+| Reproducibility Notes | Code/data availability is relevant to the research goal |
+| Evidence Map | Medium/large studies (5+ papers) or when explicit auditability is required |
+| Readiness Assessment | System-building mode only |
+| Future Directions | Clear research directions emerge from findings |
+
+**Citation-granularity policy**: every evidence claim must indicate its
+support level:
+- **Paper-level**: `[arxiv_id]` — general finding from the paper
+- **Section-level**: `[arxiv_id, §3]` — specific section reference
+- **Agent inference**: mark with *(inferred)* — not directly stated in any paper
+- **Cross-paper consensus**: mark with *(N papers agree)* — convergent finding
 
 ````markdown
 # Research Report: [Topic]
@@ -72,7 +106,7 @@ and the most significant gap.]
 
 **Scope**: N papers analyzed from [sources] over [date range]
 **Overall Confidence**: High / Medium / Low
-**Verdict**: [IMPLEMENTATION_READY | HAS_GAPS | EXPLORATORY]
+**Verdict**: [IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE]
 
 ## Research Question
 
@@ -82,7 +116,8 @@ what's in vs. out.]
 ## Methodology
 
 ### Search Strategy
-- **Sources**: [arXiv, Google Scholar, Semantic Scholar, ...]
+- **Search sources**: [arXiv, Google Scholar, HuggingFace, ...]
+- **Supporting APIs/services used during analysis**: [Semantic Scholar, OpenAlex, DBLP, ...]
 - **Query variants**: [list the key queries used]
 - **Time window**: [date range]
 - **Screening**: [BM25 + sub-agent / BM25 only]
@@ -137,7 +172,7 @@ Key findings:
 
 ## Confidence-Graded Findings
 
-### 🟢 High Confidence (supported by 3+ papers with consistent results)
+### 🟢 High Confidence (supported by 3+ papers with consistent results — heuristic guideline)
 
 1. **[Finding]** — Supported by [paper_1], [paper_2], [paper_3].
    [Brief evidence summary with specific numbers if available.]
@@ -197,7 +232,7 @@ Key findings:
 
 ## Readiness Assessment (System-Building Mode)
 
-### Verdict: [IMPLEMENTATION_READY | HAS_GAPS]
+### Verdict: [IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE]
 
 ### Assessment Summary
 [2-3 sentences: Is the synthesis sufficient to design and build the system?]
@@ -233,7 +268,8 @@ Key findings:
 ## Appendix: Run Metadata
 
 - **Run ID**: <RUN_ID>
-- **Sources**: [list]
+- **Search sources**: [list]
+- **Supporting APIs**: [list, if any]
 - **Pipeline version**: [version]
 - **Date**: [date]
 - **Artifacts**: `runs/<RUN_ID>/`
@@ -247,7 +283,7 @@ After writing the full report file, provide this condensed summary in chat:
 ## Research Summary — "<topic>"
 
 **Run ID**: <RUN_ID>
-**Sources**: arXiv, Google Scholar
+**Sources**: arXiv, Google Scholar, HuggingFace
 **Timeline**: <start_time> → <end_time>
 **Iterations**: <N> (if system-building mode)
 

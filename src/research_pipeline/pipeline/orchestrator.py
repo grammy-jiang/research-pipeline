@@ -21,6 +21,7 @@ from research_pipeline.conversion.registry import (
 )
 from research_pipeline.download.pdf import download_batch
 from research_pipeline.extraction.extractor import extract_from_markdown
+from research_pipeline.infra.audit import AuditLogger, EventType
 from research_pipeline.infra.cache import FileCache
 from research_pipeline.infra.clock import date_window, utc_now
 from research_pipeline.infra.http import create_session
@@ -243,6 +244,7 @@ def _record_stage(
     started_at: object,
     output_paths: list[str] | None = None,
     errors: list[str] | None = None,
+    audit: AuditLogger | None = None,
 ) -> RunManifest:
     """Create a stage record and update the manifest."""
     ended = utc_now()
@@ -258,6 +260,25 @@ def _record_stage(
         output_paths=output_paths or [],
         errors=errors or [],
     )
+
+    if audit is not None:
+        event_type = (
+            EventType.STAGE_COMPLETED
+            if status == "completed"
+            else EventType.STAGE_FAILED
+        )
+        audit.emit(
+            event_type,
+            stage=stage,
+            run_id=manifest.run_id,
+            details={
+                "status": status,
+                "duration_ms": duration,
+                "output_paths": output_paths or [],
+                "errors": errors or [],
+            },
+        )
+
     return update_stage(manifest, record)
 
 
@@ -286,6 +307,9 @@ def run_pipeline(
     ws = workspace or Path(config.workspace)
     run_id, run_root = init_run(ws, run_id)
 
+    # Audit trail for this run
+    audit = AuditLogger(run_root)
+
     # Load or create manifest
     manifest: RunManifest | None = None
     if resume:
@@ -305,6 +329,14 @@ def run_pipeline(
     config_path.write_text(
         json.dumps(config.model_dump(), indent=2, default=str),
         encoding="utf-8",
+    )
+    audit.emit(
+        EventType.CONFIG_LOADED,
+        run_id=run_id,
+        details={
+            "sources": config.sources.enabled,
+            "backend": config.conversion.backend,
+        },
     )
 
     # Setup shared resources
@@ -328,6 +360,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "plan")):
         started = utc_now()
         logger.info("Stage: plan")
+        audit.emit(EventType.STAGE_STARTED, stage="plan", run_id=run_id)
         plan_dir = get_stage_dir(run_root, "plan")
 
         must_terms, nice_terms = _split_topic_terms(topic)
@@ -355,6 +388,7 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(plan_path)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
     else:
@@ -368,6 +402,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "search")):
         started = utc_now()
         logger.info("Stage: search")
+        audit.emit(EventType.STAGE_STARTED, stage="search", run_id=run_id)
         search_dir = get_stage_dir(run_root, "search")
         raw_dir = search_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -451,6 +486,7 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(candidates_path)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
     else:
@@ -464,6 +500,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "screen")):
         started = utc_now()
         logger.info("Stage: screen")
+        audit.emit(EventType.STAGE_STARTED, stage="screen", run_id=run_id)
         screen_dir = get_stage_dir(run_root, "screen")
 
         scores = score_candidates(
@@ -514,6 +551,7 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(shortlist_path)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
     else:
@@ -527,6 +565,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "download")):
         started = utc_now()
         logger.info("Stage: download")
+        audit.emit(EventType.STAGE_STARTED, stage="download", run_id=run_id)
         pdf_dir = get_stage_dir(run_root, "download")
         pdf_dir.mkdir(parents=True, exist_ok=True)
 
@@ -562,6 +601,7 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(manifest_path)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
     else:
@@ -577,6 +617,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "convert")):
         started = utc_now()
         logger.info("Stage: convert")
+        audit.emit(EventType.STAGE_STARTED, stage="convert", run_id=run_id)
         md_dir = get_stage_dir(run_root, "convert")
         converter = _create_converter(config)
 
@@ -605,6 +646,7 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(conv_manifest_path)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
     else:
@@ -620,6 +662,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "extract")):
         started = utc_now()
         logger.info("Stage: extract")
+        audit.emit(EventType.STAGE_STARTED, stage="extract", run_id=run_id)
         extract_dir = get_stage_dir(run_root, "extract")
 
         extractions = []
@@ -647,6 +690,7 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(extract_dir)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
 
@@ -654,6 +698,7 @@ def run_pipeline(
     if not (resume and _is_stage_complete(manifest, "summarize")):
         started = utc_now()
         logger.info("Stage: summarize")
+        audit.emit(EventType.STAGE_STARTED, stage="summarize", run_id=run_id)
         sum_dir = get_stage_dir(run_root, "summarize")
 
         summaries = []
@@ -727,8 +772,15 @@ def run_pipeline(
             "completed",
             started,
             output_paths=[str(synthesis_path), str(synthesis_json)],
+            audit=audit,
         )
         save_manifest(run_root, manifest)
 
     logger.info("Pipeline complete: run_id=%s", run_id)
+    audit.emit(
+        EventType.STAGE_COMPLETED,
+        stage="pipeline",
+        run_id=run_id,
+        details={"stages_completed": list(manifest.stages.keys())},
+    )
     return manifest

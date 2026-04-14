@@ -110,7 +110,7 @@ Converted Markdown papers at:
 
 Extracted content (if available) at:
 ```
-{workspace}/runs/{run_id}/extract/{arxiv_id}_extract.json
+{workspace}/runs/{run_id}/extract/{arxiv_id}{version}.extract.json  (e.g., 2301.12345v1.extract.json)
 ```
 
 ## Output: {arxiv_id}_analysis.md

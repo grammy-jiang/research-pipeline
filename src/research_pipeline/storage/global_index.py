@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS papers (
     doi TEXT,
     s2_id TEXT,
     title TEXT,
+    abstract TEXT DEFAULT '',
     run_id TEXT NOT NULL,
     stage TEXT NOT NULL,
     pdf_path TEXT,
@@ -32,6 +33,14 @@ CREATE TABLE IF NOT EXISTS papers (
 CREATE INDEX IF NOT EXISTS idx_doi ON papers(doi);
 CREATE INDEX IF NOT EXISTS idx_s2_id ON papers(s2_id);
 CREATE INDEX IF NOT EXISTS idx_title ON papers(title);
+"""
+
+_FTS_SCHEMA = """
+CREATE VIRTUAL TABLE IF NOT EXISTS papers_fts USING fts5(
+    arxiv_id,
+    title,
+    abstract
+);
 """
 
 
@@ -61,6 +70,7 @@ class GlobalPaperIndex:
         """Create tables if they don't exist."""
         conn = self._get_conn()
         conn.executescript(_SCHEMA)
+        conn.executescript(_FTS_SCHEMA)
         conn.commit()
 
     def register_paper(
@@ -71,6 +81,7 @@ class GlobalPaperIndex:
         doi: str | None = None,
         s2_id: str | None = None,
         title: str | None = None,
+        abstract: str | None = None,
         pdf_path: str | None = None,
         markdown_path: str | None = None,
         summary_path: str | None = None,
@@ -85,6 +96,7 @@ class GlobalPaperIndex:
             doi: Digital Object Identifier.
             s2_id: Semantic Scholar paper ID.
             title: Paper title.
+            abstract: Paper abstract text (indexed for full-text search).
             pdf_path: Path to downloaded PDF.
             markdown_path: Path to converted markdown.
             summary_path: Path to summary file.
@@ -94,15 +106,16 @@ class GlobalPaperIndex:
         conn.execute(
             """
             INSERT OR REPLACE INTO papers
-                (arxiv_id, doi, s2_id, title, run_id, stage,
+                (arxiv_id, doi, s2_id, title, abstract, run_id, stage,
                  pdf_path, markdown_path, summary_path, pdf_sha256, indexed_at)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             """,
             (
                 arxiv_id,
                 doi,
                 s2_id,
                 title,
+                abstract or "",
                 run_id,
                 stage,
                 pdf_path,
@@ -111,6 +124,15 @@ class GlobalPaperIndex:
                 pdf_sha256,
                 datetime.now(UTC).isoformat(),
             ),
+        )
+        # Sync FTS index
+        conn.execute(
+            "DELETE FROM papers_fts WHERE arxiv_id = ?",
+            (arxiv_id,),
+        )
+        conn.execute(
+            "INSERT INTO papers_fts (arxiv_id, title, abstract) VALUES (?, ?, ?)",
+            (arxiv_id, title or "", abstract or ""),
         )
         conn.commit()
 
@@ -233,6 +255,43 @@ class GlobalPaperIndex:
         if stale:
             logger.info("Garbage collected %d stale index entries", len(stale))
         return len(stale)
+
+    def search_fulltext(
+        self, query: str, limit: int = 50
+    ) -> list[dict[str, str | None]]:
+        """Full-text search across paper titles and abstracts.
+
+        Uses SQLite FTS5 to match papers by content.  Supports standard
+        FTS5 query syntax (AND, OR, NOT, phrase matching with quotes).
+
+        Args:
+            query: Search query string.
+            limit: Maximum number of results.
+
+        Returns:
+            List of paper dicts sorted by relevance.
+        """
+        if not query or not query.strip():
+            return []
+
+        conn = self._get_conn()
+        try:
+            rows = conn.execute(
+                """
+                SELECT p.arxiv_id, p.doi, p.title, p.abstract,
+                       p.run_id, p.stage, p.indexed_at
+                FROM papers_fts f
+                JOIN papers p ON f.arxiv_id = p.arxiv_id
+                WHERE papers_fts MATCH ?
+                ORDER BY rank
+                LIMIT ?
+                """,
+                (query, limit),
+            ).fetchall()
+        except Exception as exc:
+            logger.warning("FTS5 search failed: %s", exc)
+            return []
+        return [dict(row) for row in rows]
 
     def close(self) -> None:
         """Close the database connection."""

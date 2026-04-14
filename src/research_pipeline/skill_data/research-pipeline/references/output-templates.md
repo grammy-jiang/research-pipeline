@@ -72,7 +72,7 @@ and the most significant gap.]
 
 **Scope**: N papers analyzed from [sources] over [date range]
 **Overall Confidence**: High / Medium / Low
-**Verdict**: [IMPLEMENTATION_READY | HAS_GAPS | EXPLORATORY]
+**Verdict**: [IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE]
 
 ## Research Question
 
@@ -197,7 +197,7 @@ Key findings:
 
 ## Readiness Assessment (System-Building Mode)
 
-### Verdict: [IMPLEMENTATION_READY | HAS_GAPS]
+### Verdict: [IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE]
 
 ### Assessment Summary
 [2-3 sentences: Is the synthesis sufficient to design and build the system?]

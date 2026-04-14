@@ -23,12 +23,12 @@ def _setup_run(
     screen_dir = run_root / "screen"
     screen_dir.mkdir(parents=True)
 
-    # Write shortlist as JSONL
-    shortlist_path = screen_dir / "shortlist.jsonl"
-    lines = []
+    # Write shortlist as JSON
+    shortlist_path = screen_dir / "shortlist.json"
+    records = []
     for pid in paper_ids:
-        lines.append(json.dumps({"arxiv_id": pid, "title": f"Paper {pid}"}))
-    shortlist_path.write_text("\n".join(lines))
+        records.append({"arxiv_id": pid, "title": f"Paper {pid}"})
+    shortlist_path.write_text(json.dumps(records))
 
     if synthesis:
         synth_dir = run_root / "synthesis"

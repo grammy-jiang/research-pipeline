@@ -41,7 +41,7 @@ You have NO follow-up interaction — your output must be complete and self-cont
 
 ## How You Are Invoked
 
-You are launched via `runSubagent` with a prompt that provides:
+You are launched via the **task tool** with a prompt that provides:
 - **Workspace path**: absolute path to the research-pipeline workspace
 - **Run ID**: the pipeline run to screen
 - **Research topic**: the user's research question
@@ -54,7 +54,7 @@ You are launched via `runSubagent` with a prompt that provides:
 3. Evaluate each candidate's abstract against multi-criteria scoring
 4. Rank candidates and partition into shortlist / borderline / excluded
 5. Write `{workspace}/runs/{run_id}/screen/screening_report.md`
-6. Write `{workspace}/runs/{run_id}/screen/shortlist.jsonl` with selected candidates
+6. Write `{workspace}/runs/{run_id}/screen/shortlist.json` with selected candidates
 7. Return a summary of findings in your final message
 
 ## Evaluation Criteria
@@ -85,7 +85,7 @@ Where $R$ = Topic Relevance, $M$ = Methodology Rigor, $I$ = Recency & Impact, $P
 - Are there code/data artifacts mentioned?
 - Is the approach reproducible?
 
-## Candidate Record Fields
+## Input: candidates.jsonl
 
 Each line in `candidates.jsonl` is a JSON object with:
 - `arxiv_id`: Paper identifier
@@ -94,7 +94,7 @@ Each line in `candidates.jsonl` is a JSON object with:
 - `authors`: Author list
 - `published`: Publication date
 - `categories`: arXiv categories
-- `source`: Origin source (arxiv/scholar)
+- `source`: Origin source (arxiv/scholar/huggingface)
 
 ## Output: screening_report.md
 
@@ -129,7 +129,7 @@ Each line in `candidates.jsonl` is a JSON object with:
 
 ## Structured Output: screening_results.json
 
-In **addition** to the Markdown report and shortlist.jsonl above, write a
+In **addition** to the Markdown report and shortlist.json above, write a
 machine-readable JSON file with the structured screening results. This enables
 automated validation and downstream pipeline integration.
 
@@ -175,17 +175,17 @@ automated validation and downstream pipeline integration.
 }
 ```
 
-**Schema rules**:
-- All fields are REQUIRED. The `candidates` array must include EVERY candidate (not just shortlisted).
+**Schema rules** (see also: Schema Governance in `references/sub-agents.md`):
+- All fields are REQUIRED. Use `null` for genuinely unknown scalars, `[]` for absent arrays, never omit fields.
 - `candidates[].verdict` MUST be one of: `"shortlisted"`, `"borderline"`, `"excluded"`.
 - `candidates[].scores.*.score` MUST be floats in range [0.0, 10.0].
 - `candidates[].scores.*.justification` MUST be ≥5 words.
 - `candidates[].final_score` MUST equal the weighted formula: $0.4R + 0.2M + 0.2I + 0.2P$.
 - `coverage_gaps[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.
 
-## Output: shortlist.jsonl
+## Output: shortlist.json
 
-Write the shortlisted candidates as JSONL (same schema as input) so downstream
+Write the shortlisted candidates as JSON (same schema as input) so downstream
 pipeline stages can consume them.
 
 ## Guidelines

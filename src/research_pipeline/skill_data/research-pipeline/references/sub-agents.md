@@ -119,8 +119,8 @@ Synthesize findings from N analyzed papers on "<topic>".
 6. Trade-off analysis for key design decisions
 7. Reproducibility assessment per paper
 8. Readiness assessment (if system-building mode):
-   IMPLEMENTATION_READY | HAS_GAPS
-   Classify gaps as ENGINEERING or ACADEMIC
+   IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE
+   Classify gaps as ENGINEERING or ACADEMIC (if HAS_GAPS)
 
 Write both the Markdown synthesis and the structured JSON output to:
 /absolute/path/to/runs/<run_id>/synthesis/

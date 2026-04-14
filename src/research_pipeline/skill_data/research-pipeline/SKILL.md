@@ -2,7 +2,7 @@
 name: research-pipeline
 description: >
   End-to-end academic paper research workflow: plan search queries, retrieve
-  candidates from arXiv and Google Scholar, screen by relevance (BM25 +
+  candidates from arXiv, Google Scholar, and HuggingFace daily papers, screen by relevance (BM25 +
   optional SPECTER2 re-ranking), evaluate paper quality, expand via citation
   graph, download PDFs, convert to Markdown (docling, marker, pymupdf4llm),
   extract content, and generate evidence-backed summaries. For system-building
@@ -15,7 +15,7 @@ description: >
   or simple PDF reading (use pdf-to-markdown skill instead).
 metadata:
   author: grammy-jiang
-  version: 10.4.0
+  version: 1.0.3
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -23,7 +23,7 @@ metadata:
 # Academic Paper Research
 
 End-to-end academic paper research pipeline producing auditable, reproducible
-artifacts. Searches arXiv and Google Scholar; screens relevance; evaluates
+artifacts. Searches arXiv, Google Scholar, and HuggingFace daily papers; screens relevance; evaluates
 quality; expands via citation graph; downloads PDFs; converts to Markdown;
 and generates evidence-backed summaries with sub-agent analysis.
 
@@ -80,10 +80,10 @@ Stage commands require `--run-id ID`.
 | # | Stage | Command | Key Options |
 |---|-------|---------|-------------|
 | 1 | Plan | `research-pipeline plan "topic" --config CFG` | `--run-id ID` (optional, auto-generated) |
-| 2 | Search | `research-pipeline search --run-id ID --config CFG` | `--source arxiv\|scholar\|all` |
+| 2 | Search | `research-pipeline search --run-id ID --config CFG` | `--source arxiv\|scholar\|huggingface\|all` |
 | 3 | Screen | `research-pipeline screen --run-id ID --config CFG` | `--resume` |
 | 3b | Quality | `research-pipeline quality --run-id ID --config CFG` | _(optional stage)_ |
-| 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N` |
+| 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N`, `--reference-boost F` |
 | 4 | Download | `research-pipeline download --run-id ID --config CFG` | `--force` |
 | 5 | Convert | `research-pipeline convert --run-id ID --config CFG` | `--backend docling\|marker\|pymupdf4llm`, `--force` |
 | 5b | Rough | `research-pipeline convert-rough --run-id ID --config CFG` | `--force` |
@@ -93,7 +93,7 @@ Stage commands require `--run-id ID`.
 | All | Run | `research-pipeline run "topic" --config CFG` | `--source all` |
 | — | Inspect | `research-pipeline inspect --run-id ID` | `--workspace PATH` |
 | — | Convert File | `research-pipeline convert-file path.pdf --config CFG` | `-o DIR`, `--backend B` |
-| — | Index | `research-pipeline index --list` | `--gc` |
+| — | Index | `research-pipeline index --list` | `--gc`, `--search QUERY`, `--search-limit N` |
 
 All run artifacts stored under `runs/<run_id>/`.
 
@@ -102,8 +102,25 @@ All run artifacts stored under `runs/<run_id>/`.
 ### Step 0: Check for Existing Report
 
 Before starting, look for `<topic-slug>-research-report.md` in the CWD.
-If found: read it, extract already-analyzed paper IDs, and **merge** new
-findings into the existing report at the end.
+If found:
+
+1. **Read it as prior context** — extract already-analyzed paper IDs, prior
+   findings, confidence levels, and gap classifications.
+2. **Do NOT append-merge** into the old report. Appending produces duplicated
+   findings, stale conclusions, and patchwork reports.
+3. **Generate a fresh report** from the current evidence state after all
+   pipeline stages and sub-agent analysis complete.
+4. Optionally include a **Prior Run Comparison** section in the new report:
+   ```markdown
+   ## Prior Run Comparison
+   - Previous report: <filename>
+   - Newly added papers: ...
+   - Confidence changes: ...
+   - Gaps resolved: ...
+   - Remaining gaps: ...
+   ```
+5. The old report becomes a historical artifact — rename it to
+   `<topic-slug>-research-report.<date>.md` before writing the new one.
 
 ### Step 1: Plan
 
@@ -148,20 +165,29 @@ Consult `references/query-optimization.md` for synonym tables and examples.
 research-pipeline search --run-id <RUN_ID> --source all --config CFG
 ```
 
-`--source all` searches **arXiv + Google Scholar** in parallel. Results are
-deduplicated by arXiv ID and normalized title.
+`--source all` searches **arXiv + Google Scholar + HuggingFace daily papers**
+in parallel. Results are deduplicated by arXiv ID and normalized title.
 
-**Supplemental — HuggingFace daily papers**: The pipeline does not search
-HuggingFace directly. Manually check for recent high-impact papers:
+Available source values for `--source`:
 
-```bash
-curl -s "https://huggingface.co/api/daily_papers?limit=100" | \
-  python3 -c "import json,sys; [print(p['paper']['id'], p['paper']['title']) for p in json.load(sys.stdin)]" | \
-  grep -i "<key_terms>"
+| Value | Searches | Notes |
+|-------|----------|-------|
+| `arxiv` | arXiv API | Default source |
+| `scholar` | Google Scholar | Requires `scholarly` or SerpAPI |
+| `huggingface` | HuggingFace daily papers | Keyword-filtered, recent papers |
+| `all` | arXiv + Scholar + HuggingFace | All searchable sources in parallel |
+
+**Note**: Semantic Scholar, OpenAlex, and DBLP are used by the `expand`
+(citation graph) and `quality` (author h-index) commands but are **not**
+searchable via `--source`.
+
+HuggingFace configuration in `config.toml`:
+```toml
+[sources]
+huggingface_enabled = true
+huggingface_min_interval = 0.5  # seconds between requests
+huggingface_limit = 100         # max daily papers to fetch
 ```
-
-Download supplemental PDFs manually to `runs/<RUN_ID>/supplemental/` and
-convert with `research-pipeline convert-file`.
 
 Report: candidates per source, total unique after dedup, run ID.
 
@@ -196,6 +222,11 @@ research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345,2402.67890" -
 **`--paper-ids` is required.** Expand the candidate pool by traversing the
 citation graph via Semantic Scholar. `--direction citations` finds papers
 citing yours; `references` finds their references; `both` does both.
+
+**Backward-preference**: Use `--reference-boost 2.0` when `--direction both`
+to fetch 2× more references than citations. Research shows backward references
+yield +10-20 pp higher recall because foundational papers curate high-quality
+reference lists. Default 1.0 (equal treatment).
 
 ### Step 4: Download
 
@@ -242,6 +273,11 @@ entries override rough-tier for the same paper.
 research-pipeline extract --run-id <RUN_ID> --config CFG
 ```
 
+Produces per-paper extraction files (`{arxiv_id}{version}.extract.json`) and
+bibliography files (`{arxiv_id}{version}.bibliography.json`) in
+`runs/<run_id>/extract/`. Bibliography entries contain parsed arXiv IDs and
+DOIs that can seed citation graph expansion without the Semantic Scholar API.
+
 ### Step 7: Summarize
 
 ```bash
@@ -255,16 +291,27 @@ Report: papers summarized, key findings.
 After the pipeline completes, use three specialized sub-agents for intelligent
 paper evaluation. Launch them via the task tool with the appropriate agent type.
 
-**CRITICAL — Model Requirement**: All sub-agents **MUST** be launched with
-`model: "claude-opus-4.6"` for maximum reasoning quality. Academic paper
-analysis demands the highest-quality reasoning available. Never use cheaper
-or faster models for sub-agents.
+**Model Requirement — Preferred-Model Policy**: All sub-agents SHOULD be
+launched with the **strongest available reasoning model** for maximum quality.
+Academic paper analysis demands high-quality reasoning — do not use fast or
+cheap models for sub-agents.
+
+**Model tiers**:
+| Tier | Policy | Examples |
+|------|--------|---------|
+| Preferred | Strongest reasoning model available | `claude-opus-4.6`, `claude-opus-4.5` |
+| Fallback | Approved secondary reasoning model | `claude-sonnet-4.5`, `gpt-4.1` |
+| Minimum | Do not run synthesis below this tier | Any model weaker than the fallback tier |
+
+If the preferred model is unavailable, use the best fallback and **annotate
+reduced confidence** in the synthesis output. Log which model was actually
+used in the run metadata (`subagent_model_used` field).
 
 ```python
 # Example: launching a paper-analyzer sub-agent
 task(
     agent_type="paper-analyzer",
-    model="claude-opus-4.6",      # ← REQUIRED for all sub-agents
+    model="claude-opus-4.6",      # ← Preferred; agent will use best available
     mode="background",
     name="az-paper-name",
     prompt="...",
@@ -286,7 +333,8 @@ flowchart TD
     style D fill:#f9f,stroke:#333
 ```
 
-All sub-agents **MUST** use `model: "claude-opus-4.6"`.
+All sub-agents SHOULD use the strongest available reasoning model
+(see model tiers above).
 
 Consult `references/sub-agents.md` for prompt templates, I/O specs, and
 model configuration details.
@@ -298,7 +346,7 @@ When to use: After screening, if BM25 shortlist quality is uncertain.
 Provide: run directory path, run ID, research topic, and any focus areas
 or exclusion criteria. Agent reads `search/candidates.jsonl` or
 `screen/cheap_scores.jsonl` and returns: shortlist count, top papers,
-coverage gaps. **Launch with `model: "claude-opus-4.6"`.**
+coverage gaps. **Launch with the strongest reasoning model available.**
 
 ### paper-analyzer
 
@@ -308,7 +356,7 @@ Launch **one agent per paper** in parallel for efficiency. Provide: path to
 the paper's Markdown file, research topic, and analysis focus (methodology,
 scalability, etc.). Agent returns: rating (1-5 stars), methodology assessment,
 key findings, transferable patterns, limitations. **Launch with
-`model: "claude-opus-4.6"`.**
+the strongest reasoning model available.**
 
 ### paper-synthesizer
 
@@ -316,8 +364,8 @@ When to use: After all paper-analyzer agents complete.
 
 Provide: all analysis summaries, research topic, and whether this is
 system-building mode. Agent returns: themes, contradictions, gaps,
-recommendations, and readiness assessment. **Launch with
-`model: "claude-opus-4.6"`.**
+recommendations, and readiness assessment. **Launch with the strongest
+reasoning model available.**
 
 ## Output Requirements
 
@@ -336,31 +384,39 @@ The final report MUST be written to the **CWD** (not `runs/`):
 
 ### Required Report Sections
 
-The final report MUST include ALL of the following (see `references/output-templates.md`
-for the full template):
+The final report MUST include all **core sections** and should include
+**conditional sections** when evidence justifies them (see
+`references/output-templates.md` for the full template and trigger logic):
 
+**Core sections** (always required):
 1. **Executive Summary** — scope, confidence level, verdict
-2. **Methodology** — search strategy, pipeline summary with Mermaid diagram
-3. **Papers Reviewed** — table with quality scores and relevance
-4. **Research Landscape** — themes with per-theme confidence and citations
-5. **Methodology Comparison** — approach × paper matrix with strengths/weaknesses
-6. **Confidence-Graded Findings** — 🟢 High / 🟡 Medium / 🔴 Low, each with
-   evidence count and supporting paper citations
-7. **Trade-Off Analysis** — decision table with evidence-backed pros/cons
-8. **Points of Agreement** — consensus findings with citations
-9. **Points of Contradiction** — with explanations for disagreements
-10. **Research Gaps** — classified as ACADEMIC vs ENGINEERING with severity
-11. **Reproducibility Notes** — code/data availability per paper
-12. **Practical Recommendations** — evidence-backed, with confidence level
-13. **Evidence Map** — research-question-aspect × paper matrix
-14. **Readiness Assessment** — (system-building mode) coverage matrix + gap plan
+2. **Research Question** — precise scope boundaries
+3. **Methodology** — search strategy, pipeline summary with Mermaid diagram
+4. **Papers Reviewed** — table with quality scores and relevance
+5. **Research Landscape** — themes with per-theme confidence and citations
+6. **Research Gaps** — classified as ACADEMIC vs ENGINEERING with severity
+7. **Practical Recommendations** — evidence-backed, with confidence level
+8. **References** — full reference list
+9. **Appendix: Run Metadata** — run ID, sources, version, date
 
-### Confidence Level Rules
+**Conditional sections** (include when justified):
+- **Methodology Comparison** — when 2+ distinct approaches are studied
+- **Confidence-Graded Findings** — 🟢 High / 🟡 Medium / 🔴 Low with evidence
+- **Trade-Off Analysis** — when real alternative approaches exist
+- **Points of Agreement** — when 2+ papers materially agree
+- **Points of Contradiction** — when 2+ papers materially disagree
+- **Reproducibility Notes** — when code/data availability is relevant
+- **Evidence Map** — for 5+ papers or when auditability is required
+- **Readiness Assessment** — in system-building mode only
+- **Future Directions** — when novel research directions emerge from the literature
+
+### Confidence Level Rules (Heuristic Guidelines)
 
 - **🟢 High**: 3+ papers, consistent methodology, reproducible results
 - **🟡 Medium**: 1-2 papers, or consistent results with methodology caveats
 - **🔴 Low**: single source, contradicted by other papers, or preliminary/unreproduced
 
+These thresholds are operational heuristics, not epistemic guarantees.
 Every finding, recommendation, and theme MUST include its confidence level.
 
 ### Report Validation
@@ -369,9 +425,10 @@ After writing the final report, validate it with:
 ```bash
 research-pipeline validate --report ./<topic-slug>-research-report.md
 ```
-This checks all 14 required sections, confidence annotations, evidence
+This checks all 9 core sections, confidence annotations, evidence
 citations, gap classifications, tables, Mermaid diagrams, and LaTeX formulas.
-The verdict is PASS (score ≥ 0.7 with all sections present) or FAIL.
+Conditional sections earn bonus credit when present.
+The verdict is PASS (score ≥ 0.7 with all core sections present) or FAIL.
 
 ### Cross-Run Comparison
 
@@ -391,7 +448,7 @@ be evaluated for implementation-readiness:
 - **Engineering gaps**: fill with own knowledge + web research
 - **Academic gaps**: run new pipeline iterations with gap-specific queries
 - **Max 3 iterations**, each narrowing the search
-- Stop when synthesizer returns `IMPLEMENTATION_READY` or no new gaps
+- Stop when synthesizer returns `IMPLEMENTATION_READY`, `NOT_APPLICABLE`, or no new gaps
 
 After the final report, ask whether to hand over to `req-analysis` skill.
 Consult `references/iterative-synthesis.md` for the full protocol.
@@ -423,13 +480,18 @@ output.
 
 ## Version History
 
-| Version | Key Changes |
-|---------|-------------|
-| v0.7.1 | Enhanced report template: methodology comparison, confidence-graded findings, trade-off analysis, gap classification, reproducibility notes; structured agent output schemas |
-| v10.4.0 | Sub-agents MUST use `model: "claude-opus-4.6"` for maximum reasoning quality |
-| v0.4.0 | Auto-merge two-tier converts; auto-generate query_variants; lenient shortlist parsing; scholarly installed |
-| v0.3.1 | Per-run file logging; version detection fixes; write_jsonl arg order fix |
-| v0.3.0 | Multi-source search; quality scoring; citation graph expansion; cloud conversion backends |
+| Version | Date | Type | Summary |
+|---------|------|------|---------|
+| v1.1.0 | 2026-04-14 | Feature | Backward-preference citation (`--reference-boost`), Q2D query augmentation, FTS5 index search (`--search`), bibliography extraction in extract stage, audit logging, tool integrity hashing |
+| v1.0.3 | 2026-04-15 | Quality | Release polish: engineering-gap regenerate-in-place, extract filename example, search-vs-supporting-API separation, screener input label |
+| v1.0.2 | 2026-04-15 | Quality | Final cleanup: version alignment, extract artifact naming ({arxiv_id}{version}.extract.json), quality_scores.jsonl extension fix, NOT_APPLICABLE in all readiness references |
+| v1.0.1 | 2026-04-15 | Quality | Final consistency: unified synthesis→summarize/ paths, HuggingFace in all examples, NOT_APPLICABLE in final message contract, confidence heuristic qualifier |
+| v1.0.0 | 2026-04-15 | Quality | Cross-file consistency: unified source contract, report policy, artifact paths, schema governance, execution vocabulary; fixed shortlist.json extension bugs in quality/compare commands |
+| v0.9.0 | 2026-04-14 | Feature | Modular report template; preferred-model policy; regenerate-from-evidence; HuggingFace source; expanded query optimization; citation-granularity policy; license awareness |
+| v0.7.1 | 2026-03-15 | Feature | Enhanced report template: methodology comparison, confidence-graded findings, trade-off analysis, gap classification, reproducibility notes; structured agent output schemas |
+| v0.4.0 | 2026-02-01 | Feature | Auto-merge two-tier converts; auto-generate query_variants; lenient shortlist parsing; scholarly installed; preferred-model policy for sub-agents |
+| v0.3.1 | 2026-01-15 | Fix | Per-run file logging; version detection fixes; write_jsonl arg order fix |
+| v0.3.0 | 2026-01-01 | Feature | Multi-source search; quality scoring; citation graph expansion; cloud conversion backends |
 
 ## Key Constraints
 

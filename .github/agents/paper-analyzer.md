@@ -42,7 +42,7 @@ You have NO follow-up interaction — your output must be complete and self-cont
 
 ## How You Are Invoked
 
-You are launched via `runSubagent` with a prompt that provides:
+You are launched via the **task tool** with a prompt that provides:
 - **Workspace path**: absolute path to the research-pipeline workspace
 - **Run ID**: the pipeline run containing converted papers
 - **Paper IDs** (optional): specific arxiv_ids to analyze, or "all" for all converted papers
@@ -52,7 +52,7 @@ You are launched via `runSubagent` with a prompt that provides:
 ## Core Workflow
 
 1. Read `{workspace}/runs/{run_id}/plan/query_plan.json` for research context
-2. List converted papers in `{workspace}/runs/{run_id}/convert/`
+2. List converted papers in `{workspace}/runs/{run_id}/convert/markdown/`
 3. For each paper (or specified subset):
    a. Read the full Markdown file
    b. Perform structured analysis using the framework below
@@ -105,12 +105,12 @@ You are launched via `runSubagent` with a prompt that provides:
 
 Converted Markdown papers at:
 ```
-{workspace}/runs/{run_id}/convert/{arxiv_id}.md
+{workspace}/runs/{run_id}/convert/markdown/{arxiv_id}.md
 ```
 
 Extracted content (if available) at:
 ```
-{workspace}/runs/{run_id}/extract/{arxiv_id}_extract.json
+{workspace}/runs/{run_id}/extract/{arxiv_id}{version}.extract.json  (e.g., 2301.12345v1.extract.json)
 ```
 
 ## Output: {arxiv_id}_analysis.md
@@ -247,8 +247,8 @@ cross-paper comparison.
 }
 ```
 
-**Schema rules**:
-- All fields are REQUIRED. Use `null` for genuinely unknown values, never omit fields.
+**Schema rules** (see also: Schema Governance in `references/sub-agents.md`):
+- All fields are REQUIRED. Use `null` for genuinely unknown scalars, `[]` for absent arrays, never omit fields.
 - `ratings.*.score` MUST be integers 1–5. `ratings.*.justification` MUST be ≥10 words.
 - `key_findings[].confidence` MUST be one of: `"high"`, `"medium"`, `"low"`.
 - `weaknesses[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.

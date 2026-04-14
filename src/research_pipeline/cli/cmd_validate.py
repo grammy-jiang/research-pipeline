@@ -12,29 +12,35 @@ from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
-# Required section headings (case-insensitive check)
+# Core required section headings (always required, case-insensitive check)
 REQUIRED_SECTIONS = [
     "executive summary",
     "research question",
     "methodology",
     "papers reviewed",
     "research landscape",
+    "research gaps",
+    "practical recommendations",
+    "references",
+    "appendix",
+]
+
+# Conditional sections (include when evidence justifies them)
+CONDITIONAL_SECTIONS = [
     "methodology comparison",
     "confidence-graded findings",
     "trade-off analysis",
     "points of agreement",
     "points of contradiction",
-    "research gaps",
     "reproducibility notes",
-    "practical recommendations",
-    "references",
-]
-
-# Optional but expected sections
-OPTIONAL_SECTIONS = [
     "evidence map",
     "readiness assessment",
     "future directions",
+]
+
+# Optional but expected sections (not validated, just noted)
+OPTIONAL_SECTIONS = [
+    "prior run comparison",
 ]
 
 CONFIDENCE_PATTERN = re.compile(
@@ -62,15 +68,18 @@ def _extract_headings(text: str) -> list[str]:
     return headings
 
 
-def _check_sections(text: str) -> tuple[list[str], list[str], list[str]]:
-    """Check for required and optional sections.
+def _check_sections(
+    text: str,
+) -> tuple[list[str], list[str], list[str], list[str]]:
+    """Check for required, conditional, and optional sections.
 
     Returns:
-        Tuple of (present, missing_required, missing_optional).
+        Tuple of (present, missing_required, present_conditional, missing_optional).
     """
     headings = _extract_headings(text)
     present = []
     missing_required = []
+    present_conditional = []
     missing_optional = []
 
     for section in REQUIRED_SECTIONS:
@@ -80,12 +89,17 @@ def _check_sections(text: str) -> tuple[list[str], list[str], list[str]]:
         else:
             missing_required.append(section)
 
+    for section in CONDITIONAL_SECTIONS:
+        found = any(section in h for h in headings)
+        if found:
+            present_conditional.append(section)
+
     for section in OPTIONAL_SECTIONS:
         found = any(section in h for h in headings)
         if not found:
             missing_optional.append(section)
 
-    return present, missing_required, missing_optional
+    return present, missing_required, present_conditional, missing_optional
 
 
 def _check_confidence_levels(text: str) -> dict[str, int]:
@@ -168,7 +182,9 @@ def validate_report(report_path: Path) -> dict[str, object]:
     """
     text = report_path.read_text()
 
-    present, missing_required, missing_optional = _check_sections(text)
+    present, missing_required, present_conditional, missing_optional = _check_sections(
+        text
+    )
     confidence_counts = _check_confidence_levels(text)
     citation_count = _check_evidence_citations(text)
     gap_class = _check_gap_classification(text)
@@ -176,8 +192,12 @@ def validate_report(report_path: Path) -> dict[str, object]:
     mermaid_count = _check_mermaid(text)
     latex_count = _check_latex(text)
 
-    # Calculate completeness score
-    section_score = len(present) / max(len(REQUIRED_SECTIONS), 1)
+    # Calculate completeness score (core sections + bonus for conditional)
+    core_section_score = len(present) / max(len(REQUIRED_SECTIONS), 1)
+    conditional_bonus = (
+        len(present_conditional) / max(len(CONDITIONAL_SECTIONS), 1) * 0.2
+    )
+    section_score = min(core_section_score + conditional_bonus, 1.0)
 
     has_confidence = (
         confidence_counts["high"]
@@ -231,6 +251,7 @@ def validate_report(report_path: Path) -> dict[str, object]:
         "sections": {
             "present": present,
             "missing_required": missing_required,
+            "present_conditional": present_conditional,
             "missing_optional": missing_optional,
         },
         "confidence_levels": confidence_counts,

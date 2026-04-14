@@ -45,20 +45,22 @@ These bugs existed in v0.3.0 and are resolved in v0.3.1:
 | arXiv | 1 req / 3s, single connection | Never parallel. 429 triggers exponential backoff |
 | Google Scholar (free) | 10s+ between requests | May get captchas under heavy use |
 | SerpAPI | 5s between requests | Paid, more reliable |
-| Semantic Scholar | 1s between requests | Used by `expand` and `quality` commands |
+| HuggingFace | 0.5s between requests | Keyword-filtered daily papers feed |
+| Semantic Scholar | 1s between requests | Used by `expand` and `quality` commands (not `--source`) |
 
 ## Search Sources
 
-`--source all` currently searches **arXiv + Google Scholar** in parallel.
-Results are deduplicated by arXiv ID and normalized title.
+`--source all` searches **arXiv + Google Scholar + HuggingFace daily papers**
+in parallel. Results are deduplicated by arXiv ID and normalized title.
 
 Available source values for `--source`:
 - `arxiv` — arXiv API (default)
 - `scholar` — Google Scholar (requires scholarly or SerpAPI)
-- `all` — arXiv + Google Scholar
+- `huggingface` — HuggingFace daily papers (keyword-filtered, recent papers)
+- `all` — arXiv + Google Scholar + HuggingFace
 
-Semantic Scholar is used by the `expand` (citation graph) and `quality`
-(author h-index) commands, but is not a search source for `--source`.
+Semantic Scholar, OpenAlex, and DBLP are used by the `expand` (citation graph)
+and `quality` (author h-index) commands, but are **not** searchable via `--source`.
 
 ## Source Configuration
 
@@ -71,7 +73,7 @@ export RESEARCH_PIPELINE_S2_API_KEY=your-s2-key     # Semantic Scholar (higher r
 ### config.toml
 ```toml
 [sources]
-default_sources = ["arxiv"]     # Available: arxiv, scholar
+default_sources = ["arxiv"]     # Searchable: arxiv, scholar, huggingface
 semantic_scholar_api_key = ""   # Used by expand and quality commands
 semantic_scholar_min_interval = 1.0
 
@@ -114,6 +116,24 @@ If found, it copies to the run directory instead of re-downloading.
 - **Time window**: Default 6 months. Expand to 12 only if sparse results.
 - **Evidence-based**: Every summary claim must cite source (paper_id, section).
 - CLI and MCP server share the same cache directory.
+
+## Converter License Awareness
+
+When choosing PDF-to-Markdown backends, be aware of license implications:
+
+| Backend | License | Implications |
+|---------|---------|-------------|
+| Docling | MIT | Safe for all environments, including proprietary/commercial |
+| Marker | GPL-3.0 | Copyleft — derivative works must also be GPL. May be unsuitable for proprietary pipelines |
+| PyMuPDF4LLM | AGPL-3.0 | Network copyleft — if exposed as a service, source must be disclosed. Strictest license |
+| Cloud backends (Mathpix, Datalab, etc.) | Proprietary/SaaS | Check vendor terms for data retention and usage rights |
+
+**Policy recommendations**:
+- For **enterprise or proprietary** environments: prefer `docling` or cloud backends
+- For **open-source** projects: any local backend is suitable
+- For **SaaS deployments** (e.g., behind an API): avoid AGPL backends unless source is disclosed
+- Always document which backend was used in the run metadata for audit purposes
+- When in doubt, configure `conversion.fallback_backends` to prefer MIT-licensed backends first
 
 ## MCP Server
 

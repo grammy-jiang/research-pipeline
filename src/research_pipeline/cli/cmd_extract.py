@@ -1,11 +1,13 @@
 """CLI handler for the 'extract' command."""
 
+import json
 import logging
 from pathlib import Path
 
 import typer
 
 from research_pipeline.config.loader import load_config
+from research_pipeline.extraction.bibliography import extract_bibliography
 from research_pipeline.extraction.extractor import extract_from_markdown
 from research_pipeline.models.conversion import ConvertManifestEntry
 from research_pipeline.storage.manifests import read_jsonl, write_jsonl
@@ -117,6 +119,7 @@ def run_extract(
 
     extract_dir = get_stage_dir(run_root, "extract")
     count = 0
+    bib_count = 0
     for entry in conv_entries:
         if entry.status not in ("converted", "skipped_exists"):
             continue
@@ -130,5 +133,36 @@ def run_extract(
         out_path.write_text(extraction.model_dump_json(indent=2), encoding="utf-8")
         count += 1
 
-    typer.echo(f"Extracted: {count} papers")
-    logger.info("Extract stage complete: %d papers", count)
+        # Extract bibliography entries
+        md_text = md_path.read_text(encoding="utf-8")
+        bib_entries = extract_bibliography(md_text)
+        if bib_entries:
+            bib_records = [
+                {
+                    "raw_text": e.raw_text,
+                    "title": e.title,
+                    "authors": e.authors,
+                    "year": e.year,
+                    "arxiv_id": e.arxiv_id,
+                    "doi": e.doi,
+                }
+                for e in bib_entries
+            ]
+            bib_path = (
+                extract_dir / f"{entry.arxiv_id}{entry.version}.bibliography.json"
+            )
+            bib_path.write_text(
+                json.dumps(bib_records, indent=2, ensure_ascii=False),
+                encoding="utf-8",
+            )
+            bib_count += 1
+            logger.info(
+                "Extracted %d bibliography entries from %s",
+                len(bib_entries),
+                entry.arxiv_id,
+            )
+
+    typer.echo(f"Extracted: {count} papers ({bib_count} with bibliography)")
+    logger.info(
+        "Extract stage complete: %d papers, %d bibliographies", count, bib_count
+    )

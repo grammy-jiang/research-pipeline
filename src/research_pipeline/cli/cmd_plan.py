@@ -176,6 +176,20 @@ def _generate_query_variants(
     # Variant 5: reversed order for diversity
     _add(list(reversed(must_terms)) + nice_terms)
 
+    # Variant 6+: Q2D (Query-to-Document) augmentation.
+    # Wraps the topic in academic phrasing to match how paper abstracts
+    # are written, boosting recall via "augment-don't-replace" strategy.
+    topic_phrase = " ".join(must_terms + nice_terms)
+    _Q2D_TEMPLATES = [
+        "this paper presents {topic}",
+        "we propose a method for {topic}",
+        "a survey of {topic}",
+    ]
+    for template in _Q2D_TEMPLATES:
+        _add(template.format(topic=topic_phrase).split())
+        if len(variants) >= max_variants:
+            return variants[:max_variants]
+
     return variants[:max_variants]
 
 

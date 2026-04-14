@@ -21,6 +21,7 @@ def run_expand(
     paper_ids: list[str],
     direction: str = "both",
     limit_per_paper: int = 50,
+    reference_boost: float = 1.0,
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
@@ -31,6 +32,9 @@ def run_expand(
         paper_ids: arXiv IDs or S2 paper IDs to expand.
         direction: "citations", "references", or "both".
         limit_per_paper: Max related papers per seed paper.
+        reference_boost: Multiplier for reference (backward) limit when
+            direction is "both".  E.g. 2.0 fetches twice as many
+            references as citations.  Default 1.0 (equal).
         config_path: Path to config TOML file.
         workspace: Workspace root directory.
         run_id: Pipeline run ID.
@@ -72,6 +76,7 @@ def run_expand(
         paper_ids=paper_ids,
         direction=direction,
         limit_per_paper=limit_per_paper,
+        reference_boost=reference_boost,
     )
 
     # Write expanded candidates

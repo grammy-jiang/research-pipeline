@@ -10,30 +10,34 @@ Use the task tool with the appropriate agent type. Each agent should be
 given the full file paths to its input artifacts — agents are stateless
 and do not share context with the main conversation.
 
-### Model Configuration (REQUIRED)
+### Model Configuration (RECOMMENDED)
 
-**All sub-agents MUST be launched with `model: "claude-opus-4.6"`** for
-maximum reasoning quality. This is a non-negotiable requirement — academic
-paper analysis demands the highest-quality reasoning available.
+**All sub-agents SHOULD be launched with the strongest available reasoning
+model** for maximum quality. Academic paper analysis demands high-quality
+reasoning — do not use fast or cheap models.
 
 ```
 task(
   agent_type: "paper-screener" | "paper-analyzer" | "paper-synthesizer",
-  model: "claude-opus-4.6",   # ← ALWAYS set this
+  model: "claude-opus-4.6",   # ← Preferred; use best available
   mode: "background",
   ...
 )
 ```
 
-| Agent | Model | Rationale |
-|-------|-------|-----------|
-| paper-screener | `claude-opus-4.6` | Nuanced relevance judgments require deep understanding |
-| paper-analyzer | `claude-opus-4.6` | Methodology assessment and critique need expert-level reasoning |
-| paper-synthesizer | `claude-opus-4.6` | Cross-paper synthesis, contradiction detection, and gap analysis are the most demanding tasks |
+| Agent | Preferred Model | Rationale |
+|-------|----------------|-----------|
+| paper-screener | Strongest reasoning model | Nuanced relevance judgments require deep understanding |
+| paper-analyzer | Strongest reasoning model | Methodology assessment and critique need expert-level reasoning |
+| paper-synthesizer | Strongest reasoning model | Cross-paper synthesis, contradiction detection, and gap analysis are the most demanding tasks |
 
-**Do NOT use** `claude-opus-4.6-fast`, `claude-haiku-4.5`, or other cheaper
-models for sub-agents — the quality degradation on academic analysis tasks
-is significant.
+**Model tiers**:
+- **Preferred**: strongest reasoning model (e.g., `claude-opus-4.6`, `claude-opus-4.5`)
+- **Fallback**: approved secondary model (e.g., `claude-sonnet-4.5`, `gpt-4.1`)
+- **Minimum**: do not run synthesis below the fallback tier
+
+If the preferred model is unavailable, use the best fallback and annotate
+reduced confidence in outputs. Always log `subagent_model_used` in run metadata.
 
 ## paper-screener
 
@@ -87,7 +91,7 @@ transferable patterns, limitations, and key quotes with section references.
 Write both the Markdown analysis and the structured JSON output.
 ```
 
-**Reads**: Individual Markdown files from `convert/markdown/` or `supplemental/markdown/`
+**Reads**: Individual Markdown files from `convert/markdown/`
 **Writes**: Analysis returned in agent output; optionally written to `analysis/`
 
 ## paper-synthesizer
@@ -119,15 +123,15 @@ Synthesize findings from N analyzed papers on "<topic>".
 6. Trade-off analysis for key design decisions
 7. Reproducibility assessment per paper
 8. Readiness assessment (if system-building mode):
-   IMPLEMENTATION_READY | HAS_GAPS
-   Classify gaps as ENGINEERING or ACADEMIC
+   IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE
+   Classify gaps as ENGINEERING or ACADEMIC (if HAS_GAPS)
 
 Write both the Markdown synthesis and the structured JSON output to:
-/absolute/path/to/runs/<run_id>/synthesis/
+/absolute/path/to/runs/<run_id>/summarize/
 ```
 
 **Reads**: Paper analysis summaries (provided in prompt)
-**Writes**: `runs/{run_id}/synthesis/synthesis_report.md`
+**Writes**: `runs/{run_id}/summarize/synthesis_report.md`
 
 ## Typical Orchestration Flow
 
@@ -145,3 +149,45 @@ flowchart TD
     style E fill:#f9f,stroke:#333
     style F fill:#f9f,stroke:#333
 ```
+
+## Artifact Layout Reference
+
+Canonical directory structure for a pipeline run. All paths are relative to
+`{workspace}/runs/{run_id}/`:
+
+| Stage | Directory | Key Files |
+|-------|-----------|-----------|
+| plan | `plan/` | `query_plan.json` |
+| search | `search/` | `candidates.jsonl` |
+| screen | `screen/` | `shortlist.json`, `cheap_scores.jsonl`, `screening_report.md`, `screening_results.json` |
+| download | `download/pdf/` | `{arxiv_id}.pdf`, `download_manifest.json` |
+| convert | `convert/markdown/` | `{arxiv_id}.md`, `convert_manifest.json` |
+| extract | `extract/` | `{arxiv_id}{version}.extract.json` (e.g., `2301.12345v1.extract.json`) |
+| summarize | `summarize/` | `synthesis_report.md`, `synthesis_results.json` |
+| quality | `quality/` | `quality_scores.jsonl` |
+| analysis | `analysis/` | `{arxiv_id}_analysis.md`, `{arxiv_id}_analysis.json` |
+
+**Important**: `download/pdf/` and `convert/markdown/` include their
+subdirectory — never append `/pdf` or `/markdown` again when constructing
+paths from `STAGE_SUBDIRS` in code.
+
+## Schema Governance
+
+All sub-agents produce structured JSON output. These conventions ensure
+consistency across agents and compatibility with the pipeline's lenient parsers:
+
+| Data Type | Absent / Unknown | Checked & Absent | Convention |
+|-----------|-----------------|-----------------|------------|
+| Scalar (string/number) | `null` | Value-specific (e.g., `false`, `0`) | Use `null` for genuinely unknown, concrete value if checked |
+| Array | `[]` | `[]` | Always use empty array `[]`, never `null` or omission |
+| Enum field | Use schema default | Use schema default | Never omit; always set to a valid enum value |
+| Object | Include with `null` fields | Include with concrete fields | Never omit top-level objects |
+
+**Shared rules**:
+1. **All fields are REQUIRED** — never omit a field from the schema
+2. **Severity levels**: `"high"`, `"medium"`, `"low"` (lowercase)
+3. **Confidence levels**: `"high"`, `"medium"`, `"low"` (lowercase)
+4. **Gap types**: `"ACADEMIC"`, `"ENGINEERING"` (uppercase)
+5. **Readiness verdicts**: `"IMPLEMENTATION_READY"`, `"HAS_GAPS"`, `"NOT_APPLICABLE"` (uppercase)
+6. **Scores**: use the numeric range specified per-agent (1-5 for ratings, 0.0-10.0 for screening)
+7. **Justifications**: minimum word counts are specified per-agent; never leave empty

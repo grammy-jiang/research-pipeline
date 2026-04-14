@@ -98,9 +98,12 @@ min_downloads = 5
 
 # Multi-source search configuration
 [sources]
-default_sources = ["arxiv"] # Sources to search: arxiv, scholar, semantic_scholar, openalex, dblp
+default_sources = ["arxiv"] # Searchable sources: arxiv, scholar, huggingface
 semantic_scholar_api_key = "" # S2 API key (optional, higher rate limits)
-semantic_scholar_min_interval = 1.0 # Seconds between S2 requests
-openalex_min_interval = 0.1 # Seconds between OpenAlex requests
+semantic_scholar_min_interval = 1.0 # Seconds between S2 requests (expand/quality only)
+openalex_min_interval = 0.1 # Seconds between OpenAlex requests (quality only)
 openalex_email = "" # Polite pool email for OpenAlex
-dblp_min_interval = 1.0 # Seconds between DBLP requests
+dblp_min_interval = 1.0 # Seconds between DBLP requests (quality only)
+huggingface_enabled = true # Enable HuggingFace daily papers source
+huggingface_min_interval = 0.5 # Seconds between HF requests
+huggingface_limit = 100 # Max daily papers to fetch per search
