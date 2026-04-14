@@ -95,12 +95,37 @@ Stage commands require `--run-id ID`.
 | 7 | Summarize | `research-pipeline summarize --run-id ID --config CFG` | — |
 | 8 | Analyze Claims | `research-pipeline analyze-claims --run-id ID` | — |
 | 9 | Score Claims | `research-pipeline score-claims --run-id ID` | — |
-| All | Run | `research-pipeline run "topic" --config CFG` | `--source all` |
+| All | Run | `research-pipeline run "topic" --config CFG` | `--source all`, `--profile quick\|standard\|deep\|auto` |
 | — | Inspect | `research-pipeline inspect --run-id ID` | `--workspace PATH` |
 | — | Convert File | `research-pipeline convert-file path.pdf --config CFG` | `-o DIR`, `--backend B` |
 | — | Index | `research-pipeline index --list` | `--gc`, `--search QUERY`, `--search-limit N` |
 
 All run artifacts stored under `runs/<run_id>/`.
+
+### Pipeline Profiles (v0.12.6+)
+
+Choose execution depth with `--profile`:
+
+| Profile | Stages | Use Case |
+|---------|--------|----------|
+| `quick` | plan→search→screen→summarize | Fast overview from abstracts only (no PDFs) |
+| `standard` | Full 7-stage pipeline | Default — full evidence-based analysis |
+| `deep` | standard + expand + quality + claim analysis | Comprehensive research with citation expansion |
+| `auto` | Detected from query complexity | Short queries → quick; complex/survey → deep |
+
+```bash
+# Fast abstract-only overview
+research-pipeline run --profile quick "transformer attention"
+
+# Full pipeline (default)
+research-pipeline run "local memory systems for AI agents"
+
+# Deep research with citation expansion
+research-pipeline run --profile deep "comprehensive survey of memory in LLMs"
+
+# Auto-detect from query
+research-pipeline run --profile auto "what is RLHF"
+```
 
 ## Step-by-Step Workflow
 

@@ -1,6 +1,13 @@
 # arxiv-paper-pipeline configuration
 # Copy this to config.toml and adjust as needed.
 
+# Pipeline execution profile: "quick", "standard", "deep", or "auto"
+# quick: plan→search→screen→summarize (abstract-only, no PDFs)
+# standard: full 7-stage pipeline (default)
+# deep: standard + expand + quality + claim analysis
+# auto: detect based on query complexity
+profile = "standard"
+
 [arxiv]
 base_url = "https://export.arxiv.org/api/query"
 min_interval_seconds = 5.0

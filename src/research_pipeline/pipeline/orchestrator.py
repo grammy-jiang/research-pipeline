@@ -34,6 +34,14 @@ from research_pipeline.models.screening import (
     RelevanceDecision,
     parse_shortlist_lenient,
 )
+from research_pipeline.models.summary import PaperSummary
+from research_pipeline.pipeline.topology import (
+    PipelineProfile,
+    classify_query_complexity,
+    get_stages,
+    profile_summary,
+    should_run_stage,
+)
 from research_pipeline.screening.heuristic import score_candidates, select_topk
 from research_pipeline.storage.manifests import (
     load_manifest,
@@ -365,6 +373,25 @@ def run_pipeline(
         },
     )
 
+    # Determine pipeline profile
+    profile_str = config.profile
+    if profile_str == "auto":
+        profile = classify_query_complexity(topic)
+        logger.info("Auto-detected profile: %s", profile.value)
+    else:
+        try:
+            profile = PipelineProfile(profile_str)
+        except ValueError:
+            logger.warning("Unknown profile '%s', using standard", profile_str)
+            profile = PipelineProfile.STANDARD
+
+    logger.info("Pipeline profile: %s — %s", profile.value, profile_summary(profile))
+    audit.emit(
+        EventType.DECISION,
+        run_id=run_id,
+        details={"profile": profile.value, "stages": get_stages(profile)},
+    )
+
     # Setup shared resources
     rate_limiter = ArxivRateLimiter(min_interval=config.arxiv.min_interval_seconds)
     session = create_session(config.contact_email)
@@ -649,140 +676,154 @@ def run_pipeline(
         shortlist = [parse_shortlist_lenient(d) for d in raw_shortlist]
 
     # --- Stage: download ---
-    if not (resume and _is_stage_complete(manifest, "download")):
-        started = utc_now()
-        logger.info("Stage: download")
-        audit.emit(EventType.STAGE_STARTED, stage="download", run_id=run_id)
-        pdf_dir = get_stage_dir(run_root, "download")
-        pdf_dir.mkdir(parents=True, exist_ok=True)
+    if should_run_stage(profile, "download"):
+        if not (resume and _is_stage_complete(manifest, "download")):
+            started = utc_now()
+            logger.info("Stage: download")
+            audit.emit(EventType.STAGE_STARTED, stage="download", run_id=run_id)
+            pdf_dir = get_stage_dir(run_root, "download")
+            pdf_dir.mkdir(parents=True, exist_ok=True)
 
-        papers_to_download = [
-            {
-                "arxiv_id": d.paper.arxiv_id,
-                "version": d.paper.version,
-                "pdf_url": d.paper.pdf_url,
-            }
-            for d in shortlist
-            if d.download
-        ]
+            papers_to_download = [
+                {
+                    "arxiv_id": d.paper.arxiv_id,
+                    "version": d.paper.version,
+                    "pdf_url": d.paper.pdf_url,
+                }
+                for d in shortlist
+                if d.download
+            ]
 
-        entries = download_batch(
-            papers_to_download,
-            output_dir=pdf_dir,
-            session=session,
-            rate_limiter=rate_limiter,
-            max_downloads=config.download.max_per_run,
-        )
+            entries = download_batch(
+                papers_to_download,
+                output_dir=pdf_dir,
+                session=session,
+                rate_limiter=rate_limiter,
+                max_downloads=config.download.max_per_run,
+            )
 
-        manifest_path = (
-            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
-        )
-        write_jsonl(
-            manifest_path,
-            [e.model_dump(mode="json") for e in entries],
-        )
+            manifest_path = (
+                get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+            )
+            write_jsonl(
+                manifest_path,
+                [e.model_dump(mode="json") for e in entries],
+            )
 
-        manifest = _record_stage(
-            manifest,
-            "download",
-            "completed",
-            started,
-            output_paths=[str(manifest_path)],
-            audit=audit,
-            run_root=run_root,
-        )
-        save_manifest(run_root, manifest)
+            manifest = _record_stage(
+                manifest,
+                "download",
+                "completed",
+                started,
+                output_paths=[str(manifest_path)],
+                audit=audit,
+                run_root=run_root,
+            )
+            save_manifest(run_root, manifest)
+        else:
+            from research_pipeline.models.download import DownloadManifestEntry
+            from research_pipeline.storage.manifests import read_jsonl
+
+            dl_data = read_jsonl(
+                get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+            )
+            entries = [DownloadManifestEntry.model_validate(d) for d in dl_data]
     else:
-        from research_pipeline.models.download import DownloadManifestEntry
-        from research_pipeline.storage.manifests import read_jsonl
-
-        dl_data = read_jsonl(
-            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
-        )
-        entries = [DownloadManifestEntry.model_validate(d) for d in dl_data]
+        logger.info("Skipping download stage (profile: %s)", profile.value)
+        entries = []
 
     # --- Stage: convert ---
-    if not (resume and _is_stage_complete(manifest, "convert")):
-        started = utc_now()
-        logger.info("Stage: convert")
-        audit.emit(EventType.STAGE_STARTED, stage="convert", run_id=run_id)
-        md_dir = get_stage_dir(run_root, "convert")
-        converter = _create_converter(config)
+    if should_run_stage(profile, "convert"):
+        if not (resume and _is_stage_complete(manifest, "convert")):
+            started = utc_now()
+            logger.info("Stage: convert")
+            audit.emit(EventType.STAGE_STARTED, stage="convert", run_id=run_id)
+            md_dir = get_stage_dir(run_root, "convert")
+            converter = _create_converter(config)
 
-        convert_entries = []
-        for dl_entry in entries:
-            if dl_entry.status not in ("downloaded", "skipped_exists"):
-                continue
-            pdf_path = Path(dl_entry.local_path)
-            if not pdf_path.exists():
-                logger.warning("PDF not found: %s", pdf_path)
-                continue
-            result = converter.convert(pdf_path, md_dir)
-            convert_entries.append(result)
+            convert_entries = []
+            for dl_entry in entries:
+                if dl_entry.status not in ("downloaded", "skipped_exists"):
+                    continue
+                pdf_path = Path(dl_entry.local_path)
+                if not pdf_path.exists():
+                    logger.warning("PDF not found: %s", pdf_path)
+                    continue
+                result = converter.convert(pdf_path, md_dir)
+                convert_entries.append(result)
 
-        conv_manifest_path = (
-            get_stage_dir(run_root, "convert_root") / "convert_manifest.jsonl"
-        )
-        write_jsonl(
-            conv_manifest_path,
-            [e.model_dump(mode="json") for e in convert_entries],
-        )
+            conv_manifest_path = (
+                get_stage_dir(run_root, "convert_root") / "convert_manifest.jsonl"
+            )
+            write_jsonl(
+                conv_manifest_path,
+                [e.model_dump(mode="json") for e in convert_entries],
+            )
 
-        manifest = _record_stage(
-            manifest,
-            "convert",
-            "completed",
-            started,
-            output_paths=[str(conv_manifest_path)],
-            audit=audit,
-            run_root=run_root,
-        )
-        save_manifest(run_root, manifest)
+            manifest = _record_stage(
+                manifest,
+                "convert",
+                "completed",
+                started,
+                output_paths=[str(conv_manifest_path)],
+                audit=audit,
+                run_root=run_root,
+            )
+            save_manifest(run_root, manifest)
+        else:
+            from research_pipeline.models.conversion import ConvertManifestEntry
+            from research_pipeline.storage.manifests import read_jsonl
+
+            conv_data = read_jsonl(
+                get_stage_dir(run_root, "convert_root") / "convert_manifest.jsonl"
+            )
+            convert_entries = [
+                ConvertManifestEntry.model_validate(d) for d in conv_data
+            ]
     else:
-        from research_pipeline.models.conversion import ConvertManifestEntry
-        from research_pipeline.storage.manifests import read_jsonl
-
-        conv_data = read_jsonl(
-            get_stage_dir(run_root, "convert_root") / "convert_manifest.jsonl"
-        )
-        convert_entries = [ConvertManifestEntry.model_validate(d) for d in conv_data]
+        logger.info("Skipping convert stage (profile: %s)", profile.value)
+        convert_entries = []
 
     # --- Stage: extract ---
-    if not (resume and _is_stage_complete(manifest, "extract")):
-        started = utc_now()
-        logger.info("Stage: extract")
-        audit.emit(EventType.STAGE_STARTED, stage="extract", run_id=run_id)
-        extract_dir = get_stage_dir(run_root, "extract")
+    if should_run_stage(profile, "extract"):
+        if not (resume and _is_stage_complete(manifest, "extract")):
+            started = utc_now()
+            logger.info("Stage: extract")
+            audit.emit(EventType.STAGE_STARTED, stage="extract", run_id=run_id)
+            extract_dir = get_stage_dir(run_root, "extract")
 
-        extractions = []
-        for conv_entry in convert_entries:
-            if conv_entry.status not in ("converted", "skipped_exists"):
-                continue
-            md_path = Path(conv_entry.markdown_path)
-            if not md_path.exists():
-                logger.warning("Markdown not found: %s", md_path)
-                continue
-            extraction = extract_from_markdown(
-                md_path, conv_entry.arxiv_id, conv_entry.version
-            )
-            extract_path = (
-                extract_dir / f"{conv_entry.arxiv_id}{conv_entry.version}.extract.json"
-            )
-            extract_path.write_text(
-                extraction.model_dump_json(indent=2), encoding="utf-8"
-            )
-            extractions.append(extraction)
+            extractions = []
+            for conv_entry in convert_entries:
+                if conv_entry.status not in ("converted", "skipped_exists"):
+                    continue
+                md_path = Path(conv_entry.markdown_path)
+                if not md_path.exists():
+                    logger.warning("Markdown not found: %s", md_path)
+                    continue
+                extraction = extract_from_markdown(
+                    md_path, conv_entry.arxiv_id, conv_entry.version
+                )
+                extract_path = (
+                    extract_dir
+                    / f"{conv_entry.arxiv_id}{conv_entry.version}.extract.json"
+                )
+                extract_path.write_text(
+                    extraction.model_dump_json(indent=2), encoding="utf-8"
+                )
+                extractions.append(extraction)
 
-        manifest = _record_stage(
-            manifest,
-            "extract",
-            "completed",
-            started,
-            output_paths=[str(extract_dir)],
-            audit=audit,
-            run_root=run_root,
-        )
-        save_manifest(run_root, manifest)
+            manifest = _record_stage(
+                manifest,
+                "extract",
+                "completed",
+                started,
+                output_paths=[str(extract_dir)],
+                audit=audit,
+                run_root=run_root,
+            )
+            save_manifest(run_root, manifest)
+    else:
+        logger.info("Skipping extract stage (profile: %s)", profile.value)
 
     # --- Stage: summarize ---
     if not (resume and _is_stage_complete(manifest, "summarize")):
@@ -792,35 +833,67 @@ def run_pipeline(
         sum_dir = get_stage_dir(run_root, "summarize")
 
         summaries = []
-        for conv_entry in convert_entries:
-            if conv_entry.status not in ("converted", "skipped_exists"):
-                continue
-            md_path = Path(conv_entry.markdown_path)
-            if not md_path.exists():
-                continue
 
-            # Find title from shortlist
-            paper_title = conv_entry.arxiv_id
-            for d in shortlist:
-                if d.paper.arxiv_id == conv_entry.arxiv_id:
-                    paper_title = d.paper.title
-                    break
+        if should_run_stage(profile, "download"):
+            # Standard/deep path: summarize from converted markdown
+            for conv_entry in convert_entries:
+                if conv_entry.status not in ("converted", "skipped_exists"):
+                    continue
+                md_path = Path(conv_entry.markdown_path)
+                if not md_path.exists():
+                    continue
 
-            summary = summarize_paper(
-                markdown_path=md_path,
-                arxiv_id=conv_entry.arxiv_id,
-                version=conv_entry.version,
-                title=paper_title,
-                topic_terms=plan.must_terms + plan.nice_terms,
-                llm_provider=llm_provider,
+                # Find title from shortlist
+                paper_title = conv_entry.arxiv_id
+                for d in shortlist:
+                    if d.paper.arxiv_id == conv_entry.arxiv_id:
+                        paper_title = d.paper.title
+                        break
+
+                summary = summarize_paper(
+                    markdown_path=md_path,
+                    arxiv_id=conv_entry.arxiv_id,
+                    version=conv_entry.version,
+                    title=paper_title,
+                    topic_terms=plan.must_terms + plan.nice_terms,
+                    llm_provider=llm_provider,
+                )
+                summaries.append(summary)
+
+                # Save per-paper summary
+                sum_path = (
+                    sum_dir / f"{conv_entry.arxiv_id}{conv_entry.version}.summary.json"
+                )
+                sum_path.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
+        else:
+            # Quick path: synthesize from abstracts (no PDFs available)
+            logger.info(
+                "Quick profile: building summaries from abstracts (%d papers)",
+                len(shortlist),
             )
-            summaries.append(summary)
+            for decision in shortlist:
+                paper = decision.paper
+                abstract = paper.abstract or ""
+                summary = PaperSummary(
+                    arxiv_id=paper.arxiv_id,
+                    version=paper.version,
+                    title=paper.title,
+                    objective=(
+                        abstract[:500] if abstract else f"See paper: {paper.title}"
+                    ),
+                    methodology="(Abstract-only — quick profile, no PDF conversion)",
+                    findings=[],
+                    limitations=[
+                        "Abstract-only summary; use standard/deep "
+                        "profile for full analysis."
+                    ],
+                    evidence=[],
+                    uncertainties=[],
+                )
+                summaries.append(summary)
 
-            # Save per-paper summary
-            sum_path = (
-                sum_dir / f"{conv_entry.arxiv_id}{conv_entry.version}.summary.json"
-            )
-            sum_path.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
+                sum_path = sum_dir / f"{paper.arxiv_id}{paper.version}.summary.json"
+                sum_path.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
 
         # Cross-paper synthesis
         report = synthesize(summaries, plan.topic_raw, llm_provider=llm_provider)
@@ -867,6 +940,26 @@ def run_pipeline(
             run_root=run_root,
         )
         save_manifest(run_root, manifest)
+
+    # --- Deep profile: extra stages ---
+    if should_run_stage(profile, "expand"):
+        logger.info("Deep profile: citation expansion stage (expand)")
+        # TODO: Wire expand stage into orchestrator
+        logger.info("Expand stage not yet wired into orchestrator — run manually")
+    if should_run_stage(profile, "quality"):
+        logger.info("Deep profile: quality scoring stage")
+        # TODO: Wire quality stage into orchestrator
+        logger.info("Quality stage not yet wired into orchestrator — run manually")
+    if should_run_stage(profile, "analyze_claims"):
+        logger.info("Deep profile: claim analysis stage")
+        # TODO: Wire analyze_claims stage into orchestrator
+        logger.info(
+            "Analyze-claims stage not yet wired into orchestrator — run manually"
+        )
+    if should_run_stage(profile, "score_claims"):
+        logger.info("Deep profile: confidence scoring stage")
+        # TODO: Wire score_claims stage into orchestrator
+        logger.info("Score-claims stage not yet wired into orchestrator — run manually")
 
     logger.info("Pipeline complete: run_id=%s", run_id)
     audit.emit(

@@ -242,3 +242,4 @@ class PipelineConfig(BaseModel):
     incremental: IncrementalConfig = Field(default_factory=IncrementalConfig)
     workspace: str = "runs"
     contact_email: str = ""
+    profile: str = "standard"

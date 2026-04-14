@@ -194,6 +194,37 @@ research-pipeline run "transformer architectures for time series forecasting"
 
 This creates a run directory at `runs/<run_id>/` and executes all 7 core stages.
 
+### Pipeline profiles
+
+Control execution depth with `--profile` (v0.12.6+):
+
+```bash
+# Quick: abstract-only overview (no PDF download/conversion)
+research-pipeline run --profile quick "transformer attention"
+
+# Standard: full 7-stage pipeline (default)
+research-pipeline run "local memory systems for AI agents"
+
+# Deep: standard + citation expansion + quality scoring + claim analysis
+research-pipeline run --profile deep "comprehensive survey of memory in LLMs"
+
+# Auto: detect profile from query complexity
+research-pipeline run --profile auto "what is RLHF"
+```
+
+| Profile | Stages | When to use |
+|---------|--------|-------------|
+| `quick` | plan→search→screen→summarize | Fast overviews, simple lookups |
+| `standard` | Full 7-stage pipeline | Default research workflow |
+| `deep` | standard + expand + quality + claims | Comprehensive surveys, comparisons |
+| `auto` | Auto-detected | Let the pipeline decide |
+
+Set the default profile in `config.toml`:
+
+```toml
+profile = "standard"  # quick, standard, deep, or auto
+```
+
 ### Stage-by-stage execution
 
 Each stage can be run independently, allowing inspection and adjustment between

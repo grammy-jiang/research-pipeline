@@ -284,22 +284,29 @@ def run(
         "-s",
         help="Search source(s): arxiv, scholar, all (default: from config).",
     ),
+    profile: str = typer.Option(
+        "standard",
+        "--profile",
+        "-p",
+        help="Pipeline profile: quick, standard, deep, or auto.",
+    ),
 ) -> None:
-    """Run all 7 stages end-to-end.
+    """Run pipeline stages end-to-end.
 
-    plan > search > screen > download > convert > extract > summarize.
+    Profiles control which stages execute:
 
-    Searches arXiv and Google Scholar in parallel, screens for
-    relevance, downloads PDFs, converts to Markdown, extracts
-    content, and generates summaries. Use --resume to continue
-    a partially completed run.
+    \b
+    quick:    plan → search → screen → summarize (abstract-only)
+    standard: full 7-stage pipeline (default)
+    deep:     standard + expand + quality + claim analysis
+    auto:     detect from query complexity
 
-    Example: research-pipeline run 'local memory system for AI agents'
+    Example: research-pipeline run --profile quick 'transformer attention'
     """
     from research_pipeline.cli.cmd_run import run_full
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_full(topic, resume=resume, source=source, **opts)
+    run_full(topic, resume=resume, source=source, profile=profile, **opts)
 
 
 @app.command()

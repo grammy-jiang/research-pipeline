@@ -18,6 +18,7 @@ def run_full(
     workspace: Path | None = None,
     run_id: str | None = None,
     source: str | None = None,
+    profile: str | None = None,
 ) -> None:
     """Execute the full pipeline end-to-end.
 
@@ -28,6 +29,7 @@ def run_full(
         workspace: Workspace directory.
         run_id: Optional run ID.
         source: Source override (arxiv, scholar, all).
+        profile: Pipeline profile override (quick, standard, deep, auto).
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
@@ -38,6 +40,10 @@ def run_full(
             config.sources.enabled = ["arxiv", "scholar"]
         else:
             config.sources.enabled = [s.strip() for s in source.split(",")]
+
+    # Apply profile override to config
+    if profile:
+        config.profile = profile
 
     manifest = run_pipeline(
         topic=topic,

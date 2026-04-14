@@ -90,12 +90,31 @@ Stage commands require `--run-id ID`.
 | 5c | Fine | `research-pipeline convert-fine --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--backend B`, `--force` |
 | 6 | Extract | `research-pipeline extract --run-id ID --config CFG` | — |
 | 7 | Summarize | `research-pipeline summarize --run-id ID --config CFG` | — |
-| All | Run | `research-pipeline run "topic" --config CFG` | `--source all` |
+| All | Run | `research-pipeline run "topic" --config CFG` | `--source all`, `--profile quick\|standard\|deep\|auto` |
 | — | Inspect | `research-pipeline inspect --run-id ID` | `--workspace PATH` |
 | — | Convert File | `research-pipeline convert-file path.pdf --config CFG` | `-o DIR`, `--backend B` |
 | — | Index | `research-pipeline index --list` | `--gc`, `--search QUERY`, `--search-limit N` |
 
 All run artifacts stored under `runs/<run_id>/`.
+
+### Pipeline Profiles (v0.12.6+)
+
+Choose execution depth with `--profile`:
+
+| Profile | Stages | Use Case |
+|---------|--------|----------|
+| `quick` | plan→search→screen→summarize | Fast overview from abstracts only (no PDFs) |
+| `standard` | Full 7-stage pipeline | Default — full evidence-based analysis |
+| `deep` | standard + expand + quality + claim analysis | Comprehensive research with citation expansion |
+| `auto` | Detected from query complexity | Short queries → quick; complex/survey → deep |
+
+```bash
+# Fast abstract-only overview
+research-pipeline run --profile quick "transformer attention"
+
+# Deep research with citation expansion
+research-pipeline run --profile deep "comprehensive survey of memory in LLMs"
+```
 
 ## Step-by-Step Workflow
 
