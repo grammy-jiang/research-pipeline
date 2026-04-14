@@ -3441,7 +3441,7 @@ socks = [
 
 [[package]]
 name = "research-pipeline"
-version = "0.12.0"
+version = "0.12.1"
 source = { editable = "." }
 dependencies = [
     { name = "lxml" },
@@ -3486,6 +3486,9 @@ openai-vision = [
 pymupdf4llm = [
     { name = "pymupdf4llm" },
 ]
+reranker = [
+    { name = "sentence-transformers" },
+]
 scholar = [
     { name = "scholarly" },
 ]
@@ -3517,12 +3520,13 @@ requires-dist = [
     { name = "requests", specifier = ">=2.31,<3" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
     { name = "scholarly", marker = "extra == 'scholar'", specifier = ">=1.7" },
+    { name = "sentence-transformers", marker = "extra == 'reranker'", specifier = ">=2.2" },
     { name = "tomli", marker = "python_full_version < '3.11'", specifier = ">=2.0" },
     { name = "typer", specifier = ">=0.12,<1" },
     { name = "types-requests", marker = "extra == 'dev'", specifier = ">=2.31" },
     { name = "vcrpy", marker = "extra == 'dev'", specifier = ">=6.0" },
 ]
-provides-extras = ["docling", "marker", "pymupdf4llm", "mathpix", "datalab", "llamaparse", "mistral-ocr", "openai-vision", "llm", "scholar", "serpapi", "dev"]
+provides-extras = ["docling", "marker", "pymupdf4llm", "mathpix", "datalab", "llamaparse", "mistral-ocr", "openai-vision", "llm", "scholar", "serpapi", "dev", "reranker"]
 
 [[package]]
 name = "rich"
@@ -3853,6 +3857,25 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/a9/a0/ce7e3d6cc76498fd594e667d10a03f17d7cced129e46869daec23523bf5a/semchunk-3.2.5.tar.gz", hash = "sha256:ee15e9a06a69a411937dd8fcf0a25d7ef389c5195863140436872a02c95b0218", size = 17667, upload-time = "2025-10-28T02:12:38.025Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f8/95/12d226ee4d207cb1f77a216baa7e1a8bae2639733c140abe8d0316d23a18/semchunk-3.2.5-py3-none-any.whl", hash = "sha256:fd09cc5f380bd010b8ca773bd81893f7eaf11d37dd8362a83d46cedaf5dae076", size = 13048, upload-time = "2025-10-28T02:12:36.724Z" },
+]
+
+[[package]]
+name = "sentence-transformers"
+version = "5.4.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "huggingface-hub" },
+    { name = "numpy" },
+    { name = "scikit-learn" },
+    { name = "scipy" },
+    { name = "torch" },
+    { name = "tqdm" },
+    { name = "transformers" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/4d/68/7f98c221940ce783b492ad6140384daf2e2918cd7175009d6a362c22b9ee/sentence_transformers-5.4.1.tar.gz", hash = "sha256:436bcb1182a0ff42a8fb2b1c43498a70d0a75b688d182f2cd0d1dd115af61ddc", size = 428910, upload-time = "2026-04-14T13:34:59.006Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/c5/d9/3a9b6f2ccdedc9dc00fe37b2fc58f58f8efbff44565cf4bf39d8568bb13a/sentence_transformers-5.4.1-py3-none-any.whl", hash = "sha256:a6d640fc363849b63affb8e140e9d328feabab86f83d58ac3e16b1c28140b790", size = 571311, upload-time = "2026-04-14T13:34:57.731Z" },
 ]
 
 [[package]]

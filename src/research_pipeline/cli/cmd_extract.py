@@ -103,6 +103,7 @@ def run_extract(
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
+    cross_encoder: bool | None = None,
 ) -> None:
     """Execute the extract stage: structured content extraction.
 
@@ -110,10 +111,19 @@ def run_extract(
         config_path: Path to config TOML.
         workspace: Workspace directory.
         run_id: Run ID with converted Markdown.
+        cross_encoder: Whether to enable cross-encoder reranking for
+            chunk retrieval.  None = auto-detect.
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
     run_id_str, run_root = init_run(ws, run_id)
+
+    if cross_encoder is not None:
+        logger.info(
+            "Cross-encoder reranking: %s", "enabled" if cross_encoder else "disabled"
+        )
+    else:
+        logger.info("Cross-encoder reranking: auto-detect")
 
     conv_entries = _discover_convert_manifest(run_root)
 

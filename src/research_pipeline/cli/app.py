@@ -216,6 +216,14 @@ def extract(
     config: Path | None = typer.Option(None, "--config", "-c"),
     workspace: Path | None = typer.Option(None, "--workspace", "-w"),
     run_id: str = typer.Option(..., "--run-id", help="Run ID with converted Markdown."),
+    cross_encoder: bool | None = typer.Option(
+        None,
+        "--cross-encoder/--no-cross-encoder",
+        help=(
+            "Enable/disable cross-encoder reranking for chunk retrieval. "
+            "Default: auto-detect (use if sentence-transformers is installed)."
+        ),
+    ),
 ) -> None:
     """Extract structured sections from Markdown.
 
@@ -227,6 +235,7 @@ def extract(
     from research_pipeline.cli.cmd_extract import run_extract
 
     opts = _common_options(verbose, config, workspace, run_id)
+    opts["cross_encoder"] = cross_encoder
     run_extract(**opts)
 
 

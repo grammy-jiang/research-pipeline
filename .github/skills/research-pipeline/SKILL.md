@@ -315,6 +315,10 @@ bibliography files (`{arxiv_id}{version}.bibliography.json`) in
 `runs/<run_id>/extract/`. Bibliography entries contain parsed arXiv IDs and
 DOIs that can seed citation graph expansion without the Semantic Scholar API.
 
+**Cross-encoder reranking** (v0.12.1+): When `sentence-transformers` is installed,
+chunk retrieval automatically applies cross-encoder reranking on the top BM25
+candidates for higher precision. Use `--cross-encoder` to force enable/disable.
+
 ### Step 7: Summarize
 
 Per-paper evidence-driven summarization + cross-paper synthesis.

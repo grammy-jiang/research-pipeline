@@ -1,8 +1,11 @@
-"""Topic-aware chunk retrieval using BM25 with optional SPECTER2 hybrid fusion.
+"""Topic-aware chunk retrieval with optional SPECTER2 fusion and cross-encoder.
 
 When SPECTER2 dependencies are available, combines BM25 keyword matching with
 semantic embedding similarity using reciprocal rank fusion (RRF).  Falls back
 to BM25-only when transformers/torch are not installed.
+
+When ``sentence-transformers`` is available, an optional cross-encoder reranking
+step rescores the top candidates for higher precision.
 """
 
 import logging
@@ -121,12 +124,17 @@ def retrieve_relevant_chunks(
     query_terms: list[str],
     top_k: int = 10,
     use_embeddings: bool | None = None,
+    use_cross_encoder: bool | None = None,
 ) -> list[tuple[ChunkMetadata, str, float]]:
     """Retrieve the most relevant chunks for a query.
 
     When SPECTER2 is available and ``use_embeddings`` is not False,
     combines BM25 with embedding similarity using reciprocal rank fusion.
     Otherwise falls back to BM25-only.
+
+    When ``sentence-transformers`` is available and ``use_cross_encoder``
+    is not False, the top candidates from BM25 (or hybrid) retrieval are
+    reranked using a cross-encoder model for higher precision.
 
     Args:
         chunks: List of (metadata, text) tuples.
@@ -136,12 +144,21 @@ def retrieve_relevant_chunks(
             None = auto-detect (use if available).
             True = force (raises ImportError if unavailable).
             False = disable (BM25 only).
+        use_cross_encoder: Whether to use cross-encoder reranking.
+            None = auto-detect (use if available and ≤100 chunks).
+            True = force (raises ImportError if unavailable).
+            False = disable.
 
     Returns:
         List of (metadata, text, score) tuples, sorted by relevance.
     """
     if not chunks or not query_terms:
         return []
+
+    from research_pipeline.extraction.cross_encoder import (
+        _is_cross_encoder_available,
+        cross_encoder_rerank,
+    )
 
     # Determine whether to use embeddings
     if use_embeddings is None:
@@ -151,6 +168,21 @@ def retrieve_relevant_chunks(
             "SPECTER2 dependencies (transformers, torch, adapters) "
             "are required for embedding retrieval but not installed."
         )
+
+    # Determine whether to use cross-encoder reranking
+    _cross_encoder_enabled: bool
+    if use_cross_encoder is None:
+        _cross_encoder_enabled = _is_cross_encoder_available() and len(chunks) <= 100
+    elif use_cross_encoder:
+        if not _is_cross_encoder_available():
+            raise ImportError(
+                "sentence-transformers is required for cross-encoder "
+                "reranking but not installed. Install it with: "
+                "pip install sentence-transformers"
+            )
+        _cross_encoder_enabled = True
+    else:
+        _cross_encoder_enabled = False
 
     # BM25 ranking (always computed)
     bm25_ranked = _bm25_rank(chunks, query_terms)
@@ -175,5 +207,37 @@ def retrieve_relevant_chunks(
             top_k,
         )
 
-    result = [(chunks[idx][0], chunks[idx][1], score) for idx, score in fused[:top_k]]
+    # Cross-encoder reranking on top candidates
+    if _cross_encoder_enabled:
+        # Take a wider candidate pool for reranking
+        candidate_limit = max(top_k * 3, 30)
+        candidate_indices = [idx for idx, _score in fused[:candidate_limit]]
+        candidate_chunks = [chunks[idx] for idx in candidate_indices]
+        query_str = " ".join(query_terms)
+
+        try:
+            reranked = cross_encoder_rerank(
+                query=query_str,
+                chunks=candidate_chunks,
+                top_k=top_k,
+            )
+            # Map back to original indices
+            final_ranked = [
+                (candidate_indices[local_idx], score) for local_idx, score in reranked
+            ]
+            logger.info(
+                "Cross-encoder reranked %d candidates → top-%d",
+                len(candidate_chunks),
+                top_k,
+            )
+        except Exception as exc:
+            logger.warning(
+                "Cross-encoder reranking failed, using pre-rerank ordering: %s",
+                exc,
+            )
+            final_ranked = fused[:top_k]
+    else:
+        final_ranked = fused[:top_k]
+
+    result = [(chunks[idx][0], chunks[idx][1], score) for idx, score in final_ranked]
     return result

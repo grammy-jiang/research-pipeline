@@ -34,8 +34,11 @@ pip install research-pipeline[openai-vision] # OpenAI GPT-4o vision (per-token)
 # With Google Scholar support
 pip install research-pipeline[scholar]
 
+# With cross-encoder reranking for higher-precision chunk retrieval
+pip install research-pipeline[reranker]
+
 # With all extras
-pip install research-pipeline[docling,marker,pymupdf4llm,scholar]
+pip install research-pipeline[docling,marker,pymupdf4llm,scholar,reranker]
 ```
 
 ### From source (development)
@@ -215,6 +218,8 @@ research-pipeline convert --run-id <RUN_ID> --backend marker
 
 # 6. Extract and chunk content
 research-pipeline extract --run-id <RUN_ID>
+# With cross-encoder reranking (requires sentence-transformers)
+research-pipeline extract --run-id <RUN_ID> --cross-encoder
 # Output: runs/<run_id>/extract/*.extract.json
 
 # 7. Generate summaries and synthesis
