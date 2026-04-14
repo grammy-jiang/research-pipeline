@@ -88,7 +88,7 @@ class TestValidateAnalysisJson:
             "ratings": {
                 dim: {
                     "score": 4,
-                    "justification": "Well written justification",
+                    "justification": ("This is a well written detailed justification"),
                 }
                 for dim in RATING_DIMENSIONS
             },

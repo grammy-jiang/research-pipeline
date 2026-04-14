@@ -58,7 +58,21 @@ def _find_source(
 
 def _find_skill_source() -> Path | None:
     """Locate the bundled skill directory."""
-    return _find_source(_SKILL_SOURCE_CANDIDATES, "skill_data", "SKILL.md")
+    # Repo source candidates point directly to the skill dir
+    for candidate in _SKILL_SOURCE_CANDIDATES:
+        if candidate.is_dir() and (candidate / "SKILL.md").is_file():
+            return candidate
+
+    # Fallback: installed package has skill_data/research-pipeline/
+    with contextlib.suppress(Exception):
+        import importlib.resources as pkg_resources
+
+        ref = pkg_resources.files("research_pipeline") / "skill_data"
+        ref_path = Path(str(ref)) / "research-pipeline"
+        if ref_path.is_dir() and (ref_path / "SKILL.md").is_file():
+            return ref_path
+
+    return None
 
 
 def _find_agent_source() -> Path | None:
