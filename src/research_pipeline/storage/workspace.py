@@ -24,6 +24,8 @@ STAGE_SUBDIRS = {
     "summarize": "summarize",
     "quality": "quality",
     "expand": "expand",
+    "analysis": "analysis",
+    "comparison": "comparison",
     "logs": "logs",
 }
 

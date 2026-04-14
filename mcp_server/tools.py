@@ -16,6 +16,8 @@ if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
 
 from mcp_server.schemas import (
+    AnalyzePapersInput,
+    CompareRunsInput,
     ConvertFileInput,
     ConvertFineInput,
     ConvertPdfsInput,
@@ -33,6 +35,8 @@ from mcp_server.schemas import (
     SearchInput,
     SummarizePapersInput,
     ToolResult,
+    ValidateReportInput,
+    VerifyStageInput,
 )
 
 logger = logging.getLogger(__name__)
@@ -1162,4 +1166,210 @@ def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolRe
             index.close()
     except Exception as exc:
         logger.error("manage_index failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def analyze_papers(
+    params: AnalyzePapersInput, ctx: Context | None = None
+) -> ToolResult:
+    """Prepare per-paper analysis tasks or validate collected analysis results."""
+    try:
+        from research_pipeline.cli.cmd_analyze import (
+            _discover_papers,
+            _generate_prompt,
+            _load_research_topic,
+        )
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _rid, run_root = init_run(ws, rid)
+
+        analysis_dir = get_stage_dir(run_root, "analysis")
+        analysis_dir.mkdir(parents=True, exist_ok=True)
+
+        if params.collect:
+            json_files = sorted(analysis_dir.glob("*_analysis.json"))
+            if not json_files:
+                return ToolResult(
+                    success=False,
+                    message="No analysis JSON files found. Run paper-analyzer first.",
+                )
+            from research_pipeline.cli.cmd_analyze import _validate_analysis_json
+
+            valid = 0
+            total_errs = 0
+            results_list = []
+            for jf in json_files:
+                errs = _validate_analysis_json(jf)
+                results_list.append(
+                    {"file": jf.name, "valid": not errs, "errors": errs}
+                )
+                if not errs:
+                    valid += 1
+                total_errs += len(errs)
+
+            report_path = analysis_dir / "validation_report.json"
+            import json as _json
+
+            report_path.write_text(
+                _json.dumps(
+                    {
+                        "total_files": len(json_files),
+                        "valid": valid,
+                        "invalid": len(json_files) - valid,
+                        "total_errors": total_errs,
+                        "results": results_list,
+                    },
+                    indent=2,
+                )
+            )
+            return ToolResult(
+                success=True,
+                message=(
+                    f"Validated {len(json_files)} analyses: "
+                    f"{valid} valid, {len(json_files) - valid} invalid."
+                ),
+                artifacts={
+                    "validation_report": str(report_path),
+                    "valid_count": valid,
+                    "invalid_count": len(json_files) - valid,
+                },
+            )
+
+        papers = _discover_papers(run_root)
+        if params.paper_ids:
+            papers = [p for p in papers if p["arxiv_id"] in params.paper_ids]
+        if not papers:
+            return ToolResult(
+                success=False,
+                message="No converted papers found. Run convert first.",
+            )
+
+        topic = _load_research_topic(run_root)
+        prompts = [_generate_prompt(p, topic, run_root) for p in papers]
+
+        prompts_path = analysis_dir / "analysis_tasks.json"
+        prompts_path.write_text(json.dumps(prompts, indent=2))
+
+        logger.info("Prepared %d analysis tasks", len(prompts))
+        return ToolResult(
+            success=True,
+            message=(
+                f"Prepared {len(prompts)} analysis tasks for topic: '{topic}'. "
+                "Launch paper-analyzer sub-agents, then call with collect=True."
+            ),
+            artifacts={
+                "tasks_file": str(prompts_path),
+                "paper_count": len(prompts),
+                "run_id": _rid,
+            },
+        )
+    except Exception as exc:
+        logger.error("analyze_papers failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def validate_report(
+    params: ValidateReportInput, ctx: Context | None = None
+) -> ToolResult:
+    """Validate a research report for completeness and quality."""
+    try:
+        from research_pipeline.cli.cmd_validate import validate_report as _validate
+
+        report_path: Path | None = None
+        if params.report_path:
+            report_path = Path(params.report_path).expanduser().resolve()
+        elif params.run_id:
+            from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+            ws = _resolve_workspace(params.workspace)
+            rid = _resolve_run_id(params.run_id) if params.run_id else ""
+            _, run_root = init_run(ws, rid)
+            synth_dir = get_stage_dir(run_root, "summarize")
+            for candidate in [
+                synth_dir / "synthesis_report.md",
+                run_root / "synthesis" / "synthesis_report.md",
+            ]:
+                if candidate.exists():
+                    report_path = candidate
+                    break
+
+        if report_path is None or not report_path.exists():
+            return ToolResult(
+                success=False,
+                message="No report found. Provide report_path or run_id.",
+            )
+
+        result = _validate(report_path)
+        verdict = result["verdict"]
+        score = result["overall_score"]
+
+        return ToolResult(
+            success=verdict == "PASS",
+            message=f"Report validation: {verdict} (score: {score})",
+            artifacts=result,
+        )
+    except Exception as exc:
+        logger.error("validate_report failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def compare_runs(params: CompareRunsInput, ctx: Context | None = None) -> ToolResult:
+    """Compare two pipeline runs and produce a structured diff."""
+    try:
+        from research_pipeline.cli.cmd_compare import compare_runs as _compare
+        from research_pipeline.storage.workspace import init_run
+
+        ws = _resolve_workspace(params.workspace)
+        _, run_root_a = init_run(ws, params.run_id_a)
+        _, run_root_b = init_run(ws, params.run_id_b)
+
+        result = _compare(run_root_a, run_root_b, params.run_id_a, params.run_id_b)
+
+        pd = result["paper_diff"]
+        ga = result["gap_analysis"]
+        return ToolResult(
+            success=True,
+            message=(
+                f"Compared {params.run_id_a} vs {params.run_id_b}: "
+                f"{pd['count_a']}→{pd['count_b']} papers, "
+                f"{ga['resolved_count']} gaps resolved, "
+                f"{ga['new_count']} new gaps"
+            ),
+            artifacts=result,
+        )
+    except Exception as exc:
+        logger.error("compare_runs failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def verify_stage(params: VerifyStageInput, ctx: Context | None = None) -> ToolResult:
+    """Verify structural completeness of a pipeline stage output."""
+    try:
+        from research_pipeline.pipeline.orchestrator import verify_stage as _verify
+        from research_pipeline.storage.workspace import init_run
+
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _, run_root = init_run(ws, rid)
+
+        errors = _verify(run_root, params.stage)
+
+        if errors:
+            return ToolResult(
+                success=False,
+                message=(
+                    f"Stage '{params.stage}' failed verification: "
+                    f"{len(errors)} error(s)"
+                ),
+                artifacts={"stage": params.stage, "errors": errors},
+            )
+        return ToolResult(
+            success=True,
+            message=f"Stage '{params.stage}' verified OK.",
+            artifacts={"stage": params.stage, "errors": []},
+        )
+    except Exception as exc:
+        logger.error("verify_stage failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

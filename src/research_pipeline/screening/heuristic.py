@@ -216,26 +216,162 @@ def select_topk(
     scores: list[CheapScoreBreakdown],
     top_k: int = 50,
     min_score: float = 0.0,
+    diversity: bool = False,
+    diversity_lambda: float = 0.3,
 ) -> list[tuple[CandidateRecord, CheapScoreBreakdown]]:
-    """Select top-K candidates by heuristic score for LLM second pass.
+    """Select top-K candidates by heuristic score with optional diversity.
+
+    When ``diversity=True``, uses a greedy MMR-style (Maximal Marginal Relevance)
+    reranking that balances relevance score with coverage of different categories,
+    time periods, and sources to avoid an echo-chamber shortlist.
 
     Args:
         candidates: All candidates.
         scores: Corresponding score breakdowns.
         top_k: Maximum number to select.
         min_score: Minimum score threshold.
+        diversity: Enable diversity-aware reranking.
+        diversity_lambda: Balance between relevance (0.0) and diversity (1.0).
+            Default 0.3 gives moderate diversity.
 
     Returns:
         List of (candidate, score) tuples, sorted by score descending.
     """
     paired = list(zip(candidates, scores, strict=True))
     filtered = [(c, s) for c, s in paired if s.cheap_score >= min_score]
-    filtered.sort(key=lambda x: x[1].cheap_score, reverse=True)
-    selected = filtered[:top_k]
+
+    if not diversity or diversity_lambda <= 0.0:
+        filtered.sort(key=lambda x: x[1].cheap_score, reverse=True)
+        selected = filtered[:top_k]
+        logger.info(
+            "Selected top-%d from %d candidates (min_score=%.2f)",
+            len(selected),
+            len(filtered),
+            min_score,
+        )
+        return selected
+
+    # Diversity-aware MMR-style selection
+    selected = _diverse_select(filtered, top_k, diversity_lambda)
     logger.info(
-        "Selected top-%d from %d candidates (min_score=%.2f)",
+        "Selected top-%d from %d candidates (diversity=%.2f, min_score=%.2f)",
         len(selected),
         len(filtered),
+        diversity_lambda,
         min_score,
     )
     return selected
+
+
+def _diverse_select(
+    pool: list[tuple[CandidateRecord, CheapScoreBreakdown]],
+    top_k: int,
+    lam: float,
+) -> list[tuple[CandidateRecord, CheapScoreBreakdown]]:
+    """Greedy diversity-aware selection (MMR-inspired).
+
+    At each step, selects the candidate that maximizes:
+        score = (1 - λ) * relevance + λ * novelty
+
+    Novelty is measured by how much the candidate's features differ from
+    the already-selected set (category, year, source).
+
+    Args:
+        pool: Available (candidate, score) pairs.
+        top_k: How many to select.
+        lam: Diversity weight in [0, 1].
+
+    Returns:
+        Selected (candidate, score) pairs.
+    """
+    if not pool:
+        return []
+
+    # Normalize relevance scores to [0, 1]
+    max_score = max(s.cheap_score for _, s in pool)
+    min_score = min(s.cheap_score for _, s in pool)
+    score_range = max_score - min_score if max_score > min_score else 1.0
+
+    selected: list[tuple[CandidateRecord, CheapScoreBreakdown]] = []
+    remaining = list(pool)
+
+    # Track coverage of diversity dimensions
+    covered_categories: dict[str, int] = {}
+    covered_years: dict[int, int] = {}
+    covered_sources: dict[str, int] = {}
+
+    for _ in range(min(top_k, len(pool))):
+        best_idx = -1
+        best_mmr = -1.0
+
+        for idx, (c, s) in enumerate(remaining):
+            relevance = (s.cheap_score - min_score) / score_range
+
+            # Novelty: how different is this candidate from what we already have?
+            novelty = _compute_novelty(
+                c, covered_categories, covered_years, covered_sources
+            )
+
+            mmr = (1.0 - lam) * relevance + lam * novelty
+            if mmr > best_mmr:
+                best_mmr = mmr
+                best_idx = idx
+
+        if best_idx < 0:
+            break
+
+        chosen_c, chosen_s = remaining.pop(best_idx)
+        selected.append((chosen_c, chosen_s))
+
+        # Update coverage
+        cat = chosen_c.primary_category
+        covered_categories[cat] = covered_categories.get(cat, 0) + 1
+        year = chosen_c.year or chosen_c.published.year
+        covered_years[year] = covered_years.get(year, 0) + 1
+        src = chosen_c.source
+        covered_sources[src] = covered_sources.get(src, 0) + 1
+
+    return selected
+
+
+def _compute_novelty(
+    candidate: CandidateRecord,
+    covered_categories: dict[str, int],
+    covered_years: dict[int, int],
+    covered_sources: dict[str, int],
+) -> float:
+    """Compute novelty score for a candidate given current coverage.
+
+    Higher scores mean more novel (underrepresented dimensions).
+
+    Args:
+        candidate: Paper to evaluate.
+        covered_categories: Category → count of already selected papers.
+        covered_years: Year → count of already selected papers.
+        covered_sources: Source → count of already selected papers.
+
+    Returns:
+        Novelty score in [0, 1].
+    """
+    if not covered_categories and not covered_years and not covered_sources:
+        return 1.0  # First pick always maximally novel
+
+    total_selected = sum(covered_categories.values()) or 1
+
+    # Category novelty: fewer papers from this category = more novel
+    cat = candidate.primary_category
+    cat_count = covered_categories.get(cat, 0)
+    cat_novelty = 1.0 - (cat_count / total_selected)
+
+    # Year novelty: fewer papers from this year = more novel
+    year = candidate.year or candidate.published.year
+    year_count = covered_years.get(year, 0)
+    year_novelty = 1.0 - (year_count / total_selected)
+
+    # Source novelty: fewer papers from this source = more novel
+    src = candidate.source
+    src_count = covered_sources.get(src, 0)
+    src_novelty = 1.0 - (src_count / total_selected)
+
+    # Weighted combination: category matters most for methodology diversity
+    return 0.50 * cat_novelty + 0.25 * year_novelty + 0.25 * src_novelty

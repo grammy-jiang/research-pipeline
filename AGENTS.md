@@ -149,7 +149,8 @@ uv run pre-commit run --all-files
 
 1. **Stage-based pipeline**: 7 core sequential stages —
    plan → search → screen → download → convert → extract → summarize
-   Plus 5 auxiliary commands: expand, quality, convert-rough, convert-fine, index
+   Plus 8 auxiliary commands: expand, quality, convert-rough, convert-fine,
+   index, analyze, validate, compare
 2. **Each stage is idempotent** and can be re-run independently
 3. **Pydantic models** for all domain objects (`src/research_pipeline/models/`)
 4. **Configuration**: TOML config + env var overrides
@@ -171,10 +172,18 @@ uv run pre-commit run --all-files
 11. **Semantic re-ranking**: optional SPECTER2 embeddings for cosine similarity
     scoring in the screen stage
 12. **Quality evaluation**: composite scoring — citation impact, venue reputation
-    (CORE rankings), author h-index, recency bonus
+    (CORE rankings), author h-index, recency bonus, reproducibility
 13. **Two-tier conversion**: fast `convert-rough` (pymupdf4llm, all papers) then
     high-quality `convert-fine` (primary backend, selected papers)
 14. **Incremental runs**: SQLite global paper index for cross-run dedup
+15. **Verification gates**: structural verification for every pipeline stage
+    output (plan, search, screen, download, convert, extract, summarize)
+16. **Diversity-aware screening**: MMR-style selection balances relevance with
+    category, source, and year diversity in shortlist construction
+17. **Report validation**: 14-section template compliance checking with
+    confidence-level, citation, gap classification, and formatting checks
+18. **Cross-run comparison**: structured diff of papers, gaps, confidence
+    changes, readiness, and quality scores between pipeline runs
 
 ## CLI entry point
 
@@ -192,6 +201,12 @@ research-pipeline download --run-id <ID>
 research-pipeline convert --run-id <ID>
 research-pipeline extract --run-id <ID>
 research-pipeline summarize --run-id <ID>
+
+# Quality & analysis commands
+research-pipeline analyze --run-id <ID>        # Prepare per-paper analysis tasks
+research-pipeline analyze --run-id <ID> --collect  # Validate collected analysis results
+research-pipeline validate --report report.md   # Validate report completeness
+research-pipeline compare --run-a <ID1> --run-b <ID2>  # Cross-run comparison
 
 # Auxiliary commands
 research-pipeline expand --run-id <ID> --direction both
@@ -219,8 +234,14 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 17 tools (with annotations & progress), 15 resources (URI templates),
+Features: 21 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
+
+New quality tools:
+- `analyze_papers` — prepare per-paper analysis tasks or validate results
+- `validate_report` — check report completeness (14 sections, citations, gaps)
+- `compare_runs` — structured diff between two pipeline runs
+- `verify_stage` — structural verification gates for any pipeline stage
 
 The `research_workflow` tool provides server-driven orchestration with 6 harness
 layers: telemetry, context engineering, governance, structural verification,

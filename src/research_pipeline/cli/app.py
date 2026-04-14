@@ -570,5 +570,110 @@ def install_skill(
     )
 
 
+@app.command()
+def analyze(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(..., "--run-id", help="Run ID with converted papers."),
+    collect: bool = typer.Option(
+        False, "--collect", help="Validate collected analysis JSON files."
+    ),
+    paper_ids: str | None = typer.Option(
+        None,
+        "--paper-ids",
+        help="Comma-separated arXiv IDs to analyze (default: all).",
+    ),
+) -> None:
+    """Prepare per-paper analysis tasks or validate collected results.
+
+    Without --collect: discovers converted papers and generates analysis
+    task prompts in the analysis/ directory.
+
+    With --collect: validates analysis JSON files produced by the
+    paper-analyzer sub-agent against the required schema.
+
+    Example: research-pipeline analyze --run-id <RUN_ID>
+    Example: research-pipeline analyze --run-id <RUN_ID> --collect
+    """
+    from research_pipeline.cli.cmd_analyze import run_analyze
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    ids = [p.strip() for p in paper_ids.split(",") if p.strip()] if paper_ids else None
+    run_analyze(collect=collect, paper_ids=ids, **opts)
+
+
+@app.command()
+def validate(
+    report: Path | None = typer.Option(
+        None, "--report", "-r", help="Path to report markdown file."
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str | None = typer.Option(
+        None, "--run-id", help="Run ID to find synthesis report."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output path for validation JSON."
+    ),
+) -> None:
+    """Validate a research report for completeness and quality.
+
+    Checks for required sections, confidence-level annotations,
+    evidence citations, gap classifications, tables, Mermaid diagrams,
+    and LaTeX formulas. Produces a PASS/FAIL verdict with a score.
+
+    Example: research-pipeline validate --report report.md
+    Example: research-pipeline validate --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_validate import run_validate
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+
+    run_validate(
+        report=report,
+        workspace=workspace,
+        run_id=run_id,
+        output=output,
+    )
+
+
+@app.command()
+def compare(
+    run_a: str = typer.Option(..., "--run-a", help="First run ID (baseline)."),
+    run_b: str = typer.Option(..., "--run-b", help="Second run ID (latest)."),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output path for comparison JSON."
+    ),
+) -> None:
+    """Compare two pipeline runs: papers, findings, gaps, confidence.
+
+    Produces a structured diff showing which papers are new, which gaps
+    were resolved, how confidence levels changed, and whether the
+    readiness verdict improved.
+
+    Example: research-pipeline compare --run-a <RUN_A> --run-b <RUN_B>
+    """
+    from research_pipeline.cli.cmd_compare import run_compare
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+
+    run_compare(
+        run_id_a=run_a,
+        run_id_b=run_b,
+        config_path=config,
+        workspace=workspace,
+        output=output,
+    )
+
+
 if __name__ == "__main__":
     app()

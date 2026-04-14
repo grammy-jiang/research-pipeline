@@ -197,6 +197,70 @@ class ManageIndexInput(BaseModel):
     )
 
 
+class AnalyzePapersInput(CommonParams):
+    """Input for the analyze_papers tool."""
+
+    collect: bool = Field(
+        default=False,
+        description=(
+            "If True, validate collected analysis JSON files "
+            "instead of generating prompts."
+        ),
+    )
+    paper_ids: list[str] = Field(
+        default_factory=list,
+        description="Optional list of specific paper arXiv IDs to analyze.",
+    )
+
+
+class ValidateReportInput(BaseModel):
+    """Input for the validate_report tool."""
+
+    report_path: str = Field(
+        default="",
+        description=(
+            "Path to the report markdown file. "
+            "If empty, uses run_id to find synthesis."
+        ),
+    )
+    workspace: str = Field(
+        default="./workspace",
+        description="Path to the workspace directory.",
+    )
+    run_id: str = Field(
+        default="",
+        description=(
+            "Run ID to find synthesis_report.md " "(used if report_path is empty)."
+        ),
+    )
+
+
+class CompareRunsInput(BaseModel):
+    """Input for the compare_runs tool."""
+
+    workspace: str = Field(
+        default="./workspace",
+        description="Path to the workspace directory.",
+    )
+    run_id_a: str = Field(
+        description="First run ID (baseline).",
+    )
+    run_id_b: str = Field(
+        description="Second run ID (latest).",
+    )
+
+
+class VerifyStageInput(CommonParams):
+    """Input for the verify_stage tool."""
+
+    stage: str = Field(
+        description=(
+            "Stage to verify: 'plan', 'search', 'screen', 'download', "
+            "'convert', 'extract', 'summarize'."
+        ),
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

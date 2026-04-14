@@ -122,6 +122,12 @@ Since v0.4.0, the plan stage auto-generates reasonable defaults:
 - **must_terms** capped at 3, overflow goes to **nice_terms**
 - **query_variants** auto-generated (up to `max_query_variants` from config)
 
+Use the verification gate to confirm structural validity:
+```bash
+research-pipeline verify --run-id <RUN_ID> --stage plan
+```
+This checks that `must_terms` (≥1) and `query_variants` (≥2) are present.
+
 You should still review and refine:
 
 1. **Verify `must_terms`** — ensure they capture the core concepts
@@ -356,6 +362,25 @@ for the full template):
 - **🔴 Low**: single source, contradicted by other papers, or preliminary/unreproduced
 
 Every finding, recommendation, and theme MUST include its confidence level.
+
+### Report Validation
+
+After writing the final report, validate it with:
+```bash
+research-pipeline validate --report ./<topic-slug>-research-report.md
+```
+This checks all 14 required sections, confidence annotations, evidence
+citations, gap classifications, tables, Mermaid diagrams, and LaTeX formulas.
+The verdict is PASS (score ≥ 0.7 with all sections present) or FAIL.
+
+### Cross-Run Comparison
+
+When running iterative synthesis, compare runs to track progress:
+```bash
+research-pipeline compare --run-a <PREV_RUN_ID> --run-b <NEW_RUN_ID>
+```
+This produces a structured diff: papers added/removed, gaps resolved/new,
+confidence-level changes, and readiness progression.
 
 ## System-Building Mode
 

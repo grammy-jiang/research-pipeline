@@ -70,6 +70,172 @@ def _is_stage_complete(manifest: RunManifest, stage: str) -> bool:
     return record is not None and record.status == "completed"
 
 
+def _verify_plan(run_root: Path) -> list[str]:
+    """Verify plan stage output is substantive.
+
+    Returns:
+        List of errors (empty if OK).
+    """
+    errors = []
+    plan_path = get_stage_dir(run_root, "plan") / "query_plan.json"
+    if not plan_path.exists():
+        errors.append("query_plan.json not found")
+        return errors
+
+    try:
+        data = json.loads(plan_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        errors.append(f"Cannot read query_plan.json: {exc}")
+        return errors
+
+    must = data.get("must_terms", [])
+    if not must or len(must) < 1:
+        errors.append("query_plan has no must_terms")
+
+    variants = data.get("query_variants", [])
+    if len(variants) < 2:
+        errors.append(f"query_plan has only {len(variants)} variants (need ≥2)")
+
+    return errors
+
+
+def _verify_search(run_root: Path) -> list[str]:
+    """Verify search stage output is substantive."""
+    errors = []
+    candidates_path = get_stage_dir(run_root, "search") / "candidates.jsonl"
+    if not candidates_path.exists():
+        errors.append("candidates.jsonl not found")
+        return errors
+
+    from research_pipeline.storage.manifests import read_jsonl
+
+    records = read_jsonl(candidates_path)
+    if not records:
+        errors.append("candidates.jsonl is empty — no papers found")
+        return errors
+
+    # Check all records have essential fields
+    missing_fields = 0
+    for r in records:
+        if not r.get("arxiv_id") and not r.get("title"):
+            missing_fields += 1
+    if missing_fields > 0:
+        errors.append(f"{missing_fields} candidates missing arxiv_id or title")
+
+    return errors
+
+
+def _verify_screen(run_root: Path) -> list[str]:
+    """Verify screen stage output is substantive."""
+    errors = []
+    screen_dir = get_stage_dir(run_root, "screen")
+    shortlist_path = screen_dir / "shortlist.json"
+    if not shortlist_path.exists():
+        errors.append("shortlist.json not found")
+        return errors
+
+    try:
+        data = json.loads(shortlist_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        errors.append(f"Cannot read shortlist.json: {exc}")
+        return errors
+
+    if not data:
+        errors.append("shortlist is empty — no papers selected for download")
+
+    return errors
+
+
+def _verify_download(run_root: Path) -> list[str]:
+    """Verify download stage output: PDF files exist and are non-trivial."""
+    errors = []
+    pdf_dir = get_stage_dir(run_root, "download")
+    pdfs = list(pdf_dir.glob("*.pdf"))
+    if not pdfs:
+        errors.append("No PDF files found in download directory")
+        return errors
+
+    small_pdfs = [p for p in pdfs if p.stat().st_size < 10_000]
+    if small_pdfs:
+        errors.append(f"{len(small_pdfs)} PDF(s) smaller than 10KB (likely corrupt)")
+
+    return errors
+
+
+def _verify_convert(run_root: Path) -> list[str]:
+    """Verify convert stage output: Markdown files exist and are non-empty."""
+    errors = []
+    md_dir = get_stage_dir(run_root, "convert")
+    md_files = list(md_dir.glob("*.md"))
+    if not md_files:
+        errors.append("No Markdown files found in convert directory")
+        return errors
+
+    empty_mds = [m for m in md_files if m.stat().st_size < 500]
+    if empty_mds:
+        errors.append(
+            f"{len(empty_mds)} Markdown file(s) under 500 bytes (likely empty)"
+        )
+
+    return errors
+
+
+def _verify_extract(run_root: Path) -> list[str]:
+    """Verify extract stage output: extraction files exist."""
+    errors = []
+    extract_dir = get_stage_dir(run_root, "extract")
+    extract_files = list(extract_dir.glob("*.extract.json"))
+    if not extract_files:
+        errors.append("No extraction files found")
+
+    return errors
+
+
+def _verify_summarize(run_root: Path) -> list[str]:
+    """Verify summarize stage output."""
+    errors = []
+    sum_dir = get_stage_dir(run_root, "summarize")
+    synthesis_json = sum_dir / "synthesis.json"
+    synthesis_md = sum_dir / "synthesis.md"
+
+    if not synthesis_json.exists() and not synthesis_md.exists():
+        errors.append("No synthesis output found (synthesis.json or synthesis.md)")
+
+    return errors
+
+
+STAGE_VERIFIERS: dict[str, object] = {
+    "plan": _verify_plan,
+    "search": _verify_search,
+    "screen": _verify_screen,
+    "download": _verify_download,
+    "convert": _verify_convert,
+    "extract": _verify_extract,
+    "summarize": _verify_summarize,
+}
+
+
+def verify_stage(run_root: Path, stage: str) -> list[str]:
+    """Run verification checks for a completed stage.
+
+    Args:
+        run_root: Root run directory.
+        stage: Stage name to verify.
+
+    Returns:
+        List of verification errors (empty means OK).
+    """
+    verifier = STAGE_VERIFIERS.get(stage)
+    if verifier is None:
+        return []  # No verifier for this stage
+    errors = verifier(run_root)  # type: ignore[operator]
+    if errors:
+        logger.warning("Verification errors for stage '%s': %s", stage, errors)
+    else:
+        logger.debug("Stage '%s' verified OK", stage)
+    return errors
+
+
 def _record_stage(
     manifest: RunManifest,
     stage: str,

@@ -15,6 +15,8 @@ from mcp.types import ToolAnnotations
 
 from mcp_server import completions, prompts, resources
 from mcp_server.schemas import (
+    AnalyzePapersInput,
+    CompareRunsInput,
     ConvertFileInput,
     ConvertFineInput,
     ConvertPdfsInput,
@@ -31,8 +33,12 @@ from mcp_server.schemas import (
     ScreenCandidatesInput,
     SearchInput,
     SummarizePapersInput,
+    ValidateReportInput,
+    VerifyStageInput,
 )
 from mcp_server.tools import (
+    analyze_papers,
+    compare_runs,
     convert_file,
     convert_fine,
     convert_pdfs,
@@ -49,6 +55,8 @@ from mcp_server.tools import (
     screen_candidates,
     search,
     summarize_papers,
+    validate_report,
+    verify_stage,
 )
 
 logger = logging.getLogger(__name__)
@@ -490,6 +498,124 @@ def tool_manage_index(
     """
     result = manage_index(
         ManageIndexInput(list_papers=list_papers, gc=gc, db_path=db_path), ctx=ctx
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_analyze_papers(
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    collect: bool = False,
+    paper_ids: list[str] | None = None,
+) -> dict:
+    """Prepare per-paper analysis tasks or validate collected results.
+
+    Without collect=True: discovers converted papers, generates analysis
+    prompts/tasks for sub-agents. With collect=True: validates collected
+    analysis JSON files against the required schema.
+    """
+    result = analyze_papers(
+        AnalyzePapersInput(
+            workspace=workspace,
+            run_id=run_id,
+            collect=collect,
+            paper_ids=paper_ids or [],
+        ),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_validate_report(
+    ctx: Context,
+    report_path: str = "",
+    workspace: str = "./workspace",
+    run_id: str = "",
+) -> dict:
+    """Validate a research report for completeness and quality.
+
+    Checks for 14 required sections, confidence-level annotations,
+    evidence citations, gap classifications, tables, Mermaid diagrams,
+    and LaTeX formulas. Returns PASS/FAIL verdict with detailed scoring.
+    """
+    result = validate_report(
+        ValidateReportInput(
+            report_path=report_path, workspace=workspace, run_id=run_id
+        ),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_compare_runs(
+    run_id_a: str,
+    run_id_b: str,
+    ctx: Context,
+    workspace: str = "./workspace",
+) -> dict:
+    """Compare two pipeline runs and produce a structured diff.
+
+    Analyzes paper overlap, gap resolution, confidence-level changes,
+    readiness assessment progression, and quality score differences
+    between two runs. Useful for tracking research progress across
+    iterations.
+    """
+    result = compare_runs(
+        CompareRunsInput(workspace=workspace, run_id_a=run_id_a, run_id_b=run_id_b),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_verify_stage(
+    stage: str,
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+) -> dict:
+    """Verify structural completeness of a pipeline stage output.
+
+    Runs structural verification gates (not LLM-based) to confirm
+    a stage produced valid output. Checks file existence, sizes,
+    required fields, and format constraints. Stages: plan, search,
+    screen, download, convert, extract, summarize.
+    """
+    result = verify_stage(
+        VerifyStageInput(workspace=workspace, run_id=run_id, stage=stage),
+        ctx=ctx,
     )
     return result.model_dump()
 
