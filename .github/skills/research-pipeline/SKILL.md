@@ -15,7 +15,7 @@ description: >
   or simple PDF reading (use pdf-to-markdown skill instead).
 metadata:
   author: grammy-jiang
-  version: 1.0.3
+  version: 1.2.0
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -83,7 +83,7 @@ Stage commands require `--run-id ID`.
 | 2 | Search | `research-pipeline search --run-id ID --config CFG` | `--source arxiv\|scholar\|huggingface\|all` |
 | 3 | Screen | `research-pipeline screen --run-id ID --config CFG` | `--resume` |
 | 3b | Quality | `research-pipeline quality --run-id ID --config CFG` | _(optional stage)_ |
-| 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N`, `--reference-boost F` |
+| 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N`, `--reference-boost F`, `--bfs-depth D`, `--bfs-top-k K`, `--bfs-query "term1,term2"` |
 | 4 | Download | `research-pipeline download --run-id ID --config CFG` | `--force` |
 | 5 | Convert | `research-pipeline convert --run-id ID --config CFG` | `--backend docling\|marker\|pymupdf4llm`, `--force` |
 | 5b | Rough | `research-pipeline convert-rough --run-id ID --config CFG` | `--force` |
@@ -198,6 +198,9 @@ research-pipeline screen --run-id <RUN_ID> --config CFG
 ```
 
 BM25 title/abstract scoring + category matching + recency bonus.
+Content is automatically sanitized (prompt injection patterns stripped)
+before scoring. Output includes `depth_tiers.json` with confidence-gated
+retrieval depth classification (high/medium/low) for adaptive expansion.
 Report: total scored, shortlist count, top 5 papers with scores.
 
 **Known limitation**: BM25 screening can be noisy with broad topic terms
@@ -211,7 +214,9 @@ research-pipeline quality --run-id <RUN_ID> --config CFG
 ```
 
 Composite quality scoring: citation impact, venue reputation, author
-credibility, and recency bonus. Output: `quality/quality_scores.jsonl`.
+credibility, and recency bonus. Papers flagged as retracted or fabricated
+(safety_flag) are zeroed automatically — safety acts as a multiplicative
+gate. Output: `quality/quality_scores.jsonl`.
 
 ### Step 3.6: Citation Graph Expansion (Optional)
 
@@ -227,6 +232,14 @@ citing yours; `references` finds their references; `both` does both.
 to fetch 2× more references than citations. Research shows backward references
 yield +10-20 pp higher recall because foundational papers curate high-quality
 reference lists. Default 1.0 (equal treatment).
+
+**BFS multi-hop expansion** (v0.10.0+): Use `--bfs-depth 2` to perform
+breadth-first traversal with BM25 pruning at each hop (+24pp recall).
+Requires `--bfs-query "term1,term2"` for relevance pruning. Example:
+```bash
+research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
+  --bfs-depth 2 --bfs-top-k 10 --bfs-query "transformer,attention" --config CFG
+```
 
 ### Step 4: Download
 

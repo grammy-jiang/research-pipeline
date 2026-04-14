@@ -22,6 +22,9 @@ def run_expand(
     direction: str = "both",
     limit_per_paper: int = 50,
     reference_boost: float = 1.0,
+    bfs_depth: int = 0,
+    bfs_top_k: int = 10,
+    query_terms: list[str] | None = None,
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
@@ -35,6 +38,9 @@ def run_expand(
         reference_boost: Multiplier for reference (backward) limit when
             direction is "both".  E.g. 2.0 fetches twice as many
             references as citations.  Default 1.0 (equal).
+        bfs_depth: BFS expansion depth (0 = single-hop only).
+        bfs_top_k: Papers to keep per BFS hop after BM25 pruning.
+        query_terms: Query terms for BFS BM25 hop pruning.
         config_path: Path to config TOML file.
         workspace: Workspace root directory.
         run_id: Pipeline run ID.
@@ -78,6 +84,33 @@ def run_expand(
         limit_per_paper=limit_per_paper,
         reference_boost=reference_boost,
     )
+
+    # BFS multi-hop expansion if requested
+    if bfs_depth > 0 and query_terms:
+        logger.info(
+            "BFS expansion: depth=%d, top_k=%d, terms=%s",
+            bfs_depth,
+            bfs_top_k,
+            query_terms,
+        )
+        bfs_candidates = client.bfs_expand(
+            seed_ids=paper_ids,
+            query_terms=query_terms,
+            max_depth=bfs_depth,
+            limit_per_paper=limit_per_paper,
+            top_k_per_hop=bfs_top_k,
+            direction=direction,
+        )
+        # Merge and deduplicate
+        seen_ids = {c.arxiv_id for c in candidates}
+        for bc in bfs_candidates:
+            if bc.arxiv_id not in seen_ids:
+                candidates.append(bc)
+                seen_ids.add(bc.arxiv_id)
+        logger.info(
+            "BFS added %d unique papers",
+            len(candidates) - len(seen_ids) + len(bfs_candidates),
+        )
 
     # Write expanded candidates
     output_path = expand_dir / "expanded_candidates.jsonl"

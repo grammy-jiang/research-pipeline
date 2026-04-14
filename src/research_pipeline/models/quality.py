@@ -35,6 +35,10 @@ class QualityScore(BaseModel):
     composite_score: float = Field(
         description="Weighted composite quality score (0–1)."
     )
+    safety_flag: str | None = Field(
+        default=None,
+        description="Safety flag: 'retracted', 'fabricated', or None if clean.",
+    )
     details: dict[str, object] = Field(
         default_factory=dict,
         description="Raw metrics for transparency (e.g. citation_count, h_index).",

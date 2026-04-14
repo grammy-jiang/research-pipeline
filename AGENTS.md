@@ -35,15 +35,15 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── config/                   # Configuration loading & schemas
 │   ├── arxiv/                    # arXiv API client, parser, dedup
 │   ├── sources/                  # Multi-source adapter (arXiv, Scholar, S2, OpenAlex, DBLP)
-│   ├── screening/                # Heuristic BM25 scoring, SPECTER2 embeddings, LLM judge
+│   ├── screening/                # Heuristic BM25 scoring, SPECTER2 embeddings, LLM judge, depth gate
 │   ├── download/                 # Rate-limited PDF downloader with retry
 │   ├── conversion/               # PDF→Markdown backends (3 local + 5 cloud + fallback)
-│   ├── quality/                  # Quality evaluation (citations, venue, author, composite)
-│   ├── extraction/               # Markdown chunking & retrieval
+│   ├── quality/                  # Quality evaluation (citations, venue, author, composite, safety gate)
+│   ├── extraction/               # Markdown chunking & hybrid BM25+embedding retrieval
 │   ├── summarization/            # Per-paper + cross-paper synthesis
-│   ├── pipeline/                 # Orchestrator & stage sequencing
+│   ├── pipeline/                 # Orchestrator, stage sequencing, enhanced checkpoints
 │   ├── storage/                  # Workspace, manifests, artifacts, global index
-│   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry
+│   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry, sanitization, audit
 │   ├── skill_data/               # Bundled skill files for pip package
 │   ├── agent_data/               # Bundled sub-agent definitions for pip package
 │   └── llm/                      # LLM provider interface (experimental)

@@ -25,6 +25,7 @@ from research_pipeline.infra.audit import AuditLogger, EventType
 from research_pipeline.infra.cache import FileCache
 from research_pipeline.infra.clock import date_window, utc_now
 from research_pipeline.infra.http import create_session
+from research_pipeline.infra.sanitize import sanitize_text
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.manifest import RunManifest, StageRecord
 from research_pipeline.models.query_plan import QueryPlan
@@ -245,8 +246,13 @@ def _record_stage(
     output_paths: list[str] | None = None,
     errors: list[str] | None = None,
     audit: AuditLogger | None = None,
+    run_root: Path | None = None,
 ) -> RunManifest:
-    """Create a stage record and update the manifest."""
+    """Create a stage record and update the manifest.
+
+    When *run_root* is provided, also writes an enhanced checkpoint
+    JSON with timing and artifact hashes for hash-based resume.
+    """
     ended = utc_now()
     started = started_at if started_at else ended
     duration = int((ended - started).total_seconds() * 1000)  # type: ignore[union-attr]
@@ -277,6 +283,25 @@ def _record_stage(
                 "output_paths": output_paths or [],
                 "errors": errors or [],
             },
+        )
+
+    # Write enhanced checkpoint with artifact hashes
+    if run_root is not None:
+        from research_pipeline.pipeline.checkpoint import write_checkpoint
+
+        artifact_paths = [Path(p) for p in (output_paths or [])]
+        started_iso = (
+            started.isoformat()  # type: ignore[union-attr]
+            if hasattr(started, "isoformat")
+            else str(started)
+        )
+        write_checkpoint(
+            run_root=run_root,
+            stage=stage,
+            status=status,
+            started_at=started_iso,
+            output_paths=artifact_paths,
+            errors=errors,
         )
 
     return update_stage(manifest, record)
@@ -389,6 +414,7 @@ def run_pipeline(
             started,
             output_paths=[str(plan_path)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
     else:
@@ -487,6 +513,7 @@ def run_pipeline(
             started,
             output_paths=[str(candidates_path)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
     else:
@@ -502,6 +529,11 @@ def run_pipeline(
         logger.info("Stage: screen")
         audit.emit(EventType.STAGE_STARTED, stage="screen", run_id=run_id)
         screen_dir = get_stage_dir(run_root, "screen")
+
+        # Sanitize candidate text before scoring (content security)
+        for c in candidates:
+            c.title = sanitize_text(c.title, max_length=500)
+            c.abstract = sanitize_text(c.abstract, max_length=10_000)
 
         scores = score_candidates(
             candidates,
@@ -545,13 +577,39 @@ def run_pipeline(
             encoding="utf-8",
         )
 
+        # Confidence-gated retrieval depth classification
+        from research_pipeline.screening.depth_gate import classify_retrieval_depth
+
+        depth_tiers = classify_retrieval_depth(shortlist)
+        depth_path = screen_dir / "depth_tiers.json"
+        depth_path.write_text(
+            json.dumps(
+                [t.model_dump(mode="json") for t in depth_tiers],
+                indent=2,
+                default=str,
+            ),
+            encoding="utf-8",
+        )
+        logger.info(
+            "Depth tiers: %s",
+            (
+                {
+                    t.tier: sum(1 for x in depth_tiers if x.tier == t.tier)
+                    for t in depth_tiers
+                }
+                if depth_tiers
+                else "none"
+            ),
+        )
+
         manifest = _record_stage(
             manifest,
             "screen",
             "completed",
             started,
-            output_paths=[str(shortlist_path)],
+            output_paths=[str(shortlist_path), str(depth_path)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
     else:
@@ -602,6 +660,7 @@ def run_pipeline(
             started,
             output_paths=[str(manifest_path)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
     else:
@@ -647,6 +706,7 @@ def run_pipeline(
             started,
             output_paths=[str(conv_manifest_path)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
     else:
@@ -691,6 +751,7 @@ def run_pipeline(
             started,
             output_paths=[str(extract_dir)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
 
@@ -773,6 +834,7 @@ def run_pipeline(
             started,
             output_paths=[str(synthesis_path), str(synthesis_json)],
             audit=audit,
+            run_root=run_root,
         )
         save_manifest(run_root, manifest)
 

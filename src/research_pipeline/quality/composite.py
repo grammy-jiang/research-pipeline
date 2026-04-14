@@ -130,6 +130,7 @@ def compute_quality_score(
     venue_data_path: str = "",
     code_url: str | None = None,
     has_data: bool = False,
+    safety_flag: str | None = None,
 ) -> QualityScore:
     """Compute composite quality score for a paper.
 
@@ -140,6 +141,7 @@ def compute_quality_score(
         venue_data_path: Path to venue rankings data.
         code_url: URL to code repository for reproducibility scoring.
         has_data: Whether paper has known dataset availability.
+        safety_flag: Safety flag ('retracted', 'fabricated', or None if clean).
 
     Returns:
         QualityScore with full breakdown.
@@ -164,6 +166,14 @@ def compute_quality_score(
     )
     composite = max(0.0, min(1.0, composite))
 
+    if safety_flag is not None:
+        logger.warning(
+            "Paper %s flagged as '%s' — composite score zeroed.",
+            candidate.arxiv_id,
+            safety_flag,
+        )
+        composite = 0.0
+
     return QualityScore(
         paper_id=candidate.arxiv_id,
         citation_impact=round(cit_impact, 4),
@@ -171,6 +181,7 @@ def compute_quality_score(
         author_credibility=round(auth_cred, 4),
         reproducibility=round(repro, 4),
         composite_score=round(composite, 4),
+        safety_flag=safety_flag,
         details={
             "recency_bonus": round(recency, 4),
             "reproducibility_score": round(repro, 4),
@@ -179,5 +190,6 @@ def compute_quality_score(
             "venue": candidate.venue,
             "code_url": code_url,
             "has_data": has_data,
+            "safety_flag": safety_flag,
         },
     )

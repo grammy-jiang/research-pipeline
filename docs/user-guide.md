@@ -226,7 +226,11 @@ These commands extend the core pipeline with additional capabilities:
 research-pipeline expand --run-id <RUN_ID> --direction both --limit 20
 # Output: runs/<run_id>/expand/expanded_candidates.jsonl
 
-# Quality evaluation (citation impact, venue, author, recency)
+# BFS multi-hop expansion with BM25 pruning (+24pp recall)
+research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
+  --bfs-depth 2 --bfs-top-k 10 --bfs-query "transformer,attention"
+
+# Quality evaluation (citation impact, venue, author, recency, safety gate)
 research-pipeline quality --run-id <RUN_ID>
 # Output: runs/<run_id>/quality/quality_scores.jsonl
 
