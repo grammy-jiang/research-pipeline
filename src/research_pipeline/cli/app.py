@@ -775,5 +775,72 @@ def analyze_claims(
     run_analyze_claims(**opts)
 
 
+@app.command("kg-stats")
+def kg_stats(
+    db_path: Path | None = typer.Option(None, "--db", help="KG database path."),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Show knowledge graph statistics.
+
+    Displays entity and triple counts by type.
+
+    Example: research-pipeline kg-stats
+    """
+    from research_pipeline.cli.cmd_kg import run_kg_stats
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_kg_stats(db_path=db_path)
+
+
+@app.command("kg-query")
+def kg_query(
+    entity_id: str = typer.Argument(help="Entity ID to query."),
+    db_path: Path | None = typer.Option(None, "--db", help="KG database path."),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Query an entity and its relations in the knowledge graph.
+
+    Shows entity details and all connected triples.
+
+    Example: research-pipeline kg-query 2401.12345
+    """
+    from research_pipeline.cli.cmd_kg import run_kg_query
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_kg_query(entity_id=entity_id, db_path=db_path)
+
+
+@app.command("kg-ingest")
+def kg_ingest(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str | None = typer.Option(None, "--run-id", "-r", help="Run ID."),
+    db_path: Path | None = typer.Option(None, "--db", help="KG database path."),
+) -> None:
+    """Ingest pipeline results into the knowledge graph.
+
+    Reads candidates and claim decompositions from a completed run
+    and populates the knowledge graph with entities and relations.
+
+    Example: research-pipeline kg-ingest --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_kg import run_kg_ingest
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_kg_ingest(
+        config_path=config,
+        workspace=workspace,
+        run_id=run_id,
+        db_path=db_path,
+    )
+
+
 if __name__ == "__main__":
     app()

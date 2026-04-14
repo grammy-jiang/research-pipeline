@@ -255,6 +255,26 @@ Each claim is classified as **supported**, **partial**, **conflicting**,
 **inconclusive**, or **unsupported** based on BM25 retrieval against the
 source markdown chunks.
 
+### Knowledge graph (v0.12.4+)
+
+Build a typed knowledge graph from pipeline results:
+
+```bash
+# Ingest candidates and claims into the knowledge graph
+research-pipeline kg-ingest --run-id <RUN_ID>
+# Output: ~/.cache/research-pipeline/knowledge_graph.db
+
+# View knowledge graph statistics
+research-pipeline kg-stats
+
+# Query an entity and its relations
+research-pipeline kg-query 2401.12345
+```
+
+The knowledge graph stores 7 entity types (paper, concept, method, experiment,
+claim, author, venue) and 10 relation types with full provenance tracking.
+Use `--db` to specify a custom database path.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

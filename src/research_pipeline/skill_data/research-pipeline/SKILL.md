@@ -286,6 +286,21 @@ research-pipeline summarize --run-id <RUN_ID> --config CFG
 
 Report: papers summarized, key findings.
 
+### Step 8: Knowledge Graph (v0.12.4+)
+
+**Knowledge graph**: The pipeline builds a typed knowledge graph in SQLite
+tracking papers, concepts, methods, claims, and their relationships. Use
+`kg-ingest` after summarization to populate, `kg-stats` to view, and
+`kg-query <entity-id>` to explore relationships.
+
+```bash
+research-pipeline kg-ingest --run-id <RUN_ID>
+research-pipeline kg-stats
+research-pipeline kg-query 2401.12345
+```
+
+Report: entities and triples ingested, with provenance tracking.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent
