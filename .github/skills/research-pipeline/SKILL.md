@@ -15,7 +15,7 @@ description: >
   or simple PDF reading (use pdf-to-markdown skill instead).
 metadata:
   author: grammy-jiang
-  version: 1.3.0
+  version: 1.4.0
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -203,6 +203,15 @@ before scoring. Output includes `depth_tiers.json` with confidence-gated
 retrieval depth classification (high/medium/low) for adaptive expansion.
 Report: total scored, shortlist count, top 5 papers with scores.
 
+**Query refinement feedback** (v0.12.0+): After screening, the pipeline
+automatically analyzes term overlap between the query and shortlisted
+papers. Results are saved to `query_refinement.json` with:
+- `suggested_additions`: domain terms frequent in top-K but absent from query
+- `suggested_removals`: query terms with low coverage in results
+- `emergent_terms`: newly discovered terms from the corpus
+- `term_coverage`: per-term hit rate across shortlisted papers
+Use this feedback to refine the query plan in iterative searches.
+
 **Diversity-aware shortlisting** (v0.11.0+): Use `--diversity` to enable
 MMR-style reranking that balances relevance with coverage of different
 categories, time periods, and sources. Prevents echo-chamber shortlists.
@@ -316,6 +325,18 @@ structured per-paper summaries (objective, methodology, findings,
 limitations) and cross-paper synthesis (agreements, disagreements,
 open questions). When LLM is not configured, uses template mode
 that extracts relevant sections and aggregates findings heuristically.
+
+**Export formats** (v0.12.0+): Use `--output-format` to produce
+additional output alongside the default synthesis JSON:
+```bash
+research-pipeline summarize --run-id <RUN_ID> -f json --config CFG
+research-pipeline summarize --run-id <RUN_ID> -f bibtex --config CFG
+research-pipeline summarize --run-id <RUN_ID> -f structured-json --config CFG
+```
+- `json`: full synthesis with metadata + evidence map
+- `bibtex`: bibliography entries for all papers (paste into LaTeX)
+- `structured-json`: flat claim list with explicit evidence chains
+  (claim → paper → chunk → quote) and confidence levels
 
 ```bash
 research-pipeline summarize --run-id <RUN_ID> --config CFG
@@ -477,6 +498,18 @@ dimension scores in the output:
 The RACE overall score (0-1) appears in `validation_result.json` under
 `race_score`. Use it to identify weak areas in the report.
 
+**FACT citation verification** (v0.12.0+): When validating with `--run-id`,
+the pipeline loads paper IDs from the run's shortlist and verifies that
+citations in the report reference real papers in the corpus:
+```bash
+research-pipeline validate --run-id <RUN_ID> --workspace runs
+```
+FACT metrics in `validation_result.json` under `fact_score`:
+- `citation_accuracy`: fraction of citations pointing to known papers
+- `effective_citation_ratio`: fraction of corpus papers actually cited
+- `unsupported_citations`: citation refs not matching any paper
+- `uncited_papers`: papers in corpus never cited in the report
+
 ### Cross-Run Comparison
 
 When running iterative synthesis, compare runs to track progress:
@@ -485,6 +518,13 @@ research-pipeline compare --run-a <PREV_RUN_ID> --run-b <NEW_RUN_ID>
 ```
 This produces a structured diff: papers added/removed, gaps resolved/new,
 confidence-level changes, and readiness progression.
+
+**Enhanced comparison** (v0.12.0+): Comparison now includes:
+- **Jaccard similarity**: overlap coefficient for paper sets
+- **Quality summary**: mean/median/min/max composite scores per run
+- **Topic drift detection**: TF-based analysis of title/abstract term shifts
+- **Source distribution**: papers per source (arXiv, Scholar, S2, etc.)
+  between runs to show search strategy evolution
 
 ## System-Building Mode
 

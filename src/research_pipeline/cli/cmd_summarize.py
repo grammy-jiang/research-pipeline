@@ -22,6 +22,7 @@ def run_summarize(
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
+    output_format: str = "markdown",
 ) -> None:
     """Execute the summarize stage: per-paper + cross-paper synthesis.
 
@@ -29,6 +30,8 @@ def run_summarize(
         config_path: Path to config TOML.
         workspace: Workspace directory.
         run_id: Run ID with extracted data.
+        output_format: Output format — markdown (default), json, bibtex,
+            or structured-json.
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
@@ -85,6 +88,26 @@ def run_summarize(
     report = synthesize(summaries, plan.topic_raw)
     syn_path = sum_dir / "synthesis.json"
     syn_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
+
+    # Export additional formats if requested
+    fmt = output_format.lower()
+    if fmt in ("json", "bibtex"):
+        from research_pipeline.summarization.export import export_report
+
+        ext = "json" if fmt == "json" else "bib"
+        export_path = sum_dir / f"synthesis_export.{ext}"
+        export_report(report, export_path, fmt=fmt)
+        typer.echo(f"Exported ({fmt}): {export_path}")
+        logger.info("Exported synthesis as %s to %s", fmt, export_path)
+    elif fmt == "structured-json":
+        from research_pipeline.summarization.structured_output import (
+            export_structured_json,
+        )
+
+        struct_path = sum_dir / "structured_evidence.json"
+        export_structured_json(report, struct_path)
+        typer.echo(f"Structured evidence: {struct_path}")
+        logger.info("Exported structured evidence to %s", struct_path)
 
     typer.echo(f"Summarized: {len(summaries)} papers")
     typer.echo(f"Synthesis: {syn_path}")

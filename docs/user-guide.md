@@ -220,6 +220,11 @@ research-pipeline extract --run-id <RUN_ID>
 # 7. Generate summaries and synthesis
 research-pipeline summarize --run-id <RUN_ID>
 # Output: runs/<run_id>/summarize/synthesis.md
+
+# Export in alternative formats (v0.12.0+)
+research-pipeline summarize --run-id <RUN_ID> -f json       # JSON with metadata + evidence
+research-pipeline summarize --run-id <RUN_ID> -f bibtex     # BibTeX bibliography
+research-pipeline summarize --run-id <RUN_ID> -f structured-json  # Claim-evidence chains
 ```
 
 ### Auxiliary commands
@@ -250,6 +255,11 @@ research-pipeline convert-fine --run-id <RUN_ID> --paper-ids "2401.12345,2402.67
 # Manage global paper index for incremental dedup
 research-pipeline index --list
 research-pipeline index --gc
+
+# Validate a research report (structure, RACE quality, FACT citations)
+research-pipeline validate --report report.md
+# With FACT citation verification against a run's corpus (v0.12.0+)
+research-pipeline validate --run-id <RUN_ID> --workspace runs
 ```
 
 ### Inspecting runs

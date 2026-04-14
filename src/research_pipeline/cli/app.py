@@ -236,18 +236,29 @@ def summarize(
     config: Path | None = typer.Option(None, "--config", "-c"),
     workspace: Path | None = typer.Option(None, "--workspace", "-w"),
     run_id: str = typer.Option(..., "--run-id", help="Run ID with extractions."),
+    output_format: str = typer.Option(
+        "markdown",
+        "--output-format",
+        "-f",
+        help="Output format: markdown (default), json, bibtex, structured-json.",
+    ),
 ) -> None:
     """Generate per-paper summaries and synthesis.
 
     Creates individual paper summaries and a cross-paper synthesis
     document. Requires a completed extract stage.
 
+    Use --output-format to export as JSON, BibTeX, or structured
+    evidence JSON in addition to the default Markdown synthesis.
+
     Example: research-pipeline summarize --run-id <RUN_ID>
+    Example: research-pipeline summarize --run-id <RUN_ID> -f json
+    Example: research-pipeline summarize --run-id <RUN_ID> -f bibtex
     """
     from research_pipeline.cli.cmd_summarize import run_summarize
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_summarize(**opts)
+    run_summarize(output_format=output_format, **opts)
 
 
 @app.command()

@@ -104,6 +104,28 @@ def run_screen(
         encoding="utf-8",
     )
 
+    # Query refinement feedback — suggest terms for iterative improvement
+    from research_pipeline.screening.query_feedback import compute_query_refinement
+
+    top_papers = [c for c, _ in top[: config.screen.download_top_n]]
+    refinement = compute_query_refinement(plan, top_papers)
+    refinement_path = screen_dir / "query_refinement.json"
+    refinement_path.write_text(refinement.model_dump_json(indent=2), encoding="utf-8")
+    if refinement.suggested_additions:
+        logger.info(
+            "Query refinement: suggested additions: %s",
+            ", ".join(refinement.suggested_additions),
+        )
+    if refinement.suggested_removals:
+        logger.info(
+            "Query refinement: low-coverage terms: %s",
+            ", ".join(refinement.suggested_removals),
+        )
+
     typer.echo(f"Screened {len(candidates)} → {len(shortlist)} shortlisted")
     typer.echo(f"Saved to: {shortlist_path}")
+    if refinement.suggested_additions:
+        typer.echo(
+            f"Suggested query additions: {', '.join(refinement.suggested_additions)}"
+        )
     logger.info("Screen stage complete: %d shortlisted", len(shortlist))

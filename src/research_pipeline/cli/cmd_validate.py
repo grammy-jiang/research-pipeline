@@ -10,6 +10,7 @@ import logging
 import re
 from pathlib import Path
 
+from research_pipeline.quality.fact_scoring import compute_fact_score
 from research_pipeline.quality.race_scoring import compute_race_score
 
 logger = logging.getLogger(__name__)
@@ -173,11 +174,17 @@ def _check_latex(text: str) -> int:
     return inline + display
 
 
-def validate_report(report_path: Path) -> dict[str, object]:
+def validate_report(
+    report_path: Path,
+    paper_ids: list[str] | None = None,
+    paper_titles: list[str] | None = None,
+) -> dict[str, object]:
     """Validate a research report against template requirements.
 
     Args:
         report_path: Path to the markdown report file.
+        paper_ids: Known paper IDs for FACT citation verification.
+        paper_titles: Known paper titles for FACT citation verification.
 
     Returns:
         Validation result dict with findings and score.
@@ -247,7 +254,27 @@ def validate_report(report_path: Path) -> dict[str, object]:
     # RACE report quality scoring (additive)
     race = compute_race_score(text)
 
-    return {
+    # FACT citation verification (when paper corpus is available)
+    fact_result = None
+    if paper_ids:
+        fact = compute_fact_score(
+            text,
+            paper_ids=paper_ids,
+            paper_titles=paper_titles or [],
+        )
+        fact_result = fact.model_dump()
+        if fact.citation_accuracy < 0.5:
+            issues.append(
+                f"Low citation accuracy ({fact.citation_accuracy:.0%}) — "
+                f"{len(fact.unsupported_citations)} unsupported citation(s)"
+            )
+        if fact.effective_citation_ratio < 0.3:
+            issues.append(
+                f"Low citation coverage ({fact.effective_citation_ratio:.0%}) — "
+                f"{len(fact.uncited_papers)} paper(s) never cited"
+            )
+
+    result: dict[str, object] = {
         "report_path": str(report_path),
         "verdict": verdict,
         "overall_score": overall_score,
@@ -271,6 +298,9 @@ def validate_report(report_path: Path) -> dict[str, object]:
         "issues": issues,
         "race_score": race.model_dump(),
     }
+    if fact_result is not None:
+        result["fact_score"] = fact_result
+    return result
 
 
 def run_validate(
@@ -281,6 +311,9 @@ def run_validate(
 ) -> None:
     """Validate a research report for completeness and quality.
 
+    When --run-id is provided, also loads paper IDs and titles from the
+    run's shortlist for FACT citation verification.
+
     Args:
         report: Path to the report markdown file.
         workspace: Workspace root (used with run_id to find synthesis).
@@ -288,31 +321,56 @@ def run_validate(
         output: Path to write validation JSON report.
     """
     report_path = report
+    paper_ids: list[str] = []
+    paper_titles: list[str] = []
 
     # If no direct report path, try to find synthesis in run dir
-    if report_path is None and run_id and workspace:
+    if run_id and workspace:
         from research_pipeline.config.loader import load_config
         from research_pipeline.storage.workspace import get_stage_dir, init_run
 
         config = load_config()
         ws = workspace or Path(config.workspace)
         _run_id, run_root = init_run(ws, run_id)
-        synth_dir = get_stage_dir(run_root, "summarize")
-        candidates = [
-            synth_dir / "synthesis_report.md",
-            run_root / "synthesis" / "synthesis_report.md",
-        ]
-        for candidate in candidates:
-            if candidate.exists():
-                report_path = candidate
-                break
+
+        if report_path is None:
+            synth_dir = get_stage_dir(run_root, "summarize")
+            candidates = [
+                synth_dir / "synthesis_report.md",
+                run_root / "synthesis" / "synthesis_report.md",
+            ]
+            for candidate in candidates:
+                if candidate.exists():
+                    report_path = candidate
+                    break
+
+        # Load paper IDs/titles from shortlist for FACT verification
+        shortlist_path = get_stage_dir(run_root, "screen") / "shortlist.json"
+        if shortlist_path.exists():
+            try:
+                raw_sl = json.loads(shortlist_path.read_text(encoding="utf-8"))
+                for entry in raw_sl:
+                    paper = entry.get("paper", entry)
+                    aid = paper.get("arxiv_id", "")
+                    title = paper.get("title", "")
+                    if aid:
+                        paper_ids.append(aid)
+                    if title:
+                        paper_titles.append(title)
+                logger.info("Loaded %d paper IDs for FACT verification", len(paper_ids))
+            except (json.JSONDecodeError, OSError) as exc:
+                logger.warning("Could not load shortlist for FACT: %s", exc)
 
     if report_path is None or not report_path.exists():
         logger.error("No report found. Use --report PATH or --run-id with --workspace.")
         return
 
     logger.info("Validating report: %s", report_path)
-    result = validate_report(report_path)
+    result = validate_report(
+        report_path,
+        paper_ids=paper_ids or None,
+        paper_titles=paper_titles or None,
+    )
 
     # Log summary
     verdict = result["verdict"]
@@ -325,6 +383,17 @@ def run_validate(
             logger.warning("Issue: %s", issue)
     else:
         logger.info("No issues found — report meets all requirements.")
+
+    # Log FACT results if present
+    if "fact_score" in result:
+        fact = result["fact_score"]
+        logger.info(
+            "FACT: accuracy=%.2f, coverage=%.2f, verified=%d/%d",
+            fact["citation_accuracy"],
+            fact["effective_citation_ratio"],
+            fact["verified_citations"],
+            fact["total_citations"],
+        )
 
     # Write output
     if output:
