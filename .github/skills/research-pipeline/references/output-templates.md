@@ -1,5 +1,30 @@
 # Output Templates
 
+## Formatting Guidelines
+
+All generated reports (final research report, synthesis, analysis) MUST use:
+
+- **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily)
+- **LaTeX** for mathematical formulas and equations (inline `$...$` or display `$$...$$`)
+- **Markdown tables** for structured data comparisons
+
+Examples:
+
+```markdown
+<!-- Mermaid diagram -->
+```mermaid
+flowchart LR
+    A[Search] --> B[Screen] --> C[Analyze]
+```
+
+<!-- LaTeX formula -->
+The composite quality score is computed as:
+
+$$Q = w_c \times C + w_v \times V + w_a \times A + w_r \times R$$
+
+where $w_c = 0.35$, $w_v = 0.25$, $w_a = 0.25$, $w_r = 0.15$.
+```
+
 ## Pipeline Status (after each stage)
 
 ```

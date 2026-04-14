@@ -460,50 +460,114 @@ def index(
     run_index(list_papers=list_papers, gc=gc, db_path=db_path)
 
 
-@app.command(name="install-skill")
-def install_skill(
-    target: str = typer.Option(
+@app.command(name="setup")
+def setup(
+    skill_target: str = typer.Option(
         "",
-        "--target",
-        "-t",
+        "--skill-target",
         help=(
             "Target directory for skill installation. "
             "Default: ~/.claude/skills/research-pipeline"
         ),
     ),
+    agents_target: str = typer.Option(
+        "",
+        "--agents-target",
+        help=("Target directory for agent files. " "Default: ~/.claude/agents"),
+    ),
     symlink: bool = typer.Option(
         False,
         "--symlink",
         "-s",
-        help="Create a symlink instead of copying files.",
+        help="Create symlinks instead of copying files.",
     ),
     force: bool = typer.Option(
         False,
         "--force",
         "-f",
-        help="Overwrite existing skill directory.",
+        help="Overwrite existing files/directories.",
+    ),
+    skip_skill: bool = typer.Option(
+        False,
+        "--skip-skill",
+        help="Skip skill installation.",
+    ),
+    skip_agents: bool = typer.Option(
+        False,
+        "--skip-agents",
+        help="Skip agent installation.",
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
-    """Install the research-pipeline skill to ~/.claude/skills/.
+    """Install skill and agents to ~/.claude/ for AI assistant discovery.
 
-    Copies (or symlinks) the bundled SKILL.md, config.toml, and reference
-    docs so that Claude Code and GitHub Copilot can discover them.
+    Copies (or symlinks) the bundled SKILL.md, config.toml, reference docs,
+    and agent definitions (paper-analyzer, paper-screener, paper-synthesizer)
+    so that Claude Code and GitHub Copilot can discover them.
 
-    Example: research-pipeline install-skill
-    Example: research-pipeline install-skill --symlink --force
+    Example: research-pipeline setup
+    Example: research-pipeline setup --symlink --force
+    Example: research-pipeline setup --skip-agents
     """
-    from research_pipeline.cli.cmd_install_skill import (
+    from research_pipeline.cli.cmd_setup import (
+        DEFAULT_AGENTS_DIR,
         DEFAULT_SKILL_DIR,
-        run_install_skill,
+        run_setup,
     )
     from research_pipeline.infra.logging import setup_logging
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
 
+    skill_path = Path(skill_target) if skill_target else DEFAULT_SKILL_DIR
+    agents_path = Path(agents_target) if agents_target else DEFAULT_AGENTS_DIR
+    run_setup(
+        skill_target=skill_path,
+        agents_target=agents_path,
+        symlink=symlink,
+        force=force,
+        skip_skill=skip_skill,
+        skip_agents=skip_agents,
+    )
+
+
+@app.command(name="install-skill", hidden=True)
+def install_skill(
+    target: str = typer.Option(
+        "",
+        "--target",
+        "-t",
+        help="[Deprecated: use 'setup' instead] Target directory.",
+    ),
+    symlink: bool = typer.Option(False, "--symlink", "-s"),
+    force: bool = typer.Option(False, "--force", "-f"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """[Deprecated] Use 'research-pipeline setup' instead."""
+    import warnings
+
+    from research_pipeline.cli.cmd_setup import (
+        DEFAULT_SKILL_DIR,
+        run_setup,
+    )
+    from research_pipeline.infra.logging import setup_logging
+
+    warnings.warn(
+        "'install-skill' is deprecated. Use 'research-pipeline setup' instead.",
+        DeprecationWarning,
+        stacklevel=1,
+    )
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+
     target_path = Path(target) if target else DEFAULT_SKILL_DIR
-    run_install_skill(target=target_path, symlink=symlink, force=force)
+    run_setup(
+        skill_target=target_path,
+        symlink=symlink,
+        force=force,
+        skip_agents=True,
+    )
 
 
 if __name__ == "__main__":

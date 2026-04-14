@@ -57,10 +57,14 @@ to load settings regardless of CWD. Abbreviated as `CFG` below.
 
 ## Pipeline Overview
 
-```
-plan → search → screen → [quality] → [expand] → download → convert → extract → summarize
-                                                    ↓              ↓
-                                              [convert-rough]  [convert-fine]
+```mermaid
+flowchart LR
+    plan --> search --> screen
+    screen --> quality["[quality]"]
+    quality --> expand["[expand]"]
+    expand --> download --> convert --> extract --> summarize
+    convert -.-> convert-rough["[convert-rough]"]
+    convert -.-> convert-fine["[convert-fine]"]
 ```
 
 7 core stages plus optional quality scoring, citation expansion, and tiered
@@ -263,13 +267,20 @@ task(
 
 ### Typical flow
 
+```mermaid
+flowchart TD
+    A["1. Run pipeline stages<br/>(plan through summarize)"] --> B
+    B["2. paper-screener<br/>intelligent screening beyond BM25"] --> C
+    C["3. paper-analyzer × N<br/>deep per-paper analysis (parallel)"] --> D
+    D["4. paper-synthesizer<br/>cross-paper synthesis + gap detection"] --> E
+    E["5. Write final report to CWD"]
+
+    style B fill:#f9f,stroke:#333
+    style C fill:#f9f,stroke:#333
+    style D fill:#f9f,stroke:#333
 ```
-1. Run pipeline stages (plan through summarize)
-2. paper-screener   → intelligent screening beyond BM25        [model: claude-opus-4.6]
-3. paper-analyzer   → deep per-paper analysis (run in parallel) [model: claude-opus-4.6]
-4. paper-synthesizer → cross-paper synthesis with gap detection  [model: claude-opus-4.6]
-5. Write final report to CWD
-```
+
+All sub-agents **MUST** use `model: "claude-opus-4.6"`.
 
 Consult `references/sub-agents.md` for prompt templates, I/O specs, and
 model configuration details.
@@ -310,6 +321,12 @@ The final report MUST be written to the **CWD** (not `runs/`):
 ```
 ./<topic-slug>-research-report.md
 ```
+
+### Formatting Rules
+
+- Use **Mermaid** for all diagrams and flowcharts (never ASCII art)
+- Use **LaTeX** for mathematical formulas: inline `$...$`, display `$$...$$`
+- Use **Markdown tables** for structured comparisons
 
 Consult `references/output-templates.md` for status table format and
 final report template.

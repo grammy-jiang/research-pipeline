@@ -82,6 +82,9 @@ embedding_batch_size = 32
 
 [quality]
 enabled = false
+
+# Quality composite score formula:
+# Q = w_c × Citation + w_v × Venue + w_a × Author + w_r × Recency
 citation_weight = 0.35
 venue_weight = 0.25
 author_weight = 0.25

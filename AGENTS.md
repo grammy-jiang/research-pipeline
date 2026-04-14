@@ -22,7 +22,9 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 ├── AGENTS.md                     # This file — agent instructions
 ├── CLAUDE.md                     # Claude Code entry (imports this file)
 ├── .github/
-│   └── copilot-instructions.md   # GitHub Copilot instructions
+│   ├── copilot-instructions.md   # GitHub Copilot instructions
+│   ├── skills/research-pipeline/ # Skill definition (SKILL.md + references)
+│   └── agents/                   # Sub-agent definitions (paper-analyzer, screener, synthesizer)
 ├── pyproject.toml                # Project metadata, deps, tool config
 ├── config.example.toml           # Pipeline configuration template
 ├── .pre-commit-config.yaml       # Pre-commit hooks
@@ -42,6 +44,8 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── pipeline/                 # Orchestrator & stage sequencing
 │   ├── storage/                  # Workspace, manifests, artifacts, global index
 │   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry
+│   ├── skill_data/               # Bundled skill files for pip package
+│   ├── agent_data/               # Bundled sub-agent definitions for pip package
 │   └── llm/                      # LLM provider interface (experimental)
 ├── mcp_server/                   # FastMCP server (full MCP spec support)
 │   ├── server.py                 # Server entry point, registrations
@@ -223,14 +227,21 @@ layers: telemetry, context engineering, governance, structural verification,
 doom-loop monitoring, and crash recovery. See `docs/user-guide.md` for the full
 reference.
 
-## AI skill
+## AI skill & sub-agents
 
-Install the bundled Claude Code / GitHub Copilot skill:
+Install the bundled Claude Code / GitHub Copilot skill and sub-agent definitions:
 
 ```bash
-research-pipeline install-skill          # Copy to ~/.claude/skills/
-research-pipeline install-skill --symlink  # Symlink for development
+research-pipeline setup              # Copy skill + agents to ~/.claude/
+research-pipeline setup --symlink    # Symlink for development
+research-pipeline setup --force      # Force overwrite existing
+research-pipeline setup --skip-agents  # Skill only
+research-pipeline setup --skip-skill   # Agents only
 ```
+
+Installs:
+- Skill → `~/.claude/skills/research-pipeline/`
+- Sub-agents → `~/.claude/agents/` (paper-analyzer, paper-screener, paper-synthesizer)
 
 ## Adding a new pipeline stage
 

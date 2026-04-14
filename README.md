@@ -122,7 +122,7 @@ research-pipeline index --list
 | `inspect` | View run manifests and artifacts |
 | `convert-file` | Standalone PDF → Markdown conversion |
 | `index` | Manage the global paper index for incremental runs |
-| `install-skill` | Install the Claude/Copilot skill to `~/.claude/skills/` |
+| `setup` | Install skill + sub-agent definitions to `~/.claude/` |
 
 ## MCP server
 
@@ -179,20 +179,30 @@ Features:
 - **Bounded rationality**: max 3 iterations, 7 explicit stop conditions
 - **Graceful degradation**: works without sampling or elicitation capabilities
 
-## AI skill
+## AI skill & sub-agents
 
-Install the bundled Claude Code / GitHub Copilot skill:
+Install the bundled Claude Code / GitHub Copilot skill and sub-agent definitions:
 
 ```bash
-# Copy skill files to ~/.claude/skills/research-pipeline/
-research-pipeline install-skill
+# Install everything (skill + agents) to ~/.claude/
+research-pipeline setup
 
-# Or create a symlink (for development)
-research-pipeline install-skill --symlink
+# Or create symlinks (for development)
+research-pipeline setup --symlink
 
 # Force overwrite existing
-research-pipeline install-skill --force
+research-pipeline setup --force
+
+# Install only the skill (skip agents)
+research-pipeline setup --skip-agents
+
+# Install only agents (skip skill)
+research-pipeline setup --skip-skill
 ```
+
+This installs:
+- **Skill** → `~/.claude/skills/research-pipeline/` (SKILL.md + references + config)
+- **Sub-agents** → `~/.claude/agents/` (paper-analyzer, paper-screener, paper-synthesizer)
 
 ## Configuration
 

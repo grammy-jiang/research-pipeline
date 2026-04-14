@@ -405,23 +405,38 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 
 ## AI skill
 
-The package includes a bundled skill for Claude Code and GitHub Copilot that
-provides step-by-step research workflow instructions, configuration, and
-reference documentation.
+The package includes a bundled skill and sub-agent definitions for Claude Code
+and GitHub Copilot that provide step-by-step research workflow instructions,
+configuration, reference documentation, and specialized analysis agents.
 
 ```bash
-# Install skill to ~/.claude/skills/research-pipeline/
-research-pipeline install-skill
+# Install skill + agents to ~/.claude/
+research-pipeline setup
 
-# Create a symlink (useful during development)
-research-pipeline install-skill --symlink
+# Create symlinks (useful during development)
+research-pipeline setup --symlink
 
-# Force overwrite existing skill
-research-pipeline install-skill --force
+# Force overwrite existing
+research-pipeline setup --force
+
+# Install only the skill (skip agents)
+research-pipeline setup --skip-agents
+
+# Install only agents (skip skill)
+research-pipeline setup --skip-skill
 ```
 
+This installs:
+- **Skill** → `~/.claude/skills/research-pipeline/` — SKILL.md with workflow
+  instructions, configuration template, and reference docs
+- **Sub-agents** → `~/.claude/agents/` — paper-analyzer.md, paper-screener.md,
+  paper-synthesizer.md for deep paper analysis, screening, and synthesis
+
 Once installed, Claude Code and GitHub Copilot will automatically discover the
-skill and use it when you ask about academic paper research.
+skill and agents when you ask about academic paper research.
+
+> **Note:** The deprecated `install-skill` command still works as a hidden alias
+> for `setup` but may be removed in a future release.
 
 ## Run artifacts
 

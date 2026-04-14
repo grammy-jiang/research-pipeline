@@ -118,12 +118,17 @@ Write synthesis to: /absolute/path/to/runs/<run_id>/synthesis/synthesis_report.m
 
 ## Typical Orchestration Flow
 
-```
-1. research-pipeline run "topic" --source all --config CFG
-2. research-pipeline quality --run-id <ID> --config CFG     (optional)
-3. research-pipeline expand --run-id <ID> --paper-ids "..." --config CFG  (optional)
-4. Launch paper-screener (task tool)                         (optional)
-5. Launch paper-analyzer × N papers in parallel (task tool)
-6. Launch paper-synthesizer with all analyses (task tool)
-7. Write final report to CWD
+```mermaid
+flowchart TD
+    A["1. research-pipeline run<br/>--source all --config CFG"] --> B
+    B["2. research-pipeline quality<br/>(optional)"] --> C
+    C["3. research-pipeline expand<br/>(optional)"] --> D
+    D["4. Launch paper-screener<br/>(optional, task tool)"] --> E
+    E["5. Launch paper-analyzer × N<br/>(parallel, task tool)"] --> F
+    F["6. Launch paper-synthesizer<br/>(task tool)"] --> G
+    G["7. Write final report to CWD"]
+
+    style D fill:#f9f,stroke:#333
+    style E fill:#f9f,stroke:#333
+    style F fill:#f9f,stroke:#333
 ```
