@@ -4,9 +4,12 @@
 # Pipeline execution profile: "quick", "standard", "deep", or "auto"
 # quick: plan→search→screen→summarize (abstract-only, no PDFs)
 # standard: full 7-stage pipeline (default)
-# deep: standard + expand + quality + claim analysis
+# deep: standard + expand + quality + claim analysis + TER loop
 # auto: detect based on query complexity
 profile = "standard"
+# THINK→EXECUTE→REFLECT iterative gap-filling
+# Maximum iterations (0 to disable, default: 3)
+ter_max_iterations = 3
 
 [arxiv]
 base_url = "https://export.arxiv.org/api/query"

@@ -19,6 +19,7 @@ def run_full(
     run_id: str | None = None,
     source: str | None = None,
     profile: str | None = None,
+    ter_iterations: int | None = None,
 ) -> None:
     """Execute the full pipeline end-to-end.
 
@@ -30,6 +31,7 @@ def run_full(
         run_id: Optional run ID.
         source: Source override (arxiv, scholar, all).
         profile: Pipeline profile override (quick, standard, deep, auto).
+        ter_iterations: Max TER loop iterations (None = use config default).
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
@@ -44,6 +46,10 @@ def run_full(
     # Apply profile override to config
     if profile:
         config.profile = profile
+
+    # Apply TER iterations override
+    if ter_iterations is not None:
+        config.ter_max_iterations = ter_iterations
 
     manifest = run_pipeline(
         topic=topic,

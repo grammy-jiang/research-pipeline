@@ -290,6 +290,11 @@ def run(
         "-p",
         help="Pipeline profile: quick, standard, deep, or auto.",
     ),
+    ter_iterations: int = typer.Option(
+        3,
+        "--ter-iterations",
+        help="Max THINK→EXECUTE→REFLECT iterations (0 to disable).",
+    ),
 ) -> None:
     """Run pipeline stages end-to-end.
 
@@ -298,7 +303,7 @@ def run(
     \b
     quick:    plan → search → screen → summarize (abstract-only)
     standard: full 7-stage pipeline (default)
-    deep:     standard + expand + quality + claim analysis
+    deep:     standard + expand + quality + claim analysis + TER loop
     auto:     detect from query complexity
 
     Example: research-pipeline run --profile quick 'transformer attention'
@@ -306,7 +311,14 @@ def run(
     from research_pipeline.cli.cmd_run import run_full
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_full(topic, resume=resume, source=source, profile=profile, **opts)
+    run_full(
+        topic,
+        resume=resume,
+        source=source,
+        profile=profile,
+        ter_iterations=ter_iterations,
+        **opts,
+    )
 
 
 @app.command()

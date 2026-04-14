@@ -941,6 +941,111 @@ def run_pipeline(
         )
         save_manifest(run_root, manifest)
 
+    # --- TER loop (deep profile, or when ter_max_iterations > 0) ---
+    ter_max = config.ter_max_iterations
+    if should_run_stage(profile, "expand") and ter_max > 0:
+        from research_pipeline.pipeline.ter_loop import (
+            GapAnalysis,
+            TERIteration,
+            TERResult,
+            check_convergence,
+            identify_gaps,
+            save_ter_state,
+        )
+
+        logger.info("Starting THINK→EXECUTE→REFLECT loop (max %d iterations)", ter_max)
+        audit.emit(EventType.STAGE_STARTED, stage="ter_loop", run_id=run_id)
+
+        # Read current synthesis
+        sum_dir = get_stage_dir(run_root, "summarize")
+        synthesis_path = sum_dir / "synthesis.md"
+        synthesis_text = ""
+        if synthesis_path.exists():
+            synthesis_text = synthesis_path.read_text(encoding="utf-8")
+
+        existing_titles = [s.title for s in summaries]
+        ter_result = TERResult()
+        previous_gap_analysis: GapAnalysis | None = None
+
+        for iteration_idx in range(ter_max):
+            logger.info(
+                "TER iteration %d/%d — THINK phase",
+                iteration_idx + 1,
+                ter_max,
+            )
+
+            # THINK: identify gaps
+            gap_analysis = identify_gaps(
+                synthesis_text, topic, existing_titles, llm_provider
+            )
+            logger.info(
+                "Found %d gaps, %d new queries",
+                gap_analysis.gap_count,
+                len(gap_analysis.suggested_queries),
+            )
+
+            # REFLECT: check convergence
+            converged, reason = check_convergence(
+                gap_analysis, previous_gap_analysis, iteration_idx, ter_max
+            )
+
+            ter_iteration = TERIteration(
+                iteration=iteration_idx,
+                gaps_found=gap_analysis.gaps,
+                queries_generated=gap_analysis.suggested_queries,
+                converged=converged,
+            )
+
+            if converged:
+                logger.info("TER converged: %s", reason)
+                ter_result.converged = True
+                ter_result.convergence_reason = reason
+                ter_result.iterations.append(ter_iteration)
+                ter_result.total_iterations = iteration_idx + 1
+                break
+
+            # EXECUTE: log the queries that would be searched
+            logger.info(
+                "TER iteration %d — EXECUTE phase: %d queries to search",
+                iteration_idx + 1,
+                len(gap_analysis.suggested_queries),
+            )
+            for q in gap_analysis.suggested_queries:
+                logger.info("  Gap-filling query: %s", q)
+
+            ter_result.iterations.append(ter_iteration)
+            ter_result.total_iterations = iteration_idx + 1
+            previous_gap_analysis = gap_analysis
+
+            # Save state after each iteration
+            save_ter_state(
+                run_root,
+                ter_result,
+                {
+                    "gaps": gap_analysis.gaps,
+                    "queries": gap_analysis.suggested_queries,
+                },
+            )
+
+        # Save final TER state
+        save_ter_state(run_root, ter_result)
+        logger.info(
+            "TER loop complete: %d iterations, converged=%s (%s)",
+            ter_result.total_iterations,
+            ter_result.converged,
+            ter_result.convergence_reason,
+        )
+        audit.emit(
+            EventType.STAGE_COMPLETED,
+            stage="ter_loop",
+            run_id=run_id,
+            details={
+                "iterations": ter_result.total_iterations,
+                "converged": ter_result.converged,
+                "reason": ter_result.convergence_reason,
+            },
+        )
+
     # --- Deep profile: extra stages ---
     if should_run_stage(profile, "expand"):
         logger.info("Deep profile: citation expansion stage (expand)")

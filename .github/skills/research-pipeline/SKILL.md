@@ -110,7 +110,7 @@ Choose execution depth with `--profile`:
 |---------|--------|----------|
 | `quick` | plan→search→screen→summarize | Fast overview from abstracts only (no PDFs) |
 | `standard` | Full 7-stage pipeline | Default — full evidence-based analysis |
-| `deep` | standard + expand + quality + claim analysis | Comprehensive research with citation expansion |
+| `deep` | standard + expand + quality + claim analysis + TER loop | Comprehensive research with citation expansion |
 | `auto` | Detected from query complexity | Short queries → quick; complex/survey → deep |
 
 ```bash
@@ -125,6 +125,26 @@ research-pipeline run --profile deep "comprehensive survey of memory in LLMs"
 
 # Auto-detect from query
 research-pipeline run --profile auto "what is RLHF"
+```
+
+### Iterative Gap-Filling (v0.12.7+)
+
+**THINK→EXECUTE→REFLECT (TER) loop** for the deep profile:
+- **THINK**: Analyzes synthesis to identify coverage gaps and open questions
+- **EXECUTE**: Generates targeted queries to fill gaps
+- **REFLECT**: Checks convergence (max 3 iterations, stops when gaps stabilize)
+
+Use `--ter-iterations 0` to disable, or `--ter-iterations 5` for more depth.
+
+```bash
+# Deep with default TER (3 iterations)
+research-pipeline run --profile deep "survey of AI memory systems"
+
+# More TER iterations for thorough gap-filling
+research-pipeline run --profile deep --ter-iterations 5 "comprehensive LLM survey"
+
+# Disable TER loop
+research-pipeline run --profile deep --ter-iterations 0 "quick deep run"
 ```
 
 ## Step-by-Step Workflow

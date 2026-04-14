@@ -243,3 +243,5 @@ class PipelineConfig(BaseModel):
     workspace: str = "runs"
     contact_email: str = ""
     profile: str = "standard"
+    ter_max_iterations: int = 3
+    ter_convergence_threshold: float = 0.1

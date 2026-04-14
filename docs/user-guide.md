@@ -216,7 +216,7 @@ research-pipeline run --profile auto "what is RLHF"
 |---------|--------|-------------|
 | `quick` | plan→search→screen→summarize | Fast overviews, simple lookups |
 | `standard` | Full 7-stage pipeline | Default research workflow |
-| `deep` | standard + expand + quality + claims | Comprehensive surveys, comparisons |
+| `deep` | standard + expand + quality + claims + TER | Comprehensive surveys, comparisons |
 | `auto` | Auto-detected | Let the pipeline decide |
 
 Set the default profile in `config.toml`:
@@ -224,6 +224,34 @@ Set the default profile in `config.toml`:
 ```toml
 profile = "standard"  # quick, standard, deep, or auto
 ```
+
+### Iterative gap-filling (TER loop)
+
+The deep profile includes a THINK→EXECUTE→REFLECT loop that iteratively
+identifies gaps in the synthesis and generates targeted queries to fill them.
+
+```bash
+# Default: 3 TER iterations
+research-pipeline run --profile deep "comprehensive survey of memory in LLMs"
+
+# More iterations for thorough gap-filling
+research-pipeline run --profile deep --ter-iterations 5 "LLM survey"
+
+# Disable TER loop
+research-pipeline run --profile deep --ter-iterations 0 "quick deep run"
+```
+
+Configure in `config.toml`:
+
+```toml
+ter_max_iterations = 3  # 0 to disable
+```
+
+The loop converges automatically when:
+- No gaps are found in the synthesis
+- Gap count stops decreasing between iterations
+- No new queries can be generated
+- Maximum iterations reached
 
 ### Stage-by-stage execution
 
