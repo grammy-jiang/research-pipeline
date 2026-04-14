@@ -240,6 +240,21 @@ research-pipeline summarize --run-id <RUN_ID> -f bibtex     # BibTeX bibliograph
 research-pipeline summarize --run-id <RUN_ID> -f structured-json  # Claim-evidence chains
 ```
 
+### Claim decomposition (v0.12.3+)
+
+After summarization, decompose findings into atomic claims with evidence
+classification:
+
+```bash
+# Decompose paper summaries into atomic claims with evidence support
+research-pipeline analyze-claims --run-id <RUN_ID>
+# Output: runs/<run_id>/summarize/claims/claim_decomposition.jsonl
+```
+
+Each claim is classified as **supported**, **partial**, **conflicting**,
+**inconclusive**, or **unsupported** based on BM25 retrieval against the
+source markdown chunks.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:
@@ -498,7 +513,9 @@ runs/<run_id>/
 ├── summarize/
 │   ├── *.summary.json         # Per-paper summaries
 │   ├── synthesis.json         # Machine-readable cross-paper synthesis
-│   └── synthesis.md           # Human-readable synthesis report
+│   ├── synthesis.md           # Human-readable synthesis report
+│   └── claims/
+│       └── claim_decomposition.jsonl  # Atomic claims with evidence (v0.12.3+)
 └── logs/
     └── pipeline.jsonl         # Structured execution logs
 ```

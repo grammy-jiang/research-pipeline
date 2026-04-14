@@ -64,6 +64,7 @@ flowchart LR
     screen --> quality["[quality]"]
     quality --> expand["[expand]"]
     expand --> download --> convert --> extract --> summarize
+    summarize -.-> analyze-claims["[analyze-claims]"]
     convert -.-> convert-rough["[convert-rough]"]
     convert -.-> convert-fine["[convert-fine]"]
 ```
@@ -91,6 +92,7 @@ Stage commands require `--run-id ID`.
 | 5c | Fine | `research-pipeline convert-fine --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--backend B`, `--force` |
 | 6 | Extract | `research-pipeline extract --run-id ID --config CFG` | — |
 | 7 | Summarize | `research-pipeline summarize --run-id ID --config CFG` | — |
+| 8 | Analyze Claims | `research-pipeline analyze-claims --run-id ID` | — |
 | All | Run | `research-pipeline run "topic" --config CFG` | `--source all` |
 | — | Inspect | `research-pipeline inspect --run-id ID` | `--workspace PATH` |
 | — | Convert File | `research-pipeline convert-file path.pdf --config CFG` | `-o DIR`, `--backend B` |
@@ -348,6 +350,19 @@ research-pipeline summarize --run-id <RUN_ID> --config CFG
 ```
 
 Report: papers summarized, key findings.
+
+### Step 8: Claim Decomposition (v0.12.3+)
+
+**Claim decomposition**: After summarization, run `analyze-claims` to
+decompose findings into atomic claims with evidence classification (supported/
+partial/conflicting/inconclusive/unsupported). This helps identify which claims
+are well-supported by source text.
+
+```bash
+research-pipeline analyze-claims --run-id <RUN_ID>
+```
+
+Report: claims per paper, evidence class distribution.
 
 ## Sub-Agent Analysis
 

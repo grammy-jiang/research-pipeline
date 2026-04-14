@@ -754,5 +754,26 @@ def compare(
     )
 
 
+@app.command("analyze-claims")
+def analyze_claims(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(..., "--run-id", help="Run ID with paper summaries."),
+) -> None:
+    """Decompose paper summaries into atomic claims with evidence classification.
+
+    Breaks each finding, limitation, objective, and methodology statement
+    into atomic claims, then classifies evidence support using BM25 retrieval:
+    supported, partial, conflicting, inconclusive, or unsupported.
+
+    Example: research-pipeline analyze-claims --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_analyze_claims import run_analyze_claims
+
+    opts = _common_options(verbose, config, workspace, run_id)
+    run_analyze_claims(**opts)
+
+
 if __name__ == "__main__":
     app()
