@@ -10,6 +10,8 @@ profile = "standard"
 # THINK→EXECUTE→REFLECT iterative gap-filling
 # Maximum iterations (0 to disable, default: 3)
 ter_max_iterations = 3
+# Three-tier memory
+memory_working_capacity = 50 # Max items in working memory per stage
 
 [arxiv]
 base_url = "https://export.arxiv.org/api/query"

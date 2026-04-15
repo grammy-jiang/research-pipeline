@@ -882,5 +882,68 @@ def kg_ingest(
     )
 
 
+@app.command("memory-stats")
+def memory_stats(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    episodic_db: Path | None = typer.Option(
+        None, "--episodic-db", help="Episodic memory database path."
+    ),
+    kg_db: Path | None = typer.Option(None, "--kg-db", help="KG database path."),
+) -> None:
+    """Show memory tier statistics.
+
+    Displays working, episodic, and semantic memory summary.
+
+    Example: research-pipeline memory-stats
+    """
+    from research_pipeline.cli.cmd_memory import run_memory_stats
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_memory_stats(episodic_path=episodic_db, kg_path=kg_db)
+
+
+@app.command("memory-episodes")
+def memory_episodes(
+    limit: int = typer.Option(10, "--limit", "-n", help="Max episodes to show."),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    episodic_db: Path | None = typer.Option(
+        None, "--episodic-db", help="Episodic memory database path."
+    ),
+) -> None:
+    """List recent episodic memories (past runs).
+
+    Example: research-pipeline memory-episodes --limit 5
+    """
+    from research_pipeline.cli.cmd_memory import run_memory_episodes
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_memory_episodes(limit=limit, episodic_path=episodic_db)
+
+
+@app.command("memory-search")
+def memory_search(
+    topic: str = typer.Argument(..., help="Topic to search in episodic memory."),
+    limit: int = typer.Option(10, "--limit", "-n", help="Max results."),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    episodic_db: Path | None = typer.Option(
+        None, "--episodic-db", help="Episodic memory database path."
+    ),
+) -> None:
+    """Search episodic memory for past runs on a topic.
+
+    Example: research-pipeline memory-search "transformer"
+    """
+    from research_pipeline.cli.cmd_memory import run_memory_search
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_memory_search(topic=topic, limit=limit, episodic_path=episodic_db)
+
+
 if __name__ == "__main__":
     app()

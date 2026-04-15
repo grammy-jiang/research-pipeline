@@ -245,3 +245,4 @@ class PipelineConfig(BaseModel):
     profile: str = "standard"
     ter_max_iterations: int = 3
     ter_convergence_threshold: float = 0.1
+    memory_working_capacity: int = 50

@@ -412,7 +412,33 @@ def run_pipeline(
     # LLM provider (None when disabled — all LLM features degrade gracefully)
     llm_provider = create_llm_provider(config.llm)
 
+    # Three-tier memory (optional — failures log warning, never crash pipeline)
+    memory = None
+    try:
+        from research_pipeline.memory.episodic import Episode
+        from research_pipeline.memory.manager import MemoryManager
+
+        memory = MemoryManager(
+            working_capacity=config.memory_working_capacity,
+        )
+        prior = memory.prior_knowledge(topic)
+        if prior["past_runs"] > 0:
+            logger.info(
+                "Prior knowledge: %d past runs on similar topics",
+                prior["past_runs"],
+            )
+        audit.emit(
+            EventType.DECISION,
+            run_id=run_id,
+            details={"prior_knowledge": prior},
+        )
+    except Exception as exc:
+        logger.warning("Memory init failed (continuing without memory): %s", exc)
+        memory = None
+
     # --- Stage: plan ---
+    if memory:
+        memory.transition_stage("plan")
     if not (resume and _is_stage_complete(manifest, "plan")):
         started = utc_now()
         logger.info("Stage: plan")
@@ -456,6 +482,8 @@ def run_pipeline(
         plan = QueryPlan.model_validate(plan_data)
 
     # --- Stage: search ---
+    if memory:
+        memory.transition_stage("search")
     if not (resume and _is_stage_complete(manifest, "search")):
         started = utc_now()
         logger.info("Stage: search")
@@ -555,6 +583,8 @@ def run_pipeline(
         candidates = [CandidateRecord.model_validate(d) for d in raw_data]
 
     # --- Stage: screen ---
+    if memory:
+        memory.transition_stage("screen")
     if not (resume and _is_stage_complete(manifest, "screen")):
         started = utc_now()
         logger.info("Stage: screen")
@@ -676,6 +706,8 @@ def run_pipeline(
         shortlist = [parse_shortlist_lenient(d) for d in raw_shortlist]
 
     # --- Stage: download ---
+    if memory:
+        memory.transition_stage("download")
     if should_run_stage(profile, "download"):
         if not (resume and _is_stage_complete(manifest, "download")):
             started = utc_now()
@@ -733,6 +765,8 @@ def run_pipeline(
         entries = []
 
     # --- Stage: convert ---
+    if memory:
+        memory.transition_stage("convert")
     if should_run_stage(profile, "convert"):
         if not (resume and _is_stage_complete(manifest, "convert")):
             started = utc_now()
@@ -785,6 +819,8 @@ def run_pipeline(
         convert_entries = []
 
     # --- Stage: extract ---
+    if memory:
+        memory.transition_stage("extract")
     if should_run_stage(profile, "extract"):
         if not (resume and _is_stage_complete(manifest, "extract")):
             started = utc_now()
@@ -826,6 +862,8 @@ def run_pipeline(
         logger.info("Skipping extract stage (profile: %s)", profile.value)
 
     # --- Stage: summarize ---
+    if memory:
+        memory.transition_stage("summarize")
     if not (resume and _is_stage_complete(manifest, "summarize")):
         started = utc_now()
         logger.info("Stage: summarize")
@@ -1073,4 +1111,24 @@ def run_pipeline(
         run_id=run_id,
         details={"stages_completed": list(manifest.stages.keys())},
     )
+
+    # Record episode in episodic memory
+    if memory:
+        try:
+            episode = Episode(
+                run_id=run_id,
+                topic=topic,
+                profile=profile.value,
+                started_at=manifest.created_at,
+                completed_at=utc_now(),
+                stages_completed=list(manifest.stages.keys()),
+                paper_count=len(candidates),
+                shortlist_count=len(shortlist),
+            )
+            memory.record_run(episode)
+        except Exception as exc:
+            logger.warning("Failed to record episode: %s", exc)
+        finally:
+            memory.close()
+
     return manifest

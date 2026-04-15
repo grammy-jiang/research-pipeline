@@ -350,6 +350,36 @@ The knowledge graph stores 7 entity types (paper, concept, method, experiment,
 claim, author, venue) and 10 relation types with full provenance tracking.
 Use `--db` to specify a custom database path.
 
+### Three-tier memory (v0.12.8+)
+
+Persistent research context across pipeline stages and runs:
+
+```bash
+# View memory statistics (working, episodic, semantic)
+research-pipeline memory-stats
+
+# List recent past runs
+research-pipeline memory-episodes --limit 5
+
+# Search episodic memory for past runs on a topic
+research-pipeline memory-search "transformer"
+```
+
+The three tiers:
+
+- **Working memory**: Bounded per-stage FIFO buffer (configurable via
+  `memory_working_capacity`). Automatically resets at stage boundaries.
+- **Episodic memory**: SQLite-backed run history
+  (`~/.cache/research-pipeline/episodic_memory.db`). Records topic, paper
+  count, stages completed, and outcome for each run.
+- **Semantic memory**: Cross-run knowledge via the knowledge graph. Queries
+  known concepts, methods, and papers to inform new research.
+
+The orchestrator automatically uses memory during `run`:
+- Checks prior knowledge before starting (episodic + semantic)
+- Resets working memory at each stage boundary
+- Records an episode when the run completes
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

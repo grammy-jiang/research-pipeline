@@ -439,6 +439,22 @@ research-pipeline kg-query 2401.12345
 
 Report: entities and triples ingested, with provenance tracking.
 
+### Three-Tier Memory (v0.12.8+)
+
+**Three-tier memory**: Persistent research context across stages and runs:
+- **Working memory**: Bounded per-stage context (auto-resets at stage boundaries)
+- **Episodic memory**: Past run summaries (topic, papers found, gaps, decisions)
+- **Semantic memory**: Cross-run knowledge via knowledge graph
+
+Use `memory-stats`, `memory-episodes`, `memory-search <topic>` CLI commands
+to inspect memory state.
+
+```bash
+research-pipeline memory-stats
+research-pipeline memory-episodes --limit 5
+research-pipeline memory-search "transformer"
+```
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent
