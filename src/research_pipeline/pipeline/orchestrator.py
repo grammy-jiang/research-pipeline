@@ -887,6 +887,68 @@ def run_pipeline(
             md_dir = get_stage_dir(run_root, "convert")
             converter = _create_converter(config)
 
+            # Page dispatch: classify PDFs by difficulty
+            dispatch_plans = []
+            try:
+                from research_pipeline.conversion.page_dispatch import (
+                    classify_document_from_text,
+                )
+
+                for dl_entry in entries:
+                    if dl_entry.status not in (
+                        "downloaded",
+                        "skipped_exists",
+                    ):
+                        continue
+                    pdf_path = Path(dl_entry.local_path)
+                    if not pdf_path.exists():
+                        continue
+                    try:
+                        import pymupdf
+
+                        doc = pymupdf.open(str(pdf_path))
+                        texts = [p.get_text() for p in doc]
+                        imgs = [len(p.get_images()) for p in doc]
+                        doc.close()
+                        plan = classify_document_from_text(pdf_path, texts, imgs)
+                        dispatch_plans.append(plan)
+                    except ImportError:
+                        pass
+                    except Exception as exc:
+                        logger.debug(
+                            "Page dispatch skipped for %s: %s",
+                            pdf_path.name,
+                            exc,
+                        )
+
+                if dispatch_plans:
+                    dispatch_path = (
+                        get_stage_dir(run_root, "convert_root") / "page_dispatch.json"
+                    )
+                    dispatch_path.parent.mkdir(parents=True, exist_ok=True)
+                    dispatch_path.write_text(
+                        json.dumps(
+                            [
+                                {
+                                    "pdf": p.pdf_path,
+                                    "pages": p.total_pages,
+                                    "summary": p.summary,
+                                    "recommended": (p.recommended_backend),
+                                    "complexity_ratio": (p.complexity_ratio),
+                                }
+                                for p in dispatch_plans
+                            ],
+                            indent=2,
+                        ),
+                        encoding="utf-8",
+                    )
+                    logger.info(
+                        "Page dispatch: classified %d PDFs",
+                        len(dispatch_plans),
+                    )
+            except Exception as exc:
+                logger.warning("Page dispatch skipped: %s", exc)
+
             convert_entries = []
             for dl_entry in entries:
                 if dl_entry.status not in ("downloaded", "skipped_exists"):

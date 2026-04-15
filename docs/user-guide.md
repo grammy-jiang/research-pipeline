@@ -434,6 +434,18 @@ SIR runs automatically after the screen stage and saves `sir_result.json` in the
 screen directory. The result includes iteration history, convergence reason, and
 the final refined query terms.
 
+### Tiered page dispatch (v0.12.12+)
+
+Page-level difficulty classification for intelligent PDF conversion routing:
+
+- **Page analysis**: Inspects each page for math, tables, images, text density
+- **Three tiers**: SIMPLE (text-only), MODERATE (images), COMPLEX (math/tables)
+- **Backend recommendation**: pymupdf4llm → marker → docling based on complexity
+- **Dispatch plan**: Saves `page_dispatch.json` per run with per-PDF analysis
+
+Runs automatically before the convert stage. No configuration needed — the
+dispatch plan is informational and helps guide backend selection.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

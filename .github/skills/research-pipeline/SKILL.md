@@ -493,6 +493,17 @@ screen directory. Results include iteration history, convergence reason, and fin
 refined query terms. This helps later stages by identifying the most relevant
 terminology for the research topic.
 
+### Tiered Page Dispatch (v0.12.12+)
+
+**Page-level difficulty classification** for intelligent PDF conversion routing:
+- **Page analysis**: inspects each page for math equations, tables, images, text density
+- **Three tiers**: SIMPLE (text-only), MODERATE (images/low density), COMPLEX (math/tables)
+- **Backend recommendation**: pymupdf4llm for simple, marker for moderate, docling for complex
+- **Per-document dispatch plan**: saves `page_dispatch.json` with per-PDF complexity analysis
+
+Runs automatically before the convert stage. Enables informed conversion backend
+selection based on actual page content rather than document-level guesses.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent
