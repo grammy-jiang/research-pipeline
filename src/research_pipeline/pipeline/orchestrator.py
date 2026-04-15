@@ -763,6 +763,53 @@ def run_pipeline(
         )
         save_manifest(run_root, manifest)
         _run_schema_evaluation(run_root, "screen", run_id, audit)
+
+        # Self-improving retrieval: refine query terms after screening
+        try:
+            from research_pipeline.retrieval.self_improving import (
+                run_self_improving_retrieval,
+            )
+
+            sir_candidates = [d.paper for d in shortlist]
+            sir_result = run_self_improving_retrieval(
+                plan, sir_candidates, max_iterations=3
+            )
+            if sir_result.converged:
+                logger.info(
+                    "SIR converged after %d iterations, refined %d terms",
+                    sir_result.total_iterations,
+                    len(sir_result.final_query_terms),
+                )
+            sir_path = screen_dir / "sir_result.json"
+            sir_path.write_text(
+                json.dumps(
+                    {
+                        "total_iterations": sir_result.total_iterations,
+                        "converged": sir_result.converged,
+                        "final_query_terms": sir_result.final_query_terms,
+                        "convergence": (
+                            {
+                                "reason": sir_result.convergence.reason,
+                                "iterations_run": (
+                                    sir_result.convergence.iterations_run
+                                ),
+                                "final_avg_score": (
+                                    sir_result.convergence.final_avg_score
+                                ),
+                                "score_improvement": (
+                                    sir_result.convergence.score_improvement
+                                ),
+                            }
+                            if sir_result.convergence
+                            else None
+                        ),
+                    },
+                    indent=2,
+                ),
+                encoding="utf-8",
+            )
+        except Exception as exc:
+            logger.warning("Self-improving retrieval skipped: %s", exc)
     else:
         screen_dir = get_stage_dir(run_root, "screen")
         raw_shortlist = json.loads(

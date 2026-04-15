@@ -479,6 +479,20 @@ Evaluation runs automatically after each stage in the orchestrator (informationa
 never blocks pipeline execution). Use `research-pipeline evaluate --run-id <ID>` to
 manually evaluate a run, or `--stage plan` for a specific stage.
 
+### Self-Improving Retrieval (v0.12.11+)
+
+**Iterative query refinement**: After screening, the pipeline runs a self-improving
+retrieval (SIR) loop inspired by SiRe to refine query terms:
+- **Term feedback**: drops low-signal terms, adds frequent terms from top results
+- **Coverage tracking**: measures what fraction of query terms appear in results
+- **Convergence detection**: stops on score plateau, term stability, or max iterations
+- **No LLM required**: works entirely with heuristics (term frequency, coverage)
+
+SIR runs automatically after the screen stage and writes `sir_result.json` to the
+screen directory. Results include iteration history, convergence reason, and final
+refined query terms. This helps later stages by identifying the most relevant
+terminology for the research topic.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent

@@ -420,6 +420,20 @@ research-pipeline evaluate --run-id <RUN_ID> -v
 Evaluation runs automatically after each stage in the orchestrator (informational
 only — failures are logged as warnings but never block pipeline execution).
 
+### Self-improving retrieval (v0.12.11+)
+
+After screening, the pipeline runs a Self-Improving Retrieval (SIR) loop that
+iteratively refines query terms based on result feedback:
+
+- **Term feedback**: Drops terms with no coverage, adds frequent terms from top results
+- **Coverage tracking**: Measures fraction of query terms found in paper titles/abstracts
+- **Convergence detection**: Stops on score plateau, term stability, or max iterations
+- **No LLM required**: Works entirely with heuristic term analysis
+
+SIR runs automatically after the screen stage and saves `sir_result.json` in the
+screen directory. The result includes iteration history, convergence reason, and
+the final refined query terms.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:
