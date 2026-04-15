@@ -218,6 +218,8 @@ research-pipeline quality --run-id <ID>
 research-pipeline convert-rough --run-id <ID>
 research-pipeline convert-fine --run-id <ID>
 research-pipeline index --list
+research-pipeline feedback --run-id <ID> --accept <PAPER_ID> --reject <PAPER_ID>
+research-pipeline feedback --run-id <ID> --show --adjust
 
 # Standalone PDF conversion (no workspace required)
 research-pipeline convert-file paper.pdf -o paper.md
@@ -238,7 +240,7 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 21 tools (with annotations & progress), 15 resources (URI templates),
+Features: 22 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
 
 New quality tools:

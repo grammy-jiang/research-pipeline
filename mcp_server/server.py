@@ -25,6 +25,7 @@ from mcp_server.schemas import (
     EvaluateQualityInput,
     ExpandCitationsInput,
     ExtractContentInput,
+    FeedbackInput,
     GetRunManifestInput,
     ListBackendsInput,
     ManageIndexInput,
@@ -51,6 +52,7 @@ from mcp_server.tools import (
     list_backends,
     manage_index,
     plan_topic,
+    record_feedback,
     run_pipeline,
     screen_candidates,
     search,
@@ -615,6 +617,48 @@ def tool_verify_stage(
     """
     result = verify_stage(
         VerifyStageInput(workspace=workspace, run_id=run_id, stage=stage),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_record_feedback(
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    accept: list[str] | None = None,
+    reject: list[str] | None = None,
+    reason: str = "",
+    show: bool = False,
+    adjust: bool = False,
+) -> dict:
+    """Record user accept/reject feedback on screened papers.
+
+    Stores decisions in a persistent SQLite database. Accumulated
+    feedback adjusts BM25 screening weights via ELO-style learning,
+    improving future screening precision.
+
+    Set adjust=True to recompute optimized weights after recording.
+    Set show=True to display current feedback statistics.
+    """
+    result = record_feedback(
+        FeedbackInput(
+            workspace=workspace,
+            run_id=run_id,
+            accept=accept or [],
+            reject=reject or [],
+            reason=reason,
+            show=show,
+            adjust=adjust,
+        ),
         ctx=ctx,
     )
     return result.model_dump()

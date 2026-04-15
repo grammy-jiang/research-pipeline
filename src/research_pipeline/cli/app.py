@@ -970,5 +970,54 @@ def evaluate(
     evaluate_cmd(run_id=run_id, stage=stage, workspace=workspace)
 
 
+@app.command()
+def feedback(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(
+        ..., "--run-id", help="Run ID whose screened papers to give feedback on."
+    ),
+    accept: list[str] = typer.Option(
+        [], "--accept", "-a", help="Paper IDs to accept (repeatable)."
+    ),
+    reject: list[str] = typer.Option(
+        [], "--reject", "-r", help="Paper IDs to reject (repeatable)."
+    ),
+    reason: str = typer.Option(
+        "", "--reason", help="Optional reason for the decisions."
+    ),
+    show: bool = typer.Option(False, "--show", "-s", help="Show feedback stats."),
+    adjust: bool = typer.Option(
+        False, "--adjust", help="Recompute adjusted BM25 weights."
+    ),
+) -> None:
+    """Record user feedback on screened papers.
+
+    Accepts or rejects paper IDs from a screening run. Accumulated
+    feedback adjusts BM25 weights via ELO-style learning.
+
+    \b
+    Examples:
+      research-pipeline feedback --run-id <ID> --accept 2401.12345 --accept 2401.12346
+      research-pipeline feedback --run-id <ID> --reject 2401.12347 --reason "off-topic"
+      research-pipeline feedback --run-id <ID> --show
+      research-pipeline feedback --run-id <ID> --adjust
+    """
+    from research_pipeline.cli.cmd_feedback import feedback_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    feedback_cmd(
+        run_id=run_id,
+        accept=accept,
+        reject=reject,
+        reason=reason,
+        show=show,
+        adjust=adjust,
+        workspace=workspace,
+    )
+
+
 if __name__ == "__main__":
     app()

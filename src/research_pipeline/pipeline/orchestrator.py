@@ -692,12 +692,30 @@ def run_pipeline(
                 c.title = sanitize_text(c.title, max_length=500)
                 c.abstract = sanitize_text(c.abstract, max_length=10_000)
 
+        # Load feedback-adjusted weights if available
+        feedback_weights: dict[str, float] | None = None
+        try:
+            from research_pipeline.feedback.store import FeedbackStore
+
+            fb_store = FeedbackStore()
+            fb_adjusted = fb_store.get_latest_weights()
+            if fb_adjusted is not None and fb_adjusted.feedback_count >= 5:
+                feedback_weights = fb_adjusted.to_weight_dict()
+                logger.info(
+                    "Using feedback-adjusted weights (%d records)",
+                    fb_adjusted.feedback_count,
+                )
+            fb_store.close()
+        except Exception as exc:
+            logger.debug("Feedback weights not available: %s", exc)
+
         scores = score_candidates(
             candidates,
             must_terms=plan.must_terms,
             nice_terms=plan.nice_terms,
             negative_terms=plan.negative_terms,
             target_categories=plan.candidate_categories,
+            weights=feedback_weights,
         )
 
         write_jsonl(

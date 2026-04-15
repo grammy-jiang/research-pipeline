@@ -261,6 +261,31 @@ class VerifyStageInput(CommonParams):
     )
 
 
+class FeedbackInput(CommonParams):
+    """Input for the record_feedback tool."""
+
+    accept: list[str] = Field(
+        default_factory=list,
+        description="Paper IDs to mark as accepted.",
+    )
+    reject: list[str] = Field(
+        default_factory=list,
+        description="Paper IDs to mark as rejected.",
+    )
+    reason: str = Field(
+        default="",
+        description="Optional reason for the decisions.",
+    )
+    show: bool = Field(
+        default=False,
+        description="Show current feedback stats.",
+    )
+    adjust: bool = Field(
+        default=False,
+        description="Recompute adjusted BM25 weights from feedback.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

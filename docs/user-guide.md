@@ -273,6 +273,10 @@ research-pipeline search --run-id <RUN_ID> --source all
 research-pipeline screen --run-id <RUN_ID>
 # Output: runs/<run_id>/screen/shortlist.json
 
+# 3a. Record feedback on screening results (optional, improves future runs)
+research-pipeline feedback --run-id <RUN_ID> --accept 2401.12345 --reject 2401.99999
+# Recompute adjusted weights: research-pipeline feedback --run-id <RUN_ID> --adjust
+
 # 4. Download shortlisted PDFs
 research-pipeline download --run-id <RUN_ID>
 # Output: runs/<run_id>/download/pdf/*.pdf
@@ -471,6 +475,31 @@ MCPSHIELD-inspired 4-layer defense for MCP tool interactions:
 Initializes automatically at pipeline start. Non-blocking — guard failures log a
 warning and the pipeline continues normally.
 
+### User feedback loop (v0.13.0+)
+
+Record accept/reject decisions on screened papers to improve future
+screening via ELO-style BM25 weight adjustment:
+
+```bash
+# Accept relevant papers
+research-pipeline feedback --run-id <RUN_ID> --accept 2401.12345 --accept 2401.12346
+
+# Reject irrelevant papers with reason
+research-pipeline feedback --run-id <RUN_ID> --reject 2401.99999 --reason "off-topic"
+
+# View feedback stats
+research-pipeline feedback --run-id <RUN_ID> --show
+
+# Recompute adjusted weights from all accumulated feedback
+research-pipeline feedback --run-id <RUN_ID> --adjust
+```
+
+Feedback is stored in `~/.cache/research-pipeline/feedback.db`. After ≥5
+records (with both accepts and rejects), the screen stage automatically uses
+feedback-adjusted weights. The adjustment uses an ELO-inspired algorithm:
+weights that correlate with accepted papers are boosted, weights that
+correlate with rejected papers are dampened.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:
@@ -545,9 +574,9 @@ integration via stdio transport:
 uv run python -m mcp_server
 ```
 
-### Tools (17)
+### Tools (18)
 
-All 17 tools include **annotations** (readOnlyHint, destructiveHint,
+All 18 tools include **annotations** (readOnlyHint, destructiveHint,
 idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 
 | Tool | Description |
@@ -568,6 +597,7 @@ idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 | `convert_rough` | Fast conversion of all PDFs (pymupdf4llm) |
 | `convert_fine` | High-quality conversion of selected papers |
 | `manage_index` | Manage the global paper index |
+| `record_feedback` | Record accept/reject feedback on screened papers |
 | `research_workflow` | **Server-driven orchestrated workflow** (see below) |
 
 ### Resources (15)

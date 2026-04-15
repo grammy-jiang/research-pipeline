@@ -32,8 +32,9 @@ class TestServerRegistration:
         ), f"Missing tools: {expected_tools - registered}"
 
     def test_tool_count(self) -> None:
-        # 9 pipeline + convert_file + list_backends + 5 new + workflow + 4 quality = 21
-        assert len(mcp._tool_manager._tools) == 21
+        # 9 pipeline + convert_file + list_backends + 5 new
+        # + workflow + 4 quality + feedback = 22
+        assert len(mcp._tool_manager._tools) == 22
 
     def test_all_tools_have_annotations(self) -> None:
         """Every registered tool must have ToolAnnotations set."""

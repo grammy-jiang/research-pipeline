@@ -281,6 +281,25 @@ screening uses heuristic-only mode (default).
 (e.g., "agent" + "evaluation"). If the shortlist contains many irrelevant
 papers, use the paper-screener sub-agent for intelligent re-screening.
 
+**User feedback loop** (v0.13.0+): After reviewing screening results,
+record accept/reject decisions to improve future screening:
+```bash
+# Accept relevant papers
+research-pipeline feedback --run-id <RUN_ID> --accept 2401.12345 --accept 2401.12346
+
+# Reject irrelevant papers
+research-pipeline feedback --run-id <RUN_ID> --reject 2401.99999 --reason "off-topic"
+
+# View feedback stats and current adjusted weights
+research-pipeline feedback --run-id <RUN_ID> --show
+
+# Recompute ELO-adjusted BM25 weights from all accumulated feedback
+research-pipeline feedback --run-id <RUN_ID> --adjust
+```
+Accumulated feedback automatically adjusts BM25 screening weights via
+ELO-style learning. After ≥5 feedback entries (with both accepts and
+rejects), the pipeline uses feedback-adjusted weights for future runs.
+
 ### Step 3.5: Quality Evaluation (Optional)
 
 ```bash

@@ -26,6 +26,7 @@ from mcp_server.schemas import (
     EvaluateQualityInput,
     ExpandCitationsInput,
     ExtractContentInput,
+    FeedbackInput,
     GetRunManifestInput,
     ListBackendsInput,
     ManageIndexInput,
@@ -1372,4 +1373,65 @@ def verify_stage(params: VerifyStageInput, ctx: Context | None = None) -> ToolRe
         )
     except Exception as exc:
         logger.error("verify_stage failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def record_feedback(params: FeedbackInput, ctx: Context | None = None) -> ToolResult:
+    """Record user accept/reject feedback on screened papers.
+
+    Accumulated feedback adjusts BM25 screening weights via ELO-style
+    learning. Use --adjust to recompute weights after recording.
+    """
+    try:
+        from research_pipeline.feedback.models import FeedbackDecision, FeedbackRecord
+        from research_pipeline.feedback.store import FeedbackStore
+
+        store = FeedbackStore()
+        recorded = 0
+        run_id = _resolve_run_id(params.run_id)
+
+        for pid in params.accept:
+            store.record(
+                FeedbackRecord(
+                    paper_id=pid,
+                    run_id=run_id,
+                    decision=FeedbackDecision.ACCEPT,
+                    reason=params.reason,
+                )
+            )
+            recorded += 1
+
+        for pid in params.reject:
+            store.record(
+                FeedbackRecord(
+                    paper_id=pid,
+                    run_id=run_id,
+                    decision=FeedbackDecision.REJECT,
+                    reason=params.reason,
+                )
+            )
+            recorded += 1
+
+        result: dict = {"recorded": recorded, "run_id": run_id}
+
+        if params.show:
+            result["counts"] = store.count(run_id=run_id)
+            result["all_time_counts"] = store.count()
+            latest = store.get_latest_weights()
+            if latest is not None:
+                result["latest_weights"] = latest.to_weight_dict()
+
+        if params.adjust:
+            adjusted = store.compute_adjusted_weights()
+            result["adjusted_weights"] = adjusted.to_weight_dict()
+            result["feedback_count"] = adjusted.feedback_count
+
+        store.close()
+        return ToolResult(
+            success=True,
+            message=f"Recorded {recorded} feedback entries for run {run_id}",
+            artifacts=result,
+        )
+    except Exception as exc:
+        logger.error("record_feedback failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
