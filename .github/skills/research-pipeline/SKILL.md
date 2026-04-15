@@ -455,6 +455,18 @@ research-pipeline memory-episodes --limit 5
 research-pipeline memory-search "transformer"
 ```
 
+### Content Security Gates (v0.12.9+)
+
+**Content security gates**: Defense-in-depth for untrusted content:
+- **Boundary classifiers**: risk-level classification (clean/low/medium/high) at each stage
+- **Taint tracking**: content provenance and trust level propagation
+- **Security gates**: classify → sanitize → quarantine at pipeline boundaries
+
+Content entering the pipeline (abstracts, titles, PDFs, markdown) is automatically
+classified, sanitized when suspicious patterns are detected, and quarantined when
+high-risk injection patterns are found. Taint labels track provenance through
+all pipeline stages.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent

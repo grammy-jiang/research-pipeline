@@ -380,6 +380,23 @@ The orchestrator automatically uses memory during `run`:
 - Resets working memory at each stage boundary
 - Records an episode when the run completes
 
+### Content security gates (v0.12.9+)
+
+Defense-in-depth for untrusted content entering the pipeline:
+
+- **Boundary classifiers**: 4-level risk classification (clean/low/medium/high)
+  at each ingestion point. Detects prompt injection, template injection, null
+  bytes, Unicode overrides, data URIs, and other suspicious patterns.
+- **Taint tracking**: Each piece of content is labeled with its provenance
+  (source, stage) and trust level (trusted/semi-trusted/untrusted). Taint
+  propagates when content is transformed.
+- **Security gates**: Combined classify → sanitize → quarantine pipeline at
+  stage boundaries. Medium-risk content is sanitized; high-risk content is
+  quarantined (blocked).
+
+Security gates run automatically during `run` — no configuration required.
+Stats are logged at the end of each pipeline run.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

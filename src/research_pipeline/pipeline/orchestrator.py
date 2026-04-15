@@ -412,6 +412,15 @@ def run_pipeline(
     # LLM provider (None when disabled — all LLM features degrade gracefully)
     llm_provider = create_llm_provider(config.llm)
 
+    # Security gate for content boundaries (optional — never crash pipeline)
+    security_gate = None
+    try:
+        from research_pipeline.security.gates import SecurityGate
+
+        security_gate = SecurityGate()
+    except Exception as exc:
+        logger.warning("Security gate init failed (continuing without): %s", exc)
+
     # Three-tier memory (optional — failures log warning, never crash pipeline)
     memory = None
     try:
@@ -591,10 +600,33 @@ def run_pipeline(
         audit.emit(EventType.STAGE_STARTED, stage="screen", run_id=run_id)
         screen_dir = get_stage_dir(run_root, "screen")
 
-        # Sanitize candidate text before scoring (content security)
-        for c in candidates:
-            c.title = sanitize_text(c.title, max_length=500)
-            c.abstract = sanitize_text(c.abstract, max_length=10_000)
+        # Security gate: classify and sanitize candidate text before scoring
+        if security_gate is not None:
+            for c in candidates:
+                key = f"abstract:{c.arxiv_id}"
+                gate_result = security_gate.check(
+                    key,
+                    c.abstract or "",
+                    "abstract",
+                    "search",
+                    c.source or "arxiv",
+                )
+                if gate_result.sanitized:
+                    c.abstract = gate_result.content
+                title_result = security_gate.check(
+                    f"title:{c.arxiv_id}",
+                    c.title,
+                    "title",
+                    "search",
+                    c.source or "arxiv",
+                )
+                if title_result.sanitized:
+                    c.title = title_result.content
+        else:
+            # Fallback to basic sanitization
+            for c in candidates:
+                c.title = sanitize_text(c.title, max_length=500)
+                c.abstract = sanitize_text(c.abstract, max_length=10_000)
 
         scores = score_candidates(
             candidates,
@@ -1103,6 +1135,17 @@ def run_pipeline(
         logger.info("Deep profile: confidence scoring stage")
         # TODO: Wire score_claims stage into orchestrator
         logger.info("Score-claims stage not yet wired into orchestrator — run manually")
+
+    # Log security gate stats
+    if security_gate is not None:
+        gate_stats = security_gate.stats()
+        if gate_stats["sanitized"] > 0 or gate_stats["quarantined"] > 0:
+            logger.info("Security gate stats: %s", gate_stats)
+        audit.emit(
+            EventType.DECISION,
+            run_id=run_id,
+            details={"security_gate": gate_stats},
+        )
 
     logger.info("Pipeline complete: run_id=%s", run_id)
     audit.emit(
