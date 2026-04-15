@@ -397,6 +397,29 @@ Defense-in-depth for untrusted content entering the pipeline:
 Security gates run automatically during `run` — no configuration required.
 Stats are logged at the end of each pipeline run.
 
+### Schema-grounded evaluation (v0.12.10+)
+
+Automated validation of pipeline outputs against their Pydantic model schemas:
+
+- **Field completeness**: Required fields present and non-empty
+- **Score range validation**: Numeric scores in expected bounds (e.g., [0, 1])
+- **Cross-field consistency**: Count fields match actual list lengths
+- **Per-stage evaluators**: plan, search, screen, summarize
+
+```bash
+# Evaluate all stages of a run
+research-pipeline evaluate --run-id <RUN_ID>
+
+# Evaluate a specific stage
+research-pipeline evaluate --run-id <RUN_ID> --stage plan
+
+# Verbose output with debug info
+research-pipeline evaluate --run-id <RUN_ID> -v
+```
+
+Evaluation runs automatically after each stage in the orchestrator (informational
+only — failures are logged as warnings but never block pipeline execution).
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

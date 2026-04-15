@@ -316,6 +316,36 @@ def _record_stage(
     return update_stage(manifest, record)
 
 
+def _run_schema_evaluation(
+    run_root: Path,
+    stage: str,
+    run_id: str,
+    audit: AuditLogger,
+) -> None:
+    """Run schema-grounded evaluation for a completed stage (informational).
+
+    Evaluation failures are logged but never block pipeline execution.
+    """
+    try:
+        from research_pipeline.evaluation.schema_eval import evaluate_stage
+
+        eval_report = evaluate_stage(run_root, stage)
+        if not eval_report.passed:
+            logger.warning("Schema evaluation: %s", eval_report.summary())
+        else:
+            logger.debug("Schema evaluation: %s", eval_report.summary())
+        audit.emit(
+            EventType.DECISION,
+            run_id=run_id,
+            details={
+                "evaluation": eval_report.summary(),
+                "errors": eval_report.error_count,
+            },
+        )
+    except Exception as exc:
+        logger.debug("Schema evaluation skipped for %s: %s", stage, exc)
+
+
 def run_pipeline(
     topic: str,
     config: PipelineConfig | None = None,
@@ -483,6 +513,7 @@ def run_pipeline(
             run_root=run_root,
         )
         save_manifest(run_root, manifest)
+        _run_schema_evaluation(run_root, "plan", run_id, audit)
     else:
         plan_dir = get_stage_dir(run_root, "plan")
         plan_data = json.loads(
@@ -584,6 +615,7 @@ def run_pipeline(
             run_root=run_root,
         )
         save_manifest(run_root, manifest)
+        _run_schema_evaluation(run_root, "search", run_id, audit)
     else:
         from research_pipeline.storage.manifests import read_jsonl
 
@@ -730,6 +762,7 @@ def run_pipeline(
             run_root=run_root,
         )
         save_manifest(run_root, manifest)
+        _run_schema_evaluation(run_root, "screen", run_id, audit)
     else:
         screen_dir = get_stage_dir(run_root, "screen")
         raw_shortlist = json.loads(

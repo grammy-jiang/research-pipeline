@@ -945,5 +945,30 @@ def memory_search(
     run_memory_search(topic=topic, limit=limit, episodic_path=episodic_db)
 
 
+@app.command("evaluate")
+def evaluate(
+    run_id: str = typer.Option(..., "--run-id", help="Run ID to evaluate."),
+    stage: str = typer.Option(
+        "", "--stage", "-s", help="Specific stage (default: all)."
+    ),
+    workspace: str = typer.Option(
+        "runs", "--workspace", "-w", help="Workspace directory."
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Evaluate pipeline outputs against their schemas.
+
+    Validates completeness, score ranges, and cross-field consistency.
+
+    Example: research-pipeline evaluate --run-id <RUN_ID>
+    """
+    from research_pipeline.cli.cmd_evaluate import evaluate_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    evaluate_cmd(run_id=run_id, stage=stage, workspace=workspace)
+
+
 if __name__ == "__main__":
     app()

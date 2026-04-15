@@ -467,6 +467,18 @@ classified, sanitized when suspicious patterns are detected, and quarantined whe
 high-risk injection patterns are found. Taint labels track provenance through
 all pipeline stages.
 
+### Schema-Grounded Evaluation (v0.12.10+)
+
+**Schema evaluation**: Automated validation of pipeline outputs against their schemas:
+- **Field completeness**: required fields present and non-empty
+- **Score range validation**: numeric values within expected bounds
+- **Cross-field consistency**: count fields match actual list lengths
+- **Per-stage evaluators**: plan, search, screen, summarize
+
+Evaluation runs automatically after each stage in the orchestrator (informational only —
+never blocks pipeline execution). Use `research-pipeline evaluate --run-id <ID>` to
+manually evaluate a run, or `--stage plan` for a specific stage.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent
