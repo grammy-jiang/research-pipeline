@@ -516,6 +516,17 @@ selection based on actual page content rather than document-level guesses.
 Runs automatically during the summarize stage. Results saved in `agent_analysis.json`
 including conflict reports. Use `run_parallel_analysis()` directly for custom workflows.
 
+### MCP Zero-Trust Security (v0.12.14+)
+
+**4-layer defense** for MCP tool interactions (MCPSHIELD-inspired):
+1. **Tool pinning**: SHA-256 hash verification of tool schemas — detects tampering
+2. **Trust domains**: READ/WRITE/EXECUTE/NETWORK/SYSTEM classification
+3. **Capability control**: caller-specific domain grants/revokes/deny-all
+4. **Rate limiting + audit**: per-tool rate limits with full invocation audit trail
+
+Initializes automatically at pipeline start. Audit summary saved in `mcp_audit.json`.
+Use `McpGuard`, `ToolRegistry`, and `CapabilityPolicy` directly for custom security policies.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent

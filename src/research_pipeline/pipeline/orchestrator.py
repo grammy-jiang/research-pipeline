@@ -451,6 +451,38 @@ def run_pipeline(
     except Exception as exc:
         logger.warning("Security gate init failed (continuing without): %s", exc)
 
+    # MCP zero-trust guard (optional — never crash pipeline)
+    mcp_guard = None
+    try:
+        from research_pipeline.security.mcp_guard import (
+            CapabilityPolicy,
+            McpGuard,
+            ToolRegistry,
+        )
+
+        mcp_registry = ToolRegistry()
+        mcp_policy = CapabilityPolicy()
+        for tool_name, domain in [
+            ("plan", "read"),
+            ("search", "network"),
+            ("screen", "read"),
+            ("download", "network"),
+            ("convert", "execute"),
+            ("extract", "read"),
+            ("summarize", "read"),
+        ]:
+            mcp_registry.register(
+                tool_name,
+                schema={"stage": tool_name},
+                domain=domain,
+            )
+        mcp_registry.pin_all()
+        mcp_policy.grant_all("pipeline")
+        mcp_guard = McpGuard(mcp_registry, mcp_policy)
+        logger.debug("MCP zero-trust guard initialized")
+    except Exception as exc:
+        logger.warning("MCP guard init failed (continuing without): %s", exc)
+
     # Three-tier memory (optional — failures log warning, never crash pipeline)
     memory = None
     try:
@@ -1367,5 +1399,24 @@ def run_pipeline(
             logger.warning("Failed to record episode: %s", exc)
         finally:
             memory.close()
+
+    # MCP guard audit summary
+    if mcp_guard is not None:
+        try:
+            summary = mcp_guard.audit_summary()
+            if summary["total"] > 0:
+                logger.info(
+                    "MCP audit: %d total, %d allowed, %d denied",
+                    summary["total"],
+                    summary["allowed"],
+                    summary["denied"],
+                )
+                audit_path = run_root / "mcp_audit.json"
+                audit_path.write_text(
+                    json.dumps(summary, indent=2),
+                    encoding="utf-8",
+                )
+        except Exception as exc:
+            logger.warning("MCP audit save failed: %s", exc)
 
     return manifest

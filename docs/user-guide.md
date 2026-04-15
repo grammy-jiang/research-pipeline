@@ -458,6 +458,19 @@ Parallel per-paper analysis using coordinated sub-agents:
 Runs automatically during the summarize stage. Non-blocking — failures log a warning
 and the pipeline continues normally.
 
+### MCP zero-trust security (v0.12.14+)
+
+MCPSHIELD-inspired 4-layer defense for MCP tool interactions:
+
+- **Tool pinning**: SHA-256 hash verification of tool schemas to detect tampering
+- **Trust domains**: Tools classified as READ, WRITE, EXECUTE, NETWORK, or SYSTEM
+- **Capability control**: Per-caller grant/revoke with deny-all override
+- **Rate limiting**: Per-tool calls-per-minute enforcement
+- **Audit trail**: Full invocation log with `mcp_audit.json` summary per run
+
+Initializes automatically at pipeline start. Non-blocking — guard failures log a
+warning and the pipeline continues normally.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:
