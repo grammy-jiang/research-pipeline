@@ -1142,6 +1142,58 @@ def run_pipeline(
 
         synthesis_path.write_text("\n".join(md_lines), encoding="utf-8")
 
+        # Multi-agent parallel analysis (optional enhancement)
+        try:
+            from research_pipeline.agents.coordinator import (
+                run_parallel_analysis,
+            )
+
+            analysis_items = [
+                {
+                    "paper_id": s.arxiv_id,
+                    "title": s.title,
+                    "objective": s.objective,
+                    "methodology": s.methodology,
+                    "findings": s.findings,
+                }
+                for s in summaries
+            ]
+            if analysis_items:
+                agent_result = run_parallel_analysis(
+                    analysis_items,
+                    max_workers=min(4, len(analysis_items)),
+                    task_type="analyze",
+                )
+                agent_path = sum_dir / "agent_analysis.json"
+                agent_path.write_text(
+                    json.dumps(
+                        {
+                            "total": agent_result.total_tasks,
+                            "completed": agent_result.completed_tasks,
+                            "failed": agent_result.failed_tasks,
+                            "success_rate": agent_result.success_rate,
+                            "has_conflicts": (agent_result.has_conflicts),
+                            "conflicts": [
+                                {
+                                    "field": c.field,
+                                    "severity": c.severity.value,
+                                    "values": [str(v) for v in c.values],
+                                }
+                                for c in agent_result.conflicts
+                            ],
+                        },
+                        indent=2,
+                    ),
+                    encoding="utf-8",
+                )
+                logger.info(
+                    "Multi-agent analysis: %d/%d completed",
+                    agent_result.completed_tasks,
+                    agent_result.total_tasks,
+                )
+        except Exception as exc:
+            logger.warning("Multi-agent analysis skipped: %s", exc)
+
         manifest = _record_stage(
             manifest,
             "summarize",

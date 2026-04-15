@@ -446,6 +446,18 @@ Page-level difficulty classification for intelligent PDF conversion routing:
 Runs automatically before the convert stage. No configuration needed — the
 dispatch plan is informational and helps guide backend selection.
 
+### Multi-agent analysis (v0.12.13+)
+
+Parallel per-paper analysis using coordinated sub-agents:
+
+- **MasterAgent/SubAgent**: ThreadPoolExecutor-based coordination for independent analysis tasks
+- **Conflict detection**: cross-sub-agent output comparison with LOW/MEDIUM/HIGH severity
+- **Evidence merging**: "collect" gathers everything, "evidence_only" filters to claim/evidence fields
+- **Output**: `agent_analysis.json` in the summarize directory with completion stats and conflicts
+
+Runs automatically during the summarize stage. Non-blocking — failures log a warning
+and the pipeline continues normally.
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

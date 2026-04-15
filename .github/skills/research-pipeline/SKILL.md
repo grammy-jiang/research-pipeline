@@ -504,6 +504,18 @@ terminology for the research topic.
 Runs automatically before the convert stage. Enables informed conversion backend
 selection based on actual page content rather than document-level guesses.
 
+### Multi-Agent Architecture (v0.12.13+)
+
+**Parallel paper analysis** using a MasterAgent + SubAgent coordination pattern:
+- **MasterAgent**: orchestrates work distribution, aggregates results, detects conflicts
+- **SubAgent**: processes individual papers or analysis tasks independently
+- **Conflict detection**: identifies disagreements across sub-agent outputs with severity levels
+- **Merge strategies**: "collect" (all results) or "evidence_only" (claims/evidence fields only)
+- **Thread-based parallelism**: configurable worker count for concurrent execution
+
+Runs automatically during the summarize stage. Results saved in `agent_analysis.json`
+including conflict reports. Use `run_parallel_analysis()` directly for custom workflows.
+
 ## Sub-Agent Analysis
 
 After the pipeline completes, use three specialized sub-agents for intelligent
