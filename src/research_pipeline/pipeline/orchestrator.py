@@ -1271,6 +1271,32 @@ def run_pipeline(
         except Exception as exc:
             logger.warning("Multi-agent analysis skipped: %s", exc)
 
+        # Evidence-only aggregation
+        try:
+            from research_pipeline.summarization.evidence_aggregation import (
+                aggregate_evidence,
+                format_aggregation_text,
+            )
+
+            aggregation = aggregate_evidence(report, min_pointers=0)
+            agg_json = sum_dir / "evidence_aggregation.json"
+            agg_json.write_text(
+                aggregation.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
+            agg_text = sum_dir / "evidence_aggregation.md"
+            agg_text.write_text(
+                format_aggregation_text(aggregation),
+                encoding="utf-8",
+            )
+            logger.info(
+                "Evidence aggregation: %d → %d statements",
+                aggregation.stats.input_statements,
+                aggregation.stats.output_statements,
+            )
+        except Exception as exc:
+            logger.warning("Evidence aggregation skipped: %s", exc)
+
         manifest = _record_stage(
             manifest,
             "summarize",

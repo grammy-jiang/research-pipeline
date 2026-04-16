@@ -303,6 +303,31 @@ class EvalLogInput(CommonParams):
     )
 
 
+class EvidenceAggregateInput(CommonParams):
+    """Input for the aggregate_evidence tool."""
+
+    min_pointers: int = Field(
+        default=0,
+        description="Minimum evidence pointers per statement.",
+    )
+    max_words: int = Field(
+        default=50,
+        description="Maximum words per statement.",
+    )
+    similarity_threshold: float = Field(
+        default=0.7,
+        description="Threshold for merging similar statements (0-1).",
+    )
+    strip_rhetoric: bool = Field(
+        default=True,
+        description="Whether to strip rhetoric from statements.",
+    )
+    output_format: str = Field(
+        default="text",
+        description="Output format: text or json.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

@@ -324,6 +324,28 @@ research-pipeline eval-log --run-id <RUN_ID> --channel summary
 
 Use `query_eval_log` MCP tool for programmatic access.
 
+### Step 3.4: Evidence-Only Aggregation (Optional)
+
+After synthesis, aggregate evidence while stripping rhetoric, normalizing
+length, and requiring evidence citations. Merges duplicate statements.
+
+```bash
+# Run evidence aggregation on synthesis results
+research-pipeline aggregate --run-id <RUN_ID>
+
+# Require minimum evidence pointers
+research-pipeline aggregate --run-id <RUN_ID> --min-pointers 1
+
+# Output as JSON
+research-pipeline aggregate --run-id <RUN_ID> --format json
+
+# Disable rhetoric stripping
+research-pipeline aggregate --run-id <RUN_ID> --no-strip-rhetoric
+```
+
+Output: `summarize/evidence_aggregation.json` and `evidence_aggregation.md`.
+Use `aggregate_evidence` MCP tool for programmatic access.
+
 ### Step 3.5: Quality Evaluation (Optional)
 
 ```bash

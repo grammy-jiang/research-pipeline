@@ -24,6 +24,7 @@ from mcp_server.schemas import (
     DownloadPdfsInput,
     EvalLogInput,
     EvaluateQualityInput,
+    EvidenceAggregateInput,
     ExpandCitationsInput,
     ExtractContentInput,
     FeedbackInput,
@@ -39,6 +40,7 @@ from mcp_server.schemas import (
     VerifyStageInput,
 )
 from mcp_server.tools import (
+    aggregate_evidence_tool,
     analyze_papers,
     compare_runs,
     convert_file,
@@ -698,6 +700,48 @@ def tool_query_eval_log(
             channel=channel,
             stage=stage,
             limit=limit,
+        ),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_aggregate_evidence(
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    min_pointers: int = 0,
+    max_words: int = 50,
+    similarity_threshold: float = 0.7,
+    strip_rhetoric: bool = True,
+    output_format: str = "text",
+) -> dict:
+    """Aggregate evidence from synthesis, stripping rhetoric.
+
+    Processes synthesis report through evidence-only aggregation:
+    - Strips hedging, confidence claims, subjective opinions, filler
+    - Normalizes statement length
+    - Extracts and validates evidence pointers
+    - Merges semantically similar statements
+    - Filters by minimum evidence requirements
+    """
+    result = aggregate_evidence_tool(
+        EvidenceAggregateInput(
+            workspace=workspace,
+            run_id=run_id,
+            min_pointers=min_pointers,
+            max_words=max_words,
+            similarity_threshold=similarity_threshold,
+            strip_rhetoric=strip_rhetoric,
+            output_format=output_format,
         ),
         ctx=ctx,
     )

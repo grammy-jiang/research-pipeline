@@ -524,6 +524,17 @@ research-pipeline eval-log --run-id <RUN_ID> --channel audit --limit 20
 research-pipeline eval-log --run-id <RUN_ID> --channel summary
 ```
 
+### Evidence-only aggregation (v0.13.2+)
+
+Strips rhetoric from synthesis outputs, normalizes statement length,
+requires evidence citations, merges duplicates, and filters unsupported
+claims:
+
+```bash
+research-pipeline aggregate --run-id <RUN_ID>
+research-pipeline aggregate --run-id <RUN_ID> --min-pointers 1 --format json
+```
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:
@@ -600,7 +611,7 @@ uv run python -m mcp_server
 
 ### Tools (18)
 
-All 19 tools include **annotations** (readOnlyHint, destructiveHint,
+All 20 tools include **annotations** (readOnlyHint, destructiveHint,
 idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 
 | Tool | Description |

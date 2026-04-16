@@ -226,6 +226,10 @@ research-pipeline eval-log --run-id <ID>
 research-pipeline eval-log --run-id <ID> --channel traces --stage screen
 research-pipeline eval-log --run-id <ID> --channel summary
 
+# Evidence-only aggregation
+research-pipeline aggregate --run-id <ID>
+research-pipeline aggregate --run-id <ID> --min-pointers 1 --format json
+
 # Standalone PDF conversion (no workspace required)
 research-pipeline convert-file paper.pdf -o paper.md
 
@@ -245,7 +249,7 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 23 tools (with annotations & progress), 15 resources (URI templates),
+Features: 24 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
 
 New quality tools:

@@ -25,6 +25,7 @@ from mcp_server.schemas import (
     DownloadPdfsInput,
     EvalLogInput,
     EvaluateQualityInput,
+    EvidenceAggregateInput,
     ExpandCitationsInput,
     ExtractContentInput,
     FeedbackInput,
@@ -1482,4 +1483,91 @@ def query_eval_log(params: EvalLogInput, ctx: Context | None = None) -> ToolResu
         )
     except Exception as exc:
         logger.error("query_eval_log failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def aggregate_evidence_tool(
+    params: EvidenceAggregateInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Aggregate evidence from synthesis, stripping rhetoric.
+
+    Processes synthesis report through evidence-only aggregation:
+    strip rhetoric, normalize length, extract evidence pointers,
+    merge duplicates, and filter by evidence requirements.
+    """
+    try:
+        from research_pipeline.models.summary import SynthesisReport
+        from research_pipeline.storage.workspace import resolve_workspace
+        from research_pipeline.summarization.evidence_aggregation import (
+            aggregate_evidence,
+            format_aggregation_text,
+        )
+
+        ws = resolve_workspace(Path(params.workspace) if params.workspace else None)
+        run_root = ws / params.run_id
+
+        _report_progress(ctx, 0, 3, "Loading synthesis report")
+
+        # Load synthesis report
+        from research_pipeline.storage.workspace import get_stage_dir
+
+        sum_dir = get_stage_dir(run_root, "summarize")
+        report_path = sum_dir / "synthesis_report.json"
+        if not report_path.exists():
+            # Fall back to synthesis.json
+            report_path = sum_dir / "synthesis.json"
+        if not report_path.exists():
+            return ToolResult(
+                success=False,
+                message="No synthesis report found",
+            )
+
+        raw = json.loads(report_path.read_text(encoding="utf-8"))
+        report = SynthesisReport.model_validate(raw)
+
+        _report_progress(ctx, 1, 3, "Running evidence aggregation")
+
+        result = aggregate_evidence(
+            report,
+            min_pointers=params.min_pointers,
+            max_words=params.max_words,
+            similarity_threshold=params.similarity_threshold,
+            strip_rhetoric_enabled=params.strip_rhetoric,
+        )
+
+        _report_progress(ctx, 2, 3, "Saving results")
+
+        # Save outputs
+        agg_json = sum_dir / "evidence_aggregation.json"
+        agg_json.write_text(
+            result.model_dump_json(indent=2),
+            encoding="utf-8",
+        )
+        agg_text = sum_dir / "evidence_aggregation.md"
+        agg_text.write_text(
+            format_aggregation_text(result),
+            encoding="utf-8",
+        )
+
+        _report_progress(ctx, 3, 3, "Complete")
+
+        if params.output_format == "json":
+            content = result.model_dump()
+        else:
+            content = {
+                "text": format_aggregation_text(result),
+                "stats": result.stats.model_dump(),
+            }
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Aggregated {result.stats.input_statements} → "
+                f"{result.stats.output_statements} evidence statements"
+            ),
+            artifacts=content,
+        )
+    except Exception as exc:
+        logger.error("aggregate_evidence failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

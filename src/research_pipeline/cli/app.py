@@ -1067,3 +1067,64 @@ def eval_log(
 
 if __name__ == "__main__":
     app()
+
+
+@app.command("aggregate")
+def aggregate_command(
+    run_id: str = typer.Option(..., "--run-id", help="Pipeline run ID."),
+    min_pointers: int = typer.Option(
+        0,
+        "--min-pointers",
+        help="Minimum evidence pointers per statement.",
+    ),
+    max_words: int = typer.Option(
+        50,
+        "--max-words",
+        help="Maximum words per statement.",
+    ),
+    similarity_threshold: float = typer.Option(
+        0.7,
+        "--similarity-threshold",
+        help="Threshold for merging similar statements (0-1).",
+    ),
+    no_strip_rhetoric: bool = typer.Option(
+        False,
+        "--no-strip-rhetoric",
+        help="Disable rhetoric stripping.",
+    ),
+    output_format: str = typer.Option(
+        "text",
+        "--format",
+        help="Output format: text or json.",
+    ),
+    config_path: str = typer.Option(
+        "config.toml",
+        "--config",
+        help="Path to config file.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Aggregate evidence from synthesis, stripping rhetoric.
+
+    Examples:
+
+    .. code-block:: bash
+
+       research-pipeline aggregate --run-id <ID>
+       research-pipeline aggregate --run-id <ID> --min-pointers 1
+       research-pipeline aggregate --run-id <ID> --format json
+    """
+    from research_pipeline.cli.cmd_aggregate import aggregate_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    aggregate_cmd(
+        run_id=run_id,
+        min_pointers=min_pointers,
+        max_words=max_words,
+        similarity_threshold=similarity_threshold,
+        no_strip_rhetoric=no_strip_rhetoric,
+        output_format=output_format,
+        config_path=config_path,
+    )
