@@ -214,6 +214,7 @@ research-pipeline compare --run-a <ID1> --run-b <ID2>  # Cross-run comparison
 
 # Auxiliary commands
 research-pipeline expand --run-id <ID> --direction both
+research-pipeline expand --run-id <ID> --paper-ids "ID1,ID2" --snowball --bfs-query "term1,term2"
 research-pipeline quality --run-id <ID>
 research-pipeline convert-rough --run-id <ID>
 research-pipeline convert-fine --run-id <ID>

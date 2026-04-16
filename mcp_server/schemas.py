@@ -146,6 +146,23 @@ class ExpandCitationsInput(CommonParams):
         default=50,
         description="Max related papers per seed paper per direction.",
     )
+    snowball: bool = Field(
+        default=False,
+        description="Enable bidirectional snowball expansion with "
+        "budget-aware stopping.",
+    )
+    snowball_max_rounds: int = Field(
+        default=5,
+        description="Max snowball iteration rounds.",
+    )
+    snowball_max_papers: int = Field(
+        default=200,
+        description="Hard cap on total discovered papers.",
+    )
+    query_terms: list[str] = Field(
+        default_factory=list,
+        description="Query terms for snowball relevance scoring.",
+    )
 
 
 class EvaluateQualityInput(CommonParams):

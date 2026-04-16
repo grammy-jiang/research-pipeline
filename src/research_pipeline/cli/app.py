@@ -438,6 +438,33 @@ def expand(
         "--bfs-query",
         help="Comma-separated query terms for BFS BM25 pruning.",
     ),
+    snowball: bool = typer.Option(
+        False,
+        "--snowball",
+        help="Enable bidirectional snowball expansion mode with "
+        "budget-aware stopping (replaces BFS).",
+    ),
+    snowball_max_rounds: int = typer.Option(
+        5,
+        "--snowball-max-rounds",
+        help="Max snowball iteration rounds (default 5).",
+    ),
+    snowball_max_papers: int = typer.Option(
+        200,
+        "--snowball-max-papers",
+        help="Hard cap on total discovered papers (default 200).",
+    ),
+    snowball_decay_threshold: float = typer.Option(
+        0.10,
+        "--snowball-decay-threshold",
+        help="Stop when fraction of relevant new papers drops below "
+        "this (0-1, default 0.10).",
+    ),
+    snowball_decay_patience: int = typer.Option(
+        2,
+        "--snowball-decay-patience",
+        help="Consecutive low-relevance rounds before stopping (default 2).",
+    ),
 ) -> None:
     """Expand citation graph for specified papers.
 
@@ -445,12 +472,16 @@ def expand(
     papers using the Semantic Scholar API. Requires explicit
     paper IDs — no autonomous selection.
 
-    Use --bfs-depth 2 for multi-hop BFS expansion with BM25 pruning
-    (+24pp recall improvement over single-hop).
+    Three expansion modes:
+    1. Single-hop (default): direct citations/references
+    2. BFS: multi-hop with BM25 pruning (--bfs-depth 2)
+    3. Snowball: iterative bidirectional with budget-aware stopping (--snowball)
 
     Example: research-pipeline expand --run-id <ID> --paper-ids 2401.12345,2401.67890
     Example: research-pipeline expand --run-id <ID> \\
         --paper-ids 2401.12345 --bfs-depth 2 --bfs-query "transformer,attention"
+    Example: research-pipeline expand --run-id <ID> \\
+        --paper-ids 2401.12345 --snowball --bfs-query "harness,engineering"
     """
     from research_pipeline.cli.cmd_expand import run_expand
 
@@ -464,6 +495,11 @@ def expand(
         bfs_depth=bfs_depth,
         bfs_top_k=bfs_top_k,
         query_terms=bfs_query.split(",") if bfs_query else [],
+        snowball=snowball,
+        snowball_max_rounds=snowball_max_rounds,
+        snowball_max_papers=snowball_max_papers,
+        snowball_decay_threshold=snowball_decay_threshold,
+        snowball_decay_patience=snowball_decay_patience,
         **opts,
     )
 

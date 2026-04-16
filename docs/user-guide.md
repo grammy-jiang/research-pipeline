@@ -548,6 +548,11 @@ research-pipeline expand --run-id <RUN_ID> --direction both --limit 20
 research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
   --bfs-depth 2 --bfs-top-k 10 --bfs-query "transformer,attention"
 
+# Snowball expansion with budget-aware stopping (v0.13.3+)
+research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
+  --snowball --bfs-query "harness,engineering" --snowball-max-rounds 5
+# Output: expand/expanded_candidates.jsonl + snowball_report.md + snowball_stats.json
+
 # Quality evaluation (citation impact, venue, author, recency, safety gate)
 research-pipeline quality --run-id <RUN_ID>
 # Output: runs/<run_id>/quality/quality_scores.jsonl

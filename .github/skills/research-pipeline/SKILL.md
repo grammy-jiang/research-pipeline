@@ -86,7 +86,7 @@ Stage commands require `--run-id ID`.
 | 2 | Search | `research-pipeline search --run-id ID --config CFG` | `--source arxiv\|scholar\|huggingface\|all` |
 | 3 | Screen | `research-pipeline screen --run-id ID --config CFG` | `--resume` |
 | 3b | Quality | `research-pipeline quality --run-id ID --config CFG` | _(optional stage)_ |
-| 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N`, `--reference-boost F`, `--bfs-depth D`, `--bfs-top-k K`, `--bfs-query "term1,term2"` |
+| 3c | Expand | `research-pipeline expand --run-id ID --paper-ids "ID1,ID2" --config CFG` | `--direction both\|citations\|references`, `--limit N`, `--reference-boost F`, `--bfs-depth D`, `--bfs-top-k K`, `--bfs-query "term1,term2"`, `--snowball`, `--snowball-max-rounds N`, `--snowball-max-papers N`, `--snowball-decay-threshold F`, `--snowball-decay-patience N` |
 | 4 | Download | `research-pipeline download --run-id ID --config CFG` | `--force` |
 | 5 | Convert | `research-pipeline convert --run-id ID --config CFG` | `--backend docling\|marker\|pymupdf4llm\|mineru`, `--force` |
 | 5b | Rough | `research-pipeline convert-rough --run-id ID --config CFG` | `--force` |
@@ -379,6 +379,22 @@ Requires `--bfs-query "term1,term2"` for relevance pruning. Example:
 research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
   --bfs-depth 2 --bfs-top-k 10 --bfs-query "transformer,attention" --config CFG
 ```
+
+**Snowball expansion** (v0.13.3+): Use `--snowball` for iterative bidirectional
+snowball sampling with budget-aware stopping. Each round uses newly discovered
+high-relevance papers as seeds for the next round. Stops automatically when:
+- Max rounds reached (`--snowball-max-rounds`, default 5)
+- Max papers reached (`--snowball-max-papers`, default 200)
+- Marginal relevance decays below threshold (`--snowball-decay-threshold`, default 0.10)
+- Category diversity saturates (no new categories for 3 consecutive rounds)
+
+```bash
+research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
+  --snowball --bfs-query "harness,engineering" --snowball-max-rounds 5 --config CFG
+```
+
+Outputs `snowball_report.md` and `snowball_stats.json` alongside
+`expanded_candidates.jsonl`.
 
 ### Step 4: Download
 

@@ -3,8 +3,14 @@
 Fetches citation and reference graphs for specified papers using the
 Semantic Scholar API.  The user (or agent) must explicitly provide
 paper IDs — the command does not autonomously select papers to expand.
+
+Supports three modes:
+1. Single-hop: fetch citations/references for seed papers (default)
+2. BFS: multi-hop BFS expansion with BM25 pruning per hop
+3. Snowball: iterative bidirectional snowball with budget-aware stopping
 """
 
+import json
 import logging
 from pathlib import Path
 
@@ -25,6 +31,11 @@ def run_expand(
     bfs_depth: int = 0,
     bfs_top_k: int = 10,
     query_terms: list[str] | None = None,
+    snowball: bool = False,
+    snowball_max_rounds: int = 5,
+    snowball_max_papers: int = 200,
+    snowball_decay_threshold: float = 0.10,
+    snowball_decay_patience: int = 2,
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
@@ -41,6 +52,11 @@ def run_expand(
         bfs_depth: BFS expansion depth (0 = single-hop only).
         bfs_top_k: Papers to keep per BFS hop after BM25 pruning.
         query_terms: Query terms for BFS BM25 hop pruning.
+        snowball: Enable snowball expansion mode.
+        snowball_max_rounds: Max snowball rounds.
+        snowball_max_papers: Max total papers for snowball.
+        snowball_decay_threshold: Relevance decay threshold (0-1).
+        snowball_decay_patience: Consecutive low-relevance rounds.
         config_path: Path to config TOML file.
         workspace: Workspace root directory.
         run_id: Pipeline run ID.
@@ -71,46 +87,92 @@ def run_expand(
         rate_limiter=rate_limiter,
     )
 
-    logger.info(
-        "Expanding citation graph for %d papers (direction=%s, limit=%d)",
-        len(paper_ids),
-        direction,
-        limit_per_paper,
-    )
-
-    candidates = client.fetch_related(
-        paper_ids=paper_ids,
-        direction=direction,
-        limit_per_paper=limit_per_paper,
-        reference_boost=reference_boost,
-    )
-
-    # BFS multi-hop expansion if requested
-    if bfs_depth > 0 and query_terms:
-        logger.info(
-            "BFS expansion: depth=%d, top_k=%d, terms=%s",
-            bfs_depth,
-            bfs_top_k,
-            query_terms,
+    # Snowball expansion mode
+    if snowball:
+        from research_pipeline.models.snowball import SnowballBudget
+        from research_pipeline.sources.snowball import (
+            format_snowball_report,
+            snowball_expand,
         )
-        bfs_candidates = client.bfs_expand(
-            seed_ids=paper_ids,
-            query_terms=query_terms,
-            max_depth=bfs_depth,
+
+        budget = SnowballBudget(
+            max_rounds=snowball_max_rounds,
+            max_total_papers=snowball_max_papers,
+            relevance_decay_threshold=snowball_decay_threshold,
+            decay_patience=snowball_decay_patience,
             limit_per_paper=limit_per_paper,
-            top_k_per_hop=bfs_top_k,
             direction=direction,
+            reference_boost=reference_boost,
         )
-        # Merge and deduplicate
-        seen_ids = {c.arxiv_id for c in candidates}
-        for bc in bfs_candidates:
-            if bc.arxiv_id not in seen_ids:
-                candidates.append(bc)
-                seen_ids.add(bc.arxiv_id)
+
         logger.info(
-            "BFS added %d unique papers",
-            len(candidates) - len(seen_ids) + len(bfs_candidates),
+            "Snowball expansion: %d seeds, max_rounds=%d, max_papers=%d",
+            len(paper_ids),
+            snowball_max_rounds,
+            snowball_max_papers,
         )
+
+        candidates, result = snowball_expand(
+            client=client,
+            seed_ids=paper_ids,
+            query_terms=query_terms or [],
+            budget=budget,
+        )
+
+        # Write snowball report
+        report_path = expand_dir / "snowball_report.md"
+        report_path.write_text(format_snowball_report(result), encoding="utf-8")
+        logger.info("Snowball report written to %s", report_path)
+
+        # Write stats JSON
+        stats_path = expand_dir / "snowball_stats.json"
+        stats_path.write_text(
+            json.dumps(result.model_dump(mode="json"), indent=2),
+            encoding="utf-8",
+        )
+
+    else:
+        # Standard single-hop expansion
+        logger.info(
+            "Expanding citation graph for %d papers (direction=%s, limit=%d)",
+            len(paper_ids),
+            direction,
+            limit_per_paper,
+        )
+
+        candidates = client.fetch_related(
+            paper_ids=paper_ids,
+            direction=direction,
+            limit_per_paper=limit_per_paper,
+            reference_boost=reference_boost,
+        )
+
+        # BFS multi-hop expansion if requested
+        if bfs_depth > 0 and query_terms:
+            logger.info(
+                "BFS expansion: depth=%d, top_k=%d, terms=%s",
+                bfs_depth,
+                bfs_top_k,
+                query_terms,
+            )
+            bfs_candidates = client.bfs_expand(
+                seed_ids=paper_ids,
+                query_terms=query_terms,
+                max_depth=bfs_depth,
+                limit_per_paper=limit_per_paper,
+                top_k_per_hop=bfs_top_k,
+                direction=direction,
+            )
+            # Merge and deduplicate
+            seen_ids = {c.arxiv_id for c in candidates}
+            for bc in bfs_candidates:
+                if bc.arxiv_id not in seen_ids:
+                    candidates.append(bc)
+                    seen_ids.add(bc.arxiv_id)
+            logger.info(
+                "BFS added %d unique papers",
+                len(candidates) - len(seen_ids) + len(bfs_candidates),
+            )
 
     # Write expanded candidates
     output_path = expand_dir / "expanded_candidates.jsonl"

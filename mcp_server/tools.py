@@ -808,6 +808,8 @@ def expand_citations(
 ) -> ToolResult:
     """Expand citation graph for specified papers via Semantic Scholar."""
     try:
+        import json
+
         from research_pipeline.config.loader import load_config
         from research_pipeline.infra.rate_limit import RateLimiter
         from research_pipeline.sources.citation_graph import CitationGraphClient
@@ -835,17 +837,55 @@ def expand_citations(
             rate_limiter=rate_limiter,
         )
 
-        _log_info(
-            ctx,
-            f"Expanding citations for {len(params.paper_ids)} papers "
-            f"(direction={params.direction})",
-        )
+        if params.snowball:
+            from research_pipeline.models.snowball import SnowballBudget
+            from research_pipeline.sources.snowball import (
+                format_snowball_report,
+                snowball_expand,
+            )
 
-        candidates = client.fetch_related(
-            paper_ids=params.paper_ids,
-            direction=params.direction,
-            limit_per_paper=params.limit,
-        )
+            budget = SnowballBudget(
+                max_rounds=params.snowball_max_rounds,
+                max_total_papers=params.snowball_max_papers,
+                limit_per_paper=params.limit,
+                direction=params.direction,
+            )
+
+            _log_info(
+                ctx,
+                f"Snowball expansion: {len(params.paper_ids)} seeds, "
+                f"max_rounds={params.snowball_max_rounds}",
+            )
+
+            candidates, result = snowball_expand(
+                client=client,
+                seed_ids=params.paper_ids,
+                query_terms=params.query_terms,
+                budget=budget,
+            )
+
+            report_path = expand_dir / "snowball_report.md"
+            report_path.write_text(format_snowball_report(result), encoding="utf-8")
+            stats_path = expand_dir / "snowball_stats.json"
+            stats_path.write_text(
+                json.dumps(result.model_dump(mode="json"), indent=2),
+                encoding="utf-8",
+            )
+
+            stop_reason = result.stop_reason.value
+        else:
+            _log_info(
+                ctx,
+                f"Expanding citations for {len(params.paper_ids)} papers "
+                f"(direction={params.direction})",
+            )
+
+            candidates = client.fetch_related(
+                paper_ids=params.paper_ids,
+                direction=params.direction,
+                limit_per_paper=params.limit,
+            )
+            stop_reason = "single_hop"
 
         _report_progress(
             ctx,
@@ -859,17 +899,25 @@ def expand_citations(
         write_jsonl(records, output_path)
 
         logger.info("Expansion complete: %d related papers", len(candidates))
+        artifacts: dict[str, object] = {
+            "expanded_candidates": str(output_path),
+            "run_id": _rid,
+            "count": len(candidates),
+            "mode": "snowball" if params.snowball else "single_hop",
+        }
+        if params.snowball:
+            artifacts["stop_reason"] = stop_reason
+            artifacts["snowball_report"] = str(expand_dir / "snowball_report.md")
+
         return ToolResult(
             success=True,
             message=(
                 f"Expanded {len(params.paper_ids)} seed papers → "
-                f"{len(candidates)} related papers."
+                f"{len(candidates)} related papers"
+                f" (mode={'snowball' if params.snowball else 'single_hop'}"
+                f"{', stop=' + stop_reason if params.snowball else ''})."
             ),
-            artifacts={
-                "expanded_candidates": str(output_path),
-                "run_id": _rid,
-                "count": len(candidates),
-            },
+            artifacts=artifacts,
         )
     except Exception as exc:
         logger.error("expand_citations failed: %s", exc)
