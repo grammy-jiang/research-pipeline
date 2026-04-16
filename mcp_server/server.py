@@ -22,6 +22,7 @@ from mcp_server.schemas import (
     ConvertPdfsInput,
     ConvertRoughInput,
     DownloadPdfsInput,
+    EvalLogInput,
     EvaluateQualityInput,
     ExpandCitationsInput,
     ExtractContentInput,
@@ -52,6 +53,7 @@ from mcp_server.tools import (
     list_backends,
     manage_index,
     plan_topic,
+    query_eval_log,
     record_feedback,
     run_pipeline,
     screen_candidates,
@@ -658,6 +660,44 @@ def tool_record_feedback(
             reason=reason,
             show=show,
             adjust=adjust,
+        ),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_query_eval_log(
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    channel: str = "all",
+    stage: str = "",
+    limit: int = 50,
+) -> dict:
+    """Query three-channel evaluation logs for a pipeline run.
+
+    Three channels capture different aspects of execution:
+    - traces: Execution flow (JSONL) with timing and causality
+    - audit: Structured DB (SQLite) with who/what/when records
+    - snapshots: Filesystem state captures at stage boundaries
+
+    Use channel='summary' for an overview of all three channels.
+    """
+    result = query_eval_log(
+        EvalLogInput(
+            workspace=workspace,
+            run_id=run_id,
+            channel=channel,
+            stage=stage,
+            limit=limit,
         ),
         ctx=ctx,
     )

@@ -24,6 +24,7 @@ from research_pipeline.extraction.extractor import extract_from_markdown
 from research_pipeline.infra.audit import AuditLogger, EventType
 from research_pipeline.infra.cache import FileCache
 from research_pipeline.infra.clock import date_window, utc_now
+from research_pipeline.infra.eval_logging import EvalLogger
 from research_pipeline.infra.http import create_session
 from research_pipeline.infra.sanitize import sanitize_text
 from research_pipeline.llm.providers import create_llm_provider
@@ -374,6 +375,14 @@ def run_pipeline(
     # Audit trail for this run
     audit = AuditLogger(run_root)
 
+    # Three-channel evaluation logging
+    eval_log: EvalLogger | None = None
+    try:
+        eval_log = EvalLogger(run_root)
+        logger.info("Three-channel eval logging initialized")
+    except Exception as exc:
+        logger.warning("Eval logging init failed: %s", exc)
+
     # Load or create manifest
     manifest: RunManifest | None = None
     if resume:
@@ -514,6 +523,8 @@ def run_pipeline(
         started = utc_now()
         logger.info("Stage: plan")
         audit.emit(EventType.STAGE_STARTED, stage="plan", run_id=run_id)
+        if eval_log is not None:
+            eval_log.trace("stage_started", stage="plan")
         plan_dir = get_stage_dir(run_root, "plan")
 
         must_terms, nice_terms = _split_topic_terms(topic)
@@ -560,6 +571,8 @@ def run_pipeline(
         started = utc_now()
         logger.info("Stage: search")
         audit.emit(EventType.STAGE_STARTED, stage="search", run_id=run_id)
+        if eval_log is not None:
+            eval_log.trace("stage_started", stage="search")
         search_dir = get_stage_dir(run_root, "search")
         raw_dir = search_dir / "raw"
         raw_dir.mkdir(parents=True, exist_ok=True)
@@ -662,6 +675,12 @@ def run_pipeline(
         started = utc_now()
         logger.info("Stage: screen")
         audit.emit(EventType.STAGE_STARTED, stage="screen", run_id=run_id)
+        if eval_log is not None:
+            eval_log.trace(
+                "stage_started",
+                stage="screen",
+                data={"candidates": len(candidates)},
+            )
         screen_dir = get_stage_dir(run_root, "screen")
 
         # Security gate: classify and sanitize candidate text before scoring
@@ -875,6 +894,8 @@ def run_pipeline(
             started = utc_now()
             logger.info("Stage: download")
             audit.emit(EventType.STAGE_STARTED, stage="download", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="download")
             pdf_dir = get_stage_dir(run_root, "download")
             pdf_dir.mkdir(parents=True, exist_ok=True)
 
@@ -934,6 +955,8 @@ def run_pipeline(
             started = utc_now()
             logger.info("Stage: convert")
             audit.emit(EventType.STAGE_STARTED, stage="convert", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="convert")
             md_dir = get_stage_dir(run_root, "convert")
             converter = _create_converter(config)
 
@@ -1050,6 +1073,8 @@ def run_pipeline(
             started = utc_now()
             logger.info("Stage: extract")
             audit.emit(EventType.STAGE_STARTED, stage="extract", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="extract")
             extract_dir = get_stage_dir(run_root, "extract")
 
             extractions = []
@@ -1092,6 +1117,8 @@ def run_pipeline(
         started = utc_now()
         logger.info("Stage: summarize")
         audit.emit(EventType.STAGE_STARTED, stage="summarize", run_id=run_id)
+        if eval_log is not None:
+            eval_log.trace("stage_started", stage="summarize")
         sum_dir = get_stage_dir(run_root, "summarize")
 
         summaries = []
@@ -1269,6 +1296,8 @@ def run_pipeline(
 
         logger.info("Starting THINK→EXECUTE→REFLECT loop (max %d iterations)", ter_max)
         audit.emit(EventType.STAGE_STARTED, stage="ter_loop", run_id=run_id)
+        if eval_log is not None:
+            eval_log.trace("stage_started", stage="ter_loop")
 
         # Read current synthesis
         sum_dir = get_stage_dir(run_root, "summarize")
@@ -1436,5 +1465,37 @@ def run_pipeline(
                 )
         except Exception as exc:
             logger.warning("MCP audit save failed: %s", exc)
+
+    # Three-channel eval logging summary
+    if eval_log is not None:
+        try:
+            eval_log.trace(
+                "pipeline_complete",
+                stage="pipeline",
+                data={
+                    "run_id": run_id,
+                    "stages": list(manifest.stages.keys()),
+                    "papers": len(candidates),
+                },
+            )
+            eval_log.record_audit(
+                "pipeline",
+                "complete",
+                run_id=run_id,
+                details={
+                    "stages": list(manifest.stages.keys()),
+                    "papers": len(candidates),
+                    "shortlist": len(shortlist),
+                },
+            )
+            eval_summary = eval_log.summary()
+            eval_summary_path = run_root / "eval_logging_summary.json"
+            eval_summary_path.write_text(
+                json.dumps(eval_summary, indent=2, default=str),
+                encoding="utf-8",
+            )
+            eval_log.close()
+        except Exception as exc:
+            logger.warning("Eval logging summary failed: %s", exc)
 
     return manifest

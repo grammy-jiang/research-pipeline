@@ -500,6 +500,30 @@ feedback-adjusted weights. The adjustment uses an ELO-inspired algorithm:
 weights that correlate with accepted papers are boosted, weights that
 correlate with rejected papers are dampened.
 
+### Three-channel eval logging (v0.13.1+)
+
+Three evaluation channels capture pipeline execution for observability
+and post-hoc analysis:
+
+1. **Execution traces** — Structured JSONL with timing and causality
+   (`<run_root>/logs/traces.jsonl`)
+2. **Audit database** — SQLite who/what/when records
+   (`<run_root>/logs/audit.db`)
+3. **Environment snapshots** — Filesystem state at stage boundaries
+   (`<run_root>/snapshots/`)
+
+Eval logging is automatic during pipeline runs. To inspect:
+
+```bash
+# View all channels
+research-pipeline eval-log --run-id <RUN_ID>
+
+# View specific channel
+research-pipeline eval-log --run-id <RUN_ID> --channel traces --stage screen
+research-pipeline eval-log --run-id <RUN_ID> --channel audit --limit 20
+research-pipeline eval-log --run-id <RUN_ID> --channel summary
+```
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:
@@ -576,7 +600,7 @@ uv run python -m mcp_server
 
 ### Tools (18)
 
-All 18 tools include **annotations** (readOnlyHint, destructiveHint,
+All 19 tools include **annotations** (readOnlyHint, destructiveHint,
 idempotentHint, openWorldHint) and **progress reporting** via MCP context.
 
 | Tool | Description |

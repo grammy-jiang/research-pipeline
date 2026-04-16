@@ -286,6 +286,23 @@ class FeedbackInput(CommonParams):
     )
 
 
+class EvalLogInput(CommonParams):
+    """Input for the query_eval_log tool."""
+
+    channel: str = Field(
+        default="all",
+        description=("Channel to query: traces, audit, snapshots, " "summary, or all."),
+    )
+    stage: str = Field(
+        default="",
+        description="Filter by pipeline stage.",
+    )
+    limit: int = Field(
+        default=50,
+        description="Maximum records to return.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

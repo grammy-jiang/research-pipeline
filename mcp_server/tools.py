@@ -23,6 +23,7 @@ from mcp_server.schemas import (
     ConvertPdfsInput,
     ConvertRoughInput,
     DownloadPdfsInput,
+    EvalLogInput,
     EvaluateQualityInput,
     ExpandCitationsInput,
     ExtractContentInput,
@@ -1434,4 +1435,51 @@ def record_feedback(params: FeedbackInput, ctx: Context | None = None) -> ToolRe
         )
     except Exception as exc:
         logger.error("record_feedback failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def query_eval_log(params: EvalLogInput, ctx: Context | None = None) -> ToolResult:
+    """Query three-channel evaluation logs for a run.
+
+    Channels: traces (JSONL), audit (SQLite), snapshots (filesystem).
+    """
+    try:
+        from research_pipeline.infra.eval_logging import EvalLogger
+        from research_pipeline.storage.workspace import resolve_workspace
+
+        ws = resolve_workspace(Path(params.workspace) if params.workspace else None)
+        run_root = ws / params.run_id
+        if not run_root.exists():
+            return ToolResult(
+                success=False,
+                message=f"Run not found: {params.run_id}",
+            )
+
+        eval_log = EvalLogger(run_root)
+        result: dict = {"run_id": params.run_id}
+
+        if params.channel in ("traces", "all"):
+            traces = eval_log.tracer.read_traces(stage=params.stage)
+            result["traces"] = traces[-params.limit :]
+            result["trace_count"] = len(traces)
+
+        if params.channel in ("audit", "all"):
+            records = eval_log.audit.query(stage=params.stage, limit=params.limit)
+            result["audit_records"] = records
+            result["audit_total"] = eval_log.audit.count(stage=params.stage)
+
+        if params.channel in ("snapshots", "all"):
+            result["snapshots"] = eval_log.snapshots.list_snapshots()
+
+        if params.channel == "summary":
+            result["summary"] = eval_log.summary()
+
+        eval_log.close()
+        return ToolResult(
+            success=True,
+            message="Eval log query complete",
+            artifacts=result,
+        )
+    except Exception as exc:
+        logger.error("query_eval_log failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

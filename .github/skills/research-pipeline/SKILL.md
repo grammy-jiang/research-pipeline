@@ -300,6 +300,30 @@ Accumulated feedback automatically adjusts BM25 screening weights via
 ELO-style learning. After ≥5 feedback entries (with both accepts and
 rejects), the pipeline uses feedback-adjusted weights for future runs.
 
+### Step 3.3: Three-Channel Eval Logging (Automatic)
+
+Three evaluation channels capture pipeline execution for observability:
+
+1. **Execution traces** — Structured JSONL flow with timing and causality
+   (`logs/traces.jsonl`)
+2. **Audit database** — SQLite who/what/when records (`logs/audit.db`)
+3. **Environment snapshots** — Filesystem state at stage boundaries
+   (`snapshots/`)
+
+Eval logging is automatic during pipeline runs. To inspect:
+
+```bash
+# View all channels
+research-pipeline eval-log --run-id <RUN_ID>
+
+# View specific channel
+research-pipeline eval-log --run-id <RUN_ID> --channel traces --stage screen
+research-pipeline eval-log --run-id <RUN_ID> --channel audit --limit 20
+research-pipeline eval-log --run-id <RUN_ID> --channel summary
+```
+
+Use `query_eval_log` MCP tool for programmatic access.
+
 ### Step 3.5: Quality Evaluation (Optional)
 
 ```bash

@@ -1019,5 +1019,51 @@ def feedback(
     )
 
 
+@app.command(name="eval-log")
+def eval_log(
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    run_id: str = typer.Option(
+        ..., "--run-id", help="Run ID to inspect evaluation logs for."
+    ),
+    channel: str = typer.Option(
+        "all",
+        "--channel",
+        "-c",
+        help="Channel to inspect: traces, audit, snapshots, summary, all.",
+    ),
+    stage: str = typer.Option("", "--stage", "-s", help="Filter by pipeline stage."),
+    limit: int = typer.Option(50, "--limit", "-n", help="Maximum records to display."),
+) -> None:
+    """Inspect three-channel evaluation logs for a pipeline run.
+
+    Three channels capture different aspects of pipeline execution:
+
+    \b
+    - traces:    Execution flow (JSONL) — timing, causality
+    - audit:     Structured DB (SQLite) — who/what/when
+    - snapshots: Filesystem state — stage boundary captures
+
+    \b
+    Examples:
+      research-pipeline eval-log --run-id <ID>
+      research-pipeline eval-log --run-id <ID> --channel traces --stage screen
+      research-pipeline eval-log --run-id <ID> --channel audit --limit 20
+      research-pipeline eval-log --run-id <ID> --channel summary
+    """
+    from research_pipeline.cli.cmd_eval_log import eval_log_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    eval_log_cmd(
+        run_id=run_id,
+        channel=channel,
+        stage=stage,
+        limit=limit,
+        workspace=workspace,
+    )
+
+
 if __name__ == "__main__":
     app()
