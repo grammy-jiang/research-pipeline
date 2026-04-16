@@ -191,6 +191,13 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # Score < 0.2 = LOW, 0.2-0.4 = MEDIUM, > 0.4 = HIGH contamination.
 # Options: --threshold (0.4), --no-store, --json, --workspace
 
+# Pass@k + Pass[k] dual metrics (v0.13.11+)
+# CLI: research-pipeline dual-metrics --query "topic" [--run-ids r1,r2,r3] [--k 5]
+# Claw-Eval framework for evaluating pipeline reliability across multiple runs.
+# Pass@k = capability ceiling, Pass[k] = reliability floor.
+# Safety gate zeros scores when fabrication detected.
+# Options: --k (5), --no-store, --json, --workspace
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

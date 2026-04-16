@@ -443,6 +443,30 @@ class BlindingAuditInput(BaseModel):
     )
 
 
+class DualMetricsInput(BaseModel):
+    """Input for the dual-metrics evaluation tool."""
+
+    workspace: str = Field(
+        default="workspace",
+        description="Workspace directory containing run outputs.",
+    )
+    query: str = Field(
+        description="Research query these runs address.",
+    )
+    run_ids: list[str] = Field(
+        default_factory=list,
+        description="Run IDs to evaluate (auto-discover if empty).",
+    )
+    k: int = Field(
+        default=5,
+        description="Number of samples for Pass@k / Pass[k] computation.",
+    )
+    store_results: bool = Field(
+        default=True,
+        description="Whether to persist results to SQLite.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

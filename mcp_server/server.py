@@ -52,6 +52,7 @@ from mcp_server.tools import (
     convert_pdfs,
     convert_rough,
     download_pdfs,
+    dual_metrics_tool,
     evaluate_quality,
     expand_citations,
     export_html_tool,
@@ -944,6 +945,49 @@ async def tool_blinding_audit(
         store_results=store_results,
     )
     result = blinding_audit_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_dual_metrics(
+    query: str,
+    workspace: str = "workspace",
+    run_ids: list[str] | None = None,
+    k: int = 5,
+    store_results: bool = True,
+) -> dict:
+    """Evaluate pipeline runs using Pass@k + Pass[k] dual metrics.
+
+    Computes capability ceiling (Pass@k) and reliability floor (Pass[k])
+    across multiple runs of the same research query. Applies a multiplicative
+    safety gate that zeros scores when fabrication is detected.
+
+    Based on the Claw-Eval framework (arXiv 2604.06132).
+
+    Args:
+        query: Research query these runs address.
+        workspace: Workspace directory containing run outputs.
+        run_ids: Run IDs to evaluate (auto-discover if empty).
+        k: Number of samples for Pass@k / Pass[k] computation.
+        store_results: Whether to persist results to SQLite.
+    """
+    from mcp_server.schemas import DualMetricsInput
+
+    params = DualMetricsInput(
+        workspace=workspace,
+        query=query,
+        run_ids=run_ids or [],
+        k=k,
+        store_results=store_results,
+    )
+    result = dual_metrics_tool(params=params)
     return result.model_dump()
 
 

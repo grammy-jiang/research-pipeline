@@ -1367,3 +1367,68 @@ def blinding_audit_command(
         store_results=not no_store,
         output_json=output_json,
     )
+
+
+@app.command("dual-metrics")
+def dual_metrics_command(
+    workspace: str = typer.Option(
+        "workspace",
+        "--workspace",
+        "-w",
+        help="Path to the workspace directory.",
+    ),
+    query: str = typer.Option(
+        ...,
+        "--query",
+        "-q",
+        help="Research query these runs address.",
+    ),
+    run_ids: str = typer.Option(
+        "",
+        "--run-ids",
+        help="Comma-separated run IDs to evaluate (auto-discover if empty).",
+    ),
+    k: int = typer.Option(
+        5,
+        "--k",
+        help="Number of samples for Pass@k / Pass[k] computation.",
+    ),
+    no_store: bool = typer.Option(
+        False,
+        "--no-store",
+        help="Do not persist results to SQLite.",
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Output raw JSON instead of summary.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Evaluate pipeline runs using Pass@k + Pass[k] dual metrics.
+
+    Computes capability ceiling (Pass@k) and reliability floor (Pass[k])
+    across multiple pipeline runs for the same research query. Applies a
+    multiplicative safety gate that zeros scores when fabrication is detected.
+
+    Based on the Claw-Eval framework (arXiv 2604.06132).
+
+    .. code-block:: bash
+
+       research-pipeline dual-metrics --query "transformers" --run-ids r1,r2,r3
+       research-pipeline dual-metrics --query "LLM agents" --k 3
+    """
+    from research_pipeline.cli.cmd_dual_metrics import handle_dual_metrics
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    parsed_ids = [r.strip() for r in run_ids.split(",") if r.strip()] or None
+    handle_dual_metrics(
+        workspace=Path(workspace),
+        query=query,
+        run_ids=parsed_ids,
+        k=k,
+        store_results=not no_store,
+        output_json=output_json,
+    )

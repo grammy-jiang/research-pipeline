@@ -300,6 +300,44 @@ research-pipeline blinding-audit --json
 - When results seem suspiciously aligned with well-known papers
 - As a quality gate before publishing research reports
 
+### Pass@k + Pass[k] Dual Metrics (v0.13.11+)
+
+Claw-Eval framework (arXiv 2604.06132) for evaluating pipeline reliability
+across multiple runs of the same research query. Measures both capability
+ceiling (Pass@k = at least one correct) and reliability floor (Pass[k] = all
+correct) with a multiplicative safety gate for fabrication detection.
+
+```bash
+# Evaluate all runs in workspace for a query
+research-pipeline dual-metrics --query "transformer architectures"
+
+# Evaluate specific runs with custom k
+research-pipeline dual-metrics --query "LLM agents" --run-ids r1,r2,r3 --k 3
+
+# Output raw JSON
+research-pipeline dual-metrics --query "topic" --json
+```
+
+**MCP tool:** `tool_dual_metrics` — compute Pass@k/Pass[k] dual metrics.
+
+**Metrics explained:**
+- **Pass@k** — probability that at least one of k samples is correct (capability ceiling)
+- **Pass[k]** — probability that all k samples are correct (reliability floor)
+- **Reliability gap** — Pass@k minus Pass[k]; large gaps indicate inconsistency
+- **Safety gate** — multiplicative 0.0 if ANY fabrication detected across samples
+- **Gated metrics** — Pass@k × safety_gate and Pass[k] × safety_gate
+
+**Quality scoring per run:**
+- Findings count (weight 0.3) — at least 3 findings for full credit
+- Evidence backing (weight 0.3) — ratio of findings with evidence
+- Paper coverage (weight 0.2) — papers analyzed vs available
+- Gap identification (weight 0.2) — presence of research gaps
+
+**When to use:**
+- After running the same query multiple times to assess consistency
+- To compare pipeline reliability before and after configuration changes
+- As a quality gate for automated research workflows
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

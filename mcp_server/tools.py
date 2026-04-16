@@ -26,6 +26,7 @@ from mcp_server.schemas import (
     ConvertPdfsInput,
     ConvertRoughInput,
     DownloadPdfsInput,
+    DualMetricsInput,
     EvalLogInput,
     EvaluateQualityInput,
     EvidenceAggregateInput,
@@ -1897,4 +1898,43 @@ def blinding_audit_tool(
         )
     except Exception as exc:
         logger.error("blinding audit failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def dual_metrics_tool(
+    params: DualMetricsInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Evaluate pipeline runs using Pass@k + Pass[k] dual metrics.
+
+    Implements Claw-Eval framework (arXiv 2604.06132): computes capability
+    ceiling (Pass@k) and reliability floor (Pass[k]) with safety gates.
+    """
+    try:
+        from research_pipeline.evaluation.dual_metrics import evaluate_runs
+
+        ws = Path(params.workspace)
+        run_ids = params.run_ids if params.run_ids else None
+        result = evaluate_runs(
+            ws,
+            params.query,
+            run_ids=run_ids,
+            k=params.k,
+            store_results=params.store_results,
+        )
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Dual metrics for '{result.query}': "
+                f"Pass@{result.k}={result.gated_pass_at_k:.3f}, "
+                f"Pass[{result.k}]={result.gated_pass_bracket_k:.3f}, "
+                f"gap={result.pass_at_k - result.pass_bracket_k:.3f}, "
+                f"safety={result.safety_gate:.1f}, "
+                f"n={result.n}, c={result.c}"
+            ),
+            artifacts=result.to_dict(),
+        )
+    except Exception as exc:
+        logger.error("dual metrics failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
