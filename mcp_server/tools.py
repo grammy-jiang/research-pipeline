@@ -30,6 +30,7 @@ from mcp_server.schemas import (
     ExportHtmlInput,
     ExtractContentInput,
     FeedbackInput,
+    GateInfoInput,
     GetRunManifestInput,
     ListBackendsInput,
     ManageIndexInput,
@@ -1747,4 +1748,42 @@ def model_routing_info_tool(
         )
     except Exception as exc:
         logger.error("model_routing_info failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def gate_info_tool(
+    params: GateInfoInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Return the current HITL gate configuration.
+
+    Shows which stages have approval gates and whether
+    gates are in auto-approve or interactive mode.
+    """
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.pipeline.gates import DEFAULT_GATE_STAGES
+
+        config_path = (
+            Path(params.config_path) if params.config_path else Path("config.toml")
+        )
+        cfg = load_config(config_path)
+        gate_cfg = cfg.gates
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Gates: enabled={gate_cfg.enabled}, "
+                f"auto_approve={gate_cfg.auto_approve}, "
+                f"stages={gate_cfg.gate_after}"
+            ),
+            artifacts={
+                "enabled": gate_cfg.enabled,
+                "auto_approve": gate_cfg.auto_approve,
+                "gate_after": gate_cfg.gate_after,
+                "default_gate_stages": DEFAULT_GATE_STAGES,
+            },
+        )
+    except Exception as exc:
+        logger.error("gate_info failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

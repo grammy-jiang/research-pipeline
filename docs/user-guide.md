@@ -167,6 +167,11 @@ provider = "openai"             # (validate, compare, security_gate)
 model = "gpt-4o"
 api_key = ""
 
+[gates]
+enabled = false                 # Human-in-the-loop gates (v0.13.7+)
+auto_approve = true             # Auto-approve all gates (set false for interactive)
+gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

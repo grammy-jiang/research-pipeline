@@ -180,6 +180,32 @@ api_key = "sk-..."
 When routing is disabled (default), all stages use the single `[llm]` provider.
 Fallback: if a tier has no provider, it falls back to the next-higher tier.
 
+### Human-in-the-Loop Gates (v0.13.7+)
+
+**Interactive approval checkpoints between pipeline stages:**
+
+By default, gates auto-approve. Use `--interactive` for manual review:
+```bash
+# Auto-approve (default — fully autonomous)
+research-pipeline run "topic" --config CFG
+
+# Interactive mode — pause after screen, download, summarize for review
+research-pipeline run "topic" --interactive --config CFG
+```
+
+Configure gate positions in `config.toml`:
+```toml
+[gates]
+enabled = true
+auto_approve = false
+gate_after = ["screen", "download", "summarize"]
+```
+
+At each gate, the pipeline shows a summary of completed work and prompts:
+- `[a]pprove` — continue to next stage
+- `[r]eject` — stop pipeline
+- `[s]kip` — skip remaining gates (auto-approve rest)
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

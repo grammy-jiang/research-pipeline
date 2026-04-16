@@ -20,6 +20,7 @@ def run_full(
     source: str | None = None,
     profile: str | None = None,
     ter_iterations: int | None = None,
+    auto_approve: bool = True,
 ) -> None:
     """Execute the full pipeline end-to-end.
 
@@ -32,6 +33,7 @@ def run_full(
         source: Source override (arxiv, scholar, all).
         profile: Pipeline profile override (quick, standard, deep, auto).
         ter_iterations: Max TER loop iterations (None = use config default).
+        auto_approve: Auto-approve all HITL gates (default True).
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)
@@ -50,6 +52,11 @@ def run_full(
     # Apply TER iterations override
     if ter_iterations is not None:
         config.ter_max_iterations = ter_iterations
+
+    # Apply gate overrides
+    if not auto_approve:
+        config.gates.enabled = True
+        config.gates.auto_approve = False
 
     manifest = run_pipeline(
         topic=topic,

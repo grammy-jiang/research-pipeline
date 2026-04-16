@@ -295,6 +295,11 @@ def run(
         "--ter-iterations",
         help="Max THINK→EXECUTE→REFLECT iterations (0 to disable).",
     ),
+    auto_approve: bool = typer.Option(
+        True,
+        "--auto-approve/--interactive",
+        help="Auto-approve HITL gates (default) or pause for review.",
+    ),
 ) -> None:
     """Run pipeline stages end-to-end.
 
@@ -317,6 +322,7 @@ def run(
         source=source,
         profile=profile,
         ter_iterations=ter_iterations,
+        auto_approve=auto_approve,
         **opts,
     )
 

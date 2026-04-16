@@ -250,6 +250,16 @@ class IncrementalConfig(BaseModel):
     reuse_artifacts: bool = True
 
 
+class GateConfig(BaseModel):
+    """Human-in-the-loop gate configuration."""
+
+    enabled: bool = False
+    gate_after: list[str] = Field(
+        default_factory=lambda: ["screen", "download", "summarize"]
+    )
+    auto_approve: bool = True
+
+
 class PipelineConfig(BaseModel):
     """Top-level pipeline configuration."""
 
@@ -264,6 +274,7 @@ class PipelineConfig(BaseModel):
     sources: SourcesConfig = Field(default_factory=SourcesConfig)
     quality: QualityConfig = Field(default_factory=QualityConfig)
     incremental: IncrementalConfig = Field(default_factory=IncrementalConfig)
+    gates: GateConfig = Field(default_factory=GateConfig)
     workspace: str = "runs"
     contact_email: str = ""
     profile: str = "standard"

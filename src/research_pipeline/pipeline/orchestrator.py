@@ -36,6 +36,13 @@ from research_pipeline.models.screening import (
     parse_shortlist_lenient,
 )
 from research_pipeline.models.summary import PaperSummary
+from research_pipeline.pipeline.gates import (
+    AutoApproveGate,
+    CliGate,
+    GateCallback,
+    GateDecision,
+    check_gate,
+)
 from research_pipeline.pipeline.topology import (
     PipelineProfile,
     classify_query_complexity,
@@ -451,6 +458,16 @@ def run_pipeline(
     # LLM provider (None when disabled — all LLM features degrade gracefully)
     llm_provider = create_llm_provider(config.llm)
 
+    # Human-in-the-loop gates
+    gate: GateCallback
+    gate_stages = config.gates.gate_after
+    if config.gates.enabled and not config.gates.auto_approve:
+        gate = CliGate()
+        logger.info("HITL gates enabled after: %s", gate_stages)
+    else:
+        gate = AutoApproveGate()
+    _gates_skipped = False
+
     # Security gate for content boundaries (optional — never crash pipeline)
     security_gate = None
     try:
@@ -564,6 +581,12 @@ def run_pipeline(
         )
         plan = QueryPlan.model_validate(plan_data)
 
+    # Gate: after plan
+    if not _gates_skipped:
+        decision = check_gate(gate, "plan", "search", run_id, run_root, gate_stages)
+        if decision is GateDecision.SKIP:
+            _gates_skipped = True
+
     # --- Stage: search ---
     if memory:
         memory.transition_stage("search")
@@ -667,6 +690,12 @@ def run_pipeline(
         search_dir = get_stage_dir(run_root, "search")
         raw_data = read_jsonl(search_dir / "candidates.jsonl")
         candidates = [CandidateRecord.model_validate(d) for d in raw_data]
+
+    # Gate: after search
+    if not _gates_skipped:
+        decision = check_gate(gate, "search", "screen", run_id, run_root, gate_stages)
+        if decision is GateDecision.SKIP:
+            _gates_skipped = True
 
     # --- Stage: screen ---
     if memory:
@@ -886,6 +915,12 @@ def run_pipeline(
         )
         shortlist = [parse_shortlist_lenient(d) for d in raw_shortlist]
 
+    # Gate: after screen
+    if not _gates_skipped:
+        decision = check_gate(gate, "screen", "download", run_id, run_root, gate_stages)
+        if decision is GateDecision.SKIP:
+            _gates_skipped = True
+
     # --- Stage: download ---
     if memory:
         memory.transition_stage("download")
@@ -946,6 +981,14 @@ def run_pipeline(
     else:
         logger.info("Skipping download stage (profile: %s)", profile.value)
         entries = []
+
+    # Gate: after download
+    if not _gates_skipped:
+        decision = check_gate(
+            gate, "download", "convert", run_id, run_root, gate_stages
+        )
+        if decision is GateDecision.SKIP:
+            _gates_skipped = True
 
     # --- Stage: convert ---
     if memory:
@@ -1065,6 +1108,12 @@ def run_pipeline(
         logger.info("Skipping convert stage (profile: %s)", profile.value)
         convert_entries = []
 
+    # Gate: after convert
+    if not _gates_skipped:
+        decision = check_gate(gate, "convert", "extract", run_id, run_root, gate_stages)
+        if decision is GateDecision.SKIP:
+            _gates_skipped = True
+
     # --- Stage: extract ---
     if memory:
         memory.transition_stage("extract")
@@ -1109,6 +1158,14 @@ def run_pipeline(
             save_manifest(run_root, manifest)
     else:
         logger.info("Skipping extract stage (profile: %s)", profile.value)
+
+    # Gate: after extract
+    if not _gates_skipped:
+        decision = check_gate(
+            gate, "extract", "summarize", run_id, run_root, gate_stages
+        )
+        if decision is GateDecision.SKIP:
+            _gates_skipped = True
 
     # --- Stage: summarize ---
     if memory:

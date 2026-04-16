@@ -53,6 +53,7 @@ from mcp_server.tools import (
     expand_citations,
     export_html_tool,
     extract_content,
+    gate_info_tool,
     get_run_manifest,
     list_backends,
     manage_index,
@@ -807,6 +808,29 @@ async def tool_model_routing_info(
 
     params = ModelRoutingInfoInput(config_path=config_path)
     result = model_routing_info_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_gate_info(
+    config_path: str = "",
+) -> dict:
+    """Show current HITL gate configuration.
+
+    Returns which stages have approval gates and whether
+    gates are in auto-approve or interactive mode.
+    """
+    from mcp_server.schemas import GateInfoInput
+
+    params = GateInfoInput(config_path=config_path)
+    result = gate_info_tool(params=params)
     return result.model_dump()
 
 
