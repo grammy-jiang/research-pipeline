@@ -263,6 +263,43 @@ research-pipeline consolidate --capacity 50 --threshold 0.7 --min-support 3
 - Periodically as part of research hygiene
 - Before starting a new research topic (consolidate old knowledge first)
 
+### Epistemic Blinding Audits (v0.13.10+)
+
+A/B blinding protocol for detecting LLM prior contamination in analysis outputs
+(arXiv 2604.06013). Scans findings for identifying feature references (authors,
+titles, venues, years, citations) and scores how much the analysis relies on
+identity rather than evidence.
+
+```bash
+# Audit latest run in workspace
+research-pipeline blinding-audit
+
+# Audit specific run with custom threshold
+research-pipeline blinding-audit --run-id <ID> --threshold 0.3
+
+# Output raw JSON
+research-pipeline blinding-audit --json
+```
+
+**MCP tool:** `tool_blinding_audit` — run epistemic blinding audit.
+
+**Contamination detection:**
+- **Author references** — findings mentioning author names (weight 0.30)
+- **Title references** — findings echoing paper titles (weight 0.25)
+- **Venue references** — findings citing specific venues (weight 0.20)
+- **Citation patterns** — bracket/parenthetical citation use (weight 0.15)
+- **Year references** — findings mentioning publication years (weight 0.10)
+
+**Score interpretation:**
+- `< 0.2` → LOW: analysis is evidence-based
+- `0.2 – 0.4` → MEDIUM: some identity reliance, consider blinded re-analysis
+- `> 0.4` → HIGH: strongly recommend re-analysis with blinded inputs
+
+**When to use:**
+- After every synthesis run to validate evidence quality
+- When results seem suspiciously aligned with well-known papers
+- As a quality gate before publishing research reports
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

@@ -184,6 +184,13 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # Options: --capacity (default 100), --threshold (0.8), --min-support (2),
 #          --staleness-days (90), --dry-run, --output path
 
+# Epistemic blinding audits (v0.13.10+)
+# CLI: research-pipeline blinding-audit [--run-id ID] [--threshold 0.4]
+# A/B blinding protocol for detecting LLM prior contamination in analysis.
+# Scans findings for author/title/venue/year/citation references.
+# Score < 0.2 = LOW, 0.2-0.4 = MEDIUM, > 0.4 = HIGH contamination.
+# Options: --threshold (0.4), --no-store, --json, --workspace
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

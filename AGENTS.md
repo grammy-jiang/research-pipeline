@@ -254,7 +254,7 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 29 tools (with annotations & progress), 15 resources (URI templates),
+Features: 30 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
 
 New quality tools:

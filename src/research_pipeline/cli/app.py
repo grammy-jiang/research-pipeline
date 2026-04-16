@@ -1311,3 +1311,59 @@ def export_html_command(
         title=title,
         config_path=config_path,
     )
+
+
+@app.command("blinding-audit")
+def blinding_audit_command(
+    workspace: str = typer.Option(
+        "workspace",
+        "--workspace",
+        "-w",
+        help="Path to the workspace directory.",
+    ),
+    run_id: str = typer.Option(
+        "",
+        "--run-id",
+        help="Specific run ID to audit (latest if empty).",
+    ),
+    threshold: float = typer.Option(
+        0.4,
+        "--threshold",
+        help="Contamination threshold for flagging papers.",
+    ),
+    no_store: bool = typer.Option(
+        False,
+        "--no-store",
+        help="Do not persist results to SQLite.",
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Output raw JSON instead of summary.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Run epistemic blinding audit to detect LLM prior contamination.
+
+    Scans pipeline run outputs for identifying feature references (author
+    names, venue names, years, citations) in analysis findings. High scores
+    indicate the analysis may rely on LLM prior knowledge rather than
+    evidence from the paper content itself.
+
+    .. code-block:: bash
+
+       research-pipeline blinding-audit --run-id <ID>
+       research-pipeline blinding-audit --threshold 0.3
+    """
+    from research_pipeline.cli.cmd_blinding_audit import handle_blinding_audit
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    handle_blinding_audit(
+        workspace=Path(workspace),
+        run_id=run_id or None,
+        threshold=threshold,
+        store_results=not no_store,
+        output_json=output_json,
+    )

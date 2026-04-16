@@ -43,6 +43,7 @@ from mcp_server.schemas import (
 from mcp_server.tools import (
     aggregate_evidence_tool,
     analyze_papers,
+    blinding_audit_tool,
     coherence_tool,
     compare_runs,
     consolidation_tool,
@@ -905,6 +906,44 @@ async def tool_consolidation(
         min_support=min_support,
     )
     result = consolidation_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_blinding_audit(
+    workspace: str = "workspace",
+    run_id: str = "",
+    threshold: float = 0.4,
+    store_results: bool = True,
+) -> dict:
+    """Run epistemic blinding audit to detect LLM prior contamination.
+
+    Implements A/B blinding protocol (arXiv 2604.06013): scans analysis
+    outputs for identifying feature references and scores contamination
+    level per paper and across the run.
+
+    Args:
+        workspace: Workspace directory containing run outputs.
+        run_id: Specific run ID to audit (latest if empty).
+        threshold: Contamination threshold for flagging papers.
+        store_results: Whether to persist results to SQLite.
+    """
+    from mcp_server.schemas import BlindingAuditInput
+
+    params = BlindingAuditInput(
+        workspace=workspace,
+        run_id=run_id,
+        threshold=threshold,
+        store_results=store_results,
+    )
+    result = blinding_audit_tool(params=params)
     return result.model_dump()
 
 

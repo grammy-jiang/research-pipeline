@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 from mcp_server.schemas import (
     AnalyzePapersInput,
+    BlindingAuditInput,
     CoherenceInput,
     CompareRunsInput,
     ConsolidationInput,
@@ -1859,4 +1860,41 @@ def consolidation_tool(
         )
     except Exception as exc:
         logger.error("consolidation failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def blinding_audit_tool(
+    params: BlindingAuditInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Run epistemic blinding audit to detect LLM prior contamination.
+
+    Implements A/B blinding protocol from arXiv 2604.06013: scans analysis
+    outputs for identifying feature references and scores contamination.
+    """
+    try:
+        from research_pipeline.evaluation.blinding import (
+            run_blinding_audit_for_workspace,
+        )
+
+        ws = Path(params.workspace)
+        result = run_blinding_audit_for_workspace(
+            ws,
+            run_id=params.run_id or None,
+            contamination_threshold=params.threshold,
+            store_results=params.store_results,
+        )
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Blinding audit complete for run {result.run_id}: "
+                f"score={result.aggregate_score:.3f}, "
+                f"{len(result.high_contamination_papers)} flagged papers. "
+                f"{result.recommendation}"
+            ),
+            artifacts=result.to_dict(),
+        )
+    except Exception as exc:
+        logger.error("blinding audit failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

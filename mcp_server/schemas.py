@@ -422,6 +422,27 @@ class ConsolidationInput(BaseModel):
     )
 
 
+class BlindingAuditInput(BaseModel):
+    """Input for the epistemic blinding audit tool."""
+
+    workspace: str = Field(
+        default="workspace",
+        description="Workspace directory containing run outputs.",
+    )
+    run_id: str = Field(
+        default="",
+        description="Specific run ID to audit (latest if empty).",
+    )
+    threshold: float = Field(
+        default=0.4,
+        description="Contamination threshold for flagging papers.",
+    )
+    store_results: bool = Field(
+        default=True,
+        description="Whether to persist results to SQLite.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 
