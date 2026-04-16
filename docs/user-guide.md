@@ -172,6 +172,11 @@ enabled = false                 # Human-in-the-loop gates (v0.13.7+)
 auto_approve = true             # Auto-approve all gates (set false for interactive)
 gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 
+# Multi-session coherence evaluation (v0.13.8+)
+# CLI: research-pipeline coherence <RUN_A> <RUN_B> [<RUN_C> ...]
+# Evaluates factual consistency, temporal ordering, knowledge update fidelity,
+# and contradiction detection across 2+ pipeline runs.
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

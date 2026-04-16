@@ -43,6 +43,7 @@ from mcp_server.schemas import (
 from mcp_server.tools import (
     aggregate_evidence_tool,
     analyze_papers,
+    coherence_tool,
     compare_runs,
     convert_file,
     convert_fine,
@@ -831,6 +832,34 @@ async def tool_gate_info(
 
     params = GateInfoInput(config_path=config_path)
     result = gate_info_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_coherence(
+    run_ids: list[str],
+    workspace: str = "runs",
+) -> dict:
+    """Evaluate multi-session coherence across pipeline runs.
+
+    Computes factual consistency, temporal ordering, knowledge update
+    fidelity, and contradiction detection across 2+ runs.
+
+    Args:
+        run_ids: Two or more run IDs to evaluate.
+        workspace: Workspace directory containing run outputs.
+    """
+    from mcp_server.schemas import CoherenceInput
+
+    params = CoherenceInput(run_ids=run_ids, workspace=workspace)
+    result = coherence_tool(params=params)
     return result.model_dump()
 
 

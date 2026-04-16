@@ -206,6 +206,31 @@ At each gate, the pipeline shows a summary of completed work and prompts:
 - `[r]eject` — stop pipeline
 - `[s]kip` — skip remaining gates (auto-approve rest)
 
+### Multi-Session Coherence (v0.13.8+)
+
+Evaluates knowledge coherence across multiple pipeline runs on the same or
+related topics. Detects contradictions, tracks knowledge evolution, and
+computes a composite coherence score.
+
+**CLI usage:**
+```bash
+research-pipeline coherence <RUN_A> <RUN_B> [<RUN_C> ...]
+```
+
+**MCP tool:** `tool_coherence` — evaluates coherence across 2+ runs.
+
+**Coherence dimensions:**
+- **Factual Consistency** — findings that appear in multiple runs agree
+- **Temporal Ordering** — knowledge evolution is chronologically sound
+- **Knowledge Update Fidelity** — superseded findings are properly replaced
+- **Contradiction Detection** — conflicting claims are surfaced
+- **Overall Score** — weighted composite (0–1, higher is better)
+
+**When to use:**
+- After running the pipeline multiple times on the same/evolving topic
+- After `expand` iterations to check if new papers contradict earlier findings
+- To validate that gap-filling runs produced consistent results
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

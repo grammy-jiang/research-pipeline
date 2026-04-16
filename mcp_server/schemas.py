@@ -380,6 +380,19 @@ class GateInfoInput(BaseModel):
     )
 
 
+class CoherenceInput(BaseModel):
+    """Input for the coherence evaluation tool."""
+
+    run_ids: list[str] = Field(
+        description="Two or more run IDs to evaluate coherence across.",
+        min_length=2,
+    )
+    workspace: str = Field(
+        default="runs",
+        description="Workspace directory containing run outputs.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

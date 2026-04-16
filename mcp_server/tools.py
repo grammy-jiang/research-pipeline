@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 from mcp_server.schemas import (
     AnalyzePapersInput,
+    CoherenceInput,
     CompareRunsInput,
     ConvertFileInput,
     ConvertFineInput,
@@ -1786,4 +1787,36 @@ def gate_info_tool(
         )
     except Exception as exc:
         logger.error("gate_info failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def coherence_tool(
+    params: CoherenceInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Evaluate multi-session coherence across pipeline runs.
+
+    Computes factual consistency, temporal ordering, knowledge update
+    fidelity, and contradiction detection across 2+ runs.
+    """
+    try:
+        from research_pipeline.pipeline.coherence import run_coherence
+
+        ws = Path(params.workspace)
+        report = run_coherence(
+            run_ids=params.run_ids,
+            workspace=ws,
+        )
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Coherence evaluated across {len(params.run_ids)} runs: "
+                f"overall={report.score.overall:.2f}, "
+                f"contradictions={len(report.contradictions)}"
+            ),
+            artifacts=report.to_dict(),
+        )
+    except Exception as exc:
+        logger.error("coherence evaluation failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

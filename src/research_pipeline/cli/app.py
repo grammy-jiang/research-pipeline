@@ -815,6 +815,39 @@ def compare(
     )
 
 
+@app.command()
+def coherence(
+    run_ids: list[str] = typer.Argument(
+        ..., help="Two or more run IDs to evaluate coherence across."
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output path for coherence report JSON."
+    ),
+) -> None:
+    """Evaluate knowledge coherence across multiple pipeline runs.
+
+    Computes factual consistency, temporal ordering, knowledge update
+    fidelity, and contradiction detection across 2+ runs.
+
+    Example: research-pipeline coherence <RUN_A> <RUN_B> [<RUN_C> ...]
+    """
+    from research_pipeline.cli.cmd_coherence import run_coherence_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+
+    run_coherence_cmd(
+        run_ids=run_ids,
+        config_path=config,
+        workspace=workspace,
+        output=output,
+    )
+
+
 @app.command("analyze-claims")
 def analyze_claims(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
