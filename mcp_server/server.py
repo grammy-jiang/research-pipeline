@@ -26,6 +26,7 @@ from mcp_server.schemas import (
     EvaluateQualityInput,
     EvidenceAggregateInput,
     ExpandCitationsInput,
+    ExportHtmlInput,
     ExtractContentInput,
     FeedbackInput,
     GetRunManifestInput,
@@ -50,6 +51,7 @@ from mcp_server.tools import (
     download_pdfs,
     evaluate_quality,
     expand_citations,
+    export_html_tool,
     extract_content,
     get_run_manifest,
     list_backends,
@@ -742,6 +744,42 @@ def tool_aggregate_evidence(
             similarity_threshold=similarity_threshold,
             strip_rhetoric=strip_rhetoric,
             output_format=output_format,
+        ),
+        ctx=ctx,
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_export_html(
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    markdown_file: str = "",
+    title: str = "Research Report",
+    output: str = "",
+) -> dict:
+    """Export synthesis report as self-contained HTML.
+
+    Two modes:
+    - run_id: Renders structured SynthesisReport as rich HTML with
+      citation links, confidence badges, and collapsible sections.
+    - markdown_file: Converts any Markdown file to styled HTML.
+    """
+    result = export_html_tool(
+        ExportHtmlInput(
+            workspace=workspace,
+            run_id=run_id,
+            markdown_file=markdown_file,
+            title=title,
+            output=output,
         ),
         ctx=ctx,
     )

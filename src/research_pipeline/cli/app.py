@@ -1164,3 +1164,56 @@ def aggregate_command(
         output_format=output_format,
         config_path=config_path,
     )
+
+
+@app.command("export-html")
+def export_html_command(
+    run_id: str = typer.Option(
+        "",
+        "--run-id",
+        help="Pipeline run ID (reads synthesis_report.json).",
+    ),
+    markdown_file: str = typer.Option(
+        "",
+        "--markdown",
+        help="Path to a Markdown report to convert.",
+    ),
+    output: str = typer.Option(
+        "",
+        "--output",
+        "-o",
+        help="Output HTML file path.",
+    ),
+    title: str = typer.Option(
+        "Research Report",
+        "--title",
+        help="Report title (used with --markdown mode).",
+    ),
+    config_path: str = typer.Option(
+        "config.toml",
+        "--config",
+        help="Path to config file.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Export synthesis report as self-contained HTML.
+
+    Two modes:
+
+    .. code-block:: bash
+
+       research-pipeline export-html --run-id <ID>
+       research-pipeline export-html --markdown report.md -o report.html
+    """
+    from research_pipeline.cli.cmd_export_html import export_html_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    export_html_cmd(
+        run_id=run_id,
+        markdown_file=markdown_file,
+        output=output,
+        title=title,
+        config_path=config_path,
+    )

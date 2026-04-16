@@ -1297,6 +1297,18 @@ def run_pipeline(
         except Exception as exc:
             logger.warning("Evidence aggregation skipped: %s", exc)
 
+        # HTML report export
+        try:
+            from research_pipeline.summarization.html_export import (
+                render_html_report,
+            )
+
+            html_path = sum_dir / "synthesis_report.html"
+            render_html_report(report, html_path)
+            logger.info("HTML report exported to %s", html_path)
+        except Exception as exc:
+            logger.warning("HTML report export skipped: %s", exc)
+
         manifest = _record_stage(
             manifest,
             "summarize",

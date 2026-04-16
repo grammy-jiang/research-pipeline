@@ -27,6 +27,7 @@ from mcp_server.schemas import (
     EvaluateQualityInput,
     EvidenceAggregateInput,
     ExpandCitationsInput,
+    ExportHtmlInput,
     ExtractContentInput,
     FeedbackInput,
     GetRunManifestInput,
@@ -1618,4 +1619,87 @@ def aggregate_evidence_tool(
         )
     except Exception as exc:
         logger.error("aggregate_evidence failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def export_html_tool(
+    params: ExportHtmlInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Export synthesis report as self-contained HTML.
+
+    Supports two modes:
+    - run_id: Renders structured SynthesisReport as rich HTML.
+    - markdown_file: Converts Markdown to styled HTML.
+    """
+    try:
+        from research_pipeline.summarization.html_export import (
+            render_html_from_markdown,
+            render_html_report,
+        )
+
+        _report_progress(ctx, 0, 3, "Preparing HTML export")
+
+        if params.markdown_file:
+            md_path = Path(params.markdown_file)
+            if not md_path.exists():
+                return ToolResult(
+                    success=False,
+                    message=f"Markdown file not found: {md_path}",
+                )
+            out_path = (
+                Path(params.output) if params.output else md_path.with_suffix(".html")
+            )
+
+            _report_progress(ctx, 1, 3, "Converting Markdown to HTML")
+            html_str = render_html_from_markdown(md_path, out_path, title=params.title)
+
+            _report_progress(ctx, 3, 3, "Complete")
+            return ToolResult(
+                success=True,
+                message=f"HTML report written to {out_path}",
+                artifacts={"path": str(out_path), "size_bytes": len(html_str)},
+            )
+
+        if not params.run_id:
+            return ToolResult(
+                success=False,
+                message="Provide either run_id or markdown_file",
+            )
+
+        from research_pipeline.models.summary import SynthesisReport
+        from research_pipeline.storage.workspace import get_stage_dir, resolve_workspace
+
+        ws = resolve_workspace(Path(params.workspace) if params.workspace else None)
+        run_root = ws / params.run_id
+        sum_dir = get_stage_dir(run_root, "summarize")
+        report_path = sum_dir / "synthesis_report.json"
+
+        if not report_path.exists():
+            report_path = sum_dir / "synthesis.json"
+        if not report_path.exists():
+            return ToolResult(
+                success=False,
+                message="No synthesis report found",
+            )
+
+        _report_progress(ctx, 1, 3, "Loading synthesis report")
+        raw = json.loads(report_path.read_text(encoding="utf-8"))
+        report = SynthesisReport.model_validate(raw)
+
+        out_path = (
+            Path(params.output) if params.output else sum_dir / "synthesis_report.html"
+        )
+
+        _report_progress(ctx, 2, 3, "Rendering HTML")
+        html_str = render_html_report(report, out_path)
+
+        _report_progress(ctx, 3, 3, "Complete")
+        return ToolResult(
+            success=True,
+            message=f"HTML report ({report.paper_count} papers) → {out_path}",
+            artifacts={"path": str(out_path), "size_bytes": len(html_str)},
+        )
+    except Exception as exc:
+        logger.error("export_html failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

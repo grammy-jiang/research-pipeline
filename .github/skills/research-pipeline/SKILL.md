@@ -346,7 +346,23 @@ research-pipeline aggregate --run-id <RUN_ID> --no-strip-rhetoric
 Output: `summarize/evidence_aggregation.json` and `evidence_aggregation.md`.
 Use `aggregate_evidence` MCP tool for programmatic access.
 
-### Step 3.5: Quality Evaluation (Optional)
+### Step 3.5: HTML Report Export (Optional)
+
+Export the synthesis report as a self-contained HTML document with citation
+links, confidence badges, dark mode, and responsive design:
+
+```bash
+# From structured synthesis report
+research-pipeline export-html --run-id <RUN_ID>
+
+# From any Markdown file
+research-pipeline export-html --markdown report.md -o report.html --title "My Research"
+```
+
+Output: `summarize/synthesis_report.html`.
+Use `export_html` MCP tool for programmatic access.
+
+### Step 3.6: Quality Evaluation (Optional)
 
 ```bash
 research-pipeline quality --run-id <RUN_ID> --config CFG
@@ -357,7 +373,7 @@ credibility, and recency bonus. Papers flagged as retracted or fabricated
 (safety_flag) are zeroed automatically — safety acts as a multiplicative
 gate. Output: `quality/quality_scores.jsonl`.
 
-### Step 3.6: Citation Graph Expansion (Optional)
+### Step 3.7: Citation Graph Expansion (Optional)
 
 ```bash
 research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345,2402.67890" --direction both --limit 20 --config CFG

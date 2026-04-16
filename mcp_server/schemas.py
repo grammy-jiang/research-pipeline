@@ -345,6 +345,23 @@ class EvidenceAggregateInput(CommonParams):
     )
 
 
+class ExportHtmlInput(CommonParams):
+    """Input for the export_html tool."""
+
+    markdown_file: str = Field(
+        default="",
+        description="Path to Markdown report (alternative to run_id).",
+    )
+    title: str = Field(
+        default="Research Report",
+        description="Report title (used with markdown_file mode).",
+    )
+    output: str = Field(
+        default="",
+        description="Output HTML file path (default: auto).",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

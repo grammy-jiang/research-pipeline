@@ -535,6 +535,19 @@ research-pipeline aggregate --run-id <RUN_ID>
 research-pipeline aggregate --run-id <RUN_ID> --min-pointers 1 --format json
 ```
 
+### HTML report export
+
+Export synthesis reports as self-contained HTML with citation links,
+confidence badges, dark mode support, and responsive design:
+
+```bash
+# From structured synthesis JSON
+research-pipeline export-html --run-id <RUN_ID>
+
+# From any Markdown file
+research-pipeline export-html --markdown report.md -o report.html --title "My Research"
+```
+
 ### Auxiliary commands
 
 These commands extend the core pipeline with additional capabilities:

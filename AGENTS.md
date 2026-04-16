@@ -231,6 +231,10 @@ research-pipeline eval-log --run-id <ID> --channel summary
 research-pipeline aggregate --run-id <ID>
 research-pipeline aggregate --run-id <ID> --min-pointers 1 --format json
 
+# HTML report export
+research-pipeline export-html --run-id <ID>
+research-pipeline export-html --markdown report.md -o report.html
+
 # Standalone PDF conversion (no workspace required)
 research-pipeline convert-file paper.pdf -o paper.md
 
@@ -250,7 +254,7 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 24 tools (with annotations & progress), 15 resources (URI templates),
+Features: 25 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
 
 New quality tools:
@@ -258,6 +262,7 @@ New quality tools:
 - `validate_report` — check report completeness (14 sections, citations, gaps)
 - `compare_runs` — structured diff between two pipeline runs
 - `verify_stage` — structural verification gates for any pipeline stage
+- `export_html` — render synthesis report as self-contained HTML
 
 The `research_workflow` tool provides server-driven orchestration with 6 harness
 layers: telemetry, context engineering, governance, structural verification,
