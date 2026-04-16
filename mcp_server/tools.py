@@ -19,6 +19,7 @@ from mcp_server.schemas import (
     AnalyzePapersInput,
     CoherenceInput,
     CompareRunsInput,
+    ConsolidationInput,
     ConvertFileInput,
     ConvertFineInput,
     ConvertPdfsInput,
@@ -1819,4 +1820,43 @@ def coherence_tool(
         )
     except Exception as exc:
         logger.error("coherence evaluation failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def consolidation_tool(
+    params: ConsolidationInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Consolidate cross-run memory: compress episodes, promote rules, prune stale.
+
+    Implements episodic → semantic consolidation following SEA/MLMF
+    three-tier memory architecture.
+    """
+    try:
+        from dataclasses import asdict
+
+        from research_pipeline.pipeline.consolidation import run_consolidation
+
+        ws = Path(params.workspace)
+        result = run_consolidation(
+            workspace=ws,
+            run_ids=params.run_ids,
+            capacity=params.capacity,
+            threshold=params.threshold,
+            min_support=params.min_support,
+            dry_run=params.dry_run,
+        )
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Consolidation complete: "
+                f"{result.episodes_before}→{result.episodes_after} episodes, "
+                f"{result.rules_created} new rules, "
+                f"{result.entries_pruned} pruned"
+            ),
+            artifacts=asdict(result),
+        )
+    except Exception as exc:
+        logger.error("consolidation failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

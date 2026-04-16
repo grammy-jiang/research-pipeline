@@ -231,6 +231,38 @@ research-pipeline coherence <RUN_A> <RUN_B> [<RUN_C> ...]
 - After `expand` iterations to check if new papers contradict earlier findings
 - To validate that gap-filling runs produced consistent results
 
+### Memory Consolidation (v0.13.9+)
+
+Episodic → semantic consolidation engine following the SEA/MLMF three-tier
+memory architecture. Compresses old run episodes into thematic rules,
+prunes stale knowledge, and tracks semantic drift between runs.
+
+**CLI usage:**
+```bash
+# Scan workspace and consolidate automatically
+research-pipeline consolidate
+
+# Ingest specific runs, dry-run first
+research-pipeline consolidate run1 run2 run3 --dry-run
+
+# With custom thresholds
+research-pipeline consolidate --capacity 50 --threshold 0.7 --min-support 3
+```
+
+**MCP tool:** `tool_consolidation` — consolidate cross-run memory.
+
+**Consolidation operations:**
+- **Episode Ingestion** — extracts synthesis results into episode store
+- **Recurring Finding Detection** — fuzzy-matched findings across runs
+- **Rule Promotion** — promotes recurring findings to stable semantic rules
+- **Staleness Pruning** — removes old episodes covered by rules
+- **Drift Tracking** — measures semantic shift between consecutive runs
+
+**When to use:**
+- After 5+ runs accumulate on similar topics
+- Periodically as part of research hygiene
+- Before starting a new research topic (consolidate old knowledge first)
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

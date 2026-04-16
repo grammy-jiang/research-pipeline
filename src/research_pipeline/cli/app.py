@@ -848,6 +848,61 @@ def coherence(
     )
 
 
+@app.command()
+def consolidate(
+    run_ids: list[str] | None = typer.Argument(
+        None, help="Run IDs to ingest. If omitted, scans workspace."
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+    config: Path | None = typer.Option(None, "--config", "-c"),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Output path for consolidation report JSON."
+    ),
+    dry_run: bool = typer.Option(
+        False, "--dry-run", help="Compute metrics without modifying store."
+    ),
+    capacity: int = typer.Option(
+        100, "--capacity", help="Episode capacity before triggering consolidation."
+    ),
+    threshold: float = typer.Option(
+        0.8, "--threshold", help="Fraction of capacity triggering consolidation."
+    ),
+    min_support: int = typer.Option(
+        2, "--min-support", help="Min run appearances for rule promotion."
+    ),
+    staleness_days: int = typer.Option(
+        90, "--staleness-days", help="Age threshold (days) for pruning."
+    ),
+) -> None:
+    """Consolidate cross-run memory: compress episodes, promote rules, prune stale.
+
+    Implements episodic → semantic consolidation following the SEA/MLMF
+    three-tier memory architecture. Automatically ingests synthesis
+    results from pipeline runs into the episode store.
+
+    Example: research-pipeline consolidate
+    Example: research-pipeline consolidate run1 run2 run3 --dry-run
+    """
+    from research_pipeline.cli.cmd_consolidate import run_consolidate_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+
+    run_consolidate_cmd(
+        run_ids=run_ids if run_ids else None,
+        config_path=config,
+        workspace=workspace,
+        output=output,
+        dry_run=dry_run,
+        capacity=capacity,
+        threshold=threshold,
+        min_support=min_support,
+        staleness_days=staleness_days,
+    )
+
+
 @app.command("analyze-claims")
 def analyze_claims(
     verbose: bool = typer.Option(False, "--verbose", "-v"),

@@ -45,6 +45,7 @@ from mcp_server.tools import (
     analyze_papers,
     coherence_tool,
     compare_runs,
+    consolidation_tool,
     convert_file,
     convert_fine,
     convert_pdfs,
@@ -860,6 +861,50 @@ async def tool_coherence(
 
     params = CoherenceInput(run_ids=run_ids, workspace=workspace)
     result = coherence_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_consolidation(
+    workspace: str = "runs",
+    run_ids: list[str] | None = None,
+    dry_run: bool = False,
+    capacity: int = 100,
+    threshold: float = 0.8,
+    min_support: int = 2,
+) -> dict:
+    """Consolidate cross-run memory: compress episodes, promote rules, prune stale.
+
+    Implements episodic → semantic consolidation following the SEA/MLMF
+    three-tier memory architecture. Automatically ingests synthesis
+    results into the episode store and promotes recurring findings to rules.
+
+    Args:
+        workspace: Workspace directory containing run outputs.
+        run_ids: Run IDs to ingest. If None, scans workspace.
+        dry_run: Compute metrics without modifying store.
+        capacity: Episode capacity before triggering consolidation.
+        threshold: Fraction of capacity triggering consolidation.
+        min_support: Min run appearances for rule promotion.
+    """
+    from mcp_server.schemas import ConsolidationInput
+
+    params = ConsolidationInput(
+        workspace=workspace,
+        run_ids=run_ids,
+        dry_run=dry_run,
+        capacity=capacity,
+        threshold=threshold,
+        min_support=min_support,
+    )
+    result = consolidation_tool(params=params)
     return result.model_dump()
 
 

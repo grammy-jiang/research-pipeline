@@ -393,6 +393,35 @@ class CoherenceInput(BaseModel):
     )
 
 
+class ConsolidationInput(BaseModel):
+    """Input for the memory consolidation tool."""
+
+    run_ids: list[str] | None = Field(
+        default=None,
+        description="Run IDs to ingest. If None, scans workspace.",
+    )
+    workspace: str = Field(
+        default="runs",
+        description="Workspace directory containing run outputs.",
+    )
+    dry_run: bool = Field(
+        default=False,
+        description="Compute metrics without modifying store.",
+    )
+    capacity: int = Field(
+        default=100,
+        description="Episode capacity before triggering consolidation.",
+    )
+    threshold: float = Field(
+        default=0.8,
+        description="Fraction of capacity triggering consolidation.",
+    )
+    min_support: int = Field(
+        default=2,
+        description="Min run appearances for rule promotion.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

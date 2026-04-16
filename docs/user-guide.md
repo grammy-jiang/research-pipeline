@@ -177,6 +177,13 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # Evaluates factual consistency, temporal ordering, knowledge update fidelity,
 # and contradiction detection across 2+ pipeline runs.
 
+# Memory consolidation (v0.13.9+)
+# CLI: research-pipeline consolidate [RUN_IDS...] [--dry-run] [--capacity N]
+# Episodic→semantic consolidation: compresses old episodes into rules,
+# prunes stale entries, tracks semantic drift between runs.
+# Options: --capacity (default 100), --threshold (0.8), --min-support (2),
+#          --staleness-days (90), --dry-run, --output path
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)
