@@ -23,7 +23,7 @@ def export_html_cmd(
     run_id: str = typer.Option(
         "",
         "--run-id",
-        help="Pipeline run ID (reads synthesis_report.json).",
+        help="Pipeline run ID (reads synthesis.json).",
     ),
     markdown_file: str = typer.Option(
         "",
@@ -71,10 +71,10 @@ def export_html_cmd(
 
     # Run-ID mode: load structured report
     cfg = load_config(Path(config_path))
-    runs_dir = Path(cfg.get("runs_dir", "runs"))
+    runs_dir = Path(cfg.workspace)
 
     summary_dir = get_stage_dir(runs_dir / run_id, "summarize")
-    report_path = summary_dir / "synthesis_report.json"
+    report_path = summary_dir / "synthesis.json"
 
     if not report_path.exists():
         logger.error("Synthesis report not found: %s", report_path)
