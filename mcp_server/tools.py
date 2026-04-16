@@ -33,6 +33,7 @@ from mcp_server.schemas import (
     GetRunManifestInput,
     ListBackendsInput,
     ManageIndexInput,
+    ModelRoutingInfoInput,
     PlanTopicInput,
     RunPipelineInput,
     ScreenCandidatesInput,
@@ -1702,4 +1703,48 @@ def export_html_tool(
         )
     except Exception as exc:
         logger.error("export_html failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def model_routing_info_tool(
+    params: ModelRoutingInfoInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Return the current model routing configuration.
+
+    Shows which LLM provider is assigned to each phase tier
+    (mechanical, intelligent, critical_safety) and the stage→tier mapping.
+    """
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.llm.routing import (
+            create_model_router,
+        )
+
+        config_path = (
+            Path(params.config_path) if params.config_path else Path("config.toml")
+        )
+        cfg = load_config(config_path)
+        router = create_model_router(cfg)
+
+        summary = router.summary()
+        stage_map = {stage: tier.value for stage, tier in router.stage_map.items()}
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Model routing: mechanical={summary['mechanical'] or 'none'}, "
+                f"intelligent={summary['intelligent'] or 'none'}, "
+                f"critical_safety={summary['critical_safety'] or 'none'}"
+            ),
+            artifacts={
+                "provider_summary": summary,
+                "stage_tier_map": stage_map,
+                "routing_enabled": getattr(
+                    getattr(cfg, "llm_routing", None), "enabled", False
+                ),
+            },
+        )
+    except Exception as exc:
+        logger.error("model_routing_info failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

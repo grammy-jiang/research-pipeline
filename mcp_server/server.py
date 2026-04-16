@@ -56,6 +56,7 @@ from mcp_server.tools import (
     get_run_manifest,
     list_backends,
     manage_index,
+    model_routing_info_tool,
     plan_topic,
     query_eval_log,
     record_feedback,
@@ -783,6 +784,29 @@ def tool_export_html(
         ),
         ctx=ctx,
     )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_model_routing_info(
+    config_path: str = "",
+) -> dict:
+    """Show current phase-aware model routing configuration.
+
+    Returns which LLM provider is assigned to each phase tier
+    (mechanical, intelligent, critical_safety) and the stage→tier mapping.
+    """
+    from mcp_server.schemas import ModelRoutingInfoInput
+
+    params = ModelRoutingInfoInput(config_path=config_path)
+    result = model_routing_info_tool(params=params)
     return result.model_dump()
 
 

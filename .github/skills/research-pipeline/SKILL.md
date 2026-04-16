@@ -147,6 +147,39 @@ research-pipeline run --profile deep --ter-iterations 5 "comprehensive LLM surve
 research-pipeline run --profile deep --ter-iterations 0 "quick deep run"
 ```
 
+### Phase-Aware Model Routing (v0.13.6+)
+
+**Route LLM calls to different providers per pipeline phase:**
+
+| Tier | Stages | Use Case |
+|------|--------|----------|
+| `mechanical` | plan, search, download, convert, extract, index | Cheap/local model (Ollama) |
+| `intelligent` | screen, summarize, expand, quality, analyze, aggregate | Capable cloud model (GPT-4, Claude) |
+| `critical_safety` | validate, compare, security | Premium model or multi-model consensus |
+
+Configure in `config.toml`:
+```toml
+[llm_routing]
+enabled = true
+
+[llm_routing.mechanical]
+provider = "ollama"
+model = "llama3.2"
+
+[llm_routing.intelligent]
+provider = "openai"
+model = "gpt-4o"
+api_key = "sk-..."
+
+[llm_routing.critical_safety]
+provider = "openai"
+model = "gpt-4o"
+api_key = "sk-..."
+```
+
+When routing is disabled (default), all stages use the single `[llm]` provider.
+Fallback: if a tier has no provider, it falls back to the next-higher tier.
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

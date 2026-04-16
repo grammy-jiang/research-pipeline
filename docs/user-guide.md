@@ -150,6 +150,23 @@ api_key = ""                    # API key (required for OpenAI)
 model = ""                      # Model name (empty = provider default)
 max_tokens = 4096               # Max output tokens
 
+[llm_routing]
+enabled = false                 # Phase-aware model routing (v0.13.6+)
+
+[llm_routing.mechanical]        # Cheap/local model for mechanical stages
+provider = "ollama"             # (plan, search, download, convert, extract, index)
+model = ""
+
+[llm_routing.intelligent]       # Capable model for analysis stages
+provider = "openai"             # (screen, summarize, expand, quality, analyze, aggregate)
+model = "gpt-4o"
+api_key = ""
+
+[llm_routing.critical_safety]   # Premium model for safety-critical stages
+provider = "openai"             # (validate, compare, security_gate)
+model = "gpt-4o"
+api_key = ""
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

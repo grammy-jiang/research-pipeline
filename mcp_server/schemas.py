@@ -362,6 +362,15 @@ class ExportHtmlInput(CommonParams):
     )
 
 
+class ModelRoutingInfoInput(BaseModel):
+    """Input for the model_routing_info tool."""
+
+    config_path: str = Field(
+        default="",
+        description="Path to config.toml. Empty uses defaults.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

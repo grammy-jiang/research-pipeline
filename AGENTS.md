@@ -254,7 +254,7 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 25 tools (with annotations & progress), 15 resources (URI templates),
+Features: 26 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
 
 New quality tools:
@@ -263,6 +263,7 @@ New quality tools:
 - `compare_runs` — structured diff between two pipeline runs
 - `verify_stage` — structural verification gates for any pipeline stage
 - `export_html` — render synthesis report as self-contained HTML
+- `model_routing_info` — inspect phase-aware model routing configuration
 
 The `research_workflow` tool provides server-driven orchestration with 6 harness
 layers: telemetry, context engineering, governance, structural verification,

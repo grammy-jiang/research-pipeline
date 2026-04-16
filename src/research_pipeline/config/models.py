@@ -169,6 +169,29 @@ class LLMConfig(BaseModel):
     max_tokens: int = int(DEFAULTS["llm"]["max_tokens"])
 
 
+class TierProviderConfig(BaseModel):
+    """Per-tier LLM provider configuration for model routing."""
+
+    provider: str = ""
+    base_url: str = ""
+    api_key: str = ""
+    model: str = ""
+    max_tokens: int = 4096
+
+
+class LLMRoutingConfig(BaseModel):
+    """Phase-aware model routing configuration.
+
+    Maps pipeline phase tiers to different LLM providers.
+    """
+
+    enabled: bool = False
+    mechanical: TierProviderConfig = Field(default_factory=TierProviderConfig)
+    intelligent: TierProviderConfig = Field(default_factory=TierProviderConfig)
+    critical_safety: TierProviderConfig = Field(default_factory=TierProviderConfig)
+    stage_overrides: dict[str, str] = Field(default_factory=dict)
+
+
 class CacheConfig(BaseModel):
     """Cache configuration."""
 
@@ -236,6 +259,7 @@ class PipelineConfig(BaseModel):
     download: DownloadConfig = Field(default_factory=DownloadConfig)
     conversion: ConversionConfig = Field(default_factory=ConversionConfig)
     llm: LLMConfig = Field(default_factory=LLMConfig)
+    llm_routing: LLMRoutingConfig = Field(default_factory=LLMRoutingConfig)
     cache: CacheConfig = Field(default_factory=CacheConfig)
     sources: SourcesConfig = Field(default_factory=SourcesConfig)
     quality: QualityConfig = Field(default_factory=QualityConfig)
