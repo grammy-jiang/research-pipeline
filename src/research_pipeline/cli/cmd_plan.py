@@ -7,6 +7,7 @@ import typer
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.models.query_plan import QueryPlan
+from research_pipeline.screening.q2d_augmentation import augment_query_plan
 from research_pipeline.screening.query_cleanup import clean_query_terms
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 
@@ -220,6 +221,14 @@ def run_plan(
 
     query_variants = _generate_query_variants(
         must_terms, nice_terms, max_variants=config.search.max_query_variants
+    )
+
+    # Q2D augmentation: expand domain synonyms + generate pseudo-abstract queries
+    query_variants = augment_query_plan(
+        must_terms,
+        nice_terms,
+        existing_variants=query_variants,
+        max_total_variants=config.search.max_query_variants,
     )
 
     plan = QueryPlan(
