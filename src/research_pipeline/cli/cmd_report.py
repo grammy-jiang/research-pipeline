@@ -90,10 +90,7 @@ def report_cmd(
             raise typer.Exit(1)
         custom_tmpl = tmpl_path.read_text(encoding="utf-8")
 
-    if output:
-        out_path = Path(output)
-    else:
-        out_path = stage_dir / f"report_{template}.md"
+    out_path = Path(output) if output else stage_dir / f"report_{template}.md"
 
     render_report_to_file(
         report, out_path, template_name=template, custom_template=custom_tmpl

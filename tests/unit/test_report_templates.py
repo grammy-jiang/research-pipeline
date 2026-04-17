@@ -14,7 +14,6 @@ from research_pipeline.models.summary import (
     SynthesisReport,
 )
 from research_pipeline.summarization.report_templates import (
-    TEMPLATES,
     list_templates,
     render_report,
     render_report_to_file,

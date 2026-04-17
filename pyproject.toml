@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "research-pipeline"
-version = "0.13.45"
+version = "0.13.46"
 description = "A multi-source pipeline for searching, screening, downloading, converting, and summarizing academic papers from arXiv, Google Scholar, and more."
 readme = "README.md"
 license = "MIT"
@@ -131,6 +131,7 @@ ignore = ["B008"]
 
 [tool.ruff.lint.per-file-ignores]
 "src/research_pipeline/summarization/html_export.py" = ["E501"]
+"src/research_pipeline/summarization/report_templates.py" = ["E501"]
 
 [tool.uv.build-backend]
 source-exclude = [".mypy_cache/**"]

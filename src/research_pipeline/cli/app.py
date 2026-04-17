@@ -1415,6 +1415,47 @@ def report_command(
     )
 
 
+@app.command("cluster")
+def cluster_command(
+    run_id: str = typer.Option(
+        ...,
+        "--run-id",
+        help="Pipeline run ID.",
+    ),
+    stage: str = typer.Option(
+        "screen",
+        "--stage",
+        help="Stage to cluster from: search or screen.",
+    ),
+    threshold: float = typer.Option(
+        0.15,
+        "--threshold",
+        "-t",
+        help="Cosine similarity threshold (0-1).",
+    ),
+    output: str = typer.Option(
+        "",
+        "-o",
+        "--output",
+        help="Output JSON file path.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Cluster papers by topic similarity using TF-IDF.
+
+    .. code-block:: bash
+
+       research-pipeline cluster --run-id <ID>
+       research-pipeline cluster --run-id <ID> --threshold 0.2
+    """
+    from research_pipeline.cli.cmd_cluster import cluster_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    cluster_cmd(run_id=run_id, stage=stage, threshold=threshold, output=output)
+
+
 @app.command("blinding-audit")
 def blinding_audit_command(
     workspace: str = typer.Option(
