@@ -658,6 +658,41 @@ research-pipeline index --gc
 research-pipeline validate --report report.md
 # With FACT citation verification against a run's corpus (v0.12.0+)
 research-pipeline validate --run-id <RUN_ID> --workspace runs
+
+# BibTeX export (v0.13.44+)
+research-pipeline export-bibtex --run-id <RUN_ID>
+research-pipeline export-bibtex --run-id <RUN_ID> --stage search
+research-pipeline export-bibtex --run-id <RUN_ID> -o refs.bib
+# Output: runs/<run_id>/bibtex/references.bib (or custom -o path)
+
+# Templated report generation (v0.13.45+)
+# Available templates: survey, gap_analysis, lit_review, executive
+research-pipeline report --run-id <RUN_ID>
+research-pipeline report --run-id <RUN_ID> -t gap_analysis
+research-pipeline report --run-id <RUN_ID> -t executive -o summary.md
+# Custom Jinja2 templates are also supported:
+research-pipeline report --run-id <RUN_ID> --custom-template my_template.j2
+
+# Paper similarity clustering (v0.13.46+)
+research-pipeline cluster --run-id <RUN_ID>
+research-pipeline cluster --run-id <RUN_ID> --stage search --threshold 0.2
+# Output: runs/<run_id>/clustering/clusters.json
+
+# Abstract enrichment via Semantic Scholar (v0.13.47+)
+research-pipeline enrich --run-id <RUN_ID>
+research-pipeline enrich --run-id <RUN_ID> --stage screened
+# Enriches candidates with missing abstracts using DOI or title lookup
+
+# Citation context extraction (v0.13.48+)
+research-pipeline cite-context --run-id <RUN_ID>
+research-pipeline cite-context --run-id <RUN_ID> --window 2
+# Output: runs/<run_id>/cite_context/citation_contexts.json
+# Extracts citing sentences with surrounding context from converted Markdown
+
+# Watch mode — monitor arXiv for new papers (v0.13.49+)
+research-pipeline watch --queries queries.json
+research-pipeline watch --queries queries.json --lookback 14 --max-results 50
+# queries.json format: [{"query": "transformer attention", "categories": ["cs.CL"]}]
 ```
 
 ### Inspecting runs

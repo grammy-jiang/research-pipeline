@@ -119,10 +119,12 @@ class TestWatchCommand:
         """Runs a search for each configured query."""
         qf = tmp_path / "queries.json"
         qf.write_text(
-            json.dumps([
-                {"name": "q1", "query": "machine learning"},
-                {"name": "q2", "query": "deep learning"},
-            ])
+            json.dumps(
+                [
+                    {"name": "q1", "query": "machine learning"},
+                    {"name": "q2", "query": "deep learning"},
+                ]
+            )
         )
 
         mock_client = MagicMock()
@@ -153,9 +155,7 @@ class TestWatchCommand:
         # Set last check to 3 days ago
         state_path = tmp_path / "watch_state.json"
         three_days_ago = datetime.now(tz=UTC) - timedelta(days=3)
-        state_path.write_text(
-            json.dumps({"q1": three_days_ago.isoformat()})
-        )
+        state_path.write_text(json.dumps({"q1": three_days_ago.isoformat()}))
 
         # Create mock papers: one old, one new
         old_paper = MagicMock()
@@ -228,10 +228,12 @@ class TestWatchCommand:
         """Search failure for one query doesn't stop others."""
         qf = tmp_path / "queries.json"
         qf.write_text(
-            json.dumps([
-                {"name": "q1", "query": "fails"},
-                {"name": "q2", "query": "works"},
-            ])
+            json.dumps(
+                [
+                    {"name": "q1", "query": "fails"},
+                    {"name": "q2", "query": "works"},
+                ]
+            )
         )
 
         mock_client = MagicMock()
@@ -296,10 +298,12 @@ class TestWatchCommand:
         """Queries with empty query text are skipped."""
         qf = tmp_path / "queries.json"
         qf.write_text(
-            json.dumps([
-                {"name": "empty", "query": ""},
-                {"name": "valid", "query": "test"},
-            ])
+            json.dumps(
+                [
+                    {"name": "empty", "query": ""},
+                    {"name": "valid", "query": "test"},
+                ]
+            )
         )
 
         mock_client = MagicMock()

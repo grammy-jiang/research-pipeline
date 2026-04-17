@@ -90,9 +90,7 @@ def watch_command(
             "No queries found. Create %s with your watch queries.",
             queries_file,
         )
-        logger.info(
-            'Example: [{"name": "topic", "query": "search terms"}]'
-        )
+        logger.info('Example: [{"name": "topic", "query": "search terms"}]')
         raise typer.Exit(code=1)
 
     state_path = queries_file.parent / "watch_state.json"
