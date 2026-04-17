@@ -69,19 +69,34 @@ class TestStoppingProfile:
 
 class TestClassifyQueryType:
     def test_recall_keywords(self) -> None:
-        assert classify_query_type("systematic review of NLP methods") == ExtendedQueryType.RECALL
+        assert (
+            classify_query_type("systematic review of NLP methods")
+            == ExtendedQueryType.RECALL
+        )
 
     def test_precision_keywords(self) -> None:
-        assert classify_query_type("what is the specific algorithm for BERT") == ExtendedQueryType.PRECISION
+        assert (
+            classify_query_type("what is the specific algorithm for BERT")
+            == ExtendedQueryType.PRECISION
+        )
 
     def test_judgment_keywords(self) -> None:
-        assert classify_query_type("compare transformer versus RNN") == ExtendedQueryType.JUDGMENT
+        assert (
+            classify_query_type("compare transformer versus RNN")
+            == ExtendedQueryType.JUDGMENT
+        )
 
     def test_exploratory_keywords(self) -> None:
-        assert classify_query_type("explore emerging trends in AI") == ExtendedQueryType.EXPLORATORY
+        assert (
+            classify_query_type("explore emerging trends in AI")
+            == ExtendedQueryType.EXPLORATORY
+        )
 
     def test_verification_keywords(self) -> None:
-        assert classify_query_type("verify the claim about accuracy") == ExtendedQueryType.VERIFICATION
+        assert (
+            classify_query_type("verify the claim about accuracy")
+            == ExtendedQueryType.VERIFICATION
+        )
 
     def test_empty_query(self) -> None:
         assert classify_query_type("") == ExtendedQueryType.RECALL
@@ -225,7 +240,8 @@ class TestTypedStoppingEvaluator:
 
     def test_explicit_query_type(self) -> None:
         ev = TypedStoppingEvaluator(
-            query="anything", query_type=ExtendedQueryType.VERIFICATION,
+            query="anything",
+            query_type=ExtendedQueryType.VERIFICATION,
         )
         assert ev.query_type == ExtendedQueryType.VERIFICATION
 

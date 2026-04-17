@@ -175,24 +175,75 @@ DEFAULT_PROFILES: dict[ExtendedQueryType, StoppingProfile] = {
 
 # Keyword patterns for heuristic classification
 _RECALL_KEYWORDS = frozenset(
-    ["survey", "review", "comprehensive", "all", "every", "literature",
-     "overview", "systematic", "broad", "exhaustive", "landscape"]
+    [
+        "survey",
+        "review",
+        "comprehensive",
+        "all",
+        "every",
+        "literature",
+        "overview",
+        "systematic",
+        "broad",
+        "exhaustive",
+        "landscape",
+    ]
 )
 _PRECISION_KEYWORDS = frozenset(
-    ["specific", "exact", "define", "what is", "how does", "method for",
-     "technique", "algorithm", "formula", "equation"]
+    [
+        "specific",
+        "exact",
+        "define",
+        "what is",
+        "how does",
+        "method for",
+        "technique",
+        "algorithm",
+        "formula",
+        "equation",
+    ]
 )
 _JUDGMENT_KEYWORDS = frozenset(
-    ["compare", "versus", "better", "which", "evaluate", "assess",
-     "pros and cons", "trade-off", "advantage", "benchmark"]
+    [
+        "compare",
+        "versus",
+        "better",
+        "which",
+        "evaluate",
+        "assess",
+        "pros and cons",
+        "trade-off",
+        "advantage",
+        "benchmark",
+    ]
 )
 _EXPLORATORY_KEYWORDS = frozenset(
-    ["explore", "discover", "emerging", "novel", "new", "trend",
-     "future", "potential", "opportunity", "frontier"]
+    [
+        "explore",
+        "discover",
+        "emerging",
+        "novel",
+        "new",
+        "trend",
+        "future",
+        "potential",
+        "opportunity",
+        "frontier",
+    ]
 )
 _VERIFICATION_KEYWORDS = frozenset(
-    ["verify", "confirm", "check", "validate", "true", "false",
-     "correct", "accurate", "fact", "claim"]
+    [
+        "verify",
+        "confirm",
+        "check",
+        "validate",
+        "true",
+        "false",
+        "correct",
+        "accurate",
+        "fact",
+        "claim",
+    ]
 )
 
 _KEYWORD_MAP: list[tuple[frozenset[str], ExtendedQueryType]] = [
@@ -231,7 +282,12 @@ def classify_query_type(query: str) -> ExtendedQueryType:
     if scores[best_type] == 0:
         return ExtendedQueryType.RECALL
 
-    logger.debug("Query classified as %s (score=%d): %s", best_type.value, scores[best_type], query)
+    logger.debug(
+        "Query classified as %s (score=%d): %s",
+        best_type.value,
+        scores[best_type],
+        query,
+    )
     return best_type
 
 
@@ -299,12 +355,10 @@ def estimate_cost(
 
     # Estimated batches is midpoint between min and max, weighted by cost_weight
     est = profile.min_batches + (
-        (profile.max_batches - profile.min_batches)
-        / (1 + profile.cost_weight)
+        (profile.max_batches - profile.min_batches) / (1 + profile.cost_weight)
     )
     baseline_est = baseline.min_batches + (
-        (baseline.max_batches - baseline.min_batches)
-        / (1 + baseline.cost_weight)
+        (baseline.max_batches - baseline.min_batches) / (1 + baseline.cost_weight)
     )
 
     relative = est / baseline_est if baseline_est > 0 else 1.0
@@ -433,7 +487,10 @@ class TypedStoppingEvaluator:
                     should_stop=True,
                     query_type=self._query_type,
                     profile=prof,
-                    reason=f"saturation_reached ({sat_ratio:.2f} >= {prof.saturation_threshold})",
+                    reason=(
+                        f"saturation_reached"
+                        f" ({sat_ratio:.2f} >= {prof.saturation_threshold})"
+                    ),
                     batches_processed=n,
                     cost_so_far=n * prof.cost_weight,
                 )
@@ -465,11 +522,12 @@ class TypedStoppingEvaluator:
         if len(self._top1_history) >= prof.stability_window:
             window = self._top1_history[-prof.stability_window :]
             if max(window) - min(window) < prof.knee_threshold:
+                win_range = max(window) - min(window)
                 return TypedStoppingResult(
                     should_stop=True,
                     query_type=self._query_type,
                     profile=prof,
-                    reason=f"top1_stable (window_range={max(window) - min(window):.4f})",
+                    reason=f"top1_stable (window_range={win_range:.4f})",
                     batches_processed=n,
                     cost_so_far=n * prof.cost_weight,
                 )
