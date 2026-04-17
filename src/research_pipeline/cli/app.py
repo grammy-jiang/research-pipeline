@@ -1456,6 +1456,32 @@ def cluster_command(
     cluster_cmd(run_id=run_id, stage=stage, threshold=threshold, output=output)
 
 
+@app.command("enrich")
+def enrich_command(
+    run_id: str = typer.Option(
+        ..., "--run-id", help="Run ID to enrich candidates for."
+    ),
+    stage: str = typer.Option(
+        "candidates",
+        "--stage",
+        help="Stage to read from: 'candidates' or 'screened'.",
+    ),
+    config_path: str = typer.Option(
+        "config.toml",
+        "--config",
+        help="Path to config file.",
+    ),
+    level: str = typer.Option("INFO", "--log-level", help="Log level."),
+) -> None:
+    """Enrich candidates with missing abstracts/metadata from Semantic Scholar."""
+    from research_pipeline.cli.cmd_enrich import enrich_command as enrich_cmd
+
+    setup_logging(level=level)
+    from pathlib import Path
+
+    enrich_cmd(run_id=run_id, stage=stage, config_path=Path(config_path))
+
+
 @app.command("blinding-audit")
 def blinding_audit_command(
     workspace: str = typer.Option(

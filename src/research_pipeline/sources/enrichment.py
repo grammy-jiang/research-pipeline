@@ -53,6 +53,49 @@ def _s2_lookup_by_doi(
     return response.json()  # type: ignore[no-any-return]
 
 
+@retry(
+    max_attempts=3,
+    backoff_base=2.0,
+    retryable_exceptions=(requests.RequestException,),
+)
+def _s2_lookup_by_title(
+    title: str,
+    session: requests.Session,
+    rate_limiter: RateLimiter,
+) -> dict | None:  # type: ignore[type-arg]
+    """Look up a paper on Semantic Scholar by title search.
+
+    Uses the S2 search endpoint and returns the first match (if the
+    title is a close enough match).
+
+    Args:
+        title: Paper title to search for.
+        session: HTTP session.
+        rate_limiter: Rate limiter for S2 API.
+
+    Returns:
+        Paper dict from S2 API, or None if no good match found.
+    """
+    rate_limiter.wait()
+    url = f"{_S2_API_BASE}/paper/search"
+    params = {"query": title, "fields": _S2_FIELDS, "limit": "3"}
+    response = session.get(url, params=params, timeout=30)
+    if response.status_code == 404:
+        return None
+    response.raise_for_status()
+    data = response.json()
+    papers = data.get("data", [])
+    if not papers:
+        return None
+    # Return first result only if title is a close match
+    top = papers[0]
+    top_title = (top.get("title") or "").lower().strip()
+    query_title = title.lower().strip()
+    if top_title == query_title or top_title.startswith(query_title[:50]):
+        return top
+    return None
+
+
 def enrich_candidates(
     candidates: list[CandidateRecord],
     session: requests.Session | None = None,
@@ -89,19 +132,28 @@ def enrich_candidates(
         if not needs_enrichment:
             continue
 
-        if not candidate.doi:
-            continue
+        paper: dict | None = None  # type: ignore[type-arg]
 
-        try:
-            paper = _s2_lookup_by_doi(candidate.doi, session, s2_rate_limiter)
-        except requests.RequestException as exc:
-            logger.warning(
-                "Enrichment lookup failed for %s (DOI: %s): %s",
-                candidate.arxiv_id,
-                candidate.doi,
-                exc,
-            )
-            continue
+        if candidate.doi:
+            try:
+                paper = _s2_lookup_by_doi(candidate.doi, session, s2_rate_limiter)
+            except requests.RequestException as exc:
+                logger.warning(
+                    "Enrichment DOI lookup failed for %s (DOI: %s): %s",
+                    candidate.arxiv_id,
+                    candidate.doi,
+                    exc,
+                )
+
+        if paper is None and candidate.title:
+            try:
+                paper = _s2_lookup_by_title(candidate.title, session, s2_rate_limiter)
+            except requests.RequestException as exc:
+                logger.warning(
+                    "Enrichment title lookup failed for %s: %s",
+                    candidate.arxiv_id,
+                    exc,
+                )
 
         if paper is None:
             continue

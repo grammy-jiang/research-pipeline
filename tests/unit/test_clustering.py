@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.screening.clustering import (
     PaperCluster,
@@ -141,7 +139,10 @@ class TestClusterLabel:
     """Tests for _cluster_label()."""
 
     def test_basic(self) -> None:
-        assert _cluster_label(["nlp", "transformer", "attention"]) == "nlp, transformer, attention"
+        assert (
+            _cluster_label(["nlp", "transformer", "attention"])
+            == "nlp, transformer, attention"
+        )
 
     def test_empty(self) -> None:
         assert _cluster_label([]) == "misc"
@@ -167,7 +168,7 @@ class TestClusterCandidates:
             _make_candidate(
                 arxiv_id="2401.00001",
                 title="Transformer architectures for language tasks",
-                abstract="Deep learning transformer neural networks processing language",
+                abstract="Deep learning transformer neural networks",
             ),
             _make_candidate(
                 arxiv_id="2401.00002",
