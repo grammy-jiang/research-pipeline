@@ -1328,6 +1328,45 @@ def export_html_command(
     )
 
 
+@app.command("export-bibtex")
+def export_bibtex_command(
+    run_id: str = typer.Option(
+        ...,
+        "--run-id",
+        help="Pipeline run ID.",
+    ),
+    stage: str = typer.Option(
+        "screen",
+        "--stage",
+        help="Stage to export from: search, screen, or download.",
+    ),
+    output: str = typer.Option(
+        "",
+        "-o",
+        "--output",
+        help="Output .bib file path (default: auto in run dir).",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Export papers from a pipeline stage as a BibTeX file.
+
+    Reads candidate JSONL files from the specified stage and produces
+    a .bib file suitable for LaTeX workflows.
+
+    .. code-block:: bash
+
+       research-pipeline export-bibtex --run-id <ID>
+       research-pipeline export-bibtex --run-id <ID> --stage search
+       research-pipeline export-bibtex --run-id <ID> -o refs.bib
+    """
+    from research_pipeline.cli.cmd_export_bibtex import export_bibtex_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    export_bibtex_cmd(run_id=run_id, stage=stage, output=output)
+
+
 @app.command("blinding-audit")
 def blinding_audit_command(
     workspace: str = typer.Option(
