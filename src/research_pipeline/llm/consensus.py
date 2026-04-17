@@ -334,9 +334,8 @@ class ConsensusEngine:
         disagreement = classify_disagreement(responses)
 
         severity_order = list(DisagreementSeverity)
-        needs_review = (
-            severity_order.index(disagreement)
-            >= severity_order.index(self._review_threshold)
+        needs_review = severity_order.index(disagreement) >= severity_order.index(
+            self._review_threshold
         )
 
         verdict = self._aggregate(responses)
@@ -406,7 +405,9 @@ class ConsensusEngine:
         if len(set(str(v) for v in verdicts)) == 1:
             return verdicts[0]
         # No unanimity — fall back to majority
-        logger.warning("No unanimity among %d models, falling back to majority", len(responses))
+        logger.warning(
+            "No unanimity among %d models, falling back to majority", len(responses)
+        )
         verdict_types = {type(r.verdict) for r in responses}
         if verdict_types == {bool}:
             return _majority_binary(responses)
@@ -428,7 +429,9 @@ class ConsensusEngine:
             if isinstance(verdict, bool) and isinstance(r.verdict, bool):
                 if r.verdict == verdict:
                     agrees += 1
-            elif isinstance(verdict, float | int) and isinstance(r.verdict, float | int):
+            elif isinstance(verdict, float | int) and isinstance(
+                r.verdict, float | int
+            ):
                 if abs(float(r.verdict) - float(verdict)) < 0.1:
                     agrees += 1
             elif str(r.verdict) == str(verdict):

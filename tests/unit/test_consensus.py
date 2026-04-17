@@ -14,7 +14,6 @@ from research_pipeline.llm.consensus import (
     hash_prompt,
 )
 
-
 # ---------------------------------------------------------------------------
 # ModelResponse
 # ---------------------------------------------------------------------------
@@ -359,10 +358,12 @@ class TestConsensusHistory:
     def test_history_tracking(self) -> None:
         engine = ConsensusEngine()
         for _ in range(3):
-            engine.evaluate([
-                ModelResponse(model_id="a", verdict=True),
-                ModelResponse(model_id="b", verdict=True),
-            ])
+            engine.evaluate(
+                [
+                    ModelResponse(model_id="a", verdict=True),
+                    ModelResponse(model_id="b", verdict=True),
+                ]
+            )
         assert len(engine.history) == 3
 
     def test_summary_empty(self) -> None:
@@ -372,14 +373,18 @@ class TestConsensusHistory:
 
     def test_summary_with_data(self) -> None:
         engine = ConsensusEngine()
-        engine.evaluate([
-            ModelResponse(model_id="a", verdict=True),
-            ModelResponse(model_id="b", verdict=True),
-        ])
-        engine.evaluate([
-            ModelResponse(model_id="a", verdict=True),
-            ModelResponse(model_id="b", verdict=False),
-        ])
+        engine.evaluate(
+            [
+                ModelResponse(model_id="a", verdict=True),
+                ModelResponse(model_id="b", verdict=True),
+            ]
+        )
+        engine.evaluate(
+            [
+                ModelResponse(model_id="a", verdict=True),
+                ModelResponse(model_id="b", verdict=False),
+            ]
+        )
         s = engine.summary()
         assert s["total_evaluations"] == 2
         assert "mean_agreement" in s
