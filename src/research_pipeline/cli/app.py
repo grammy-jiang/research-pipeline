@@ -1549,3 +1549,37 @@ def cbr_retain_command(
         strategy_notes=strategy_notes,
         output_json=output_json,
     )
+
+
+@app.command("kg-quality")
+def kg_quality_command(
+    db_path: str = typer.Option(
+        "",
+        "--db",
+        help="Path to KG SQLite database.",
+    ),
+    staleness_days: float = typer.Option(
+        365.0,
+        "--staleness-days",
+        help="Threshold in days for a triple to be considered stale.",
+    ),
+    sample_size: int = typer.Option(
+        0,
+        "--sample",
+        help="If > 0, also run TWCS sampling and print sample.",
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Output results as JSON.",
+    ),
+) -> None:
+    """Evaluate knowledge graph quality across 5 dimensions."""
+    from research_pipeline.cli.cmd_kg_quality import kg_quality_command as _run
+
+    _run(
+        db_path=db_path,
+        staleness_days=staleness_days,
+        sample_size=sample_size,
+        output_json=output_json,
+    )

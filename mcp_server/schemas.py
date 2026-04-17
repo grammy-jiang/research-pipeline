@@ -510,6 +510,27 @@ class CbrRetainInput(BaseModel):
     )
 
 
+class KGQualityInput(BaseModel):
+    """Input for the kg_quality tool.
+
+    Evaluates knowledge graph quality across 5 dimensions using the
+    three-layer composable architecture (TKDE 2022 + Text2KGBench).
+    """
+
+    db_path: str = Field(
+        default="",
+        description="Path to KG SQLite database. Empty uses default.",
+    )
+    staleness_days: float = Field(
+        default=365.0,
+        description="Threshold in days for a triple to be considered stale.",
+    )
+    sample_size: int = Field(
+        default=0,
+        description="If > 0, also run TWCS sampling and return sample.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

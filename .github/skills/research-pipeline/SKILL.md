@@ -371,6 +371,37 @@ research-pipeline cbr-lookup --topic "LLM agents" --min-quality 0.5
 - After completing a run to store the strategy for future reuse
 - To build institutional knowledge across research sessions
 
+### KG Quality Evaluation (v0.13.13+)
+
+Three-layer composable architecture for knowledge graph quality evaluation
+based on KG Quality Management Survey (TKDE 2022), Text2KGBench (arXiv
+2308.02357), and LLM-KG-Bench (arXiv 2308.16622).
+
+```bash
+# Evaluate KG quality
+research-pipeline kg-quality
+
+# Custom staleness threshold
+research-pipeline kg-quality --staleness-days 180
+
+# With TWCS sampling and JSON output
+research-pipeline kg-quality --sample 50 --json
+```
+
+**5-dimension quality framework:**
+- **Accuracy** — structural metrics (ICR, density) + contradiction/duplicate penalties
+- **Consistency** — IC (internal contradiction detection) + EC (provenance coverage)
+- **Completeness** — entity/relation type coverage, orphan entities
+- **Timeliness** — triple age distribution, staleness ratio
+- **Redundancy** — exact duplicate triples, near-duplicate entity detection
+
+**Three evaluation layers:**
+1. **Structural** — ICR, CI, density, connected components, degree distribution
+2. **Consistency** — IC cross-triple coherence, EC source provenance
+3. **Scalable** — Type-Weighted Cluster Sampling (TWCS) for large KGs
+
+**MCP tool:** `tool_kg_quality` — evaluate KG quality with optional TWCS sampling.
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

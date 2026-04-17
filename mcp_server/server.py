@@ -61,6 +61,7 @@ from mcp_server.tools import (
     extract_content,
     gate_info_tool,
     get_run_manifest,
+    kg_quality_tool,
     list_backends,
     manage_index,
     model_routing_info_tool,
@@ -1067,6 +1068,40 @@ async def tool_cbr_retain(
         strategy_notes=strategy_notes,
     )
     result = cbr_retain_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_kg_quality(
+    db_path: str = "",
+    staleness_days: float = 365.0,
+    sample_size: int = 0,
+) -> dict:
+    """Evaluate knowledge graph quality across 5 dimensions.
+
+    Three-layer composable architecture (TKDE 2022 + Text2KGBench):
+    structural metrics → IC+EC consistency → TWCS sampling.
+
+    Args:
+        db_path: Path to KG SQLite database. Empty uses default.
+        staleness_days: Threshold for timeliness staleness.
+        sample_size: If > 0, also run TWCS sampling and return sample.
+    """
+    from mcp_server.schemas import KGQualityInput
+
+    params = KGQualityInput(
+        db_path=db_path,
+        staleness_days=staleness_days,
+        sample_size=sample_size,
+    )
+    result = kg_quality_tool(params=params)
     return result.model_dump()
 
 

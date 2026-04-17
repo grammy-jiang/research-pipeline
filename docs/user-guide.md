@@ -205,6 +205,12 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # strategies from past runs using CBR (Retrieve → Reuse → Revise → Retain).
 # Options: --max-results (5), --min-quality (0.0), --json, --notes, --outcome
 
+# KG Quality Evaluation (v0.13.13+)
+# CLI: research-pipeline kg-quality [--db path] [--staleness-days 365] [--sample 50]
+# Three-layer composable architecture: structural → consistency → TWCS sampling.
+# 5-dimension framework: accuracy, consistency, completeness, timeliness, redundancy.
+# Options: --json, --sample (TWCS sample size), --staleness-days
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

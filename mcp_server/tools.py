@@ -38,6 +38,7 @@ from mcp_server.schemas import (
     FeedbackInput,
     GateInfoInput,
     GetRunManifestInput,
+    KGQualityInput,
     ListBackendsInput,
     ManageIndexInput,
     ModelRoutingInfoInput,
@@ -2011,4 +2012,59 @@ def cbr_retain_tool(
         )
     except Exception as exc:
         logger.error("CBR retain failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def kg_quality_tool(
+    params: KGQualityInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Evaluate knowledge graph quality across 5 dimensions.
+
+    Uses the three-layer composable architecture (structural metrics,
+    IC+EC consistency, TWCS sampling) to produce a composite score.
+    """
+    try:
+        import sqlite3
+
+        from research_pipeline.quality.kg_quality import (
+            evaluate_kg_quality,
+            sample_triples_twcs,
+        )
+        from research_pipeline.storage.knowledge_graph import DEFAULT_KG_PATH
+
+        db_path = Path(params.db_path) if params.db_path else DEFAULT_KG_PATH
+        if not db_path.exists():
+            return ToolResult(
+                success=False,
+                message=f"KG database not found: {db_path}",
+            )
+
+        conn = sqlite3.connect(str(db_path))
+        conn.row_factory = sqlite3.Row
+
+        try:
+            score = evaluate_kg_quality(conn, staleness_days=params.staleness_days)
+
+            result: dict = score.to_dict()
+
+            if params.sample_size > 0:
+                sample = sample_triples_twcs(conn, sample_size=params.sample_size)
+                result["twcs_sample"] = sample
+
+            return ToolResult(
+                success=True,
+                message=(
+                    f"KG quality: composite={score.composite:.4f}, "
+                    f"accuracy={score.accuracy:.4f}, "
+                    f"consistency={score.consistency:.4f}, "
+                    f"completeness={score.completeness:.4f}"
+                ),
+                artifacts=result,
+            )
+        finally:
+            conn.close()
+
+    except Exception as exc:
+        logger.error("KG quality evaluation failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
