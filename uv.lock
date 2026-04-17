@@ -3570,7 +3570,7 @@ socks = [
 
 [[package]]
 name = "research-pipeline"
-version = "0.13.41"
+version = "0.13.42"
 source = { editable = "." }
 dependencies = [
     { name = "lxml" },
@@ -3588,6 +3588,7 @@ datalab = [
 dev = [
     { name = "black" },
     { name = "isort" },
+    { name = "jinja2" },
     { name = "mypy" },
     { name = "pre-commit" },
     { name = "pytest" },
@@ -3635,6 +3636,7 @@ requires-dist = [
     { name = "docling", marker = "extra == 'docling'", specifier = ">=2.0" },
     { name = "google-search-results", marker = "extra == 'serpapi'", specifier = ">=2.4" },
     { name = "isort", marker = "extra == 'dev'", specifier = ">=5.0" },
+    { name = "jinja2", marker = "extra == 'dev'", specifier = ">=3.1" },
     { name = "llama-cloud", marker = "extra == 'llamaparse'", specifier = ">=1.0" },
     { name = "lxml", specifier = ">=6.0.2" },
     { name = "magic-pdf", marker = "extra == 'mineru'", specifier = ">=0.9" },

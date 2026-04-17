@@ -4,7 +4,7 @@ build-backend = "uv_build"
 
 [project]
 name = "research-pipeline"
-version = "0.13.41"
+version = "0.13.42"
 description = "A multi-source pipeline for searching, screening, downloading, converting, and summarizing academic papers from arXiv, Google Scholar, and more."
 readme = "README.md"
 license = "MIT"
@@ -84,7 +84,8 @@ dev = [
   "isort>=5.0",
   "mypy>=1.10",
   "types-requests>=2.31",
-  "pre-commit>=4.0"
+  "pre-commit>=4.0",
+  "jinja2>=3.1"
 ]
 reranker = [
   "sentence-transformers>=2.2"
@@ -104,6 +105,7 @@ exclude_dirs = ["tests"]
 
 [tool.black]
 line-length = 88
+target-version = ["py312"]
 
 [tool.isort]
 profile = "black"
