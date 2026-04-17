@@ -19,7 +19,7 @@ import logging
 import math
 import re
 import statistics
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from enum import StrEnum
 from typing import Any
 
@@ -55,29 +55,90 @@ class RoutingTarget(StrEnum):
 
 
 # Technical / domain-specific terms that increase difficulty
-_TECHNICAL_TERMS = frozenset([
-    "transformer", "attention", "embedding", "gradient", "backpropagation",
-    "convolution", "recurrent", "encoder", "decoder", "tokenizer",
-    "fine-tune", "pre-train", "benchmark", "ablation", "hyperparameter",
-    "regularization", "dropout", "batch normalization", "cross-entropy",
-    "softmax", "sigmoid", "relu", "perceptron", "autoregressive",
-    "diffusion", "variational", "bayesian", "markov", "monte carlo",
-    "reinforcement learning", "reward", "policy", "episodic",
-    "ontology", "knowledge graph", "entity", "relation", "triple",
-    "citation", "h-index", "impact factor", "peer review",
-    "methodology", "hypothesis", "correlation", "causation",
-    "statistical significance", "p-value", "confidence interval",
-])
+_TECHNICAL_TERMS = frozenset(
+    [
+        "transformer",
+        "attention",
+        "embedding",
+        "gradient",
+        "backpropagation",
+        "convolution",
+        "recurrent",
+        "encoder",
+        "decoder",
+        "tokenizer",
+        "fine-tune",
+        "pre-train",
+        "benchmark",
+        "ablation",
+        "hyperparameter",
+        "regularization",
+        "dropout",
+        "batch normalization",
+        "cross-entropy",
+        "softmax",
+        "sigmoid",
+        "relu",
+        "perceptron",
+        "autoregressive",
+        "diffusion",
+        "variational",
+        "bayesian",
+        "markov",
+        "monte carlo",
+        "reinforcement learning",
+        "reward",
+        "policy",
+        "episodic",
+        "ontology",
+        "knowledge graph",
+        "entity",
+        "relation",
+        "triple",
+        "citation",
+        "h-index",
+        "impact factor",
+        "peer review",
+        "methodology",
+        "hypothesis",
+        "correlation",
+        "causation",
+        "statistical significance",
+        "p-value",
+        "confidence interval",
+    ]
+)
 
 # Reasoning depth indicators
-_REASONING_INDICATORS = frozenset([
-    "because", "therefore", "however", "although", "whereas",
-    "compare", "contrast", "evaluate", "synthesize", "analyze",
-    "implications", "trade-off", "trade-offs", "consequences",
-    "assuming", "given that", "if and only if", "necessary",
-    "sufficient", "prove", "demonstrate", "derive",
-    "multi-step", "chain of thought", "reasoning",
-])
+_REASONING_INDICATORS = frozenset(
+    [
+        "because",
+        "therefore",
+        "however",
+        "although",
+        "whereas",
+        "compare",
+        "contrast",
+        "evaluate",
+        "synthesize",
+        "analyze",
+        "implications",
+        "trade-off",
+        "trade-offs",
+        "consequences",
+        "assuming",
+        "given that",
+        "if and only if",
+        "necessary",
+        "sufficient",
+        "prove",
+        "demonstrate",
+        "derive",
+        "multi-step",
+        "chain of thought",
+        "reasoning",
+    ]
+)
 
 
 @dataclass(frozen=True)

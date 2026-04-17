@@ -2,8 +2,6 @@
 
 from __future__ import annotations
 
-import pytest
-
 from research_pipeline.llm.difficulty_routing import (
     ComplexityFeatures,
     DifficultyLevel,
@@ -14,7 +12,6 @@ from research_pipeline.llm.difficulty_routing import (
     extract_features,
     score_difficulty,
 )
-
 
 # ---------------------------------------------------------------------------
 # ComplexityFeatures
@@ -60,15 +57,11 @@ class TestExtractFeatures:
         assert f.has_code is False
 
     def test_technical_terms(self) -> None:
-        f = extract_features(
-            "transformer attention embedding gradient backpropagation"
-        )
+        f = extract_features("transformer attention embedding gradient backpropagation")
         assert f.technical_density > 0.5
 
     def test_reasoning_indicators(self) -> None:
-        f = extract_features(
-            "because therefore however although evaluate synthesize"
-        )
+        f = extract_features("because therefore however although evaluate synthesize")
         assert f.reasoning_depth >= 4
 
     def test_unique_ratio(self) -> None:
@@ -186,9 +179,7 @@ class TestDifficultyRouter:
         assert len(d.query_hash) == 16
 
     def test_no_override_without_stage(self) -> None:
-        router = DifficultyRouter(
-            stage_overrides={"screen": RoutingTarget.PREMIUM}
-        )
+        router = DifficultyRouter(stage_overrides={"screen": RoutingTarget.PREMIUM})
         decision = router.route("test")
         assert not decision.override
 
@@ -237,9 +228,7 @@ class TestCostSummary:
         assert s["estimated_savings"] > 0.0
 
     def test_mixed_routing(self) -> None:
-        router = DifficultyRouter(
-            stage_overrides={"validate": RoutingTarget.PREMIUM}
-        )
+        router = DifficultyRouter(stage_overrides={"validate": RoutingTarget.PREMIUM})
         router.route("hello")
         router.route("complex transformer analysis", stage="validate")
         s = router.cost_summary()
