@@ -263,18 +263,78 @@ def select_topk(
     return selected
 
 
+def _tokenize_document(candidate: CandidateRecord) -> set[str]:
+    """Tokenize a candidate's title + abstract into a term set.
+
+    Args:
+        candidate: Paper to tokenize.
+
+    Returns:
+        Set of lowercase tokens.
+    """
+    text = f"{candidate.title} {candidate.abstract}"
+    return set(_tokenize(text))
+
+
+def _jaccard_similarity(set_a: set[str], set_b: set[str]) -> float:
+    """Compute Jaccard similarity between two token sets.
+
+    Args:
+        set_a: First token set.
+        set_b: Second token set.
+
+    Returns:
+        Jaccard similarity in [0, 1].
+    """
+    if not set_a and not set_b:
+        return 0.0
+    intersection = len(set_a & set_b)
+    union = len(set_a | set_b)
+    return intersection / union if union > 0 else 0.0
+
+
+def _max_content_similarity(
+    candidate_tokens: set[str],
+    selected_token_sets: list[set[str]],
+) -> float:
+    """Compute maximum Jaccard similarity to any already-selected document.
+
+    This is the content-based redundancy measure for true MMR: higher
+    values mean the candidate is more similar to an already-selected paper.
+
+    Args:
+        candidate_tokens: Token set of the candidate.
+        selected_token_sets: Token sets of already-selected papers.
+
+    Returns:
+        Maximum similarity in [0, 1]. Returns 0.0 when no papers selected yet.
+    """
+    if not selected_token_sets:
+        return 0.0
+    return max(_jaccard_similarity(candidate_tokens, s) for s in selected_token_sets)
+
+
 def _diverse_select(
     pool: list[tuple[CandidateRecord, CheapScoreBreakdown]],
     top_k: int,
     lam: float,
 ) -> list[tuple[CandidateRecord, CheapScoreBreakdown]]:
-    """Greedy diversity-aware selection (MMR-inspired).
+    """Greedy diversity-aware selection using true MMR.
 
     At each step, selects the candidate that maximizes:
-        score = (1 - λ) * relevance + λ * novelty
+        score = (1 - λ) * relevance - λ * max_sim_to_selected
 
-    Novelty is measured by how much the candidate's features differ from
-    the already-selected set (category, year, source).
+    This implements Maximal Marginal Relevance (Carbonell & Goldstein, 1998)
+    using Jaccard similarity on tokenized title+abstract as the document
+    similarity measure, combined with metadata novelty (category, year,
+    source) for a blended diversity signal.
+
+    The MMR score for each candidate *c* given selected set *S* is:
+
+        MMR(c) = (1 - λ) * rel(c) + λ * (α * metadata_novelty(c, S)
+                                          + (1 - α) * (1 - max_sim(c, S)))
+
+    where α = 0.4 balances metadata vs content diversity.
 
     Args:
         pool: Available (candidate, score) pairs.
@@ -292,38 +352,61 @@ def _diverse_select(
     min_score = min(s.cheap_score for _, s in pool)
     score_range = max_score - min_score if max_score > min_score else 1.0
 
+    # Pre-tokenize all documents for content similarity
+    pool_tokens = [_tokenize_document(c) for c, _ in pool]
+
     selected: list[tuple[CandidateRecord, CheapScoreBreakdown]] = []
-    remaining = list(pool)
+    selected_token_sets: list[set[str]] = []
+    remaining = list(range(len(pool)))
 
     # Track coverage of diversity dimensions
     covered_categories: dict[str, int] = {}
     covered_years: dict[int, int] = {}
     covered_sources: dict[str, int] = {}
 
+    # Balance between metadata novelty and content novelty
+    content_weight = 0.6  # content diversity matters more than metadata
+
     for _ in range(min(top_k, len(pool))):
-        best_idx = -1
+        best_pool_idx = -1
+        best_remaining_pos = -1
         best_mmr = -1.0
 
-        for idx, (c, s) in enumerate(remaining):
+        for pos, pool_idx in enumerate(remaining):
+            c, s = pool[pool_idx]
             relevance = (s.cheap_score - min_score) / score_range
 
-            # Novelty: how different is this candidate from what we already have?
-            novelty = _compute_novelty(
+            # Metadata novelty (category, year, source)
+            metadata_novelty = _compute_novelty(
                 c, covered_categories, covered_years, covered_sources
             )
 
-            mmr = (1.0 - lam) * relevance + lam * novelty
+            # Content novelty: 1 - max similarity to selected
+            content_sim = _max_content_similarity(
+                pool_tokens[pool_idx], selected_token_sets
+            )
+            content_novelty = 1.0 - content_sim
+
+            # Blended diversity signal
+            diversity = (
+                1.0 - content_weight
+            ) * metadata_novelty + content_weight * content_novelty
+
+            mmr = (1.0 - lam) * relevance + lam * diversity
             if mmr > best_mmr:
                 best_mmr = mmr
-                best_idx = idx
+                best_pool_idx = pool_idx
+                best_remaining_pos = pos
 
-        if best_idx < 0:
+        if best_pool_idx < 0:
             break
 
-        chosen_c, chosen_s = remaining.pop(best_idx)
+        remaining.pop(best_remaining_pos)
+        chosen_c, chosen_s = pool[best_pool_idx]
         selected.append((chosen_c, chosen_s))
+        selected_token_sets.append(pool_tokens[best_pool_idx])
 
-        # Update coverage
+        # Update metadata coverage
         cat = chosen_c.primary_category
         covered_categories[cat] = covered_categories.get(cat, 0) + 1
         year = chosen_c.year or chosen_c.published.year
@@ -340,7 +423,7 @@ def _compute_novelty(
     covered_years: dict[int, int],
     covered_sources: dict[str, int],
 ) -> float:
-    """Compute novelty score for a candidate given current coverage.
+    """Compute metadata novelty score for a candidate given current coverage.
 
     Higher scores mean more novel (underrepresented dimensions).
 

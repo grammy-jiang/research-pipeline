@@ -7,6 +7,9 @@ from research_pipeline.models.screening import CheapScoreBreakdown
 from research_pipeline.screening.heuristic import (
     _compute_novelty,
     _diverse_select,
+    _jaccard_similarity,
+    _max_content_similarity,
+    _tokenize_document,
     select_topk,
 )
 
@@ -16,18 +19,20 @@ def _make_candidate(
     primary_category: str = "cs.AI",
     source: str = "arxiv",
     year: int = 2024,
+    title: str | None = None,
+    abstract: str | None = None,
 ) -> CandidateRecord:
     """Create a candidate with configurable diversity dimensions."""
     return CandidateRecord(
         arxiv_id=arxiv_id,
         version="v1",
-        title=f"Paper {arxiv_id}",
+        title=title or f"Paper {arxiv_id}",
         authors=["Author A"],
         published=datetime(year, 1, 15, tzinfo=UTC),
         updated=datetime(year, 1, 15, tzinfo=UTC),
         categories=[primary_category],
         primary_category=primary_category,
-        abstract=f"Abstract of {arxiv_id}",
+        abstract=abstract or f"Abstract of {arxiv_id}",
         abs_url=f"https://arxiv.org/abs/{arxiv_id}",
         pdf_url=f"https://arxiv.org/pdf/{arxiv_id}",
         source=source,
@@ -200,3 +205,127 @@ class TestDiverseSelect:
         ]
         result = _diverse_select(pool, 10, 0.3)
         assert len(result) == 1
+
+
+class TestTokenizeDocument:
+    def test_basic_tokenization(self) -> None:
+        c = _make_candidate(title="Neural Retrieval", abstract="Dense vector search")
+        tokens = _tokenize_document(c)
+        assert "neural" in tokens
+        assert "retrieval" in tokens
+        assert "dense" in tokens
+        assert "vector" in tokens
+        assert "search" in tokens
+
+    def test_lowercase(self) -> None:
+        c = _make_candidate(title="UPPER Title", abstract="MiXeD Case")
+        tokens = _tokenize_document(c)
+        assert "upper" in tokens
+        assert "mixed" in tokens
+
+    def test_empty_abstract(self) -> None:
+        c = _make_candidate(title="Title", abstract="")
+        tokens = _tokenize_document(c)
+        assert "title" in tokens
+
+
+class TestJaccardSimilarity:
+    def test_identical_sets(self) -> None:
+        s = {"a", "b", "c"}
+        assert _jaccard_similarity(s, s) == 1.0
+
+    def test_disjoint_sets(self) -> None:
+        assert _jaccard_similarity({"a", "b"}, {"c", "d"}) == 0.0
+
+    def test_partial_overlap(self) -> None:
+        sim = _jaccard_similarity({"a", "b", "c"}, {"b", "c", "d"})
+        # intersection=2, union=4 → 0.5
+        assert abs(sim - 0.5) < 1e-9
+
+    def test_empty_sets(self) -> None:
+        assert _jaccard_similarity(set(), set()) == 0.0
+
+    def test_one_empty(self) -> None:
+        assert _jaccard_similarity({"a"}, set()) == 0.0
+
+
+class TestMaxContentSimilarity:
+    def test_no_selected(self) -> None:
+        assert _max_content_similarity({"a", "b"}, []) == 0.0
+
+    def test_single_selected(self) -> None:
+        sim = _max_content_similarity({"a", "b", "c"}, [{"b", "c", "d"}])
+        assert abs(sim - 0.5) < 1e-9
+
+    def test_returns_max(self) -> None:
+        candidate = {"a", "b", "c"}
+        selected = [{"x", "y"}, {"a", "b", "c"}]
+        sim = _max_content_similarity(candidate, selected)
+        assert sim == 1.0
+
+
+class TestDiverseSelectContentSimilarity:
+    """Tests that true MMR prefers content-diverse papers."""
+
+    def test_avoids_content_duplicates(self) -> None:
+        """Papers with near-identical content should be penalized by MMR."""
+        # Two papers about neural retrieval (similar content)
+        c1 = _make_candidate(
+            "2401.00001",
+            title="Neural information retrieval with embeddings",
+            abstract="Dense retrieval using neural embeddings for search.",
+        )
+        c2 = _make_candidate(
+            "2401.00002",
+            title="Neural information retrieval with vectors",
+            abstract="Dense retrieval using neural vectors for search.",
+        )
+        # One paper about a different topic
+        c3 = _make_candidate(
+            "2401.00003",
+            title="Graph neural networks for recommendation",
+            abstract="GNN-based collaborative filtering for item suggestions.",
+        )
+
+        pool = [
+            (c1, _make_score(0.9)),
+            (c2, _make_score(0.85)),
+            (c3, _make_score(0.7)),
+        ]
+
+        # With high diversity, c3 should be picked over c2 (different content)
+        result = _diverse_select(pool, 2, lam=0.7)
+        selected_ids = {c.arxiv_id for c, _ in result}
+        # c1 should be first (highest score), c3 should beat c2 due to content diversity
+        assert "2401.00001" in selected_ids
+        assert "2401.00003" in selected_ids
+
+    def test_low_lambda_prefers_relevance(self) -> None:
+        """With low λ, relevance dominates over diversity."""
+        c1 = _make_candidate(
+            "2401.00001",
+            title="Neural retrieval methods",
+            abstract="Dense neural search.",
+        )
+        c2 = _make_candidate(
+            "2401.00002",
+            title="Neural retrieval approaches",
+            abstract="Dense neural search techniques.",
+        )
+        c3 = _make_candidate(
+            "2401.00003",
+            title="Quantum computing basics",
+            abstract="Quantum algorithms for factoring.",
+        )
+
+        pool = [
+            (c1, _make_score(0.9)),
+            (c2, _make_score(0.89)),
+            (c3, _make_score(0.3)),
+        ]
+
+        # With very low lambda, top-2 should be by relevance (c1, c2)
+        result = _diverse_select(pool, 2, lam=0.01)
+        selected_ids = [c.arxiv_id for c, _ in result]
+        assert selected_ids[0] == "2401.00001"
+        assert selected_ids[1] == "2401.00002"
