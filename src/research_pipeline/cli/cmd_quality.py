@@ -85,3 +85,41 @@ def run_quality(
         len(scores),
         output_path,
     )
+
+    # Graduated rubric scoring on synthesis report (if available)
+    try:
+        from research_pipeline.quality.graduated_rubric import (
+            score_rubric,
+        )
+
+        sum_dir = get_stage_dir(run_root, "summarize")
+        synthesis_md = sum_dir / "synthesis.md"
+        if synthesis_md.exists():
+            text = synthesis_md.read_text(encoding="utf-8")
+            rubric_result = score_rubric(text)
+            rubric_path = quality_dir / "rubric_scores.json"
+            rubric_data = {
+                "overall_score": rubric_result.overall_score,
+                "overall_grade": rubric_result.overall_grade.value,
+                "passed": rubric_result.passed,
+                "summary": rubric_result.summary,
+                "dimensions": [
+                    {
+                        "dimension": d.dimension,
+                        "score": d.score,
+                        "grade": d.grade.value,
+                        "label": d.label,
+                        "descriptor": d.descriptor,
+                    }
+                    for d in rubric_result.dimensions
+                ],
+            }
+            rubric_path.write_text(json.dumps(rubric_data, indent=2), encoding="utf-8")
+            logger.info(
+                "Graduated rubric: %s (%.3f), passed=%s",
+                rubric_result.summary[:60] if rubric_result.summary else "N/A",
+                rubric_result.overall_score,
+                rubric_result.passed,
+            )
+    except Exception as exc:
+        logger.warning("Graduated rubric scoring skipped: %s", exc)

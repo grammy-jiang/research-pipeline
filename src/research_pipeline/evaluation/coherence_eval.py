@@ -19,10 +19,10 @@ aggregates them with configurable weights.
 from __future__ import annotations
 
 import logging
-import math
+from collections.abc import Sequence
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Any, Sequence
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -145,8 +145,7 @@ class CoherenceReport:
         return {
             "composite_score": round(self.composite_score, 4),
             "dimensions": {
-                dim.value: ds.to_dict()
-                for dim, ds in self.dimension_scores.items()
+                dim.value: ds.to_dict() for dim, ds in self.dimension_scores.items()
             },
             "total_issues": len(self.all_issues),
             "critical_issues": len(self.critical_issues),
@@ -202,7 +201,10 @@ def evaluate_factual_consistency(
                 dimension=CoherenceDimension.FACTUAL_CONSISTENCY,
                 severity=sev,
                 description=f"Contradiction between assertion {i} and {j}",
-                evidence=f"A[{i}]: {assertions[i].text[:80]} vs A[{j}]: {assertions[j].text[:80]}",
+                evidence=(
+                    f"A[{i}]: {assertions[i].text[:80]}"
+                    f" vs A[{j}]: {assertions[j].text[:80]}"
+                ),
             )
         )
     return DimensionScore(
@@ -289,7 +291,10 @@ def evaluate_knowledge_update_fidelity(
                     dimension=CoherenceDimension.KNOWLEDGE_UPDATE_FIDELITY,
                     severity=Severity.HIGH,
                     description="Knowledge update not integrated",
-                    evidence=f"Old: {str(u.get('old_claim', ''))[:60]} → New: {str(u.get('new_claim', ''))[:60]}",
+                    evidence=(
+                        f"Old: {str(u.get('old_claim', ''))[:60]}"
+                        f" → New: {str(u.get('new_claim', ''))[:60]}"
+                    ),
                 )
             )
     return DimensionScore(
@@ -332,7 +337,10 @@ def evaluate_cross_session_reasoning(
                     dimension=CoherenceDimension.CROSS_SESSION_REASONING,
                     severity=Severity.HIGH,
                     description="Cross-session reasoning inconsistency",
-                    evidence=f"Session {c.get('session_id', '?')}: {str(c.get('conclusion', ''))[:80]}",
+                    evidence=(
+                        f"Session {c.get('session_id', '?')}: "
+                        f"{str(c.get('conclusion', ''))[:80]}"
+                    ),
                     session_id=str(c.get("session_id", "")),
                 )
             )

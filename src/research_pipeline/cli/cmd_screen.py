@@ -104,6 +104,33 @@ def run_screen(
         encoding="utf-8",
     )
 
+    # Query-typed stopping analysis — classify query intent and record
+    # the stopping profile so downstream stages can adapt behaviour.
+    from research_pipeline.screening.typed_stopping import (
+        TypedStoppingEvaluator,
+        classify_query_type,
+        estimate_cost,
+    )
+
+    query_type = classify_query_type(plan.topic_raw)
+    cost_est = estimate_cost(plan.topic_raw)
+    evaluator = TypedStoppingEvaluator(query=plan.topic_raw, query_type=query_type)
+    batch_scores = [s.cheap_score for s in scores]
+    if batch_scores:
+        evaluator.add_batch(batch_scores)
+
+    stopping_metadata = {
+        "query_type": query_type.value,
+        "stopping_profile": evaluator.profile.to_dict(),
+        "cost_estimate": cost_est.to_dict(),
+        "evaluation": evaluator.evaluate().to_dict(),
+    }
+    stopping_path = screen_dir / "typed_stopping.json"
+    stopping_path.write_text(json.dumps(stopping_metadata, indent=2), encoding="utf-8")
+    logger.info(
+        "Query type: %s (profile: %s)", query_type.value, evaluator.profile.description
+    )
+
     # Query refinement feedback — suggest terms for iterative improvement
     from research_pipeline.screening.query_feedback import compute_query_refinement
 
@@ -123,6 +150,7 @@ def run_screen(
         )
 
     typer.echo(f"Screened {len(candidates)} → {len(shortlist)} shortlisted")
+    typer.echo(f"Query type: {query_type.value}")
     typer.echo(f"Saved to: {shortlist_path}")
     if refinement.suggested_additions:
         typer.echo(

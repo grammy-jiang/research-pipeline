@@ -438,6 +438,38 @@ def run_pipeline(
         details={"profile": profile.value, "stages": get_stages(profile)},
     )
 
+    # Difficulty routing analysis
+    try:
+        from research_pipeline.llm.difficulty_routing import (
+            DifficultyRouter,
+            score_difficulty,
+        )
+
+        diff_score = score_difficulty(topic)
+        router = DifficultyRouter()
+        routing = router.route(topic)
+        diff_meta = {
+            "difficulty_level": diff_score.level.value,
+            "difficulty_score": diff_score.score,
+            "routing_target": routing.target.value,
+            "reasoning": diff_score.reasoning,
+        }
+        diff_path = run_root / "difficulty_analysis.json"
+        diff_path.write_text(json.dumps(diff_meta, indent=2), encoding="utf-8")
+        logger.info(
+            "Difficulty routing: %s (%.2f) → %s",
+            diff_score.level.value,
+            diff_score.score,
+            routing.target.value,
+        )
+        audit.emit(
+            EventType.DECISION,
+            run_id=run_id,
+            details=diff_meta,
+        )
+    except Exception as exc:
+        logger.warning("Difficulty routing skipped: %s", exc)
+
     # Setup shared resources
     rate_limiter = ArxivRateLimiter(min_interval=config.arxiv.min_interval_seconds)
     session = create_session(config.contact_email)
@@ -1365,6 +1397,39 @@ def run_pipeline(
             logger.info("HTML report exported to %s", html_path)
         except Exception as exc:
             logger.warning("HTML report export skipped: %s", exc)
+
+        # Coherence evaluation on synthesis claims
+        try:
+            from research_pipeline.evaluation.coherence_eval import (
+                Assertion,
+                CoherenceEvaluator,
+            )
+
+            assertions = []
+            for ps in report.paper_summaries:
+                for finding in ps.findings:
+                    assertions.append(
+                        Assertion(
+                            text=finding,
+                            source=ps.arxiv_id,
+                        )
+                    )
+
+            if assertions:
+                evaluator = CoherenceEvaluator()
+                coherence_report = evaluator.evaluate(assertions=assertions)
+                coherence_path = sum_dir / "coherence_report.json"
+                coherence_path.write_text(
+                    json.dumps(coherence_report.to_dict(), indent=2),
+                    encoding="utf-8",
+                )
+                logger.info(
+                    "Coherence evaluation: overall=%.3f, %d dimensions scored",
+                    coherence_report.composite_score,
+                    len(coherence_report.dimension_scores),
+                )
+        except Exception as exc:
+            logger.warning("Coherence evaluation skipped: %s", exc)
 
         manifest = _record_stage(
             manifest,

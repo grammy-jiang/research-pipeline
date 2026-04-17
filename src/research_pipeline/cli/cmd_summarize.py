@@ -86,6 +86,65 @@ def run_summarize(
         out.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
 
     report = synthesize(summaries, plan.topic_raw)
+
+    # Compute confidence metadata for synthesis claims using 4-layer architecture
+    from research_pipeline.confidence.architecture import (
+        ArchitectureConfig,
+        score_claim_layered,
+    )
+    from research_pipeline.models.claim import AtomicClaim
+
+    arch_config = ArchitectureConfig()
+    confidence_results = []
+    claim_idx = 0
+    for agreement in report.agreements:
+        claim = AtomicClaim(
+            claim_id=f"SYN-A-{claim_idx:03d}",
+            paper_id=",".join(agreement.supporting_papers[:3]),
+            source_type="finding",
+            statement=agreement.claim,
+        )
+        result = score_claim_layered(claim, config=arch_config)
+        confidence_results.append(
+            {
+                "claim_id": claim.claim_id,
+                "statement": claim.statement,
+                "type": "agreement",
+                "layered_confidence": result.final_confidence,
+                "layers_used": [lr.value for lr in result.layers_used],
+            }
+        )
+        claim_idx += 1
+
+    for disagreement in report.disagreements:
+        claim = AtomicClaim(
+            claim_id=f"SYN-D-{claim_idx:03d}",
+            paper_id=",".join(list(disagreement.positions.keys())[:3]),
+            source_type="limitation",
+            statement=disagreement.topic,
+        )
+        result = score_claim_layered(claim, config=arch_config)
+        confidence_results.append(
+            {
+                "claim_id": claim.claim_id,
+                "statement": claim.statement,
+                "type": "disagreement",
+                "layered_confidence": result.final_confidence,
+                "layers_used": [lr.value for lr in result.layers_used],
+            }
+        )
+        claim_idx += 1
+
+    confidence_path = sum_dir / "synthesis_confidence.json"
+    confidence_path.write_text(
+        json.dumps(confidence_results, indent=2), encoding="utf-8"
+    )
+    logger.info(
+        "Confidence scored %d synthesis claims → %s",
+        len(confidence_results),
+        confidence_path,
+    )
+
     syn_path = sum_dir / "synthesis.json"
     syn_path.write_text(report.model_dump_json(indent=2), encoding="utf-8")
 

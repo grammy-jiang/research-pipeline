@@ -5,12 +5,12 @@ from __future__ import annotations
 import pytest
 
 from research_pipeline.evaluation.coherence_eval import (
+    DEFAULT_WEIGHTS,
     Assertion,
     CoherenceDimension,
     CoherenceEvaluator,
     CoherenceIssue,
     CoherenceReport,
-    DEFAULT_WEIGHTS,
     DimensionScore,
     Severity,
     evaluate_coherence_degradation,
@@ -21,7 +21,6 @@ from research_pipeline.evaluation.coherence_eval import (
     evaluate_memory_pressure_resilience,
     evaluate_temporal_ordering,
 )
-
 
 # ---------------------------------------------------------------------------
 # Enums
@@ -91,14 +90,10 @@ class TestCoherenceReport:
     def test_composite_score(self) -> None:
         report = CoherenceReport()
         report.dimension_scores[CoherenceDimension.FACTUAL_CONSISTENCY] = (
-            DimensionScore(
-                dimension=CoherenceDimension.FACTUAL_CONSISTENCY, score=0.8
-            )
+            DimensionScore(dimension=CoherenceDimension.FACTUAL_CONSISTENCY, score=0.8)
         )
-        report.dimension_scores[CoherenceDimension.TEMPORAL_ORDERING] = (
-            DimensionScore(
-                dimension=CoherenceDimension.TEMPORAL_ORDERING, score=1.0
-            )
+        report.dimension_scores[CoherenceDimension.TEMPORAL_ORDERING] = DimensionScore(
+            dimension=CoherenceDimension.TEMPORAL_ORDERING, score=1.0
         )
         # Composite should be weighted average of the dimensions present
         assert 0.0 < report.composite_score <= 1.0
@@ -368,9 +363,7 @@ class TestCoherenceEvaluator:
         }
         evaluator = CoherenceEvaluator(weights=weights)
         assertions = [Assertion("A"), Assertion("B")]
-        report = evaluator.evaluate(
-            assertions=assertions, contradiction_pairs=[(0, 1)]
-        )
+        report = evaluator.evaluate(assertions=assertions, contradiction_pairs=[(0, 1)])
         # Composite should only reflect factual consistency (which has a contradiction)
         assert report.composite_score < 1.0
 
