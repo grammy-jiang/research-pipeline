@@ -36,6 +36,8 @@ def run_expand(
     snowball_max_papers: int = 200,
     snowball_decay_threshold: float = 0.10,
     snowball_decay_patience: int = 2,
+    bfs_budget: int = 0,
+    bfs_min_new: int = 0,
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
@@ -57,6 +59,10 @@ def run_expand(
         snowball_max_papers: Max total papers for snowball.
         snowball_decay_threshold: Relevance decay threshold (0-1).
         snowball_decay_patience: Consecutive low-relevance rounds.
+        bfs_budget: Hard cap on total papers collected across all BFS
+            hops.  0 means no limit.
+        bfs_min_new: Minimum new candidates per BFS hop to continue.
+            0 means no diminishing returns check.
         config_path: Path to config TOML file.
         workspace: Workspace root directory.
         run_id: Pipeline run ID.
@@ -162,6 +168,8 @@ def run_expand(
                 limit_per_paper=limit_per_paper,
                 top_k_per_hop=bfs_top_k,
                 direction=direction,
+                max_total_papers=bfs_budget,
+                min_new_per_hop=bfs_min_new,
             )
             # Merge and deduplicate
             seen_ids = {c.arxiv_id for c in candidates}

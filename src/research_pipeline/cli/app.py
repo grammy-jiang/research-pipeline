@@ -471,6 +471,19 @@ def expand(
         "--snowball-decay-patience",
         help="Consecutive low-relevance rounds before stopping (default 2).",
     ),
+    bfs_budget: int = typer.Option(
+        0,
+        "--bfs-budget",
+        help="Hard cap on total papers collected across all BFS hops. "
+        "0 means no limit (default 0).",
+    ),
+    bfs_min_new: int = typer.Option(
+        0,
+        "--bfs-min-new",
+        help="Minimum new candidates per BFS hop to continue. "
+        "Stops early when hop yields fewer (diminishing returns). "
+        "0 means no check (default 0).",
+    ),
 ) -> None:
     """Expand citation graph for specified papers.
 
@@ -506,6 +519,8 @@ def expand(
         snowball_max_papers=snowball_max_papers,
         snowball_decay_threshold=snowball_decay_threshold,
         snowball_decay_patience=snowball_decay_patience,
+        bfs_budget=bfs_budget,
+        bfs_min_new=bfs_min_new,
         **opts,
     )
 

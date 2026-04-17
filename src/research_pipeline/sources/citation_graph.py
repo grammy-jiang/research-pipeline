@@ -173,12 +173,19 @@ class CitationGraphClient:
         limit_per_paper: int = 20,
         top_k_per_hop: int = 10,
         direction: str = "both",
+        max_total_papers: int = 0,
+        min_new_per_hop: int = 0,
     ) -> list[CandidateRecord]:
         """Breadth-first expansion of citation graph with BM25 pruning.
 
         At each hop, fetches citations/references and re-ranks using BM25
         to prune low-relevance branches. Deep research shows +24pp recall
         improvement over single-hop expansion.
+
+        Budget-aware stopping criteria terminate expansion early when:
+        - Total collected papers reaches ``max_total_papers`` (hard cap).
+        - New papers found in a hop falls below ``min_new_per_hop``
+          (diminishing returns detection).
 
         Args:
             seed_ids: Starting paper IDs for BFS.
@@ -187,6 +194,11 @@ class CitationGraphClient:
             limit_per_paper: Max results per paper per direction per hop.
             top_k_per_hop: Keep only top-k most relevant papers per hop.
             direction: "citations", "references", or "both".
+            max_total_papers: Hard cap on total papers to collect across
+                all hops.  0 means no limit.
+            min_new_per_hop: Minimum new papers per hop to continue.
+                If a hop yields fewer unique candidates than this threshold,
+                BFS stops (diminishing returns).  0 means no check.
 
         Returns:
             Deduplicated list of discovered CandidateRecords across all hops.
@@ -219,13 +231,39 @@ class CitationGraphClient:
                     unique[c.arxiv_id] = c
             hop_candidates = list(unique.values())
 
+            # Diminishing returns: stop if too few unique candidates
+            if min_new_per_hop > 0 and len(hop_candidates) < min_new_per_hop:
+                logger.info(
+                    "BFS budget stop at depth %d: %d new candidates < "
+                    "min_new_per_hop=%d (diminishing returns)",
+                    depth,
+                    len(hop_candidates),
+                    min_new_per_hop,
+                )
+                break
+
             # Score and rank by BM25 relevance
             scored = [
                 (c, _bm25_score_text(f"{c.title} {c.abstract}", query_terms))
                 for c in hop_candidates
             ]
             scored.sort(key=lambda x: x[1], reverse=True)
-            top_candidates = [c for c, _ in scored[:top_k_per_hop]]
+
+            # Apply budget cap: only take enough to stay within total limit
+            effective_k = top_k_per_hop
+            if max_total_papers > 0:
+                remaining_budget = max_total_papers - len(all_results)
+                if remaining_budget <= 0:
+                    logger.info(
+                        "BFS budget stop at depth %d: total paper budget "
+                        "of %d reached",
+                        depth,
+                        max_total_papers,
+                    )
+                    break
+                effective_k = min(top_k_per_hop, remaining_budget)
+
+            top_candidates = [c for c, _ in scored[:effective_k]]
 
             for c in top_candidates:
                 seen_ids.add(c.arxiv_id)
@@ -239,6 +277,17 @@ class CitationGraphClient:
                 len(hop_candidates),
                 len(top_candidates),
             )
+
+            # Check total budget after adding
+            if max_total_papers > 0 and len(all_results) >= max_total_papers:
+                logger.info(
+                    "BFS budget stop after depth %d: collected %d papers "
+                    "(budget=%d)",
+                    depth,
+                    len(all_results),
+                    max_total_papers,
+                )
+                break
 
             if not frontier:
                 logger.info("BFS terminated at depth %d: no frontier papers", depth)
