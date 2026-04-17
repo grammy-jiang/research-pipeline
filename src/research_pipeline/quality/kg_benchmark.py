@@ -10,7 +10,8 @@ Provides:
 - ExtractionResult: container for system-extracted triples
 - BenchmarkMetrics: precision, recall, F1, hallucination & missing rates
 - KGBenchmarkRunner: compare extracted KG against gold standard
-- NormalizationStrategy: configurable entity normalization (exact / lowercase / lemma / alias)
+- NormalizationStrategy: configurable entity normalization
+  (exact / lowercase / lemma / alias)
 - PredefinedSeeds: small built-in seed datasets for smoke testing
 """
 
@@ -19,9 +20,9 @@ from __future__ import annotations
 import logging
 import re
 from collections import defaultdict
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
-from typing import Callable, Sequence
 
 logger = logging.getLogger(__name__)
 
@@ -49,7 +50,10 @@ def _normalize_lowercase(text: str) -> str:
 
 
 def _normalize_lemma_like(text: str) -> str:
-    """Cheap pseudo-lemmatisation: lowercase, collapse whitespace, strip trailing 's'."""
+    """Cheap pseudo-lemmatisation.
+
+    Lowercase, collapse whitespace, strip trailing 's'.
+    """
     t = re.sub(r"\s+", " ", text.strip().lower())
     if t.endswith("s") and len(t) > 3:
         t = t[:-1]
@@ -317,9 +321,7 @@ class KGBenchmarkRunner:
             return self._alias_lookup.get(base, base)
         return base
 
-    def _normalize_triple(
-        self, s: str, p: str, o: str
-    ) -> tuple[str, str, str]:
+    def _normalize_triple(self, s: str, p: str, o: str) -> tuple[str, str, str]:
         return (self._normalize(s), self._normalize(p), self._normalize(o))
 
     def evaluate_triples(
@@ -334,9 +336,7 @@ class KGBenchmarkRunner:
 
         extracted_set: set[tuple[str, str, str]] = set()
         for t in extracted.triples:
-            extracted_set.add(
-                self._normalize_triple(t.subject, t.predicate, t.obj)
-            )
+            extracted_set.add(self._normalize_triple(t.subject, t.predicate, t.obj))
 
         tp = len(gold_set & extracted_set)
         fp = len(extracted_set - gold_set)
@@ -449,9 +449,7 @@ class KGBenchmarkRunner:
             fn = len(gset - eset)
             prec = tp / (tp + fp) if (tp + fp) > 0 else 0.0
             rec = tp / (tp + fn) if (tp + fn) > 0 else 0.0
-            f1 = (
-                2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
-            )
+            f1 = 2 * prec * rec / (prec + rec) if (prec + rec) > 0 else 0.0
             result[pred] = f1
         return result
 

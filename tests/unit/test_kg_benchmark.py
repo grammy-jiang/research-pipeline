@@ -7,19 +7,18 @@ import pytest
 from research_pipeline.quality.kg_benchmark import (
     BenchmarkMetrics,
     EntityMetrics,
-    ExtractionResult,
     ExtractedTriple,
+    ExtractionResult,
     FullBenchmarkReport,
     GoldDataset,
     GoldTriple,
     KGBenchmarkRunner,
     NormalizationStrategy,
-    PredicateMetrics,
     PredefinedSeeds,
+    PredicateMetrics,
     _normalize_lemma_like,
     _normalize_lowercase,
 )
-
 
 # ---------------------------------------------------------------------------
 # GoldTriple / GoldDataset
@@ -135,8 +134,12 @@ class TestBenchmarkMetrics:
 class TestEntityMetrics:
     def test_to_dict(self) -> None:
         m = EntityMetrics(
-            precision=0.9, recall=0.8, f1=0.85, gold_entities=10,
-            extracted_entities=9, matched=8
+            precision=0.9,
+            recall=0.8,
+            f1=0.85,
+            gold_entities=10,
+            extracted_entities=9,
+            matched=8,
         )
         d = m.to_dict()
         assert d["matched"] == 8
@@ -145,8 +148,12 @@ class TestEntityMetrics:
 class TestPredicateMetrics:
     def test_to_dict(self) -> None:
         m = PredicateMetrics(
-            precision=1.0, recall=0.5, f1=0.6667, gold_predicates=4,
-            extracted_predicates=2, matched=2
+            precision=1.0,
+            recall=0.5,
+            f1=0.6667,
+            gold_predicates=4,
+            extracted_predicates=2,
+            matched=2,
         )
         d = m.to_dict()
         assert d["gold_predicates"] == 4
@@ -180,12 +187,14 @@ def _make_extraction(triples: list[tuple[str, str, str]]) -> ExtractionResult:
 class TestKGBenchmarkRunner:
     def test_perfect_match(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),
-            ("gpt", "is_a", "language model"),
-            ("bert", "uses", "transformer"),
-            ("attention", "is_component_of", "transformer"),
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),
+                ("gpt", "is_a", "language model"),
+                ("bert", "uses", "transformer"),
+                ("attention", "is_component_of", "transformer"),
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.LOWERCASE)
         m = runner.evaluate_triples(gold, ext)
         assert m.precision == 1.0
@@ -195,12 +204,14 @@ class TestKGBenchmarkRunner:
 
     def test_partial_match(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),
-            ("gpt", "is_a", "language model"),
-            # missing 2 gold triples, add 1 hallucinated
-            ("gpt", "beats", "bert"),
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),
+                ("gpt", "is_a", "language model"),
+                # missing 2 gold triples, add 1 hallucinated
+                ("gpt", "beats", "bert"),
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.LOWERCASE)
         m = runner.evaluate_triples(gold, ext)
         assert m.true_positives == 2
@@ -209,9 +220,11 @@ class TestKGBenchmarkRunner:
 
     def test_exact_strategy(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),  # case mismatch
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),  # case mismatch
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.EXACT)
         m = runner.evaluate_triples(gold, ext)
         assert m.true_positives == 0  # "bert" != "BERT"
@@ -244,13 +257,17 @@ class TestKGBenchmarkRunner:
 
     def test_entity_metrics(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.LOWERCASE)
         em = runner.evaluate_entities(gold, ext)
         assert em.matched >= 1
-        assert em.gold_entities == 5  # bert, gpt, language model, transformer, attention
+        assert (
+            em.gold_entities == 5
+        )  # bert, gpt, language model, transformer, attention
 
     def test_predicate_metrics(self) -> None:
         gold = _make_gold()
@@ -262,10 +279,12 @@ class TestKGBenchmarkRunner:
 
     def test_per_predicate_f1(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),
-            ("gpt", "is_a", "language model"),
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),
+                ("gpt", "is_a", "language model"),
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.LOWERCASE)
         ppf1 = runner.per_predicate_f1(gold, ext)
         assert ppf1["is_a"] == 1.0
@@ -273,10 +292,12 @@ class TestKGBenchmarkRunner:
 
     def test_find_hallucinated(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),
-            ("gpt", "beats", "bert"),
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),
+                ("gpt", "beats", "bert"),
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.LOWERCASE)
         hall = runner.find_hallucinated(gold, ext)
         assert len(hall) == 1
@@ -291,11 +312,13 @@ class TestKGBenchmarkRunner:
 
     def test_full_report(self) -> None:
         gold = _make_gold()
-        ext = _make_extraction([
-            ("bert", "is_a", "language model"),
-            ("gpt", "is_a", "language model"),
-            ("bert", "uses", "transformer"),
-        ])
+        ext = _make_extraction(
+            [
+                ("bert", "is_a", "language model"),
+                ("gpt", "is_a", "language model"),
+                ("bert", "uses", "transformer"),
+            ]
+        )
         runner = KGBenchmarkRunner(strategy=NormalizationStrategy.LOWERCASE)
         report = runner.full_report(gold, ext)
         assert isinstance(report, FullBenchmarkReport)
