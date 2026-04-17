@@ -106,21 +106,189 @@ def _parse_llm_synthesis_response(
     )
 
 
+# --- Heuristic dissent detection ---
+
+# Pairs of opposing terms that signal potential disagreement
+_OPPOSITION_PAIRS: list[tuple[str, str]] = [
+    ("outperform", "underperform"),
+    ("effective", "ineffective"),
+    ("better", "worse"),
+    ("improve", "degrade"),
+    ("increase", "decrease"),
+    ("superior", "inferior"),
+    ("significant", "insignificant"),
+    ("benefit", "drawback"),
+    ("advantage", "disadvantage"),
+    ("success", "failure"),
+    ("robust", "fragile"),
+    ("scalable", "unscalable"),
+    ("efficient", "inefficient"),
+    ("accurate", "inaccurate"),
+    ("reliable", "unreliable"),
+    ("sufficient", "insufficient"),
+    ("support", "contradict"),
+    ("confirm", "refute"),
+    ("enable", "hinder"),
+    ("positive", "negative"),
+]
+
+# Additional negation patterns
+_NEGATION_PREFIXES = ("not ", "no ", "does not ", "cannot ", "fails to ", "unable to ")
+
+
+def _extract_topic_tokens(finding: str) -> set[str]:
+    """Extract content-bearing tokens from a finding for topic matching.
+
+    Args:
+        finding: A finding string from a paper summary.
+
+    Returns:
+        Set of lowercase tokens (length > 3 to filter noise).
+    """
+    return {t for t in finding.lower().split() if len(t) > 3}
+
+
+def _findings_share_topic(finding_a: str, finding_b: str) -> bool:
+    """Check if two findings discuss a similar topic via token overlap.
+
+    Uses Jaccard similarity with a threshold to determine if two
+    findings are about the same topic.
+
+    Args:
+        finding_a: First finding text.
+        finding_b: Second finding text.
+
+    Returns:
+        True if the findings share sufficient topical overlap.
+    """
+    tokens_a = _extract_topic_tokens(finding_a)
+    tokens_b = _extract_topic_tokens(finding_b)
+    if not tokens_a or not tokens_b:
+        return False
+    intersection = len(tokens_a & tokens_b)
+    union = len(tokens_a | tokens_b)
+    jaccard = intersection / union if union > 0 else 0.0
+    return jaccard >= 0.15
+
+
+def _has_opposition(text_a: str, text_b: str) -> str | None:
+    """Check if two texts express opposing sentiments about the same topic.
+
+    Detects opposition through:
+    1. Lexical opposition pairs (e.g., "effective" vs "ineffective")
+    2. Negation patterns (e.g., "improves X" vs "does not improve X")
+
+    Args:
+        text_a: First finding text.
+        text_b: Second finding text.
+
+    Returns:
+        Description of the opposition found, or None if no opposition.
+    """
+    lower_a = text_a.lower()
+    lower_b = text_b.lower()
+
+    # Check opposition pairs
+    for pos, neg in _OPPOSITION_PAIRS:
+        if (pos in lower_a and neg in lower_b) or (neg in lower_a and pos in lower_b):
+            return f"opposing terms: '{pos}' vs '{neg}'"
+
+    # Check negation patterns: one has a verb, the other negates it
+    for prefix in _NEGATION_PREFIXES:
+        for term in _extract_topic_tokens(text_a):
+            if term in lower_b and prefix + term in lower_a:
+                return f"negation detected: '{prefix}{term}'"
+            if term in lower_a and prefix + term in lower_b:
+                return f"negation detected: '{prefix}{term}'"
+
+    return None
+
+
+def _detect_dissent(
+    summaries: list[PaperSummary],
+) -> list[SynthesisDisagreement]:
+    """Detect potential disagreements across paper findings.
+
+    Compares findings from different papers pairwise. When two findings
+    share topical overlap but express opposing sentiments, they are
+    flagged as a potential disagreement.
+
+    Args:
+        summaries: Individual paper summaries.
+
+    Returns:
+        List of detected disagreements.
+    """
+    if len(summaries) < 2:
+        return []
+
+    # Collect (arxiv_id, finding) pairs
+    paper_findings: list[tuple[str, str]] = []
+    for s in summaries:
+        for f in s.findings:
+            paper_findings.append((s.arxiv_id, f))
+
+    # Track seen pairs to avoid duplicates
+    seen_pairs: set[tuple[str, str]] = set()
+    disagreements: list[SynthesisDisagreement] = []
+
+    for i, (id_a, finding_a) in enumerate(paper_findings):
+        for j in range(i + 1, len(paper_findings)):
+            id_b, finding_b = paper_findings[j]
+
+            # Skip findings from the same paper
+            if id_a == id_b:
+                continue
+
+            # Skip if we've already compared these two papers on this topic
+            pair_key = (min(id_a, id_b), max(id_a, id_b))
+            if pair_key in seen_pairs:
+                continue
+
+            # Check topical overlap first
+            if not _findings_share_topic(finding_a, finding_b):
+                continue
+
+            # Check for opposition
+            opposition = _has_opposition(finding_a, finding_b)
+            if opposition:
+                seen_pairs.add(pair_key)
+                # Build a topic summary from shared tokens
+                shared = _extract_topic_tokens(finding_a) & _extract_topic_tokens(
+                    finding_b
+                )
+                topic = " ".join(sorted(shared)[:5]) if shared else "methodology"
+
+                disagreements.append(
+                    SynthesisDisagreement(
+                        topic=f"Potential disagreement on: {topic} ({opposition})",
+                        positions={
+                            id_a: finding_a,
+                            id_b: finding_b,
+                        },
+                    )
+                )
+
+    return disagreements
+
+
 def _build_template_synthesis(
     summaries: list[PaperSummary],
     topic: str,
 ) -> SynthesisReport:
     """Build an improved template-mode synthesis without an LLM.
 
-    Collects all findings from papers into agreement-style entries and
-    aggregates limitations, providing a richer output than a bare stub.
+    Collects all findings from papers into agreement-style entries,
+    detects potential disagreements using heuristic lexical opposition,
+    and aggregates limitations.
 
     Args:
         summaries: Individual paper summaries.
         topic: Research topic.
 
     Returns:
-        SynthesisReport with aggregated findings and limitations.
+        SynthesisReport with aggregated findings, detected disagreements,
+        and limitations.
     """
     agreements: list[SynthesisAgreement] = []
     for s in summaries:
@@ -131,6 +299,15 @@ def _build_template_synthesis(
                     supporting_papers=[s.arxiv_id],
                 )
             )
+
+    # Detect dissenting views across papers
+    disagreements = _detect_dissent(summaries)
+    if disagreements:
+        logger.info(
+            "Detected %d potential disagreement(s) across %d papers",
+            len(disagreements),
+            len(summaries),
+        )
 
     all_limitations: list[str] = []
     for s in summaries:
@@ -151,7 +328,7 @@ def _build_template_synthesis(
         topic=topic,
         paper_count=len(summaries),
         agreements=agreements,
-        disagreements=[],
+        disagreements=disagreements,
         open_questions=open_questions,
         paper_summaries=summaries,
     )
