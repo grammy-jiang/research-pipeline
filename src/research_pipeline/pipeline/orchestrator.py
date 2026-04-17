@@ -419,6 +419,17 @@ def run_pipeline(
         },
     )
 
+    # Incremental run support: global paper index
+    paper_index = None
+    try:
+        from research_pipeline.storage.global_index import GlobalPaperIndex
+
+        idx_path = Path(config.global_index_path) if config.global_index_path else None
+        paper_index = GlobalPaperIndex(db_path=idx_path)
+        logger.info("Global paper index loaded: %s", paper_index.db_path)
+    except Exception as exc:
+        logger.warning("Global paper index unavailable: %s", exc)
+
     # Determine pipeline profile
     profile_str = config.profile
     if profile_str == "auto":
@@ -679,12 +690,105 @@ def run_pipeline(
         # Run enabled sources in parallel
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
+        def _do_semantic_scholar() -> list[CandidateRecord]:
+            from research_pipeline.sources.semantic_scholar_source import (
+                SemanticScholarSource,
+            )
+
+            src = SemanticScholarSource(
+                api_key=config.sources.semantic_scholar_api_key,
+                min_interval=config.sources.semantic_scholar_min_interval,
+                session=session,
+            )
+            date_from, date_to = date_window(plan.primary_months)
+            result = src.search(
+                topic=plan.topic_raw,
+                must_terms=plan.must_terms,
+                nice_terms=plan.nice_terms,
+                max_results=min(config.arxiv.default_page_size, 50),
+                date_from=date_from,
+                date_to=date_to,
+            )
+            logger.info("Semantic Scholar: %d candidates", len(result))
+            return result
+
+        def _do_openalex() -> list[CandidateRecord]:
+            from research_pipeline.sources.openalex_source import (
+                OpenAlexSource,
+            )
+
+            src = OpenAlexSource(
+                api_key=config.sources.openalex_api_key,
+                min_interval=config.sources.openalex_min_interval,
+                session=session,
+            )
+            date_from, date_to = date_window(plan.primary_months)
+            result = src.search(
+                topic=plan.topic_raw,
+                must_terms=plan.must_terms,
+                nice_terms=plan.nice_terms,
+                max_results=min(config.arxiv.default_page_size, 50),
+                date_from=date_from,
+                date_to=date_to,
+            )
+            logger.info("OpenAlex: %d candidates", len(result))
+            return result
+
+        def _do_dblp() -> list[CandidateRecord]:
+            from research_pipeline.sources.dblp_source import DBLPSource
+
+            src = DBLPSource(
+                min_interval=config.sources.dblp_min_interval,
+                session=session,
+            )
+            result = src.search(
+                topic=plan.topic_raw,
+                must_terms=plan.must_terms,
+                nice_terms=plan.nice_terms,
+                max_results=min(config.arxiv.default_page_size, 30),
+            )
+            logger.info("DBLP: %d candidates", len(result))
+            return result
+
+        def _do_huggingface() -> list[CandidateRecord]:
+            from research_pipeline.sources.huggingface_source import (
+                HuggingFaceSource,
+            )
+
+            src = HuggingFaceSource(
+                min_interval=config.sources.huggingface_min_interval,
+                limit=config.sources.huggingface_limit,
+                session=session,
+            )
+            date_from, date_to = date_window(plan.primary_months)
+            result = src.search(
+                topic=plan.topic_raw,
+                must_terms=plan.must_terms,
+                nice_terms=plan.nice_terms,
+                max_results=min(config.arxiv.default_page_size, 20),
+                date_from=date_from,
+                date_to=date_to,
+            )
+            logger.info("HuggingFace: %d candidates", len(result))
+            return result
+
+        source_dispatch = {
+            "arxiv": _do_arxiv,
+            "scholar": _do_scholar,
+            "semantic_scholar": _do_semantic_scholar,
+            "openalex": _do_openalex,
+            "dblp": _do_dblp,
+            "huggingface": _do_huggingface,
+        }
+
         futures = {}
         with ThreadPoolExecutor(max_workers=len(enabled_sources)) as executor:
-            if "arxiv" in enabled_sources:
-                futures[executor.submit(_do_arxiv)] = "arxiv"
-            if "scholar" in enabled_sources:
-                futures[executor.submit(_do_scholar)] = "scholar"
+            for src_name in enabled_sources:
+                fn = source_dispatch.get(src_name)
+                if fn:
+                    futures[executor.submit(fn)] = src_name
+                else:
+                    logger.warning("Unknown source '%s', skipping", src_name)
 
             for future in as_completed(futures):
                 source_name = futures[future]
@@ -976,6 +1080,32 @@ def run_pipeline(
                 if d.download
             ]
 
+            # Incremental: skip papers already in global index with PDFs
+            skipped_ids: set[str] = set()
+            if paper_index is not None:
+                all_ids = [p["arxiv_id"] for p in papers_to_download]
+                known = paper_index.find_known_ids(all_ids)
+                reusable = []
+                for pid in known:
+                    artifact = paper_index.find_artifact(pid, "download")
+                    if (
+                        artifact
+                        and artifact.get("pdf_path")
+                        and Path(artifact["pdf_path"]).exists()
+                    ):
+                        reusable.append(pid)
+                if reusable:
+                    skipped_ids = set(reusable)
+                    papers_to_download = [
+                        p
+                        for p in papers_to_download
+                        if p["arxiv_id"] not in skipped_ids
+                    ]
+                    logger.info(
+                        "Incremental: skipping %d already-downloaded papers",
+                        len(skipped_ids),
+                    )
+
             entries = download_batch(
                 papers_to_download,
                 output_dir=pdf_dir,
@@ -983,6 +1113,18 @@ def run_pipeline(
                 rate_limiter=rate_limiter,
                 max_downloads=config.download.max_per_run,
             )
+
+            # Register downloaded papers in global index
+            if paper_index is not None:
+                for dl_entry in entries:
+                    if dl_entry.status in ("downloaded", "skipped_exists"):
+                        paper_index.register_paper(
+                            arxiv_id=dl_entry.arxiv_id,
+                            run_id=run_id,
+                            stage="download",
+                            pdf_path=dl_entry.local_path,
+                            pdf_sha256=getattr(dl_entry, "sha256", None),
+                        )
 
             manifest_path = (
                 get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
@@ -1115,6 +1257,17 @@ def run_pipeline(
                 conv_manifest_path,
                 [e.model_dump(mode="json") for e in convert_entries],
             )
+
+            # Register converted papers in global index
+            if paper_index is not None:
+                for conv_entry in convert_entries:
+                    if conv_entry.status in ("converted", "skipped_exists"):
+                        paper_index.register_paper(
+                            arxiv_id=conv_entry.arxiv_id,
+                            run_id=run_id,
+                            stage="convert",
+                            markdown_path=conv_entry.markdown_path,
+                        )
 
             manifest = _record_stage(
                 manifest,
@@ -1657,5 +1810,9 @@ def run_pipeline(
             eval_log.close()
         except Exception as exc:
             logger.warning("Eval logging summary failed: %s", exc)
+
+    # Close global paper index
+    if paper_index is not None:
+        paper_index.close()
 
     return manifest

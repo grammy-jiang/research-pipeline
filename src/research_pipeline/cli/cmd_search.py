@@ -37,7 +37,14 @@ def _resolve_sources(source_arg: str | None, config_sources: list[str]) -> list[
     """
     if source_arg:
         if source_arg.lower() == "all":
-            return ["arxiv", "scholar", "huggingface"]
+            return [
+                "arxiv",
+                "scholar",
+                "semantic_scholar",
+                "openalex",
+                "dblp",
+                "huggingface",
+            ]
         return [s.strip() for s in source_arg.split(",")]
     return config_sources
 
@@ -134,6 +141,69 @@ def _search_huggingface(
     return result
 
 
+def _search_semantic_scholar(
+    plan: QueryPlan, config: PipelineConfig
+) -> list[CandidateRecord]:
+    """Search Semantic Scholar and return candidates."""
+    from research_pipeline.sources.semantic_scholar_source import (
+        SemanticScholarSource,
+    )
+
+    source = SemanticScholarSource(
+        api_key=config.sources.semantic_scholar_api_key,
+        min_interval=config.sources.semantic_scholar_min_interval,
+    )
+    date_from, date_to = date_window(plan.primary_months)
+    result = source.search(
+        topic=plan.topic_raw,
+        must_terms=plan.must_terms,
+        nice_terms=plan.nice_terms,
+        max_results=min(config.arxiv.default_page_size, 50),
+        date_from=date_from,
+        date_to=date_to,
+    )
+    logger.info("Semantic Scholar: %d candidates", len(result))
+    return result
+
+
+def _search_openalex(plan: QueryPlan, config: PipelineConfig) -> list[CandidateRecord]:
+    """Search OpenAlex and return candidates."""
+    from research_pipeline.sources.openalex_source import OpenAlexSource
+
+    source = OpenAlexSource(
+        api_key=config.sources.openalex_api_key,
+        min_interval=config.sources.openalex_min_interval,
+    )
+    date_from, date_to = date_window(plan.primary_months)
+    result = source.search(
+        topic=plan.topic_raw,
+        must_terms=plan.must_terms,
+        nice_terms=plan.nice_terms,
+        max_results=min(config.arxiv.default_page_size, 50),
+        date_from=date_from,
+        date_to=date_to,
+    )
+    logger.info("OpenAlex: %d candidates", len(result))
+    return result
+
+
+def _search_dblp(plan: QueryPlan, config: PipelineConfig) -> list[CandidateRecord]:
+    """Search DBLP and return candidates."""
+    from research_pipeline.sources.dblp_source import DBLPSource
+
+    source = DBLPSource(
+        min_interval=config.sources.dblp_min_interval,
+    )
+    result = source.search(
+        topic=plan.topic_raw,
+        must_terms=plan.must_terms,
+        nice_terms=plan.nice_terms,
+        max_results=min(config.arxiv.default_page_size, 30),
+    )
+    logger.info("DBLP: %d candidates", len(result))
+    return result
+
+
 def run_search(
     topic: str | None = None,
     resume: bool = False,
@@ -187,14 +257,24 @@ def run_search(
     all_candidates: list[CandidateRecord] = []
 
     # Run sources in parallel using ThreadPoolExecutor
+    source_dispatch: dict[str, tuple] = {
+        "arxiv": (_search_arxiv, (plan, config, search_dir)),
+        "scholar": (_search_scholar, (plan, config)),
+        "semantic_scholar": (_search_semantic_scholar, (plan, config)),
+        "openalex": (_search_openalex, (plan, config)),
+        "dblp": (_search_dblp, (plan, config)),
+        "huggingface": (_search_huggingface, (plan, config)),
+    }
+
     futures = {}
     with ThreadPoolExecutor(max_workers=len(sources)) as executor:
-        if "arxiv" in sources:
-            futures[executor.submit(_search_arxiv, plan, config, search_dir)] = "arxiv"
-        if "scholar" in sources:
-            futures[executor.submit(_search_scholar, plan, config)] = "scholar"
-        if "huggingface" in sources:
-            futures[executor.submit(_search_huggingface, plan, config)] = "huggingface"
+        for src_name in sources:
+            entry = source_dispatch.get(src_name)
+            if entry:
+                fn, args = entry
+                futures[executor.submit(fn, *args)] = src_name
+            else:
+                logger.warning("Unknown source '%s', skipping", src_name)
 
         for future in as_completed(futures):
             source_name = futures[future]
