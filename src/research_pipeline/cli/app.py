@@ -1482,6 +1482,39 @@ def enrich_command(
     enrich_cmd(run_id=run_id, stage=stage, config_path=Path(config_path))
 
 
+@app.command("cite-context")
+def cite_context_cmd(
+    run_id: str = typer.Option(
+        ..., "--run-id", help="Run ID to extract contexts from."
+    ),
+    context_window: int = typer.Option(
+        1,
+        "--window",
+        help="Extra sentences before/after citation.",
+    ),
+    output: str = typer.Option("", "-o", "--output", help="Output JSON file path."),
+    config_path: str = typer.Option(
+        "config.toml",
+        "--config",
+        help="Path to config file.",
+    ),
+    level: str = typer.Option("INFO", "--log-level", help="Log level."),
+) -> None:
+    """Extract citation contexts from converted Markdown papers."""
+    from pathlib import Path
+
+    from research_pipeline.cli.cmd_cite_context import cite_context_command
+
+    setup_logging(level=level)
+    out = Path(output) if output else None
+    cite_context_command(
+        run_id=run_id,
+        context_window=context_window,
+        output=out,
+        config_path=Path(config_path),
+    )
+
+
 @app.command("blinding-audit")
 def blinding_audit_command(
     workspace: str = typer.Option(

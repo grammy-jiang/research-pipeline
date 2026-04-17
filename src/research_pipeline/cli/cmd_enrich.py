@@ -81,9 +81,7 @@ def enrich_command(
         "missing_abstracts_before": missing_abstract,
         "missing_abstracts_after": sum(1 for r in records if not r.abstract),
         "missing_citations_before": missing_citations,
-        "missing_citations_after": sum(
-            1 for r in records if r.citation_count is None
-        ),
+        "missing_citations_after": sum(1 for r in records if r.citation_count is None),
     }
 
     summary_file = stage_dir / "enrichment_summary.json"
