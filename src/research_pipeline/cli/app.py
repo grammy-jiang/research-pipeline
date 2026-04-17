@@ -1583,3 +1583,54 @@ def kg_quality_command(
         sample_size=sample_size,
         output_json=output_json,
     )
+
+
+@app.command("adaptive-stopping")
+def adaptive_stopping_cli(
+    scores_file: Path = typer.Argument(
+        ...,
+        help="JSON file with retrieval scores (list of lists, one per batch).",
+        exists=True,
+        readable=True,
+    ),
+    query: str = typer.Option(
+        "",
+        "--query",
+        "-q",
+        help="Original query for auto-classifying stopping strategy.",
+    ),
+    query_type: str = typer.Option(
+        "auto",
+        "--query-type",
+        "-t",
+        help="Query type: recall, precision, judgment, or auto.",
+    ),
+    min_results: int = typer.Option(
+        5, "--min-results", help="Minimum results before stopping is considered."
+    ),
+    max_budget: int = typer.Option(
+        500, "--max-budget", help="Hard budget limit on total results."
+    ),
+    relevance_threshold: float = typer.Option(
+        0.5,
+        "--relevance-threshold",
+        help="Score threshold for a result to count as relevant.",
+    ),
+    output: Path = typer.Option(
+        None, "--output", "-o", help="Output JSON path (default: stdout)."
+    ),
+) -> None:
+    """Evaluate adaptive retrieval stopping criteria."""
+    from research_pipeline.cli.cmd_adaptive_stopping import (
+        adaptive_stopping_command as _run,
+    )
+
+    _run(
+        scores_file=scores_file,
+        query=query,
+        query_type=query_type,
+        min_results=min_results,
+        max_budget=max_budget,
+        relevance_threshold=relevance_threshold,
+        output=output,
+    )

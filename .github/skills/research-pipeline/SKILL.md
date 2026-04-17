@@ -402,6 +402,34 @@ research-pipeline kg-quality --sample 50 --json
 
 **MCP tool:** `tool_kg_quality` — evaluate KG quality with optional TWCS sampling.
 
+### Query-Adaptive Retrieval Stopping (v0.13.14+)
+
+Query-adaptive retrieval stopping criteria based on HingeMem (WWW '26,
+arXiv 2604.06845) and ACQO (arXiv 2601.21208). Automatically selects
+the best stopping strategy based on query intent classification.
+
+```bash
+# Evaluate stopping with auto-detected query type
+research-pipeline adaptive-stopping scores.json --query "survey of transformers"
+
+# Force precision strategy
+research-pipeline adaptive-stopping scores.json --query-type precision
+
+# Custom budget and threshold
+research-pipeline adaptive-stopping scores.json --max-budget 200 --relevance-threshold 0.6
+```
+
+**Three stopping strategies (by query type):**
+- **Recall** — knee detection on cumulative relevance curve
+- **Precision** — top-k saturation (≥80% of top-k exceeds threshold)
+- **Judgment** — top-1 stability across consecutive batches
+
+**Universal backstops:**
+- Score plateau detection (ACQO-inspired)
+- Hard budget limit
+
+**MCP tool:** `tool_adaptive_stopping` — evaluate stopping criteria for batch scores.
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

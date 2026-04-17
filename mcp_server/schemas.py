@@ -531,6 +531,39 @@ class KGQualityInput(BaseModel):
     )
 
 
+class AdaptiveStoppingInput(BaseModel):
+    """Input for the adaptive_stopping tool.
+
+    Evaluates query-adaptive retrieval stopping criteria based on
+    HingeMem (WWW '26) three stopping strategies: knee detection
+    (recall), top-k saturation (precision), top-1 stability (judgment).
+    """
+
+    batch_scores: list[list[float]] = Field(
+        description="List of score lists, one per retrieval batch.",
+    )
+    query: str = Field(
+        default="",
+        description="Original query for auto-classifying stopping strategy.",
+    )
+    query_type: str = Field(
+        default="auto",
+        description="Query type: recall, precision, judgment, or auto.",
+    )
+    min_results: int = Field(
+        default=5,
+        description="Minimum results before stopping is considered.",
+    )
+    max_budget: int = Field(
+        default=500,
+        description="Hard budget limit on total results.",
+    )
+    relevance_threshold: float = Field(
+        default=0.5,
+        description="Score threshold for a result to count as relevant.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

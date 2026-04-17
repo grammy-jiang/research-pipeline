@@ -16,6 +16,7 @@ if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
 
 from mcp_server.schemas import (
+    AdaptiveStoppingInput,
     AnalyzePapersInput,
     BlindingAuditInput,
     CbrLookupInput,
@@ -2067,4 +2068,64 @@ def kg_quality_tool(
 
     except Exception as exc:
         logger.error("KG quality evaluation failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def adaptive_stopping_tool(
+    params: AdaptiveStoppingInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Evaluate query-adaptive retrieval stopping criteria.
+
+    Three strategies based on query type (HingeMem WWW '26):
+    - recall: knee detection on cumulative relevance
+    - precision: top-k saturation check
+    - judgment: top-1 stability across batches
+    Plus score plateau backstop and budget limits.
+    """
+    try:
+        from research_pipeline.screening.adaptive_stopping import (
+            BatchScores,
+            QueryType,
+            StoppingState,
+            evaluate_stopping,
+        )
+
+        try:
+            qtype = QueryType(params.query_type.lower())
+        except ValueError:
+            return ToolResult(
+                success=False,
+                message=f"Invalid query_type: {params.query_type}",
+            )
+
+        state = StoppingState(
+            query_type=qtype,
+            max_budget=params.max_budget,
+            min_results=params.min_results,
+            relevance_threshold=params.relevance_threshold,
+        )
+        for i, batch in enumerate(params.batch_scores):
+            state.batches.append(BatchScores(i, [float(s) for s in batch]))
+
+        decision = evaluate_stopping(state, query=params.query or None)
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Stopping: {'STOP' if decision.should_stop else 'CONTINUE'} "
+                f"({decision.reason.value}) — {decision.details}"
+            ),
+            artifacts={
+                "should_stop": decision.should_stop,
+                "reason": decision.reason.value,
+                "details": decision.details,
+                "batches_processed": decision.batches_processed,
+                "total_results": decision.total_results,
+                "current_score": decision.current_score,
+            },
+        )
+
+    except Exception as exc:
+        logger.error("Adaptive stopping evaluation failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

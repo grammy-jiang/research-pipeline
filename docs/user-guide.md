@@ -211,6 +211,11 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # 5-dimension framework: accuracy, consistency, completeness, timeliness, redundancy.
 # Options: --json, --sample (TWCS sample size), --staleness-days
 
+# Query-Adaptive Retrieval Stopping (v0.13.14+)
+# CLI: research-pipeline adaptive-stopping scores.json [--query "..."] [--query-type auto]
+# Three strategies based on query type: recall (knee), precision (saturation), judgment (stability).
+# Options: --min-results, --max-budget, --relevance-threshold, --output
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

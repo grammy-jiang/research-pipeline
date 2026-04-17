@@ -41,6 +41,7 @@ from mcp_server.schemas import (
     VerifyStageInput,
 )
 from mcp_server.tools import (
+    adaptive_stopping_tool,
     aggregate_evidence_tool,
     analyze_papers,
     blinding_audit_tool,
@@ -1102,6 +1103,51 @@ async def tool_kg_quality(
         sample_size=sample_size,
     )
     result = kg_quality_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_adaptive_stopping(
+    batch_scores: list[list[float]],
+    query: str = "",
+    query_type: str = "auto",
+    min_results: int = 5,
+    max_budget: int = 500,
+    relevance_threshold: float = 0.5,
+) -> dict:
+    """Evaluate query-adaptive retrieval stopping criteria.
+
+    Three strategies based on query type (HingeMem WWW '26):
+    - recall: knee detection on cumulative relevance
+    - precision: top-k saturation check
+    - judgment: top-1 stability across batches
+
+    Args:
+        batch_scores: List of score lists, one per retrieval batch.
+        query: Original query for auto-classifying stopping strategy.
+        query_type: Query type: recall, precision, judgment, or auto.
+        min_results: Minimum results before stopping considered.
+        max_budget: Hard budget limit on total results.
+        relevance_threshold: Score threshold for relevant results.
+    """
+    from mcp_server.schemas import AdaptiveStoppingInput
+
+    params = AdaptiveStoppingInput(
+        batch_scores=batch_scores,
+        query=query,
+        query_type=query_type,
+        min_results=min_results,
+        max_budget=max_budget,
+        relevance_threshold=relevance_threshold,
+    )
+    result = adaptive_stopping_tool(params=params)
     return result.model_dump()
 
 
