@@ -338,6 +338,39 @@ research-pipeline dual-metrics --query "topic" --json
 - To compare pipeline reliability before and after configuration changes
 - As a quality gate for automated research workflows
 
+### Case-Based Reasoning (v0.13.12+)
+
+Non-parametric self-evolution via Case-Based Reasoning (arXiv 2506.18096).
+Stores successful research strategies from past pipeline runs and retrieves
+similar cases to inform new runs. Implements the classic CBR cycle:
+Retrieve → Reuse → Revise → Retain.
+
+```bash
+# Look up strategy recommendations for a new topic
+research-pipeline cbr-lookup --topic "transformer architectures"
+
+# Store a completed run as a CBR case
+research-pipeline cbr-retain --run-id <ID> --topic "transformers" --outcome good
+
+# Filter by minimum quality
+research-pipeline cbr-lookup --topic "LLM agents" --min-quality 0.5
+```
+
+**MCP tools:** `tool_cbr_lookup` — retrieve similar cases and recommend strategy;
+`tool_cbr_retain` — store a run as a case.
+
+**Strategy recommendations include:**
+- **Sources** — weighted vote from successful past cases
+- **Pipeline profile** — standard/deep/quick based on similar topics
+- **Query terms** — additional terms from successful past searches
+- **Screening hints** — aggregated screening parameters
+- **Confidence** — based on match similarity and past quality
+
+**When to use:**
+- Before starting a new research run to get strategy suggestions
+- After completing a run to store the strategy for future reuse
+- To build institutional knowledge across research sessions
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

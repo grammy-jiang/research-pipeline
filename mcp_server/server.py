@@ -44,6 +44,8 @@ from mcp_server.tools import (
     aggregate_evidence_tool,
     analyze_papers,
     blinding_audit_tool,
+    cbr_lookup_tool,
+    cbr_retain_tool,
     coherence_tool,
     compare_runs,
     consolidation_tool,
@@ -988,6 +990,83 @@ async def tool_dual_metrics(
         store_results=store_results,
     )
     result = dual_metrics_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_cbr_lookup(
+    topic: str,
+    workspace: str = "workspace",
+    max_results: int = 5,
+    min_quality: float = 0.0,
+) -> dict:
+    """Look up similar past cases and recommend a research strategy.
+
+    Uses Case-Based Reasoning (arXiv 2506.18096) to retrieve successful
+    past research strategies and adapt them for new topics.
+
+    Args:
+        topic: Research topic to look up similar past cases.
+        workspace: Workspace directory.
+        max_results: Maximum number of similar cases to retrieve.
+        min_quality: Minimum synthesis quality to consider.
+    """
+    from mcp_server.schemas import CbrLookupInput
+
+    params = CbrLookupInput(
+        workspace=workspace,
+        topic=topic,
+        max_results=max_results,
+        min_quality=min_quality,
+    )
+    result = cbr_lookup_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_cbr_retain(
+    run_id: str,
+    topic: str,
+    workspace: str = "workspace",
+    outcome: str = "unknown",
+    strategy_notes: str = "",
+) -> dict:
+    """Store a completed pipeline run as a CBR case.
+
+    Extracts strategy information (queries, sources, quality) from run
+    artifacts and stores for future retrieval by cbr-lookup.
+
+    Args:
+        run_id: Pipeline run ID to store as a case.
+        topic: Research topic for this run.
+        workspace: Workspace directory.
+        outcome: Quality outcome: excellent, good, adequate, poor, failed.
+        strategy_notes: Free-text notes about the strategy used.
+    """
+    from mcp_server.schemas import CbrRetainInput
+
+    params = CbrRetainInput(
+        workspace=workspace,
+        run_id=run_id,
+        topic=topic,
+        outcome=outcome,
+        strategy_notes=strategy_notes,
+    )
+    result = cbr_retain_tool(params=params)
     return result.model_dump()
 
 

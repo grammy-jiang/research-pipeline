@@ -198,6 +198,13 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # Safety gate zeros scores when fabrication detected.
 # Options: --k (5), --no-store, --json, --workspace
 
+# Case-Based Reasoning (v0.13.12+)
+# CLI: research-pipeline cbr-lookup --topic "topic" [--min-quality 0.5]
+# CLI: research-pipeline cbr-retain --run-id <ID> --topic "topic" --outcome good
+# Non-parametric self-evolution: stores and retrieves successful research
+# strategies from past runs using CBR (Retrieve → Reuse → Revise → Retain).
+# Options: --max-results (5), --min-quality (0.0), --json, --notes, --outcome
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

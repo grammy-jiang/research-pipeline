@@ -467,6 +467,49 @@ class DualMetricsInput(BaseModel):
     )
 
 
+class CbrLookupInput(BaseModel):
+    """Input for the CBR lookup tool."""
+
+    workspace: str = Field(
+        default="workspace",
+        description="Workspace directory.",
+    )
+    topic: str = Field(
+        description="Research topic to look up similar past cases.",
+    )
+    max_results: int = Field(
+        default=5,
+        description="Maximum number of similar cases to retrieve.",
+    )
+    min_quality: float = Field(
+        default=0.0,
+        description="Minimum synthesis quality to consider.",
+    )
+
+
+class CbrRetainInput(BaseModel):
+    """Input for the CBR retain tool."""
+
+    workspace: str = Field(
+        default="workspace",
+        description="Workspace directory.",
+    )
+    run_id: str = Field(
+        description="Pipeline run ID to store as a case.",
+    )
+    topic: str = Field(
+        description="Research topic for this run.",
+    )
+    outcome: str = Field(
+        default="unknown",
+        description="Quality outcome: excellent, good, adequate, poor, failed.",
+    )
+    strategy_notes: str = Field(
+        default="",
+        description="Free-text notes about the strategy used.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

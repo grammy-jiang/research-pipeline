@@ -1432,3 +1432,120 @@ def dual_metrics_command(
         store_results=not no_store,
         output_json=output_json,
     )
+
+
+@app.command("cbr-lookup")
+def cbr_lookup_command(
+    workspace: str = typer.Option(
+        "workspace",
+        "--workspace",
+        "-w",
+        help="Path to the workspace directory.",
+    ),
+    topic: str = typer.Option(
+        ...,
+        "--topic",
+        "-t",
+        help="Research topic to look up.",
+    ),
+    max_results: int = typer.Option(
+        5,
+        "--max-results",
+        help="Maximum number of similar cases to retrieve.",
+    ),
+    min_quality: float = typer.Option(
+        0.0,
+        "--min-quality",
+        help="Minimum synthesis quality to consider.",
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Output raw JSON instead of summary.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Look up past cases and recommend a research strategy (CBR).
+
+    Uses Case-Based Reasoning to retrieve similar past research runs and
+    generate strategy recommendations (sources, profile, query terms).
+
+    Based on the Deep Research Agents Roadmap (arXiv 2506.18096).
+
+    .. code-block:: bash
+
+       research-pipeline cbr-lookup --topic "transformer architectures"
+       research-pipeline cbr-lookup --topic "LLM agents" --min-quality 0.5
+    """
+    from research_pipeline.cli.cmd_cbr import handle_cbr_lookup
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    handle_cbr_lookup(
+        workspace=Path(workspace),
+        topic=topic,
+        max_results=max_results,
+        min_quality=min_quality,
+        output_json=output_json,
+    )
+
+
+@app.command("cbr-retain")
+def cbr_retain_command(
+    workspace: str = typer.Option(
+        "workspace",
+        "--workspace",
+        "-w",
+        help="Path to the workspace directory.",
+    ),
+    run_id: str = typer.Option(
+        ...,
+        "--run-id",
+        help="Pipeline run ID to store as a case.",
+    ),
+    topic: str = typer.Option(
+        ...,
+        "--topic",
+        "-t",
+        help="Research topic for this run.",
+    ),
+    outcome: str = typer.Option(
+        "unknown",
+        "--outcome",
+        help="Quality outcome: excellent, good, adequate, poor, failed.",
+    ),
+    strategy_notes: str = typer.Option(
+        "",
+        "--notes",
+        help="Free-text notes about the strategy used.",
+    ),
+    output_json: bool = typer.Option(
+        False,
+        "--json",
+        help="Output raw JSON instead of summary.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Store a completed pipeline run as a CBR case.
+
+    Extracts strategy information (queries, sources, quality) from the run
+    artifacts and stores it for future retrieval by cbr-lookup.
+
+    .. code-block:: bash
+
+       research-pipeline cbr-retain --run-id <ID> --topic "transformers" --outcome good
+    """
+    from research_pipeline.cli.cmd_cbr import handle_cbr_retain
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    handle_cbr_retain(
+        workspace=Path(workspace),
+        run_id=run_id,
+        topic=topic,
+        outcome=outcome,
+        strategy_notes=strategy_notes,
+        output_json=output_json,
+    )
