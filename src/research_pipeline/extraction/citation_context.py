@@ -7,7 +7,7 @@ contexts reveal *how* a paper is being used by the citing paper.
 
 import logging
 import re
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
 

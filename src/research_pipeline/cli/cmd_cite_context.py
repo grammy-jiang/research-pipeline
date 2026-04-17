@@ -25,7 +25,7 @@ def cite_context_command(
     context_window: int = typer.Option(
         1,
         "--window",
-        help="Number of extra sentences before/after citation (0=just the citing sentence)",
+        help="Extra sentences before/after citation (0=citing sentence only)",
     ),
     output: Path | None = typer.Option(
         None,

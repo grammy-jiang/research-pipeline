@@ -9,7 +9,6 @@ from research_pipeline.extraction.citation_context import (
     group_by_marker,
 )
 
-
 # --- Sample Markdown documents for testing ---
 
 SAMPLE_PAPER = """# Introduction
@@ -95,7 +94,10 @@ class TestExtractCitationContexts:
 
     def test_no_citations(self) -> None:
         """Document without citations returns empty list."""
-        text = "# Introduction\n\nThis paper discusses methods.\n\n# Conclusion\n\nWe conclude."
+        text = (
+            "# Introduction\n\nThis paper discusses methods."
+            "\n\n# Conclusion\n\nWe conclude."
+        )
         contexts = extract_citation_contexts(text)
         assert contexts == []
 
@@ -159,7 +161,7 @@ class TestGroupByMarker:
         """Each group value is a list of CitationContext."""
         contexts = extract_citation_contexts(SAMPLE_PAPER)
         groups = group_by_marker(contexts)
-        for marker, ctx_list in groups.items():
+        for _marker, ctx_list in groups.items():
             assert isinstance(ctx_list, list)
             for ctx in ctx_list:
                 assert isinstance(ctx, CitationContext)
@@ -187,7 +189,7 @@ class TestContextsToDicts:
         """Serialized values match the original context objects."""
         contexts = extract_citation_contexts(SAMPLE_PAPER)
         dicts = contexts_to_dicts(contexts)
-        for ctx, d in zip(contexts, dicts):
+        for ctx, d in zip(contexts, dicts, strict=True):
             assert d["marker"] == ctx.marker
             assert d["section"] == ctx.section
             assert d["position"] == ctx.position

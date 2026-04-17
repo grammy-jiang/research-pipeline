@@ -1515,6 +1515,51 @@ def cite_context_cmd(
     )
 
 
+@app.command("watch")
+def watch_cmd(
+    queries_file: str = typer.Option(
+        "",
+        "--queries",
+        help="Path to JSON file with saved queries.",
+    ),
+    lookback_days: int = typer.Option(
+        7,
+        "--lookback",
+        help="Days to look back on first run.",
+    ),
+    max_results: int = typer.Option(
+        20,
+        "--max-results",
+        help="Max results per query.",
+    ),
+    output: str = typer.Option("", "-o", "--output", help="Output JSON file."),
+    config_path: str = typer.Option(
+        "config.toml",
+        "--config",
+        help="Path to config file.",
+    ),
+    level: str = typer.Option("INFO", "--log-level", help="Log level."),
+) -> None:
+    """Check for new papers matching saved watch queries."""
+    from pathlib import Path
+
+    from research_pipeline.cli.cmd_watch import (
+        DEFAULT_QUERIES_FILE,
+        watch_command,
+    )
+
+    setup_logging(level=level)
+    qf = Path(queries_file) if queries_file else DEFAULT_QUERIES_FILE
+    out = Path(output) if output else None
+    watch_command(
+        queries_file=qf,
+        lookback_days=lookback_days,
+        max_results=max_results,
+        output=out,
+        config_path=Path(config_path),
+    )
+
+
 @app.command("blinding-audit")
 def blinding_audit_command(
     workspace: str = typer.Option(
