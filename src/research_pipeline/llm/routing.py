@@ -15,7 +15,7 @@ Tier definitions (from deep research, Pattern 2):
 from __future__ import annotations
 
 import logging
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from research_pipeline.llm.base import LLMProvider
@@ -23,7 +23,7 @@ from research_pipeline.llm.base import LLMProvider
 logger = logging.getLogger(__name__)
 
 
-class PhaseTier(str, Enum):
+class PhaseTier(StrEnum):
     """Pipeline phase complexity tier."""
 
     MECHANICAL = "mechanical"

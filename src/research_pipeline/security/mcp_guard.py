@@ -25,12 +25,12 @@ import json
 import logging
 import time
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class TrustDomain(str, Enum):
+class TrustDomain(StrEnum):
     """Trust domain classification for MCP tools."""
 
     READ = "read"
@@ -40,7 +40,7 @@ class TrustDomain(str, Enum):
     SYSTEM = "system"
 
 
-class AuthDecision(str, Enum):
+class AuthDecision(StrEnum):
     """Authorization decision result."""
 
     ALLOWED = "allowed"

@@ -25,7 +25,7 @@ import math
 import re
 from collections import Counter
 from dataclasses import dataclass
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
@@ -92,7 +92,7 @@ def text_similarity(text_a: str, text_b: str) -> float:
 # ---------------------------------------------------------------------------
 
 
-class DriftSeverity(str, Enum):
+class DriftSeverity(StrEnum):
     """Categorises the severity of semantic drift."""
 
     NONE = "none"
@@ -102,7 +102,7 @@ class DriftSeverity(str, Enum):
     CRITICAL = "critical"
 
 
-class StabilisationAction(str, Enum):
+class StabilisationAction(StrEnum):
     """Recommended actions when drift is detected."""
 
     NONE = "none"

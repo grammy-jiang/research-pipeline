@@ -14,7 +14,7 @@ import json
 import logging
 import sys
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Protocol, runtime_checkable
 
@@ -24,7 +24,7 @@ logger = logging.getLogger(__name__)
 DEFAULT_GATE_STAGES = ["screen", "download", "summarize"]
 
 
-class GateDecision(str, Enum):
+class GateDecision(StrEnum):
     """Possible outcomes from a human gate check."""
 
     APPROVE = "approve"

@@ -29,7 +29,7 @@ import logging
 import statistics
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -39,7 +39,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class VerdictType(str, Enum):
+class VerdictType(StrEnum):
     """Supported verdict value types."""
 
     BINARY = "binary"  # True / False
@@ -47,7 +47,7 @@ class VerdictType(str, Enum):
     LABEL = "label"  # arbitrary string label
 
 
-class ReconciliationStrategy(str, Enum):
+class ReconciliationStrategy(StrEnum):
     """How to merge independent verdicts."""
 
     MAJORITY = "majority"
@@ -55,7 +55,7 @@ class ReconciliationStrategy(str, Enum):
     UNANIMOUS = "unanimous"
 
 
-class ProtocolState(str, Enum):
+class ProtocolState(StrEnum):
     """State machine for the pre-commitment round."""
 
     OPEN = "open"  # accepting registrations
@@ -270,9 +270,8 @@ class PreCommitmentRound:
 
     def reconcile(self) -> ReconciliationResult:
         """Reconcile all submitted assessments into a single verdict."""
-        if self._state == ProtocolState.RECONCILED:
-            if self._result is not None:
-                return self._result
+        if self._state == ProtocolState.RECONCILED and self._result is not None:
+            return self._result
         if len(self._assessments) < self.min_evaluators:
             raise RuntimeError(
                 f"Need at least {self.min_evaluators} assessments, "
@@ -485,7 +484,7 @@ class PreCommitmentRound:
     def _infer_verdict_type(verdict: bool | float | str) -> VerdictType:
         if isinstance(verdict, bool):
             return VerdictType.BINARY
-        if isinstance(verdict, (int, float)):
+        if isinstance(verdict, int | float):
             return VerdictType.SCALAR
         return VerdictType.LABEL
 

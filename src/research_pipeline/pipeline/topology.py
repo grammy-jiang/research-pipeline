@@ -3,12 +3,12 @@
 from __future__ import annotations
 
 import logging
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class PipelineProfile(str, Enum):
+class PipelineProfile(StrEnum):
     """Pipeline execution profiles."""
 
     QUICK = "quick"

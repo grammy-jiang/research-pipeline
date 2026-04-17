@@ -23,7 +23,7 @@ from __future__ import annotations
 import logging
 import math
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 from research_pipeline.confidence.scorer import (
@@ -37,7 +37,7 @@ from research_pipeline.models.claim import AtomicClaim, EvidenceClass
 logger = logging.getLogger(__name__)
 
 
-class ConfidenceLayer(str, Enum):
+class ConfidenceLayer(StrEnum):
     """Confidence architecture layer identifiers."""
 
     L1_FAST_SIGNAL = "L1_fast_signal"
@@ -46,7 +46,7 @@ class ConfidenceLayer(str, Enum):
     L4_VERIFICATION = "L4_verification"
 
 
-class GranularityDecision(str, Enum):
+class GranularityDecision(StrEnum):
     """NLI triage decision for adaptive granularity (AGSC)."""
 
     SKIP = "skip"
@@ -54,7 +54,7 @@ class GranularityDecision(str, Enum):
     DECOMPOSE = "decompose"
 
 
-class CalibrationMethod(str, Enum):
+class CalibrationMethod(StrEnum):
     """Calibration correction method applied."""
 
     IDENTITY = "identity"

@@ -18,7 +18,7 @@ import contextlib
 import json
 import logging
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
@@ -28,7 +28,7 @@ if TYPE_CHECKING:
 logger = logging.getLogger(__name__)
 
 
-class TelemetrySurface(str, Enum):
+class TelemetrySurface(StrEnum):
     """Three telemetry surfaces from the AgentTrace taxonomy."""
 
     COGNITIVE = "cognitive"

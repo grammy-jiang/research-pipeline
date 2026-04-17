@@ -16,14 +16,14 @@ import json
 import logging
 from dataclasses import asdict, dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class FailureCategory(str, Enum):
+class FailureCategory(StrEnum):
     """Top-level failure categories."""
 
     RETRIEVAL_MISS = "retrieval_miss"
@@ -40,7 +40,7 @@ class FailureCategory(str, Enum):
     UNKNOWN = "unknown"
 
 
-class FailureSeverity(str, Enum):
+class FailureSeverity(StrEnum):
     """Severity levels for failures."""
 
     LOW = "low"

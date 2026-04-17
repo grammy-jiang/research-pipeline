@@ -14,13 +14,13 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 
-class PageDifficulty(str, Enum):
+class PageDifficulty(StrEnum):
     """Difficulty classification for a PDF page."""
 
     SIMPLE = "simple"

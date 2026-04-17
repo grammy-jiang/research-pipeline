@@ -14,7 +14,7 @@ from __future__ import annotations
 import logging
 import re
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -35,7 +35,7 @@ def estimate_tokens(text: str) -> int:
 # ── Budget enforcement mode ──────────────────────────────────────────
 
 
-class BudgetMode(str, Enum):
+class BudgetMode(StrEnum):
     """How to handle responses that exceed the token budget."""
 
     SOFT = "soft"

@@ -24,12 +24,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class QueryType(str, Enum):
+class QueryType(StrEnum):
     """Query intent classification for stopping strategy selection."""
 
     RECALL = "recall"
@@ -38,7 +38,7 @@ class QueryType(str, Enum):
     AUTO = "auto"
 
 
-class StopReason(str, Enum):
+class StopReason(StrEnum):
     """Reason the stopping criterion triggered."""
 
     KNEE_DETECTED = "knee_detected"

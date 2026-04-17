@@ -23,7 +23,7 @@ import logging
 import math
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
@@ -34,7 +34,7 @@ logger = logging.getLogger(__name__)
 # ---------------------------------------------------------------------------
 
 
-class ForwardStopReason(str, Enum):
+class ForwardStopReason(StrEnum):
     """Why forward traversal terminated."""
 
     MAX_PAPERS = "max_papers"
@@ -129,9 +129,9 @@ class ForwardTraversalResult:
 
     def top_papers(self, n: int = 10) -> list[CitingPaper]:
         """Return top-n papers by composite score."""
-        return sorted(
-            self.discovered, key=lambda p: p.composite_score, reverse=True
-        )[:n]
+        return sorted(self.discovered, key=lambda p: p.composite_score, reverse=True)[
+            :n
+        ]
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -235,7 +235,7 @@ def _bm25_simple(text: str, terms: list[str], k1: float = 1.5) -> float:
     if not text or not terms:
         return 0.0
     words = text.lower().split()
-    word_count = len(words) if words else 1
+    len(words) if words else 1
     score = 0.0
     for term in terms:
         tf = sum(1 for w in words if term.lower() in w)
@@ -322,9 +322,7 @@ class ForwardCitationTraverser:
                         continue
                     seen_ids.add(pid)
 
-                    cp = self._score_paper(
-                        paper_data, sid, seed_ids, query_terms
-                    )
+                    cp = self._score_paper(paper_data, sid, seed_ids, query_terms)
                     round_papers.append(cp)
 
             # Update existing papers' influence if they cite multiple seeds
@@ -360,7 +358,11 @@ class ForwardCitationTraverser:
 
             logger.info(
                 "Forward depth %d: %d seeds → %d fetched → %d new (yield=%.2f)",
-                depth, len(current_seeds), fetched_total, new_unique, yield_ratio,
+                depth,
+                len(current_seeds),
+                fetched_total,
+                new_unique,
+                yield_ratio,
             )
 
             # Yield decay stopping

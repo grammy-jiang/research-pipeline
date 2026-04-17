@@ -7,12 +7,12 @@ Rhetoric, hedging, and unsupported confidence claims are stripped.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class RhetoricType(str, Enum):
+class RhetoricType(StrEnum):
     """Classification of rhetoric patterns detected in text."""
 
     HEDGING = "hedging"

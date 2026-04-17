@@ -22,13 +22,13 @@ import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor, as_completed
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class TaskStatus(str, Enum):
+class TaskStatus(StrEnum):
     """Status of an agent task."""
 
     PENDING = "pending"
@@ -38,7 +38,7 @@ class TaskStatus(str, Enum):
     SKIPPED = "skipped"
 
 
-class ConflictSeverity(str, Enum):
+class ConflictSeverity(StrEnum):
     """How severe a conflict between sub-agent outputs is."""
 
     LOW = "low"

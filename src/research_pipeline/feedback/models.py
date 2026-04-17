@@ -1,12 +1,12 @@
 """Pydantic models for user feedback on screened papers."""
 
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class FeedbackDecision(str, Enum):
+class FeedbackDecision(StrEnum):
     """User decision on a screened paper."""
 
     ACCEPT = "accept"

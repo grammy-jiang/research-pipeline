@@ -6,12 +6,12 @@ marginal-relevance decay detection.
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class StopReason(str, Enum):
+class StopReason(StrEnum):
     """Why snowball expansion terminated."""
 
     MAX_ROUNDS = "max_rounds"

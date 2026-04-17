@@ -30,14 +30,14 @@ import shutil
 import sqlite3
 import uuid
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
 logger = logging.getLogger(__name__)
 
 
-class TraceLevel(str, Enum):
+class TraceLevel(StrEnum):
     """Trace event severity levels."""
 
     DEBUG = "debug"

@@ -2,12 +2,12 @@
 
 from __future__ import annotations
 
-from enum import Enum
+from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
 
-class EvidenceClass(str, Enum):
+class EvidenceClass(StrEnum):
     """Evidence support classification for a claim."""
 
     SUPPORTED = "supported"

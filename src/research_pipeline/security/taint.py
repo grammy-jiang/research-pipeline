@@ -9,12 +9,12 @@ from __future__ import annotations
 
 import logging
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class TrustLevel(str, Enum):
+class TrustLevel(StrEnum):
     """Trust classification for content provenance."""
 
     TRUSTED = "trusted"

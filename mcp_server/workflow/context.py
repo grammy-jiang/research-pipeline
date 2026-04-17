@@ -19,7 +19,7 @@ from __future__ import annotations
 
 import logging
 import re
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
@@ -27,7 +27,7 @@ logger = logging.getLogger(__name__)
 CHARS_PER_TOKEN = 4
 
 
-class CompactionLevel(str, Enum):
+class CompactionLevel(StrEnum):
     """Paper content compaction levels (OpenDev ACC, adapted)."""
 
     FULL = "full"

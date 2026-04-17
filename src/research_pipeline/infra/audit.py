@@ -17,7 +17,7 @@ Usage::
 import json
 import logging
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 from typing import Any
 
@@ -26,7 +26,7 @@ logger = logging.getLogger(__name__)
 _AUDIT_FILENAME = "audit.jsonl"
 
 
-class EventType(str, Enum):
+class EventType(StrEnum):
     """Well-known audit event types."""
 
     STAGE_STARTED = "stage_started"

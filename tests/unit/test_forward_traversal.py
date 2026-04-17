@@ -21,7 +21,6 @@ from research_pipeline.sources.forward_traversal import (
     recency_bonus,
 )
 
-
 # ---------------------------------------------------------------------------
 # Scoring functions
 # ---------------------------------------------------------------------------
@@ -111,10 +110,14 @@ class TestBm25Simple:
 class TestCitingPaper:
     def test_to_dict(self) -> None:
         cp = CitingPaper(
-            paper_id="p1", title="Test Paper", year=2024,
+            paper_id="p1",
+            title="Test Paper",
+            year=2024,
             cited_seed_ids=["s1", "s2"],
-            relevance_score=0.8, recency_bonus=0.9,
-            influence_score=0.5, composite_score=0.75,
+            relevance_score=0.8,
+            recency_bonus=0.9,
+            influence_score=0.5,
+            composite_score=0.75,
         )
         d = cp.to_dict()
         assert d["paper_id"] == "p1"
@@ -130,8 +133,12 @@ class TestCitingPaper:
 class TestTraversalRound:
     def test_to_dict(self) -> None:
         tr = TraversalRound(
-            depth=1, seeds_used=3, fetched=10,
-            new_unique=7, mean_score=0.6, yield_ratio=0.7,
+            depth=1,
+            seeds_used=3,
+            fetched=10,
+            new_unique=7,
+            mean_score=0.6,
+            yield_ratio=0.7,
         )
         d = tr.to_dict()
         assert d["depth"] == 1
@@ -179,8 +186,10 @@ def _make_fetch_fn(
     data: dict[str, list[dict[str, Any]]],
 ) -> Any:
     """Create a fetch function from a static dict of paper_id → citing papers."""
+
     def fetch(paper_id: str, limit: int) -> list[dict[str, Any]]:
         return data.get(paper_id, [])[:limit]
+
     return fetch
 
 
@@ -188,15 +197,26 @@ class TestForwardCitationTraverser:
     def test_dry_run(self) -> None:
         traverser = ForwardCitationTraverser()
         result = traverser.traverse(
-            seed_ids=["s1"], query_terms=["test"],
+            seed_ids=["s1"],
+            query_terms=["test"],
         )
         assert result.total_discovered == 0
 
     def test_single_depth(self) -> None:
         data = {
             "s1": [
-                {"paper_id": "p1", "title": "Knowledge Graph Analysis", "abstract": "A study of knowledge graphs", "year": 2024},
-                {"paper_id": "p2", "title": "Neural Networks", "abstract": "Deep learning", "year": 2023},
+                {
+                    "paper_id": "p1",
+                    "title": "Knowledge Graph Analysis",
+                    "abstract": "A study of knowledge graphs",
+                    "year": 2024,
+                },
+                {
+                    "paper_id": "p2",
+                    "title": "Neural Networks",
+                    "abstract": "Deep learning",
+                    "year": 2023,
+                },
             ],
         }
         cfg = ForwardTraversalConfig(max_depth=1, limit_per_seed=10)
@@ -215,10 +235,20 @@ class TestForwardCitationTraverser:
         current_year = datetime.now(UTC).year
         data = {
             "s1": [
-                {"paper_id": "p1", "title": "Graph Methods", "abstract": "graph analysis", "year": current_year},
+                {
+                    "paper_id": "p1",
+                    "title": "Graph Methods",
+                    "abstract": "graph analysis",
+                    "year": current_year,
+                },
             ],
             "p1": [
-                {"paper_id": "p2", "title": "Deep Graph", "abstract": "deep graph nets", "year": current_year},
+                {
+                    "paper_id": "p2",
+                    "title": "Deep Graph",
+                    "abstract": "deep graph nets",
+                    "year": current_year,
+                },
             ],
         }
         cfg = ForwardTraversalConfig(max_depth=3, limit_per_seed=10)
@@ -234,11 +264,26 @@ class TestForwardCitationTraverser:
     def test_dedup(self) -> None:
         data = {
             "s1": [
-                {"paper_id": "p1", "title": "Paper One", "abstract": "test", "year": 2024},
+                {
+                    "paper_id": "p1",
+                    "title": "Paper One",
+                    "abstract": "test",
+                    "year": 2024,
+                },
             ],
             "s2": [
-                {"paper_id": "p1", "title": "Paper One", "abstract": "test", "year": 2024},
-                {"paper_id": "p2", "title": "Paper Two", "abstract": "test", "year": 2024},
+                {
+                    "paper_id": "p1",
+                    "title": "Paper One",
+                    "abstract": "test",
+                    "year": 2024,
+                },
+                {
+                    "paper_id": "p2",
+                    "title": "Paper Two",
+                    "abstract": "test",
+                    "year": 2024,
+                },
             ],
         }
         cfg = ForwardTraversalConfig(max_depth=1, limit_per_seed=10)
@@ -253,7 +298,12 @@ class TestForwardCitationTraverser:
     def test_max_papers_stop(self) -> None:
         data = {
             "s1": [
-                {"paper_id": f"p{i}", "title": f"Paper {i}", "abstract": "test", "year": 2024}
+                {
+                    "paper_id": f"p{i}",
+                    "title": f"Paper {i}",
+                    "abstract": "test",
+                    "year": 2024,
+                }
                 for i in range(20)
             ],
         }
@@ -270,7 +320,12 @@ class TestForwardCitationTraverser:
     def test_no_new_papers_stop(self) -> None:
         data = {
             "s1": [
-                {"paper_id": "p1", "title": "Paper One", "abstract": "graph", "year": 2024},
+                {
+                    "paper_id": "p1",
+                    "title": "Paper One",
+                    "abstract": "graph",
+                    "year": 2024,
+                },
             ],
             "p1": [],  # no new citing papers
         }
@@ -286,7 +341,12 @@ class TestForwardCitationTraverser:
     def test_yield_decay_stop(self) -> None:
         # Round 1: lots of new papers. Round 2+: almost all dupes
         all_papers = [
-            {"paper_id": f"p{i}", "title": f"Paper {i}", "abstract": "test", "year": 2024}
+            {
+                "paper_id": f"p{i}",
+                "title": f"Paper {i}",
+                "abstract": "test",
+                "year": 2024,
+            }
             for i in range(10)
         ]
         data = {
@@ -297,8 +357,10 @@ class TestForwardCitationTraverser:
             data[f"p{i}"] = all_papers[:5]  # all dupes
 
         cfg = ForwardTraversalConfig(
-            max_depth=5, limit_per_seed=10,
-            yield_decay_threshold=0.1, yield_patience=1,
+            max_depth=5,
+            limit_per_seed=10,
+            yield_decay_threshold=0.1,
+            yield_patience=1,
         )
         traverser = ForwardCitationTraverser(config=cfg)
         result = traverser.traverse(
@@ -327,7 +389,12 @@ class TestForwardCitationTraverser:
     def test_seed_not_in_discovered(self) -> None:
         data = {
             "s1": [
-                {"paper_id": "s1", "title": "Self Citation", "abstract": "test", "year": 2024},
+                {
+                    "paper_id": "s1",
+                    "title": "Self Citation",
+                    "abstract": "test",
+                    "year": 2024,
+                },
                 {"paper_id": "p1", "title": "Other", "abstract": "test", "year": 2024},
             ],
         }
@@ -353,7 +420,12 @@ class TestForwardExpand:
     def test_basic(self) -> None:
         data = {
             "s1": [
-                {"paper_id": "p1", "title": "Graph Paper", "abstract": "knowledge graph", "year": 2024},
+                {
+                    "paper_id": "p1",
+                    "title": "Graph Paper",
+                    "abstract": "knowledge graph",
+                    "year": 2024,
+                },
             ],
         }
         result = forward_expand(

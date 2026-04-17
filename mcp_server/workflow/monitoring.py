@@ -15,12 +15,12 @@ import hashlib
 import logging
 import re
 from collections import Counter
-from enum import Enum
+from enum import StrEnum
 
 logger = logging.getLogger(__name__)
 
 
-class StopReason(str, Enum):
+class StopReason(StrEnum):
     """Explicit stop conditions for iterative workflows.
 
     Each is logged with reason in the ExecutionRecord (provenance).

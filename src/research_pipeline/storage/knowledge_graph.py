@@ -11,7 +11,7 @@ import json
 import logging
 import sqlite3
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -22,7 +22,7 @@ DEFAULT_KG_DIR = Path.home() / ".cache" / "research-pipeline"
 DEFAULT_KG_PATH = DEFAULT_KG_DIR / "knowledge_graph.db"
 
 
-class EntityType(str, Enum):
+class EntityType(StrEnum):
     """Types of entities in the knowledge graph."""
 
     PAPER = "paper"
@@ -34,7 +34,7 @@ class EntityType(str, Enum):
     VENUE = "venue"
 
 
-class RelationType(str, Enum):
+class RelationType(StrEnum):
     """Types of relations between entities."""
 
     CITES = "cites"

@@ -17,7 +17,7 @@ import hashlib
 import json
 import logging
 from datetime import UTC, datetime
-from enum import Enum
+from enum import StrEnum
 from pathlib import Path
 
 from pydantic import BaseModel, Field
@@ -25,7 +25,7 @@ from pydantic import BaseModel, Field
 logger = logging.getLogger(__name__)
 
 
-class StageStatus(str, Enum):
+class StageStatus(StrEnum):
     """Status of an individual pipeline stage.
 
     The VERIFIED status enforces verify-before-commit (SAVER pattern):
@@ -41,7 +41,7 @@ class StageStatus(str, Enum):
     SKIPPED = "skipped"
 
 
-class WorkflowStage(str, Enum):
+class WorkflowStage(StrEnum):
     """Pipeline stages in execution order."""
 
     PLAN = "plan"
