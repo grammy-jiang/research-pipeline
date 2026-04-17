@@ -1,3 +1,3 @@
 """research-pipeline: multi-source academic paper search and analysis."""
 
-__version__ = "0.13.44"
+__version__ = "0.13.45"

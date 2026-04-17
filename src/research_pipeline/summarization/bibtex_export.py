@@ -40,7 +40,9 @@ def _make_citation_key(record: CandidateRecord) -> str:
     year = _extract_year(record)
     parts.append(year)
 
-    title_word = re.sub(r"[^a-z]", "", record.title.split()[0].lower()) if record.title else ""
+    title_word = (
+        re.sub(r"[^a-z]", "", record.title.split()[0].lower()) if record.title else ""
+    )
     if title_word:
         parts.append(title_word)
 
@@ -95,9 +97,7 @@ def candidate_to_bibtex(record: CandidateRecord) -> str:
         lines.append(f"  eprint = {{{record.arxiv_id}}},")
         lines.append("  archivePrefix = {arXiv},")
         if record.primary_category:
-            lines.append(
-                f"  primaryClass = {{{_escape(record.primary_category)}}},"
-            )
+            lines.append(f"  primaryClass = {{{_escape(record.primary_category)}}},")
 
     if record.doi:
         lines.append(f"  doi = {{{record.doi}}},")

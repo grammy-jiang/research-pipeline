@@ -4,9 +4,6 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from unittest.mock import MagicMock
-
-import pytest
 
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.summarization.bibtex_export import (

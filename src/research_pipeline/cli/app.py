@@ -1367,6 +1367,54 @@ def export_bibtex_command(
     export_bibtex_cmd(run_id=run_id, stage=stage, output=output)
 
 
+@app.command("report")
+def report_command(
+    run_id: str = typer.Option(
+        ...,
+        "--run-id",
+        help="Pipeline run ID.",
+    ),
+    template: str = typer.Option(
+        "survey",
+        "--template",
+        "-t",
+        help="Report template: survey, gap_analysis, lit_review, executive.",
+    ),
+    custom_template: str = typer.Option(
+        "",
+        "--custom-template",
+        help="Path to a custom Jinja2 template file.",
+    ),
+    output: str = typer.Option(
+        "",
+        "-o",
+        "--output",
+        help="Output Markdown file path.",
+    ),
+    verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
+) -> None:
+    """Render synthesis report using a configurable template.
+
+    Available templates: survey, gap_analysis, lit_review, executive.
+
+    .. code-block:: bash
+
+       research-pipeline report --run-id <ID>
+       research-pipeline report --run-id <ID> -t gap_analysis
+    """
+    from research_pipeline.cli.cmd_report import report_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    report_cmd(
+        run_id=run_id,
+        template=template,
+        custom_template=custom_template,
+        output=output,
+    )
+
+
 @app.command("blinding-audit")
 def blinding_audit_command(
     workspace: str = typer.Option(

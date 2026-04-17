@@ -59,8 +59,7 @@ def export_bibtex_cmd(
 
     if not jsonl_candidates:
         logger.error(
-            "No candidate JSONL files found in %s. "
-            "Run the %s stage first.",
+            "No candidate JSONL files found in %s. " "Run the %s stage first.",
             stage_dir,
             stage,
         )
@@ -75,11 +74,7 @@ def export_bibtex_cmd(
         logger.warning("No candidates found in %s", jsonl_path)
         raise typer.Exit(1)
 
-    # Resolve output path
-    if output:
-        out_path = Path(output)
-    else:
-        out_path = stage_dir / "references.bib"
+    out_path = Path(output) if output else stage_dir / "references.bib"
 
     count = export_candidates_bibtex(candidates, out_path)
     logger.info("Exported %d BibTeX entries to %s", count, out_path)
