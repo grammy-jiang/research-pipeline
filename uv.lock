@@ -3570,7 +3570,7 @@ socks = [
 
 [[package]]
 name = "research-pipeline"
-version = "0.13.24"
+version = "0.13.25"
 source = { editable = "." }
 dependencies = [
     { name = "lxml" },
