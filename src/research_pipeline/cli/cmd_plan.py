@@ -7,6 +7,7 @@ import typer
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.models.query_plan import QueryPlan
+from research_pipeline.screening.query_cleanup import clean_query_terms
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 logger = logging.getLogger(__name__)
@@ -212,6 +213,11 @@ def run_plan(
     run_id, run_root = init_run(ws, run_id)
 
     must_terms, nice_terms = _split_topic_terms(topic)
+
+    # Apply query noise removal (SiRe strategy: suppress academic boilerplate)
+    must_terms = clean_query_terms(must_terms, remove_boilerplate=True)
+    nice_terms = clean_query_terms(nice_terms, remove_boilerplate=True)
+
     query_variants = _generate_query_variants(
         must_terms, nice_terms, max_variants=config.search.max_query_variants
     )
