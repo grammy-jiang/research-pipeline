@@ -19,8 +19,7 @@ from research_pipeline.summarization.synthesis import synthesize
 # Helpers
 # ---------------------------------------------------------------------------
 
-_SAMPLE_MARKDOWN = textwrap.dedent(
-    """\
+_SAMPLE_MARKDOWN = textwrap.dedent("""\
     # Introduction
 
     This paper studies transformer architectures for time series forecasting.
@@ -41,8 +40,7 @@ _SAMPLE_MARKDOWN = textwrap.dedent(
 
     The model requires substantial computational resources. Training on
     very long sequences remains challenging.
-"""
-)
+""")
 
 _ARXIV_ID = "2401.00001"
 _VERSION = "v1"

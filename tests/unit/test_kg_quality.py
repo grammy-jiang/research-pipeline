@@ -27,16 +27,13 @@ from research_pipeline.quality.kg_quality import (
 
 def _create_kg_schema(conn: sqlite3.Connection) -> None:
     """Create the KG tables matching storage/knowledge_graph.py schema."""
-    conn.execute(
-        """CREATE TABLE IF NOT EXISTS entities (
+    conn.execute("""CREATE TABLE IF NOT EXISTS entities (
             entity_id TEXT PRIMARY KEY,
             entity_type TEXT NOT NULL,
             name TEXT NOT NULL,
             properties TEXT DEFAULT '{}'
-        )"""
-    )
-    conn.execute(
-        """CREATE TABLE IF NOT EXISTS triples (
+        )""")
+    conn.execute("""CREATE TABLE IF NOT EXISTS triples (
             subject_id TEXT NOT NULL,
             relation TEXT NOT NULL,
             object_id TEXT NOT NULL,
@@ -44,8 +41,7 @@ def _create_kg_schema(conn: sqlite3.Connection) -> None:
             provenance_run TEXT DEFAULT '',
             confidence REAL DEFAULT 1.0,
             created_at TEXT DEFAULT ''
-        )"""
-    )
+        )""")
 
 
 def _make_kg(

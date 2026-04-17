@@ -455,7 +455,7 @@ runs/
 workspace/
 
 # Local config (may contain API keys)
-config.toml
+/config.toml
 
 # Claude Code local overrides
 CLAUDE.local.md

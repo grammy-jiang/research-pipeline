@@ -1,0 +1,145 @@
+# research-pipeline configuration
+# Path: ~/.claude/config.toml
+#
+# This file is auto-loaded when research-pipeline commands run from ~/.claude/
+# (the default CWD for the academic-paper-research skill).
+#
+# Fill in your API keys below for the online backends you want to use.
+# Leave unused backends empty — they won't be called.
+
+[arxiv]
+min_interval_seconds = 5.0
+default_page_size = 100
+daily_query_cache = true
+
+[cache]
+enabled = true
+search_snapshot_ttl_hours = 24
+cache_dir = "~/.cache/arxiv-paper-pipeline"
+
+# ─── Conversion ──────────────────────────────────────────────────────────────
+# Primary backend: docling (local, MIT, no API key needed)
+# To use an online backend as primary, change "backend" below.
+# To add fallback services, list them in "fallback_backends".
+
+[conversion]
+backend = "docling"
+fallback_backends = []                  # e.g. ["datalab", "mistral_ocr", "openai_vision"]
+timeout_seconds = 300
+
+# ─── Local backends ──────────────────────────────────────────────────────────
+
+[conversion.marker]
+force_ocr = false
+use_llm = false
+llm_service = ""
+llm_api_key = ""
+
+# ─── Online backends (fill in your API keys) ─────────────────────────────────
+
+# Mathpix — best LaTeX, 1K free pages/mo
+# Sign up: https://mathpix.com
+# [conversion.mathpix]
+# app_id = ""
+# app_key = ""
+# Multi-account example:
+# [[conversion.mathpix.accounts]]
+# app_id = "account-1-id"
+# app_key = "account-1-key"
+# [[conversion.mathpix.accounts]]
+# app_id = "account-2-id"
+# app_key = "account-2-key"
+
+# Datalab — hosted Marker, $5 free credit
+# Sign up: https://www.datalab.to
+# [conversion.datalab]
+# api_key = ""
+# mode = "balanced"                       # fast, balanced, or accurate
+# [[conversion.datalab.accounts]]
+# api_key = "key-1"
+# mode = "fast"
+# [[conversion.datalab.accounts]]
+# api_key = "key-2"
+# mode = "accurate"
+
+# LlamaParse — 1K free pages/day
+# Sign up: https://cloud.llamaindex.ai
+[conversion.llamaparse]
+api_key = ""
+# [[conversion.llamaparse.accounts]]
+# api_key = "key-1"
+# [[conversion.llamaparse.accounts]]
+# api_key = "key-2"
+
+# Mistral OCR — per-token pricing, free credits
+# Sign up: https://console.mistral.ai
+# [conversion.mistral_ocr]
+# api_key = ""
+# model = "mistral-ocr-latest"
+# [[conversion.mistral_ocr.accounts]]
+# api_key = "key-1"
+# [[conversion.mistral_ocr.accounts]]
+# api_key = "key-2"
+
+# OpenAI Vision — per-token pricing
+# Sign up: https://platform.openai.com
+# [conversion.openai_vision]
+# api_key = ""
+# model = "gpt-4o"
+# [[conversion.openai_vision.accounts]]
+# api_key = "key-1"
+# [[conversion.openai_vision.accounts]]
+# api_key = "key-2"
+# model = "gpt-4o-mini"
+
+# ─── Other stages ────────────────────────────────────────────────────────────
+
+[download]
+max_per_run = 20
+
+[llm]
+enabled = false
+temperature = 0
+profile = "default"
+
+[screen]
+cheap_top_k = 50
+download_top_n = 20
+final_score_threshold = 0.70
+llm_score_threshold = 0.60
+use_semantic_reranking = false        # Enable SPECTER2 semantic re-ranking
+embedding_model = "allenai/specter2"
+embedding_batch_size = 32
+
+[search]
+primary_months = 6
+fallback_months = 12
+max_query_variants = 5
+min_candidates = 40
+min_highscore = 10
+min_downloads = 5
+
+# ─── New v0.3.0 features ────────────────────────────────────────────────────
+
+# Multi-source search
+[sources]
+default_sources = ["arxiv"]     # Available: arxiv, scholar
+semantic_scholar_api_key = ""   # Used by expand and quality commands (not search)
+semantic_scholar_min_interval = 1.0
+openalex_min_interval = 0.1
+openalex_email = ""             # Polite pool email for OpenAlex
+dblp_min_interval = 1.0
+
+# Quality evaluation (citations, venue, author, recency)
+[quality]
+enabled = false
+citation_weight = 0.35
+venue_weight = 0.25
+author_weight = 0.25
+recency_weight = 0.15
+
+# Incremental runs — dedup against previous runs
+[incremental]
+enabled = false
+global_index_path = ""          # SQLite path (empty = default cache dir)
+reuse_artifacts = true

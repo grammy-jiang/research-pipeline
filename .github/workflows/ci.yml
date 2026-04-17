@@ -28,14 +28,8 @@ jobs:
       - name: Install dependencies
         run: uv sync --extra dev
 
-      - name: Check import sorting (isort)
-        run: uv run isort --check-only --diff .
-
-      - name: Check formatting (black)
-        run: uv run black --check --diff .
-
-      - name: Lint (ruff)
-        run: uv run ruff check .
+      - name: Run pre-commit
+        run: uv run pre-commit run --all-files
 
   test:
     name: Test (Python ${{ matrix.python-version }})
