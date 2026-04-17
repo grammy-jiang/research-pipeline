@@ -49,6 +49,7 @@ from mcp_server.tools import (
     cbr_retain_tool,
     coherence_tool,
     compare_runs,
+    confidence_layers_tool,
     consolidation_tool,
     convert_file,
     convert_fine,
@@ -1148,6 +1149,49 @@ async def tool_adaptive_stopping(
         relevance_threshold=relevance_threshold,
     )
     result = adaptive_stopping_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_confidence_layers(
+    run_id: str,
+    config_path: str = "",
+    workspace: str = "",
+    l4_threshold: float = 0.50,
+    damping: float = 0.80,
+    calibrate: bool = False,
+) -> dict:
+    """Score claims through the 4-layer confidence architecture.
+
+    L1 (fast signal) → L2 (adaptive granularity) → L3 (DINCO calibration)
+    → L4 (selective verification for low-confidence claims only).
+
+    Args:
+        run_id: Run ID containing claim decompositions.
+        config_path: Path to config.toml. Empty uses defaults.
+        workspace: Workspace directory. Empty uses config default.
+        l4_threshold: Confidence below which L4 verification triggers.
+        damping: Fusion damping exponent (0-1).
+        calibrate: Whether to fit Platt scaling from prior scored claims.
+    """
+    from mcp_server.schemas import ConfidenceLayersInput
+
+    params = ConfidenceLayersInput(
+        run_id=run_id,
+        config_path=config_path,
+        workspace=workspace,
+        l4_threshold=l4_threshold,
+        damping=damping,
+        calibrate=calibrate,
+    )
+    result = confidence_layers_tool(params=params)
     return result.model_dump()
 
 

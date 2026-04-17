@@ -35,7 +35,7 @@ class TestServerRegistration:
         # 9 pipeline + convert_file + list_backends + 5 new
         # + workflow + 4 quality + feedback + eval_log + aggregate
         # + export_html + model_routing_info + gate_info = 27
-        assert len(mcp._tool_manager._tools) == 35
+        assert len(mcp._tool_manager._tools) == 36
 
     def test_all_tools_have_annotations(self) -> None:
         """Every registered tool must have ToolAnnotations set."""

@@ -23,6 +23,7 @@ from mcp_server.schemas import (
     CbrRetainInput,
     CoherenceInput,
     CompareRunsInput,
+    ConfidenceLayersInput,
     ConsolidationInput,
     ConvertFileInput,
     ConvertFineInput,
@@ -2128,4 +2129,49 @@ def adaptive_stopping_tool(
 
     except Exception as exc:
         logger.error("Adaptive stopping evaluation failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def confidence_layers_tool(
+    params: ConfidenceLayersInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Score claims through the 4-layer confidence architecture.
+
+    L1 (fast signal) → L2 (adaptive granularity) → L3 (DINCO calibration)
+    → L4 (selective verification). Based on Atomic Calibration, AGSC,
+    DINCO, and LoVeC research.
+    """
+    try:
+        from pathlib import Path
+
+        from research_pipeline.cli.cmd_confidence_layers import (
+            run_confidence_layers,
+        )
+
+        run_confidence_layers(
+            config_path=Path(params.config_path) if params.config_path else None,
+            workspace=Path(params.workspace) if params.workspace else None,
+            run_id=params.run_id,
+            l4_threshold=params.l4_threshold,
+            damping=params.damping,
+            calibrate=params.calibrate,
+        )
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"4-layer confidence scoring completed for run {params.run_id}. "
+                f"L4 threshold={params.l4_threshold}, damping={params.damping}."
+            ),
+            artifacts={
+                "run_id": params.run_id,
+                "l4_threshold": params.l4_threshold,
+                "damping": params.damping,
+                "calibrate": params.calibrate,
+            },
+        )
+
+    except Exception as exc:
+        logger.error("Confidence layers scoring failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

@@ -564,6 +564,39 @@ class AdaptiveStoppingInput(BaseModel):
     )
 
 
+class ConfidenceLayersInput(BaseModel):
+    """Input for the confidence_layers tool.
+
+    Scores claims through the 4-layer confidence architecture:
+    L1 (fast signal) → L2 (adaptive granularity) → L3 (DINCO calibration)
+    → L4 (selective verification for low-confidence claims).
+
+    Based on Atomic Calibration, AGSC, DINCO, and LoVeC research.
+    """
+
+    run_id: str = Field(description="Run ID containing claim decompositions.")
+    config_path: str = Field(
+        default="",
+        description="Path to config.toml. Empty uses defaults.",
+    )
+    workspace: str = Field(
+        default="",
+        description="Workspace directory. Empty uses config default.",
+    )
+    l4_threshold: float = Field(
+        default=0.50,
+        description="Confidence below which L4 verification triggers.",
+    )
+    damping: float = Field(
+        default=0.80,
+        description="Fusion damping exponent (0-1). Lower = more conservative.",
+    )
+    calibrate: bool = Field(
+        default=False,
+        description="Whether to fit Platt scaling from prior scored claims.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

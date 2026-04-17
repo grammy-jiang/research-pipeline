@@ -430,6 +430,42 @@ research-pipeline adaptive-stopping scores.json --max-budget 200 --relevance-thr
 
 **MCP tool:** `tool_adaptive_stopping` — evaluate stopping criteria for batch scores.
 
+### 4-Layer Confidence Architecture (C4)
+
+Per-claim confidence scoring through a layered architecture based on Atomic
+Calibration, AGSC, DINCO, and LoVeC research:
+
+**Layers:**
+- **L1 — Fast Signal**: hedging language detection (LVU) + evidence class mapping +
+  citation density + retrieval quality. Quick heuristic pre-filter.
+- **L2 — Adaptive Granularity**: NLI triage (AGSC-inspired) — skip/keep/decompose
+  based on L1 score and claim complexity. Achieves ~60% savings.
+- **L3 — Calibration Correction**: DINCO distractor normalization (training-free,
+  ECE 0.076) or Platt scaling (fitted from prior data).
+- **L4 — Selective Verification**: sampling consistency (M=5) only for claims
+  with L3 confidence below threshold (default 0.50).
+
+**Calibration Metrics** (multi-metric per deep research negative constraint):
+- ECE (Expected Calibration Error)
+- Brier score (mean squared error)
+- AUROC (Area Under ROC Curve)
+
+**Fusion**: damped fusion (power-damped weighted average) outperforms fixed-weight.
+
+```bash
+# Score claims through 4-layer architecture
+research-pipeline confidence-layers --run-id <ID>
+
+# With lower L4 threshold (more selective verification)
+research-pipeline confidence-layers --run-id <ID> --l4-threshold 0.30
+
+# With Platt calibration from prior scores
+research-pipeline confidence-layers --run-id <ID> --calibrate
+```
+
+**MCP tool:** `tool_confidence_layers` — 4-layer confidence scoring with
+calibration report.
+
 ## Step-by-Step Workflow
 
 ### Step 0: Check for Existing Report

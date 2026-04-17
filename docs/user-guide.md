@@ -216,6 +216,12 @@ gate_after = ["screen", "download", "summarize"]  # Stages after which to pause
 # Three strategies based on query type: recall (knee), precision (saturation), judgment (stability).
 # Options: --min-results, --max-budget, --relevance-threshold, --output
 
+# 4-Layer Confidence Architecture (v0.13.15+)
+# CLI: research-pipeline confidence-layers --run-id <ID> [--l4-threshold 0.50] [--damping 0.80]
+# L1 fast signal → L2 adaptive granularity → L3 DINCO calibration → L4 selective verification.
+# Multi-metric calibration: ECE + Brier + AUROC. Damped fusion for aggregation.
+# Options: --calibrate (fit Platt scaling from prior scores)
+
 [sources]
 default_sources = ["arxiv"]     # Sources: arxiv, scholar, semantic_scholar, openalex, dblp
 semantic_scholar_api_key = ""   # S2 API key (optional, higher rate limits)

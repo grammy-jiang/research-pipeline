@@ -1634,3 +1634,61 @@ def adaptive_stopping_cli(
         relevance_threshold=relevance_threshold,
         output=output,
     )
+
+
+@app.command("confidence-layers")
+def confidence_layers_cli(
+    config: str = typer.Option(
+        None,
+        "--config",
+        "-c",
+        help="Path to config TOML file.",
+    ),
+    workspace: str = typer.Option(
+        None,
+        "--workspace",
+        "-w",
+        help="Workspace directory.",
+    ),
+    run_id: str = typer.Option(
+        None,
+        "--run-id",
+        "-r",
+        help="Run ID containing claim decompositions.",
+    ),
+    l4_threshold: float = typer.Option(
+        0.50,
+        "--l4-threshold",
+        help="Confidence threshold below which L4 verification triggers.",
+    ),
+    damping: float = typer.Option(
+        0.80,
+        "--damping",
+        help="Fusion damping exponent (0-1). Lower = more conservative.",
+    ),
+    calibrate: bool = typer.Option(
+        False,
+        "--calibrate",
+        help="Fit Platt scaling from prior scored claims.",
+    ),
+) -> None:
+    """Score claims through the 4-layer confidence architecture.
+
+    Processes claims through L1 (fast signal) → L2 (adaptive granularity)
+    → L3 (DINCO calibration) → L4 (selective verification). L4 only
+    triggers for claims below --l4-threshold.
+
+    Based on Atomic Calibration, AGSC, DINCO, and LoVeC research.
+    """
+    from pathlib import Path
+
+    from research_pipeline.cli.cmd_confidence_layers import run_confidence_layers
+
+    run_confidence_layers(
+        config_path=Path(config) if config else None,
+        workspace=Path(workspace) if workspace else None,
+        run_id=run_id,
+        l4_threshold=l4_threshold,
+        damping=damping,
+        calibrate=calibrate,
+    )
