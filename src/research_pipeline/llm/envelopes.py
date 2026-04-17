@@ -1,10 +1,24 @@
-"""Input/output envelope wrappers for LLM calls."""
+"""Input/output envelope wrappers for LLM calls.
+
+Includes structured-output enforcement: every ``LLMOutputEnvelope``
+can be validated against field requirements (evidence, confidence,
+source citations) in strict or lenient mode.
+"""
+
+from __future__ import annotations
 
 import logging
+from typing import Any
 
 from pydantic import BaseModel, Field
 
 from research_pipeline.infra.hashing import sha256_str
+from research_pipeline.llm.structured_output import (
+    EnforcementMode,
+    EnforcementResult,
+    FieldRequirement,
+    enforce,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -30,7 +44,12 @@ class LLMInputEnvelope(BaseModel):
 
 
 class LLMOutputEnvelope(BaseModel):
-    """Standardized output envelope from all LLM calls."""
+    """Standardized output envelope from all LLM calls.
+
+    Call :meth:`enforce_structure` after construction to validate
+    that the ``decision`` dict contains required evidence / confidence
+    / source fields.
+    """
 
     schema_id: str = Field(description="Output schema ID.")
     decision: dict = Field(default_factory=dict)  # type: ignore[type-arg]
@@ -40,3 +59,38 @@ class LLMOutputEnvelope(BaseModel):
         default=False,
         description="Whether the LLM abstained from answering.",
     )
+
+    def enforce_structure(
+        self,
+        requirements: list[FieldRequirement] | None = None,
+        mode: EnforcementMode = EnforcementMode.LENIENT,
+    ) -> EnforcementResult:
+        """Validate ``decision`` dict against structured-output requirements.
+
+        Args:
+            requirements: Field requirements.  Defaults to standard
+                evidence + confidence + citation checks.
+            mode: Strict (raise) or lenient (repair with defaults).
+
+        Returns:
+            :class:`EnforcementResult` with validity, violations, and
+            the repaired decision dict.
+        """
+        result = enforce(dict(self.decision), requirements=requirements, mode=mode)
+        if result.repaired != self.decision:
+            object.__setattr__(self, "decision", result.repaired)
+        return result
+
+    def to_flat_dict(self) -> dict[str, Any]:
+        """Return a flattened dict merging envelope fields and decision.
+
+        Useful for downstream consumers that expect a single dict.
+        """
+        merged: dict[str, Any] = {
+            "schema_id": self.schema_id,
+            "evidence_refs": self.evidence_refs,
+            "notes": self.notes,
+            "abstain": self.abstain,
+        }
+        merged.update(self.decision)
+        return merged
