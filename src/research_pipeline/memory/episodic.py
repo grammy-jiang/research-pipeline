@@ -3,6 +3,10 @@
 Stores summaries of past runs — what topic was researched, how many papers
 were found, key decisions, outcomes, and lessons learned.  Used to inform
 future runs (e.g., avoid re-searching the same topic, reuse good queries).
+
+Supports **segment-level entries**: large synthesis summaries or key
+decisions are automatically split into ≤450-token segments for retrieval
+precision (per Memory Survey, PVLDB 2026 recommendation).
 """
 
 from __future__ import annotations
@@ -12,6 +16,12 @@ import logging
 import sqlite3
 from dataclasses import dataclass, field
 from pathlib import Path
+
+from research_pipeline.memory.segmentation import (
+    DEFAULT_MAX_TOKENS,
+    estimate_tokens,
+    segment_text,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -165,3 +175,43 @@ class EpisodicMemory:
         if self._conn is not None:
             self._conn.close()
             self._conn = None
+
+    # ------------------------------------------------------------------
+    # Segment-level helpers
+    # ------------------------------------------------------------------
+
+    def get_segmented_summary(
+        self,
+        run_id: str,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+    ) -> list[str]:
+        """Return the synthesis summary for *run_id*, split into segments.
+
+        Each segment is ≤ *max_tokens* estimated tokens.  If the summary
+        already fits, a single-element list is returned.
+        """
+        episode = self.get_episode(run_id)
+        if episode is None or not episode.synthesis_summary:
+            return []
+        return segment_text(episode.synthesis_summary, max_tokens=max_tokens)
+
+    def get_segmented_decisions(
+        self,
+        run_id: str,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+    ) -> list[str]:
+        """Return key decisions for *run_id*, each capped to *max_tokens*.
+
+        Decisions that exceed the limit are split; short ones pass through
+        unchanged.
+        """
+        episode = self.get_episode(run_id)
+        if episode is None:
+            return []
+        result: list[str] = []
+        for decision in episode.key_decisions:
+            if estimate_tokens(decision) > max_tokens:
+                result.extend(segment_text(decision, max_tokens=max_tokens))
+            else:
+                result.append(decision)
+        return result

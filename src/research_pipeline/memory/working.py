@@ -3,6 +3,10 @@
 Holds recent items (candidates, decisions, summaries) for the current
 stage.  Automatically evicts oldest entries when capacity is exceeded.
 Resets at stage boundaries.
+
+Supports **segment-level entries**: large values are automatically split
+into ≤450-token segments so each buffer slot holds a retrieval-friendly
+chunk (per Memory Survey, PVLDB 2026 recommendation).
 """
 
 from __future__ import annotations
@@ -11,6 +15,12 @@ import logging
 from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
+
+from research_pipeline.memory.segmentation import (
+    DEFAULT_MAX_TOKENS,
+    estimate_tokens,
+    segment_text,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -106,3 +116,30 @@ class WorkingMemory:
             "current_stage": self._current_stage,
             "stages": list({item.stage for item in self._buffer}),
         }
+
+    def add_segmented(
+        self,
+        key: str,
+        value: str,
+        stage: str = "",
+        metadata: dict[str, str] | None = None,
+        max_tokens: int = DEFAULT_MAX_TOKENS,
+    ) -> int:
+        """Add a text value, automatically splitting if it exceeds *max_tokens*.
+
+        Each segment is stored as a separate :class:`MemoryItem` with a
+        ``segment`` metadata field (e.g. ``"1/3"``).
+
+        Returns the number of items actually added.
+        """
+        if not isinstance(value, str) or estimate_tokens(value) <= max_tokens:
+            self.add(key, value, stage=stage, metadata=metadata)
+            return 1
+
+        parts = segment_text(value, max_tokens=max_tokens)
+        total = len(parts)
+        extra = metadata or {}
+        for i, part in enumerate(parts):
+            seg_meta = {**extra, "parent_key": key, "segment": f"{i + 1}/{total}"}
+            self.add(f"{key}__seg{i}", part, stage=stage, metadata=seg_meta)
+        return total
