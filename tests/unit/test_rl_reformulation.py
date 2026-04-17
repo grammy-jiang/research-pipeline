@@ -14,7 +14,6 @@ from research_pipeline.screening.rl_reformulation import (
     RLReformulator,
 )
 
-
 # ---------------------------------------------------------------------------
 # QueryVariant
 # ---------------------------------------------------------------------------
@@ -22,16 +21,12 @@ from research_pipeline.screening.rl_reformulation import (
 
 class TestQueryVariant:
     def test_creation(self) -> None:
-        v = QueryVariant(
-            text="test query", operator=ReformulationOp.SYNONYM_EXPAND
-        )
+        v = QueryVariant(text="test query", operator=ReformulationOp.SYNONYM_EXPAND)
         assert v.text == "test query"
         assert v.generation == 0
 
     def test_to_dict(self) -> None:
-        v = QueryVariant(
-            text="q", operator=ReformulationOp.TERM_DROP, generation=2
-        )
+        v = QueryVariant(text="q", operator=ReformulationOp.TERM_DROP, generation=2)
         d = v.to_dict()
         assert d["operator"] == "term_drop"
         assert d["generation"] == 2
@@ -137,39 +132,47 @@ class TestOperators:
         assert result.original_query == "improve model performance"
 
     def test_acronym_expand(self) -> None:
+        import random as _rm
+
         from research_pipeline.screening.rl_reformulation import (
             _apply_acronym_expand,
         )
-        import random as _rm
+
         rng = _rm.Random(42)
         expanded = _apply_acronym_expand("nlp with bert", rng)
         assert "natural language processing" in expanded
         assert "bidirectional encoder" in expanded
 
     def test_phrase_relax(self) -> None:
+        import random as _rm
+
         from research_pipeline.screening.rl_reformulation import (
             _apply_phrase_relax,
         )
-        import random as _rm
+
         rng = _rm.Random(42)
         relaxed = _apply_phrase_relax('"exact phrase" search', rng)
         assert '"' not in relaxed
 
     def test_scope_broaden(self) -> None:
+        import random as _rm
+
         from research_pipeline.screening.rl_reformulation import (
             _apply_scope_broaden,
         )
-        import random as _rm
+
         rng = _rm.Random(42)
         broad = _apply_scope_broaden("only specific transformer model", rng)
         assert "only" not in broad
         assert "specific" not in broad
 
     def test_term_drop_short_query(self) -> None:
+        import random as _rm
+
         from research_pipeline.screening.rl_reformulation import (
             _apply_term_drop,
         )
-        import random as _rm
+
         rng = _rm.Random(42)
         result = _apply_term_drop("ab", rng)
         assert result == "ab"  # too short, no change

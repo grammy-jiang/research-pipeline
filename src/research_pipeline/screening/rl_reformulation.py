@@ -228,8 +228,13 @@ def _apply_acronym_expand(query: str, _rng: _random_module.Random) -> str:
 def _apply_hyponym_narrow(query: str, rng: _random_module.Random) -> str:
     """Add a narrowing qualifier."""
     qualifiers = [
-        "recent", "state-of-the-art", "novel", "efficient",
-        "scalable", "robust", "lightweight",
+        "recent",
+        "state-of-the-art",
+        "novel",
+        "efficient",
+        "scalable",
+        "robust",
+        "lightweight",
     ]
     return query + " " + rng.choice(qualifiers)
 
@@ -269,21 +274,15 @@ class OperatorBandit:
 
     def __init__(self, seed: int | None = None) -> None:
         self._rng = _random_module.Random(seed)  # nosec B311
-        self._alpha: dict[ReformulationOp, float] = {
-            op: 1.0 for op in ReformulationOp
-        }
-        self._beta: dict[ReformulationOp, float] = {
-            op: 1.0 for op in ReformulationOp
-        }
+        self._alpha: dict[ReformulationOp, float] = {op: 1.0 for op in ReformulationOp}
+        self._beta: dict[ReformulationOp, float] = {op: 1.0 for op in ReformulationOp}
 
     def select(self) -> ReformulationOp:
         """Select an operator via Thompson sampling."""
         samples = {}
         for op in ReformulationOp:
             # Beta distribution sample
-            samples[op] = self._rng.betavariate(
-                self._alpha[op], self._beta[op]
-            )
+            samples[op] = self._rng.betavariate(self._alpha[op], self._beta[op])
         return max(samples, key=samples.get)  # type: ignore[arg-type]
 
     def update(self, op: ReformulationOp, reward: RewardSignal) -> None:
@@ -424,7 +423,11 @@ class RLReformulator:
 
             logger.debug(
                 "Step %d: op=%s, query='%s', reward=%s, score=%.3f",
-                i, op.value, new_query[:50], reward.value, score,
+                i,
+                op.value,
+                new_query[:50],
+                reward.value,
+                score,
             )
 
         improvement = (
@@ -438,9 +441,11 @@ class RLReformulator:
             original_query=query,
             steps=steps,
             total_reward=sum(
-                1.0 if s.reward == RewardSignal.SUCCESS
-                else 0.5 if s.reward == RewardSignal.PARTIAL
-                else 0.0
+                (
+                    1.0
+                    if s.reward == RewardSignal.SUCCESS
+                    else 0.5 if s.reward == RewardSignal.PARTIAL else 0.0
+                )
                 for s in steps
             ),
             improvement=improvement,
@@ -449,7 +454,9 @@ class RLReformulator:
 
         logger.info(
             "Reformulation: %d steps, best='%s', improvement=%.2f",
-            len(steps), best_query[:50], improvement,
+            len(steps),
+            best_query[:50],
+            improvement,
         )
         return result
 
@@ -460,9 +467,7 @@ class RLReformulator:
         improvements = [r.improvement for r in self._history]
         return {
             "total_runs": len(self._history),
-            "mean_improvement": round(
-                sum(improvements) / len(improvements), 4
-            ),
+            "mean_improvement": round(sum(improvements) / len(improvements), 4),
             "total_steps": sum(len(r.steps) for r in self._history),
             "operator_success_rates": self._bandit.success_rates(),
         }
