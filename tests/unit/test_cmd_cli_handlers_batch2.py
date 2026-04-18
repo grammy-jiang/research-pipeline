@@ -6,9 +6,8 @@ Covers 17 previously-untested modules to raise overall coverage.
 from __future__ import annotations
 
 import json
-import sqlite3
 from pathlib import Path
-from unittest.mock import MagicMock, mock_open, patch
+from unittest.mock import MagicMock, patch
 
 import click.exceptions
 import pytest
@@ -404,8 +403,7 @@ class TestCmdConvertFine:
         (dl_dir / "download_manifest.jsonl").write_text("", encoding="utf-8")
 
         # Return entries that don't match requested IDs
-        mock_read.return_value = [
-            _dl_entry_dict(arxiv_id="9999.99999")]
+        mock_read.return_value = [_dl_entry_dict(arxiv_id="9999.99999")]
 
         with pytest.raises(click.exceptions.Exit):
             run_convert_fine(
@@ -446,7 +444,10 @@ class TestCmdConvertFine:
         converter.name = "test_backend"
         result = MagicMock()
         result.status = "converted"
-        result.model_dump.return_value = {"status": "converted", "arxiv_id": "2301.00001"}
+        result.model_dump.return_value = {
+            "status": "converted",
+            "arxiv_id": "2301.00001",
+        }
         converter.convert.return_value = result
         mock_create_conv.return_value = converter
 
@@ -589,7 +590,11 @@ class TestCmdDownload:
         screen_dir.mkdir(parents=True)
         shortlist_data = [
             {
-                "paper": {"arxiv_id": "2301.00001", "version": "v1", "pdf_url": "http://x"},
+                "paper": {
+                    "arxiv_id": "2301.00001",
+                    "version": "v1",
+                    "pdf_url": "http://x",
+                },
                 "download": True,
             }
         ]
@@ -611,7 +616,7 @@ class TestCmdDownload:
         dl_entry.model_dump.return_value = {"status": "downloaded"}
         mock_batch.return_value = [dl_entry]
 
-        # get_stage_dir creates dirs; "download" → "download/pdf", "download_root" → "download"
+        # get_stage_dir creates dirs; "download" → "download/pdf"
         # No need to pre-create — get_stage_dir does it
 
         run_download(
@@ -662,9 +667,7 @@ class TestCmdEnrich:
     @patch("research_pipeline.cli.cmd_enrich.enrich_candidates")
     @patch("research_pipeline.cli.cmd_enrich.read_jsonl")
     @patch("research_pipeline.cli.cmd_enrich.load_config")
-    def test_happy_path(
-        self, mock_cfg, mock_read, mock_enrich, mock_write, tmp_path
-    ):
+    def test_happy_path(self, mock_cfg, mock_read, mock_enrich, mock_write, tmp_path):
         from research_pipeline.cli.cmd_enrich import enrich_command
 
         mock_cfg.return_value = _make_config(tmp_path)
@@ -748,7 +751,12 @@ class TestCmdEvalLog:
 
         eval_instance = MagicMock()
         eval_instance.tracer.read_traces.return_value = [
-            {"timestamp": "2024-01-01T00:00:00Z", "event": "start", "stage": "plan", "level": "info"}
+            {
+                "timestamp": "2024-01-01T00:00:00Z",
+                "event": "start",
+                "stage": "plan",
+                "level": "info",
+            }
         ]
         eval_instance.audit.count.return_value = 0
         eval_instance.snapshots.list_snapshots.return_value = []
@@ -792,7 +800,9 @@ class TestCmdEvalLog:
     @patch("research_pipeline.cli.cmd_eval_log.EvalLogger")
     @patch("research_pipeline.cli.cmd_eval_log.setup_logging")
     @patch("research_pipeline.cli.cmd_eval_log.load_config")
-    def test_audit_channel_with_records(self, mock_cfg, mock_setup, mock_eval, tmp_path):
+    def test_audit_channel_with_records(
+        self, mock_cfg, mock_setup, mock_eval, tmp_path
+    ):
         from research_pipeline.cli.cmd_eval_log import eval_log_cmd
 
         mock_cfg.return_value = _make_config(tmp_path)
@@ -917,11 +927,12 @@ class TestCmdExpand:
         result_mock = MagicMock()
         result_mock.model_dump.return_value = {"rounds": 1}
 
-        with patch(
-            "research_pipeline.sources.snowball.snowball_expand"
-        ) as mock_snow, patch(
-            "research_pipeline.sources.snowball.format_snowball_report"
-        ) as mock_fmt:
+        with (
+            patch("research_pipeline.sources.snowball.snowball_expand") as mock_snow,
+            patch(
+                "research_pipeline.sources.snowball.format_snowball_report"
+            ) as mock_fmt,
+        ):
             mock_snow.return_value = ([candidate], result_mock)
             mock_fmt.return_value = "# Snowball Report"
 
@@ -1033,10 +1044,13 @@ class TestCmdExtract:
 
         rough_data = _conv_entry_dict()
 
-        with patch("research_pipeline.cli.cmd_extract.read_jsonl") as mock_read, \
-             patch("research_pipeline.cli.cmd_extract.write_jsonl"):
+        with (
+            patch("research_pipeline.cli.cmd_extract.read_jsonl") as mock_read,
+            patch("research_pipeline.cli.cmd_extract.write_jsonl"),
+        ):
             mock_read.return_value = [rough_data]
-            (rough_dir / "convert_rough_manifest.jsonl").write_text("", encoding="utf-8")
+            manifest = rough_dir / "convert_rough_manifest.jsonl"
+            manifest.write_text("", encoding="utf-8")
 
             entries = _discover_convert_manifest(run_root)
             assert len(entries) == 1
@@ -1109,7 +1123,9 @@ class TestCmdFeedback:
     @patch("research_pipeline.cli.cmd_feedback.FeedbackStore")
     @patch("research_pipeline.cli.cmd_feedback.setup_logging")
     @patch("research_pipeline.cli.cmd_feedback.load_config")
-    def test_shortlist_score_loading(self, mock_cfg, mock_setup, mock_store_cls, tmp_path):
+    def test_shortlist_score_loading(
+        self, mock_cfg, mock_setup, mock_store_cls, tmp_path
+    ):
         from research_pipeline.cli.cmd_feedback import feedback_cmd
 
         mock_cfg.return_value = _make_config(tmp_path)
@@ -1147,17 +1163,19 @@ class TestCmdKgQuality:
     def test_missing_db_exits(self, tmp_path):
         from research_pipeline.cli.cmd_kg_quality import kg_quality_command
 
-        with patch(
-            "research_pipeline.storage.knowledge_graph.DEFAULT_KG_PATH",
-            tmp_path / "no_such.db",
+        with (
+            patch(
+                "research_pipeline.storage.knowledge_graph.DEFAULT_KG_PATH",
+                tmp_path / "no_such.db",
+            ),
+            pytest.raises(click.exceptions.Exit),
         ):
-            with pytest.raises(click.exceptions.Exit):
-                kg_quality_command(
-                    db_path=str(tmp_path / "no_such.db"),
-                    staleness_days=365.0,
-                    sample_size=0,
-                    output_json=False,
-                )
+            kg_quality_command(
+                db_path=str(tmp_path / "no_such.db"),
+                staleness_days=365.0,
+                sample_size=0,
+                output_json=False,
+            )
 
     def test_happy_path_text_output(self, tmp_path):
         from research_pipeline.cli.cmd_kg_quality import kg_quality_command
@@ -1173,28 +1191,39 @@ class TestCmdKgQuality:
         score_mock.timeliness = 0.95
         score_mock.redundancy = 0.7
         score_mock.structural = MagicMock(
-            num_entities=100, num_triples=500, icr=5.0,
-            density=0.1, connected_components=2,
+            num_entities=100,
+            num_triples=500,
+            icr=5.0,
+            density=0.1,
+            connected_components=2,
         )
         score_mock.consistency_detail = MagicMock(
-            ic_score=0.9, ec_score=0.8,
-            ic_contradiction_count=1, duplicate_triples=0,
+            ic_score=0.9,
+            ec_score=0.8,
+            ic_contradiction_count=1,
+            duplicate_triples=0,
         )
         score_mock.completeness_detail = MagicMock(
-            entity_type_coverage=0.9, relation_type_coverage=0.8,
+            entity_type_coverage=0.9,
+            relation_type_coverage=0.8,
             orphan_entities=5,
         )
 
-        with patch(
-            "research_pipeline.quality.kg_quality.evaluate_kg_quality",
-            return_value=score_mock,
-        ), patch(
-            "research_pipeline.quality.kg_quality.sample_triples_twcs",
-            return_value=[],
-        ), patch(
-            "research_pipeline.storage.knowledge_graph.DEFAULT_KG_PATH",
-            db_path,
-        ), patch("sqlite3.connect") as mock_conn:
+        with (
+            patch(
+                "research_pipeline.quality.kg_quality.evaluate_kg_quality",
+                return_value=score_mock,
+            ),
+            patch(
+                "research_pipeline.quality.kg_quality.sample_triples_twcs",
+                return_value=[],
+            ),
+            patch(
+                "research_pipeline.storage.knowledge_graph.DEFAULT_KG_PATH",
+                db_path,
+            ),
+            patch("sqlite3.connect") as mock_conn,
+        ):
             conn = MagicMock()
             mock_conn.return_value = conn
 
@@ -1214,20 +1243,23 @@ class TestCmdKgQuality:
         score_mock = MagicMock()
         score_mock.to_dict.return_value = {"composite": 0.85}
 
-        sample = [
-            {"subject_id": "s1", "relation": "cites", "object_id": "o1"}
-        ]
+        sample = [{"subject_id": "s1", "relation": "cites", "object_id": "o1"}]
 
-        with patch(
-            "research_pipeline.quality.kg_quality.evaluate_kg_quality",
-            return_value=score_mock,
-        ), patch(
-            "research_pipeline.quality.kg_quality.sample_triples_twcs",
-            return_value=sample,
-        ), patch(
-            "research_pipeline.storage.knowledge_graph.DEFAULT_KG_PATH",
-            db_path,
-        ), patch("sqlite3.connect") as mock_conn:
+        with (
+            patch(
+                "research_pipeline.quality.kg_quality.evaluate_kg_quality",
+                return_value=score_mock,
+            ),
+            patch(
+                "research_pipeline.quality.kg_quality.sample_triples_twcs",
+                return_value=sample,
+            ),
+            patch(
+                "research_pipeline.storage.knowledge_graph.DEFAULT_KG_PATH",
+                db_path,
+            ),
+            patch("sqlite3.connect") as mock_conn,
+        ):
             conn = MagicMock()
             mock_conn.return_value = conn
 
@@ -1739,28 +1771,31 @@ class TestScholarSource:
         from research_pipeline.sources.scholar_source import ScholarlySource
 
         src = ScholarlySource(min_interval=0.0)
-        with patch.dict("sys.modules", {"scholarly": None}):
-            with patch(
+        with (
+            patch.dict("sys.modules", {"scholarly": None}),
+            patch(
                 "research_pipeline.sources.scholar_source.ScholarlySource.search",
                 wraps=src.search,
-            ):
-                # Force ImportError on scholarly import
-                import builtins
-                original_import = builtins.__import__
+            ),
+        ):
+            # Force ImportError on scholarly import
+            import builtins
 
-                def mock_import(name, *args, **kwargs):
-                    if name == "scholarly":
-                        raise ImportError("scholarly not installed")
-                    return original_import(name, *args, **kwargs)
+            original_import = builtins.__import__
 
-                with patch("builtins.__import__", side_effect=mock_import):
-                    result = src.search(
-                        topic="test",
-                        must_terms=["test"],
-                        nice_terms=[],
-                        max_results=5,
-                    )
-                    assert result == []
+            def mock_import(name, *args, **kwargs):
+                if name == "scholarly":
+                    raise ImportError("scholarly not installed")
+                return original_import(name, *args, **kwargs)
+
+            with patch("builtins.__import__", side_effect=mock_import):
+                result = src.search(
+                    topic="test",
+                    must_terms=["test"],
+                    nice_terms=[],
+                    max_results=5,
+                )
+                assert result == []
 
     def test_scholarly_search_with_mock(self):
         from research_pipeline.sources.scholar_source import ScholarlySource
@@ -1781,8 +1816,11 @@ class TestScholarSource:
         mock_scholarly.search_pubs.return_value = iter([mock_result])
 
         import sys
-        with patch.dict(sys.modules, {"scholarly": MagicMock(scholarly=mock_scholarly)}):
+
+        scholarly_mod = MagicMock(scholarly=mock_scholarly)
+        with patch.dict(sys.modules, {"scholarly": scholarly_mod}):
             import builtins
+
             original_import = builtins.__import__
 
             def mock_import(name, *args, **kwargs):
@@ -1862,6 +1900,7 @@ class TestScholarSource:
         mock_search_cls.return_value = mock_search_instance
 
         import builtins
+
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -1904,6 +1943,7 @@ class TestScholarSource:
         src = SerpAPISource(api_key="key", min_interval=0.0)
 
         import builtins
+
         original_import = builtins.__import__
 
         def mock_import(name, *args, **kwargs):
@@ -1932,7 +1972,12 @@ class TestMain:
 
     def test_main_module_source_has_app_call(self):
         """Verify __main__.py contains app() call without executing it."""
-        main_file = Path(__file__).resolve().parents[2] / "src" / "research_pipeline" / "__main__.py"
+        main_file = (
+            Path(__file__).resolve().parents[2]
+            / "src"
+            / "research_pipeline"
+            / "__main__.py"
+        )
         source = main_file.read_text(encoding="utf-8")
         assert "app()" in source
         assert "from research_pipeline.cli.app import app" in source
