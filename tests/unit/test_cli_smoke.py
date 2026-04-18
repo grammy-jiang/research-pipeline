@@ -8,6 +8,7 @@ Verifies that:
 
 from __future__ import annotations
 
+import pytest
 from typer.testing import CliRunner
 
 from research_pipeline import __version__
@@ -32,38 +33,18 @@ def test_version_callback() -> None:
     assert __version__ in result.output
 
 
-# Parametrize all subcommands that should respond to --help
-_SUBCOMMANDS = [
-    "plan",
-    "search",
-    "screen",
-    "download",
-    "convert",
-    "extract",
-    "summarize",
-    "run",
-    "inspect",
-    "index",
-    "convert-file",
-    "expand",
-    "quality",
-    "convert-rough",
-    "convert-fine",
-    "export-bibtex",
-    "cluster",
-    "validate",
-    "compare",
-    "report",
-    "watch",
-    "analyze",
-]
+def _all_subcommands() -> list[str]:
+    """Discover all registered CLI subcommands dynamically."""
+    import typer.main
+
+    click_app = typer.main.get_command(app)
+    return sorted(click_app.commands.keys())
 
 
-def test_subcommand_help() -> None:
+@pytest.mark.parametrize("cmd", _all_subcommands())
+def test_subcommand_help(cmd: str) -> None:
     """Every registered subcommand responds to --help with exit 0."""
-    failures: list[str] = []
-    for cmd in _SUBCOMMANDS:
-        result = runner.invoke(app, [cmd, "--help"])
-        if result.exit_code != 0:
-            failures.append(f"{cmd}: exit_code={result.exit_code}")
-    assert not failures, f"Subcommands failed --help: {failures}"
+    result = runner.invoke(app, [cmd, "--help"])
+    assert result.exit_code == 0, (
+        f"{cmd} --help failed (exit {result.exit_code}): {result.output}"
+    )
