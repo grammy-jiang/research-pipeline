@@ -34,7 +34,6 @@ classifiers = [
   "Topic :: Scientific/Engineering",
   "Topic :: Scientific/Engineering :: Information Analysis",
   "Topic :: Text Processing :: Markup :: Markdown",
-  "License :: OSI Approved :: MIT License",
   "Typing :: Typed"
 ]
 dependencies = [
