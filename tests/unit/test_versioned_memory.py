@@ -75,7 +75,7 @@ class TestPut:
         e2 = vm.put("topic", "v2")
         # Retrieve history to check e1 was superseded
         history = vm.get_history("topic")
-        old = [h for h in history if h.version == 1][0]
+        old = next(h for h in history if h.version == 1)
         assert old.superseded_by == e2.entry_id
         assert old.valid_until != ""
         assert old.is_active is False
@@ -162,7 +162,7 @@ class TestGetActiveEntries:
         assert len(active) == 2
         keys = {e.key for e in active}
         assert keys == {"a", "b"}
-        a_entry = [e for e in active if e.key == "a"][0]
+        a_entry = next(e for e in active if e.key == "a")
         assert a_entry.value == "val-a2"
         vm.close()
 

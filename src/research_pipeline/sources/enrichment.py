@@ -92,7 +92,7 @@ def _s2_lookup_by_title(
     top_title = (top.get("title") or "").lower().strip()
     query_title = title.lower().strip()
     if top_title == query_title or top_title.startswith(query_title[:50]):
-        return top
+        return top  # type: ignore[no-any-return]
     return None
 
 

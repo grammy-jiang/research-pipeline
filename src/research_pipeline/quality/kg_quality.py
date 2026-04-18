@@ -567,7 +567,7 @@ def _count_rows(conn: sqlite3.Connection, table: str) -> int:
     if table not in valid:
         raise ValueError(f"Invalid table: {table}")
     sql = f"SELECT COUNT(*) FROM {table}"  # nosec B608
-    return conn.execute(sql).fetchone()[0]
+    return conn.execute(sql).fetchone()[0]  # type: ignore[no-any-return]
 
 
 def _count_connected_entities(conn: sqlite3.Connection) -> int:

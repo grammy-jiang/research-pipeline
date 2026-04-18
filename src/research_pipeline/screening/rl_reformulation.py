@@ -274,8 +274,8 @@ class OperatorBandit:
 
     def __init__(self, seed: int | None = None) -> None:
         self._rng = _random_module.Random(seed)  # nosec B311
-        self._alpha: dict[ReformulationOp, float] = {op: 1.0 for op in ReformulationOp}
-        self._beta: dict[ReformulationOp, float] = {op: 1.0 for op in ReformulationOp}
+        self._alpha: dict[ReformulationOp, float] = dict.fromkeys(ReformulationOp, 1.0)
+        self._beta: dict[ReformulationOp, float] = dict.fromkeys(ReformulationOp, 1.0)
 
     def select(self) -> ReformulationOp:
         """Select an operator via Thompson sampling."""

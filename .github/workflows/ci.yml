@@ -52,7 +52,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run unit tests
-        run: uv run pytest tests/unit/ -x -q --tb=short
+        run: uv run pytest tests/unit/ -x -q --tb=short --cov=src/research_pipeline --cov-fail-under=70
 
   typecheck:
     name: Type Check
@@ -72,7 +72,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run mypy
-        run: uv run mypy src/ || true
+        run: uv run mypy src/
         # mypy has pre-existing errors; run for visibility but don't block
 
   security:

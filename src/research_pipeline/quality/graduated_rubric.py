@@ -346,16 +346,16 @@ def compute_batch_rubric_stats(results: list[RubricResult]) -> BatchRubricStats:
     avg_score = sum(r.overall_score for r in results) / total
 
     # Find weakest dimension across all results
-    dim_avgs: dict[str, float] = {}
+    dim_avgs: dict[str, list[float]] = {}
     for r in results:
         for d in r.dimensions:
-            dim_avgs.setdefault(d.dimension, []).append(d.score)  # type: ignore[attr-defined]
+            dim_avgs.setdefault(d.dimension, []).append(d.score)
 
     weakest = ""
     if dim_avgs:
         weakest = min(
             dim_avgs,
-            key=lambda k: sum(dim_avgs[k]) / len(dim_avgs[k]),  # type: ignore[arg-type]
+            key=lambda k: sum(dim_avgs[k]) / len(dim_avgs[k]),
         )
 
     return BatchRubricStats(

@@ -15,7 +15,7 @@ from research_pipeline.extraction.citation_context import (
     extract_citation_contexts,
     group_by_marker,
 )
-from research_pipeline.storage.workspace import get_stage_dir
+from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 logger = logging.getLogger(__name__)
 
@@ -41,7 +41,8 @@ def cite_context_command(
 ) -> None:
     """Extract citation contexts from converted Markdown papers."""
     config = load_config(config_path)
-    run_dir = Path(config.runs_dir) / run_id
+    ws = Path(config.workspace)
+    _run_id, run_dir = init_run(ws, run_id)
 
     if not run_dir.exists():
         logger.error("Run directory not found: %s", run_dir)

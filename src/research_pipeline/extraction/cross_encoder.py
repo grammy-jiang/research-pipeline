@@ -22,7 +22,9 @@ def _is_cross_encoder_available() -> bool:
         True if the CrossEncoder class can be imported.
     """
     try:
-        from sentence_transformers import CrossEncoder  # noqa: F401
+        from sentence_transformers import (  # type: ignore[import-not-found]
+            CrossEncoder,  # noqa: F401
+        )
 
         return True
     except ImportError:

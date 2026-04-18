@@ -83,7 +83,7 @@ def retry(
 
                     # Add jitter
                     jitter = delay * jitter_fraction
-                    delay += random.uniform(-jitter, jitter)  # noqa: S311  # nosec B311
+                    delay += random.uniform(-jitter, jitter)  # nosec B311
                     delay = max(0.0, delay)
 
                     logger.info(
@@ -97,7 +97,7 @@ def retry(
                     time.sleep(delay)
 
             # Should not reach here, but satisfy type checker
-            assert last_exc is not None  # noqa: S101  # nosec B101
+            assert last_exc is not None  # nosec B101
             raise last_exc
 
         return wrapper  # type: ignore[return-value]

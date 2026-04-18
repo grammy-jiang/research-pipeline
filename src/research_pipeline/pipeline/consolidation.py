@@ -228,7 +228,8 @@ class EpisodeStore:
         if consolidated is not None:
             query += " WHERE consolidated = ?"
             params.append(1 if consolidated else 0)
-        return conn.execute(query, params).fetchone()[0]
+        row = conn.execute(query, params).fetchone()
+        return int(row[0]) if row else 0
 
     def mark_consolidated(self, run_ids: list[str]) -> None:
         """Mark episodes as consolidated."""

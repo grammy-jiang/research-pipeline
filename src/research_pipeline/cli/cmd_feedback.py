@@ -10,10 +10,11 @@ from pathlib import Path
 
 import typer
 
+from research_pipeline.config.loader import load_config
 from research_pipeline.feedback.models import FeedbackDecision, FeedbackRecord
 from research_pipeline.feedback.store import FeedbackStore
 from research_pipeline.infra.logging import setup_logging
-from research_pipeline.storage.workspace import get_stage_dir, resolve_workspace
+from research_pipeline.storage.workspace import get_stage_dir
 
 logger = logging.getLogger(__name__)
 
@@ -39,7 +40,7 @@ def feedback_cmd(
         workspace: Optional workspace path.
     """
     setup_logging(level=logging.INFO)
-    ws = resolve_workspace(workspace)
+    ws = Path(workspace) if workspace else Path(load_config().workspace)
     run_root = ws / run_id
 
     store = FeedbackStore()

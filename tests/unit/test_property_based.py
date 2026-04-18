@@ -18,13 +18,15 @@ from hypothesis import assume, given, settings
 from hypothesis import strategies as st
 
 from research_pipeline.extraction.citation_context import (
-    CitationContext,
     _split_sentences,
     extract_citation_contexts,
 )
+from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.screening.clustering import (
     _build_tfidf,
     _cosine_similarity,
+)
+from research_pipeline.screening.clustering import (
     _tokenize as cluster_tokenize,
 )
 from research_pipeline.screening.heuristic import (
@@ -32,10 +34,8 @@ from research_pipeline.screening.heuristic import (
     _jaccard_similarity,
     _normalize_scores,
     _recency_bonus,
-    _tokenize as heuristic_tokenize,
 )
 from research_pipeline.sources.base import dedup_cross_source
-
 
 # -- Strategies --
 
@@ -67,9 +67,7 @@ class TestBM25Properties:
         query=word_list,
     )
     @settings(max_examples=50)
-    def test_scores_are_finite(
-        self, corpus: list[str], query: list[str]
-    ) -> None:
+    def test_scores_are_finite(self, corpus: list[str], query: list[str]) -> None:
         """BM25 scores should always be finite numbers."""
         scores = _compute_bm25_scores(corpus, query)
         assert len(scores) == len(corpus)
@@ -172,9 +170,7 @@ class TestTFIDFProperties:
         docs=st.lists(word_list, min_size=1, max_size=10),
     )
     @settings(max_examples=50)
-    def test_tfidf_weights_non_negative(
-        self, docs: list[list[str]]
-    ) -> None:
+    def test_tfidf_weights_non_negative(self, docs: list[list[str]]) -> None:
         """TF-IDF weights should always be non-negative."""
         vocab, vectors = _build_tfidf(docs)
         for vec in vectors:
@@ -185,9 +181,7 @@ class TestTFIDFProperties:
         docs=st.lists(word_list, min_size=1, max_size=10),
     )
     @settings(max_examples=50)
-    def test_tfidf_output_length_matches_input(
-        self, docs: list[list[str]]
-    ) -> None:
+    def test_tfidf_output_length_matches_input(self, docs: list[list[str]]) -> None:
         """One vector per document."""
         vocab, vectors = _build_tfidf(docs)
         assert len(vectors) == len(docs)
@@ -297,9 +291,7 @@ class TestRecencyBonusProperties:
 class TestJaccardProperties:
     """Property tests for Jaccard similarity."""
 
-    @given(
-        s=st.frozensets(st.text(min_size=1, max_size=5), min_size=1, max_size=20)
-    )
+    @given(s=st.frozensets(st.text(min_size=1, max_size=5), min_size=1, max_size=20))
     @settings(max_examples=50)
     def test_self_similarity_is_one(self, s: frozenset[str]) -> None:
         """Jaccard(A, A) == 1.0."""
@@ -310,9 +302,7 @@ class TestJaccardProperties:
         b=st.frozensets(st.text(min_size=1, max_size=5), min_size=1, max_size=20),
     )
     @settings(max_examples=50)
-    def test_range_zero_to_one(
-        self, a: frozenset[str], b: frozenset[str]
-    ) -> None:
+    def test_range_zero_to_one(self, a: frozenset[str], b: frozenset[str]) -> None:
         """Jaccard similarity is in [0, 1]."""
         sim = _jaccard_similarity(set(a), set(b))
         assert 0.0 <= sim <= 1.0
@@ -348,10 +338,8 @@ class TestDedupProperties:
         arxiv_id: str,
         title: str,
         doi: str | None = None,
-    ) -> "CandidateRecord":
+    ) -> CandidateRecord:
         """Create a minimal CandidateRecord for testing."""
-        from research_pipeline.models.candidate import CandidateRecord
-
         return CandidateRecord(
             arxiv_id=arxiv_id,
             version="1",

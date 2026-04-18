@@ -4,7 +4,7 @@ import logging
 import math
 from datetime import UTC, datetime
 
-from rank_bm25 import BM25Okapi
+from rank_bm25 import BM25Okapi  # type: ignore[import-untyped]
 
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.screening import CheapScoreBreakdown
@@ -170,7 +170,9 @@ def score_candidates(
 
         recency = _recency_bonus(candidate.published)
 
-        sem_score = semantic_scores[i] if use_semantic else None
+        sem_score = (
+            semantic_scores[i] if semantic_scores is not None and use_semantic else None
+        )
 
         cheap_score = (
             bm25_title

@@ -14,7 +14,7 @@ from research_pipeline.cli.cmd_analyze import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def run_root(tmp_path: Path) -> Path:
     """Create a mock run directory structure."""
     # Plan stage

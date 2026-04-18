@@ -5,7 +5,7 @@ import pytest
 from research_pipeline.storage.global_index import GlobalPaperIndex
 
 
-@pytest.fixture()
+@pytest.fixture
 def fts_index(tmp_path: object) -> GlobalPaperIndex:
     """Create a GlobalPaperIndex instance in a temp directory."""
     from pathlib import Path

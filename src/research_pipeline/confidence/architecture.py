@@ -452,7 +452,7 @@ def damped_fusion(
     # Power-damped weighted average
     damping = max(0.01, min(damping, 1.0))
     weighted = sum(w * (s**damping) for w, s in zip(weights, signals, strict=False))
-    return round(min(max(weighted, 0.0), 1.0), 4)
+    return round(min(max(weighted, 0.0), 1.0), 4)  # type: ignore[no-any-return]
 
 
 # ---------------------------------------------------------------------------

@@ -1,8 +1,15 @@
 """Pipeline orchestrator: end-to-end stage sequencing with resume support."""
 
+from __future__ import annotations
+
 import json
 import logging
+from datetime import datetime
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from research_pipeline.conversion.page_dispatch import DocumentDispatchPlan
 
 from research_pipeline import __version__
 from research_pipeline.arxiv.client import ArxivClient
@@ -15,6 +22,7 @@ from research_pipeline.cli.cmd_plan import (
 )
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
+from research_pipeline.conversion.base import ConverterBackend
 from research_pipeline.conversion.registry import (
     _ensure_builtins_registered,
     get_backend,
@@ -64,7 +72,7 @@ from research_pipeline.summarization.synthesis import synthesize
 logger = logging.getLogger(__name__)
 
 
-def _create_converter(config: PipelineConfig) -> "ConverterBackend":  # noqa: F821
+def _create_converter(config: PipelineConfig) -> ConverterBackend:
     """Create a converter backend from pipeline config."""
     _ensure_builtins_registered()
     backend_name = config.conversion.backend
@@ -252,14 +260,14 @@ def verify_stage(run_root: Path, stage: str) -> list[str]:
         logger.warning("Verification errors for stage '%s': %s", stage, errors)
     else:
         logger.debug("Stage '%s' verified OK", stage)
-    return errors
+    return list(errors)
 
 
 def _record_stage(
     manifest: RunManifest,
     stage: str,
     status: str,
-    started_at: object,
+    started_at: datetime | None,
     output_paths: list[str] | None = None,
     errors: list[str] | None = None,
     audit: AuditLogger | None = None,
@@ -272,12 +280,12 @@ def _record_stage(
     """
     ended = utc_now()
     started = started_at if started_at else ended
-    duration = int((ended - started).total_seconds() * 1000)  # type: ignore[union-attr]
+    duration = int((ended - started).total_seconds() * 1000)
 
     record = StageRecord(
         stage_name=stage,
         status=status,
-        started_at=started,  # type: ignore[arg-type]
+        started_at=started,
         ended_at=ended,
         duration_ms=duration,
         output_paths=output_paths or [],
@@ -308,9 +316,7 @@ def _record_stage(
 
         artifact_paths = [Path(p) for p in (output_paths or [])]
         started_iso = (
-            started.isoformat()  # type: ignore[union-attr]
-            if hasattr(started, "isoformat")
-            else str(started)
+            started.isoformat() if hasattr(started, "isoformat") else str(started)
         )
         write_checkpoint(
             run_root=run_root,
@@ -424,7 +430,11 @@ def run_pipeline(
     try:
         from research_pipeline.storage.global_index import GlobalPaperIndex
 
-        idx_path = Path(config.global_index_path) if config.global_index_path else None
+        idx_path = (
+            Path(config.incremental.global_index_path)
+            if config.incremental.global_index_path
+            else None
+        )
         paper_index = GlobalPaperIndex(db_path=idx_path)
         logger.info("Global paper index loaded: %s", paper_index.db_path)
     except Exception as exc:
@@ -916,9 +926,9 @@ def run_pipeline(
         )
 
         # Build shortlist
-        shortlist = []
+        shortlist: list[RelevanceDecision] = []
         for candidate, score in top_candidates[: config.screen.download_top_n]:
-            decision = RelevanceDecision(
+            rel_decision = RelevanceDecision(
                 paper=candidate,
                 cheap=score,
                 llm=None,
@@ -926,7 +936,7 @@ def run_pipeline(
                 download=True,
                 download_reason="score_threshold",
             )
-            shortlist.append(decision)
+            shortlist.append(rel_decision)
 
         # Optional LLM second-pass screening
         if llm_provider is not None:
@@ -1091,7 +1101,7 @@ def run_pipeline(
                     if (
                         artifact
                         and artifact.get("pdf_path")
-                        and Path(artifact["pdf_path"]).exists()
+                        and Path(str(artifact["pdf_path"])).exists()
                     ):
                         reusable.append(pid)
                 if reusable:
@@ -1178,7 +1188,7 @@ def run_pipeline(
             converter = _create_converter(config)
 
             # Page dispatch: classify PDFs by difficulty
-            dispatch_plans = []
+            dispatch_plans: list[DocumentDispatchPlan] = []
             try:
                 from research_pipeline.conversion.page_dispatch import (
                     classify_document_from_text,
@@ -1194,14 +1204,16 @@ def run_pipeline(
                     if not pdf_path.exists():
                         continue
                     try:
-                        import pymupdf
+                        import pymupdf  # type: ignore[import-not-found]
 
                         doc = pymupdf.open(str(pdf_path))
                         texts = [p.get_text() for p in doc]
                         imgs = [len(p.get_images()) for p in doc]
                         doc.close()
-                        plan = classify_document_from_text(pdf_path, texts, imgs)
-                        dispatch_plans.append(plan)
+                        dispatch_plan = classify_document_from_text(
+                            pdf_path, texts, imgs
+                        )
+                        dispatch_plans.append(dispatch_plan)
                     except ImportError:
                         pass
                     except Exception as exc:
@@ -1402,8 +1414,8 @@ def run_pipeline(
                 "Quick profile: building summaries from abstracts (%d papers)",
                 len(shortlist),
             )
-            for decision in shortlist:
-                paper = decision.paper
+            for rel_dec in shortlist:
+                paper = rel_dec.paper
                 abstract = paper.abstract or ""
                 summary = PaperSummary(
                     arxiv_id=paper.arxiv_id,
@@ -1748,8 +1760,8 @@ def run_pipeline(
                 run_id=run_id,
                 topic=topic,
                 profile=profile.value,
-                started_at=manifest.created_at,
-                completed_at=utc_now(),
+                started_at=str(manifest.created_at),
+                completed_at=str(utc_now()),
                 stages_completed=list(manifest.stages.keys()),
                 paper_count=len(candidates),
                 shortlist_count=len(shortlist),
@@ -1763,17 +1775,17 @@ def run_pipeline(
     # MCP guard audit summary
     if mcp_guard is not None:
         try:
-            summary = mcp_guard.audit_summary()
-            if summary["total"] > 0:
+            audit_summary = mcp_guard.audit_summary()
+            if audit_summary["total"] > 0:
                 logger.info(
                     "MCP audit: %d total, %d allowed, %d denied",
-                    summary["total"],
-                    summary["allowed"],
-                    summary["denied"],
+                    audit_summary["total"],
+                    audit_summary["allowed"],
+                    audit_summary["denied"],
                 )
                 audit_path = run_root / "mcp_audit.json"
                 audit_path.write_text(
-                    json.dumps(summary, indent=2),
+                    json.dumps(audit_summary, indent=2),
                     encoding="utf-8",
                 )
         except Exception as exc:

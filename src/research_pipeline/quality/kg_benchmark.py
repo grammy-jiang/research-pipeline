@@ -332,12 +332,12 @@ class KGBenchmarkRunner:
     ) -> BenchmarkMetrics:
         """Compute triple-level precision, recall, F1."""
         gold_set: set[tuple[str, str, str]] = set()
-        for t in gold.triples:
-            gold_set.add(self._normalize_triple(t.subject, t.predicate, t.obj))
+        for gt in gold.triples:
+            gold_set.add(self._normalize_triple(gt.subject, gt.predicate, gt.obj))
 
         extracted_set: set[tuple[str, str, str]] = set()
-        for t in extracted.triples:
-            extracted_set.add(self._normalize_triple(t.subject, t.predicate, t.obj))
+        for et in extracted.triples:
+            extracted_set.add(self._normalize_triple(et.subject, et.predicate, et.obj))
 
         tp = len(gold_set & extracted_set)
         fp = len(extracted_set - gold_set)
@@ -431,14 +431,14 @@ class KGBenchmarkRunner:
     ) -> dict[str, float]:
         """F1 score broken down by predicate type."""
         gold_by_pred: dict[str, set[tuple[str, str]]] = defaultdict(set)
-        for t in gold.triples:
-            p = self._normalize(t.predicate)
-            gold_by_pred[p].add((self._normalize(t.subject), self._normalize(t.obj)))
+        for gt in gold.triples:
+            p = self._normalize(gt.predicate)
+            gold_by_pred[p].add((self._normalize(gt.subject), self._normalize(gt.obj)))
 
         ext_by_pred: dict[str, set[tuple[str, str]]] = defaultdict(set)
-        for t in extracted.triples:
-            p = self._normalize(t.predicate)
-            ext_by_pred[p].add((self._normalize(t.subject), self._normalize(t.obj)))
+        for et in extracted.triples:
+            p = self._normalize(et.predicate)
+            ext_by_pred[p].add((self._normalize(et.subject), self._normalize(et.obj)))
 
         all_preds = set(gold_by_pred.keys()) | set(ext_by_pred.keys())
         result: dict[str, float] = {}
@@ -461,14 +461,14 @@ class KGBenchmarkRunner:
     ) -> list[ExtractedTriple]:
         """Return extracted triples not present in gold."""
         gold_set: set[tuple[str, str, str]] = set()
-        for t in gold.triples:
-            gold_set.add(self._normalize_triple(t.subject, t.predicate, t.obj))
+        for gt in gold.triples:
+            gold_set.add(self._normalize_triple(gt.subject, gt.predicate, gt.obj))
 
         hallucinated: list[ExtractedTriple] = []
-        for t in extracted.triples:
-            norm = self._normalize_triple(t.subject, t.predicate, t.obj)
+        for et in extracted.triples:
+            norm = self._normalize_triple(et.subject, et.predicate, et.obj)
             if norm not in gold_set:
-                hallucinated.append(t)
+                hallucinated.append(et)
         return hallucinated
 
     def find_missing(
@@ -478,14 +478,14 @@ class KGBenchmarkRunner:
     ) -> list[GoldTriple]:
         """Return gold triples not present in extraction."""
         ext_set: set[tuple[str, str, str]] = set()
-        for t in extracted.triples:
-            ext_set.add(self._normalize_triple(t.subject, t.predicate, t.obj))
+        for et in extracted.triples:
+            ext_set.add(self._normalize_triple(et.subject, et.predicate, et.obj))
 
         missing: list[GoldTriple] = []
-        for t in gold.triples:
-            norm = self._normalize_triple(t.subject, t.predicate, t.obj)
+        for gt in gold.triples:
+            norm = self._normalize_triple(gt.subject, gt.predicate, gt.obj)
             if norm not in ext_set:
-                missing.append(t)
+                missing.append(gt)
         return missing
 
     def full_report(

@@ -271,7 +271,7 @@ def classify_query_type(query: str) -> ExtendedQueryType:
         return ExtendedQueryType.RECALL
 
     lower = query.lower()
-    scores: dict[ExtendedQueryType, int] = {t: 0 for t in ExtendedQueryType}
+    scores: dict[ExtendedQueryType, int] = dict.fromkeys(ExtendedQueryType, 0)
 
     for keywords, qtype in _KEYWORD_MAP:
         for kw in keywords:
@@ -366,7 +366,7 @@ def estimate_cost(
 
     return CostEstimate(
         query_type=qtype,
-        estimated_batches=int(round(est)),
+        estimated_batches=round(est),
         cost_multiplier=profile.cost_weight,
         relative_cost=relative,
         estimated_savings=savings,

@@ -84,7 +84,7 @@ class MistralOcrBackend(ConverterBackend):
             )
 
         try:
-            from mistralai.client import Mistral
+            from mistralai.client import Mistral  # type: ignore[import-not-found]
 
             logger.info("Converting %s via Mistral OCR API...", pdf_path.name)
             client = Mistral(api_key=self.api_key)

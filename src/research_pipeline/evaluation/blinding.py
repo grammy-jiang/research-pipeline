@@ -538,7 +538,7 @@ def score_contamination(
     if not findings:
         return ContaminationScore(paper_id=paper_id)
 
-    feature_hits: dict[str, int] = {f: 0 for f in FEATURE_TYPES}
+    feature_hits: dict[str, int] = dict.fromkeys(FEATURE_TYPES, 0)
     contaminated_count = 0
 
     for finding in findings:

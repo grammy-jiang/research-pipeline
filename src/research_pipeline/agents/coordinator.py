@@ -188,7 +188,7 @@ def _merge_results(
     for t in tasks:
         if t.status != TaskStatus.COMPLETED or t.result is None:
             continue
-        entry = {
+        entry: dict[str, Any] = {
             "task_id": t.task_id,
             "paper_id": t.paper_id,
             "duration": t.duration_seconds,
@@ -374,7 +374,7 @@ class MasterAgent:
         conflicts = _detect_conflicts(completed_tasks, self.conflict_fields)
         merged = _merge_results(completed_tasks, self.merge_strategy)
 
-        result = AggregatedResult(
+        aggregated = AggregatedResult(
             total_tasks=len(tasks),
             completed_tasks=done,
             failed_tasks=failed,
@@ -395,7 +395,7 @@ class MasterAgent:
             len(conflicts),
         )
 
-        return result
+        return aggregated
 
 
 def run_parallel_analysis(

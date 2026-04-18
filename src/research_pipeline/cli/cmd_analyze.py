@@ -77,7 +77,7 @@ def _load_research_topic(run_root: Path) -> str:
     plan_path = get_stage_dir(run_root, "plan") / "query_plan.json"
     if plan_path.exists():
         plan = json.loads(plan_path.read_text())
-        return plan.get("topic", plan.get("normalized_topic", ""))
+        return plan.get("topic", plan.get("normalized_topic", ""))  # type: ignore[no-any-return]
     return ""
 
 

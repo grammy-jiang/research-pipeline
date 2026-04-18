@@ -10,7 +10,7 @@ step rescores the top candidates for higher precision.
 
 import logging
 
-from rank_bm25 import BM25Okapi
+from rank_bm25 import BM25Okapi  # type: ignore[import-untyped]
 
 from research_pipeline.models.extraction import ChunkMetadata
 
@@ -77,7 +77,7 @@ def _embedding_rank(
     query_text = " ".join(query_terms)
     chunk_texts = [text for _, text in chunks]
 
-    all_texts = [query_text] + chunk_texts
+    all_texts = [query_text, *chunk_texts]
     embeddings = compute_embeddings(all_texts, batch_size=32)
 
     query_emb = embeddings[0]

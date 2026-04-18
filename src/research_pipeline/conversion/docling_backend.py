@@ -86,7 +86,9 @@ class DoclingBackend(ConverterBackend):
             )
 
         try:
-            from docling.document_converter import DocumentConverter
+            from docling.document_converter import (  # type: ignore[import-not-found]
+                DocumentConverter,
+            )
 
             converter = DocumentConverter()
             result = converter.convert(str(pdf_path))

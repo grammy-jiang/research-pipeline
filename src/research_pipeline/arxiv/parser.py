@@ -4,7 +4,7 @@ import logging
 import re
 from datetime import UTC, datetime
 
-from lxml import etree
+from lxml import etree  # type: ignore[import-untyped]
 
 from research_pipeline.models.candidate import CandidateRecord
 
@@ -61,7 +61,7 @@ def _find_text(element: etree._Element, tag: str, ns: str = ATOM_NS) -> str:
     """Find text content of a child element, returning empty string if missing."""
     child = element.find(f"{{{ns}}}{tag}")
     if child is not None and child.text:
-        return child.text.strip()
+        return child.text.strip()  # type: ignore[no-any-return]
     return ""
 
 

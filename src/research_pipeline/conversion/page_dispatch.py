@@ -267,7 +267,7 @@ def classify_document(pdf_path: str | Path) -> DocumentDispatchPlan:
         DocumentDispatchPlan with per-page classifications.
     """
     try:
-        import pymupdf
+        import pymupdf  # type: ignore[import-not-found]
     except ImportError:
         logger.warning("pymupdf not available, returning empty classification")
         return DocumentDispatchPlan(pdf_path=str(pdf_path), total_pages=0)

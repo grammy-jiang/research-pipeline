@@ -86,7 +86,7 @@ class LlamaParseBackend(ConverterBackend):
         try:
             import asyncio
 
-            from llama_cloud import AsyncLlamaCloud
+            from llama_cloud import AsyncLlamaCloud  # type: ignore[import-not-found]
 
             logger.info(
                 "Converting %s via LlamaParse API (tier=%s)...",

@@ -542,7 +542,7 @@ class SnapshotManager:
         manifest_path = self._snapshot_dir / snapshot_name / "_snapshot_manifest.json"
         if not manifest_path.exists():
             return None
-        return json.loads(manifest_path.read_text(encoding="utf-8"))
+        return json.loads(manifest_path.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
 
 
 class EvalLogger:

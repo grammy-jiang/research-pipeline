@@ -29,7 +29,7 @@ from research_pipeline.summarization.html_export import (
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_report() -> SynthesisReport:
     """Create a sample SynthesisReport for testing."""
     return SynthesisReport(
@@ -81,7 +81,7 @@ def sample_report() -> SynthesisReport:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def minimal_report() -> SynthesisReport:
     """A minimal report with only topic and count."""
     return SynthesisReport(
@@ -94,7 +94,7 @@ def minimal_report() -> SynthesisReport:
     )
 
 
-@pytest.fixture()
+@pytest.fixture
 def sample_markdown(tmp_path: Path) -> Path:
     """Create a sample Markdown file for testing."""
     md = tmp_path / "report.md"

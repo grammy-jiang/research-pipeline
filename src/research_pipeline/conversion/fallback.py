@@ -107,5 +107,5 @@ class FallbackConverter(ConverterBackend):
 
         # All backends exhausted
         logger.error("All %d backends failed for %s", len(self.backends), pdf_path.name)
-        assert last_result is not None  # noqa: S101  # nosec B101
+        assert last_result is not None  # nosec B101
         return last_result

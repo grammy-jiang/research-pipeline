@@ -7,7 +7,6 @@ from pathlib import Path
 import requests
 
 from research_pipeline.arxiv.parser import (
-    CandidateRecord,
     parse_atom_response,
     parse_total_results,
 )
@@ -18,6 +17,7 @@ from research_pipeline.arxiv.query_builder import (
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.infra.cache import FileCache
 from research_pipeline.infra.http import create_session
+from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
 

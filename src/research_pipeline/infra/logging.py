@@ -20,7 +20,7 @@ class JSONLFormatter(logging.Formatter):
         if record.exc_info and record.exc_info[1] is not None:
             entry["exception"] = self.formatException(record.exc_info)
         if hasattr(record, "extra_data"):
-            entry["data"] = record.extra_data  # type: ignore[attr-defined]
+            entry["data"] = record.extra_data
         return json.dumps(entry, default=str)
 
 

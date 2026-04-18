@@ -175,10 +175,10 @@ class MinerUBackend(ConverterBackend):
             ImportError: If magic-pdf is not installed.
             Exception: If the conversion fails.
         """
-        from magic_pdf.data.data_reader_writer import (
-            FileBasedDataWriter,  # type: ignore[import-untyped]
+        from magic_pdf.data.data_reader_writer import (  # type: ignore[import-not-found]
+            FileBasedDataWriter,
         )
-        from magic_pdf.pipe.UNIPipe import UNIPipe  # type: ignore[import-untyped]
+        from magic_pdf.pipe.UNIPipe import UNIPipe  # type: ignore[import-not-found]
 
         pdf_bytes = pdf_path.read_bytes()
         image_dir = output_dir / (pdf_path.stem + "_images")

@@ -33,7 +33,7 @@ def _load_venue_data(data_path: str = "") -> dict[str, str]:
     Returns:
         Dict mapping venue name (case-insensitive key) to tier string.
     """
-    global _venue_data  # noqa: PLW0603
+    global _venue_data
     if _venue_data is not None:
         return _venue_data
 
@@ -58,7 +58,7 @@ def _load_venue_data(data_path: str = "") -> dict[str, str]:
 
 def reset_venue_cache() -> None:
     """Reset the cached venue data (for testing)."""
-    global _venue_data  # noqa: PLW0603
+    global _venue_data
     _venue_data = None
 
 

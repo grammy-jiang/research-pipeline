@@ -59,10 +59,10 @@ class StageCheckpoint:
             status=str(data.get("status", "pending")),
             started_at=str(data.get("started_at", "")),
             ended_at=str(data.get("ended_at", "")),
-            duration_ms=int(data.get("duration_ms", 0)),
-            artifact_count=int(data.get("artifact_count", 0)),
-            artifact_hashes=dict(data.get("artifact_hashes", {})),  # type: ignore[arg-type]
-            errors=list(data.get("errors", [])),  # type: ignore[arg-type]
+            duration_ms=int(data.get("duration_ms", 0)),  # type: ignore[call-overload]
+            artifact_count=int(data.get("artifact_count", 0)),  # type: ignore[call-overload]
+            artifact_hashes=dict(data.get("artifact_hashes", {}) or {}),  # type: ignore[call-overload]
+            errors=list(data.get("errors", []) or []),  # type: ignore[call-overload]
         )
 
 

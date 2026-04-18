@@ -203,7 +203,7 @@ class CacheConfig(BaseModel):
 class SourcesConfig(BaseModel):
     """Multi-source search configuration."""
 
-    enabled: list[str] = list(DEFAULTS["sources"]["enabled"])  # type: ignore[arg-type]
+    enabled: list[str] = list(DEFAULTS["sources"]["enabled"])
     scholar_backend: str = str(DEFAULTS["sources"]["scholar_backend"])
     scholar_min_interval: float = float(DEFAULTS["sources"]["scholar_min_interval"])
     serpapi_key: str = str(DEFAULTS["sources"]["serpapi_key"])

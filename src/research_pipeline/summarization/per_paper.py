@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import logging
+from collections.abc import Sequence
 from pathlib import Path
 
 from research_pipeline.extraction.chunking import chunk_markdown
@@ -34,7 +35,7 @@ Respond with a JSON object containing:
 def _build_paper_prompt(
     title: str,
     topic_terms: list[str],
-    relevant: list[tuple[object, str, float]],
+    relevant: Sequence[tuple[object, str, float]],
 ) -> str:
     """Build the LLM prompt for per-paper summarization.
 

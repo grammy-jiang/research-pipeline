@@ -23,7 +23,7 @@ from research_pipeline.conversion.registry import (
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def pdf_file(tmp_path: Path) -> Path:
     """Create a minimal fake PDF for testing."""
     pdf = tmp_path / "2401.00001v1.pdf"
@@ -31,7 +31,7 @@ def pdf_file(tmp_path: Path) -> Path:
     return pdf
 
 
-@pytest.fixture()
+@pytest.fixture
 def output_dir(tmp_path: Path) -> Path:
     d = tmp_path / "output"
     d.mkdir()
@@ -297,7 +297,7 @@ class TestMinerUCliFallback:
             b, "_convert_python_api", side_effect=RuntimeError("API broken")
         ):
             # CLI fallback should succeed
-            def fake_cli_run(*args, **kwargs):  # noqa: ANN002, ANN003, ANN202
+            def fake_cli_run(*args, **kwargs):
                 # Create output dir structure as magic-pdf CLI would
                 cli_out = output_dir / (pdf_file.stem + "_cli_out")
                 cli_out.mkdir(parents=True, exist_ok=True)

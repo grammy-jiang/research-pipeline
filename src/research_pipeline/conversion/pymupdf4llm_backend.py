@@ -96,7 +96,7 @@ class PyMuPDF4LLMBackend(ConverterBackend):
             )
 
         try:
-            import pymupdf4llm
+            import pymupdf4llm  # type: ignore[import-not-found]
 
             markdown_text = pymupdf4llm.to_markdown(
                 str(pdf_path), page_chunks=self.page_chunks

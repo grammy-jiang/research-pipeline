@@ -91,8 +91,8 @@ class OpenAIVisionBackend(ConverterBackend):
             )
 
         try:
-            import fitz  # PyMuPDF
-            from openai import OpenAI
+            import fitz  # type: ignore[import-not-found]  # PyMuPDF
+            from openai import OpenAI  # type: ignore[import-not-found]
 
             logger.info("Converting %s via OpenAI vision API...", pdf_path.name)
             client = OpenAI(api_key=self.api_key)

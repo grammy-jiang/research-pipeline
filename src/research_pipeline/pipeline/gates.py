@@ -13,10 +13,11 @@ References:
 import json
 import logging
 import sys
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import StrEnum
 from pathlib import Path
-from typing import Protocol, runtime_checkable
+from typing import IO, Any, Protocol, runtime_checkable
 
 logger = logging.getLogger(__name__)
 
@@ -134,7 +135,7 @@ class CliGate:
     to approve, reject, or skip.
     """
 
-    def __init__(self, input_stream: object = None) -> None:
+    def __init__(self, input_stream: IO[str] | None = None) -> None:
         """Initialize CLI gate.
 
         Args:
@@ -183,7 +184,7 @@ class CliGate:
             GateResult with the user's decision.
         """
         summary = self._format_summary(context)
-        print(summary, flush=True)  # noqa: T201
+        print(summary, flush=True)
 
         while True:
             try:
@@ -223,7 +224,7 @@ class CliGate:
                     reason="user skipped remaining gates",
                     reviewer="cli_user",
                 )
-            print(  # noqa: T201
+            print(
                 "  Invalid choice. Enter [a]pprove, [r]eject, or [s]kip: ",
                 end="",
                 flush=True,
@@ -239,7 +240,7 @@ class CallbackGate:
 
     def __init__(
         self,
-        callback: "callable",  # type: ignore[type-arg]
+        callback: Callable[[Any], GateResult],
     ) -> None:
         """Initialize callback gate.
 

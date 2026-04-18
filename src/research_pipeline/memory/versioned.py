@@ -284,7 +284,7 @@ class VersionedMemory:
 
     def _get_active_row(self, key: str) -> sqlite3.Row | None:
         conn = self._get_conn()
-        row = conn.execute(
+        row: sqlite3.Row | None = conn.execute(
             "SELECT * FROM versioned_entries "
             "WHERE key = ? AND valid_until = '' AND superseded_by = '' "
             "ORDER BY version DESC LIMIT 1",

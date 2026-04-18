@@ -7,7 +7,7 @@ import pytest
 from research_pipeline.storage.global_index import GlobalPaperIndex
 
 
-@pytest.fixture()
+@pytest.fixture
 def index(tmp_path: Path) -> GlobalPaperIndex:
     """Create a temporary global index."""
     db_path = tmp_path / "test_index.db"

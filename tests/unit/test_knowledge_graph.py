@@ -302,7 +302,7 @@ class TestClearClose:
         kg = KnowledgeGraph(db_path=db)
         kg.add_entity("p1", EntityType.PAPER, "Paper 1")
         kg.close()
-        assert kg._conn is None  # noqa: SLF001
+        assert kg._conn is None
 
         # Reopen
         kg2 = KnowledgeGraph(db_path=db)

@@ -87,14 +87,14 @@ class StubBackend(ConverterBackend):
         )
 
 
-@pytest.fixture()
+@pytest.fixture
 def pdf_file(tmp_path: Path) -> Path:
     pdf = tmp_path / "2401.00001v1.pdf"
     pdf.write_bytes(b"%PDF-1.4 fake")
     return pdf
 
 
-@pytest.fixture()
+@pytest.fixture
 def output_dir(tmp_path: Path) -> Path:
     d = tmp_path / "output"
     d.mkdir()

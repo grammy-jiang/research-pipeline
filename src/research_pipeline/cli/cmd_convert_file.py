@@ -49,7 +49,7 @@ def run_convert_file(
     backend_name = backend or config.conversion.backend
 
     # Build backend(s) with multi-account + fallback support
-    backend_names = [backend_name] + list(config.conversion.fallback_backends)
+    backend_names = [backend_name, *list(config.conversion.fallback_backends)]
     all_backends: list[ConverterBackend] = []
     for name in backend_names:
         kwargs_list = _backend_kwargs_list(name, config)

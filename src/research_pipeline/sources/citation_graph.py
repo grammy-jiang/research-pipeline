@@ -294,7 +294,7 @@ class CitationGraphClient:
         logger.info(
             "BFS expansion complete: %d total papers across %d hops",
             len(all_results),
-            min(max_depth, len(all_results) > 0 and max_depth or 0),
+            min(max_depth, (len(all_results) > 0 and max_depth) or 0),
         )
         return all_results
 

@@ -10,7 +10,7 @@ import typer
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.screening.clustering import cluster_candidates
-from research_pipeline.storage.workspace import get_stage_dir
+from research_pipeline.storage.workspace import get_stage_dir, init_run
 from research_pipeline.summarization.bibtex_export import load_candidates_from_jsonl
 
 logger = logging.getLogger(__name__)
@@ -51,7 +51,9 @@ def cluster_cmd(
         research-pipeline cluster --run-id <RUN_ID> --threshold 0.2
     """
     cfg = load_config()
-    stage_dir = get_stage_dir(cfg.runs_dir, run_id, stage)
+    ws = Path(cfg.workspace)
+    _run_id, run_root = init_run(ws, run_id)
+    stage_dir = get_stage_dir(run_root, stage)
 
     jsonl_candidates = sorted(stage_dir.glob("*.jsonl"))
     if not jsonl_candidates:

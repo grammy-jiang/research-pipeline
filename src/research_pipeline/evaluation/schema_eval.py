@@ -403,7 +403,8 @@ def evaluate_stage(run_root: Path, stage: str) -> EvalReport:
         )
         return report
 
-    return evaluator(run_root)
+    result: EvalReport = evaluator(run_root)
+    return result
 
 
 def evaluate_run(run_root: Path, stages: list[str] | None = None) -> list[EvalReport]:

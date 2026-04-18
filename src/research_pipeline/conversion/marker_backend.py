@@ -109,8 +109,12 @@ class MarkerBackend(ConverterBackend):
             )
 
         try:
-            from marker.converters.pdf import PdfConverter
-            from marker.models import create_model_dict
+            from marker.converters.pdf import (  # type: ignore[import-not-found]
+                PdfConverter,
+            )
+            from marker.models import (  # type: ignore[import-not-found]
+                create_model_dict,
+            )
 
             models = create_model_dict()
 

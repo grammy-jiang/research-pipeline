@@ -89,7 +89,10 @@ class DatalabBackend(ConverterBackend):
             )
 
         try:
-            from datalab_sdk import ConvertOptions, DatalabClient
+            from datalab_sdk import (  # type: ignore[import-not-found]
+                ConvertOptions,
+                DatalabClient,
+            )
 
             logger.info(
                 "Converting %s via Datalab API (mode=%s)...",

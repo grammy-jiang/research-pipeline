@@ -79,7 +79,7 @@ class TestRetryDecorator:
 
         try:
             always_fails()
-            assert False, "Should have raised"  # noqa: B011, S101
+            assert False, "Should have raised"  # noqa: B011
         except requests.Timeout:
             pass
         assert mock_sleep.call_count == 1
@@ -95,7 +95,7 @@ class TestRetryDecorator:
 
         try:
             raises_value_error()
-            assert False, "Should have raised"  # noqa: B011, S101
+            assert False, "Should have raised"  # noqa: B011
         except ValueError:
             pass
         assert call_count == 1

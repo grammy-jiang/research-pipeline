@@ -65,12 +65,12 @@ def _ensure_builtins_registered() -> None:
     """Import builtin backend modules so their ``@register_backend`` decorators run."""
     # Local backends
     # Online/cloud backends
-    import research_pipeline.conversion.datalab_backend  # noqa: F401
-    import research_pipeline.conversion.docling_backend  # noqa: F401
-    import research_pipeline.conversion.llamaparse_backend  # noqa: F401
-    import research_pipeline.conversion.marker_backend  # noqa: F401
-    import research_pipeline.conversion.mathpix_backend  # noqa: F401
-    import research_pipeline.conversion.mineru_backend  # noqa: F401
-    import research_pipeline.conversion.mistral_ocr_backend  # noqa: F401
-    import research_pipeline.conversion.openai_vision_backend  # noqa: F401
+    import research_pipeline.conversion.datalab_backend
+    import research_pipeline.conversion.docling_backend
+    import research_pipeline.conversion.llamaparse_backend
+    import research_pipeline.conversion.marker_backend
+    import research_pipeline.conversion.mathpix_backend
+    import research_pipeline.conversion.mineru_backend
+    import research_pipeline.conversion.mistral_ocr_backend
+    import research_pipeline.conversion.openai_vision_backend
     import research_pipeline.conversion.pymupdf4llm_backend  # noqa: F401

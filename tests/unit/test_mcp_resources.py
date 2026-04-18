@@ -24,7 +24,7 @@ class TestResourceRegistration:
 
     def test_static_resources(self) -> None:
         """Static resources (no URI params) should be registered."""
-        registered = set(str(u) for u in mcp._resource_manager._resources)
+        registered = {str(u) for u in mcp._resource_manager._resources}
         expected_static = {"runs://list", "config://current", "index://papers"}
         assert expected_static.issubset(registered), (
             f"Missing static resources: {expected_static - registered}"

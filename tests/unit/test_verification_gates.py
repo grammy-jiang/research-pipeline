@@ -17,7 +17,7 @@ from research_pipeline.pipeline.orchestrator import (
 )
 
 
-@pytest.fixture()
+@pytest.fixture
 def run_root(tmp_path: Path) -> Path:
     """Create a minimal run root."""
     return tmp_path

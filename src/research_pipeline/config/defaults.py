@@ -1,6 +1,8 @@
 """Default configuration values."""
 
-DEFAULTS: dict[str, dict[str, object]] = {
+from typing import Any
+
+DEFAULTS: dict[str, dict[str, Any]] = {
     "arxiv": {
         "base_url": "https://export.arxiv.org/api/query",
         "min_interval_seconds": 5.0,

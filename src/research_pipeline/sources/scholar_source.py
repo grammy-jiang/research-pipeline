@@ -78,7 +78,7 @@ class ScholarlySource:
             List of CandidateRecords from Scholar.
         """
         try:
-            from scholarly import scholarly
+            from scholarly import scholarly  # type: ignore[import-not-found]
         except ImportError:
             logger.error(
                 "scholarly is not installed. "
@@ -222,7 +222,7 @@ class SerpAPISource:
             return []
 
         try:
-            from serpapi import GoogleSearch
+            from serpapi import GoogleSearch  # type: ignore[import-not-found]
         except ImportError:
             logger.error(
                 "serpapi is not installed. "

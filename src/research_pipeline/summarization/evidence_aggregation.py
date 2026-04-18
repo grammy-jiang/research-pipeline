@@ -467,16 +467,16 @@ def aggregate_evidence(
 
     for disagreement in report.disagreements:
         counter += 1
-        pointers: list[EvidencePointer] = []
+        dis_pointers: list[EvidencePointer] = []
         for pid, position in disagreement.positions.items():
-            pointers.append(
+            dis_pointers.append(
                 EvidencePointer(
                     paper_id=pid,
                     quote=position[:100],
                 )
             )
         for ev in disagreement.evidence:
-            pointers.append(
+            dis_pointers.append(
                 EvidencePointer(
                     paper_id="",
                     chunk_id=ev.chunk_id,
@@ -487,7 +487,7 @@ def aggregate_evidence(
             EvidenceStatement(
                 statement_id=f"DIS-{counter:03d}",
                 text=disagreement.topic,
-                pointers=pointers,
+                pointers=dis_pointers,
                 source_type="finding",
             )
         )

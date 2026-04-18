@@ -312,7 +312,7 @@ def load_synthesis(run_root: Path) -> dict[str, object] | None:
     ]:
         if candidate.exists():
             try:
-                return json.loads(candidate.read_text(encoding="utf-8"))
+                return json.loads(candidate.read_text(encoding="utf-8"))  # type: ignore[no-any-return]
             except (json.JSONDecodeError, OSError) as exc:
                 logger.warning("Failed to load synthesis from %s: %s", candidate, exc)
     return None
@@ -616,7 +616,7 @@ def compute_knowledge_update_fidelity(
     # indicate good provenance. New findings are good. Retracted without
     # replacement indicates potential information loss.
     scored = 0
-    good = 0
+    good: float = 0
     for u in updates:
         scored += 1
         if u.update_type == "new":

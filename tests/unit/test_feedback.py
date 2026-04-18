@@ -115,7 +115,7 @@ class TestWeightAdjustment:
 # --- Store tests ---
 
 
-@pytest.fixture()
+@pytest.fixture
 def temp_store(tmp_path: Path) -> FeedbackStore:
     """Create a FeedbackStore with a temporary database."""
     db_path = tmp_path / "test_feedback.db"

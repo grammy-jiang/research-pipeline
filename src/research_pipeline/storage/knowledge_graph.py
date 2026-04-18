@@ -10,6 +10,7 @@ from __future__ import annotations
 import json
 import logging
 import sqlite3
+from collections.abc import Sequence
 from datetime import UTC, datetime
 from enum import StrEnum
 from pathlib import Path
@@ -355,7 +356,9 @@ class KnowledgeGraph:
             "total_triples": sum(triple_counts.values()),
         }
 
-    def ingest_from_candidates(self, candidates: list[object], run_id: str = "") -> int:
+    def ingest_from_candidates(
+        self, candidates: Sequence[object], run_id: str = ""
+    ) -> int:
         """Ingest paper entities from CandidateRecord list.
 
         Args:

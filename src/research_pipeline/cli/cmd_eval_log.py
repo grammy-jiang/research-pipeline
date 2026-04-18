@@ -10,9 +10,9 @@ from pathlib import Path
 
 import typer
 
+from research_pipeline.config.loader import load_config
 from research_pipeline.infra.eval_logging import EvalLogger
 from research_pipeline.infra.logging import setup_logging
-from research_pipeline.storage.workspace import resolve_workspace
 
 logger = logging.getLogger(__name__)
 
@@ -36,7 +36,7 @@ def eval_log_cmd(
         workspace: Override workspace root.
     """
     setup_logging()
-    ws_root = resolve_workspace(workspace)
+    ws_root = Path(workspace) if workspace else Path(load_config().workspace)
     run_root = ws_root / run_id
 
     if not run_root.exists():

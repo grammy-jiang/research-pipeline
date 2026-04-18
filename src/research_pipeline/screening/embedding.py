@@ -5,10 +5,13 @@ candidate papers.  SPECTER2 model loading is lazy and cached.
 Falls back gracefully when transformers/torch are not installed.
 """
 
+from __future__ import annotations
+
 import logging
 from typing import Any
 
 import numpy as np
+from numpy.typing import NDArray
 
 logger = logging.getLogger(__name__)
 
@@ -19,9 +22,9 @@ _model_cache: dict[str, Any] = {}
 def _is_specter2_available() -> bool:
     """Check whether the SPECTER2 dependencies are installed."""
     try:
-        import adapters  # noqa: F401
-        import torch  # noqa: F401
-        import transformers  # noqa: F401
+        import adapters  # type: ignore[import-not-found]  # noqa: F401
+        import torch  # type: ignore[import-not-found]  # noqa: F401
+        import transformers  # type: ignore[import-not-found]  # noqa: F401
 
         return True
     except ImportError:
@@ -44,7 +47,7 @@ def _load_model(
     """
     cache_key = model_name
     if cache_key in _model_cache:
-        return _model_cache[cache_key]
+        return _model_cache[cache_key]  # type: ignore[no-any-return]
 
     import adapters  # noqa: F401
     import torch
@@ -72,7 +75,7 @@ def compute_embeddings(
     texts: list[str],
     model_name: str = "allenai/specter2",
     batch_size: int = 32,
-) -> np.ndarray:
+) -> NDArray[np.floating[Any]]:
     """Compute embeddings for a list of texts using SPECTER2.
 
     Args:
@@ -91,7 +94,7 @@ def compute_embeddings(
     model, tokenizer = _load_model(model_name)
     device = next(model.parameters()).device
 
-    all_embeddings: list[np.ndarray] = []
+    all_embeddings: list[NDArray[np.floating[Any]]] = []
     for start in range(0, len(texts), batch_size):
         batch = texts[start : start + batch_size]
         inputs = tokenizer(
@@ -112,7 +115,9 @@ def compute_embeddings(
     return np.concatenate(all_embeddings, axis=0)
 
 
-def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> np.ndarray:
+def _cosine_similarity(
+    a: NDArray[np.floating[Any]], b: NDArray[np.floating[Any]]
+) -> NDArray[np.floating[Any]]:
     """Compute cosine similarity between vector a and each row of b.
 
     Args:
@@ -124,7 +129,7 @@ def _cosine_similarity(a: np.ndarray, b: np.ndarray) -> np.ndarray:
     """
     a_norm = a / (np.linalg.norm(a) + 1e-10)
     b_norm = b / (np.linalg.norm(b, axis=1, keepdims=True) + 1e-10)
-    return b_norm @ a_norm
+    return b_norm @ a_norm  # type: ignore[no-any-return]
 
 
 def score_semantic(
@@ -151,7 +156,7 @@ def score_semantic(
     query_text = f"{topic} [SEP]"
     candidate_texts = [f"{c.title} {c.abstract}" for c in candidates]
 
-    all_texts = [query_text] + candidate_texts
+    all_texts = [query_text, *candidate_texts]
     embeddings = compute_embeddings(
         all_texts, model_name=model_name, batch_size=batch_size
     )

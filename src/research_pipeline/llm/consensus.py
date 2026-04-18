@@ -402,7 +402,7 @@ class ConsensusEngine:
     ) -> bool | float | str:
         """Unanimous consensus — all must agree exactly."""
         verdicts = [r.verdict for r in responses]
-        if len(set(str(v) for v in verdicts)) == 1:
+        if len({str(v) for v in verdicts}) == 1:
             return verdicts[0]
         # No unanimity — fall back to majority
         logger.warning(

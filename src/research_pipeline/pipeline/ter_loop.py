@@ -11,6 +11,10 @@ import json
 import logging
 from dataclasses import dataclass, field
 from pathlib import Path
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from research_pipeline.llm.base import LLMProvider
 
 logger = logging.getLogger(__name__)
 
@@ -136,7 +140,7 @@ def identify_gaps(
     synthesis_text: str,
     topic: str,
     existing_papers: list[str],
-    llm_provider: object | None = None,
+    llm_provider: LLMProvider | None = None,
 ) -> GapAnalysis:
     """THINK phase: analyze synthesis to find coverage gaps.
 
@@ -200,11 +204,16 @@ def identify_gaps(
                 f"Synthesis excerpt:\n{synthesis_text[:2000]}\n\n"
                 f"Return each gap as a one-line description, one per line."
             )
-            response = llm_provider.complete(prompt)  # type: ignore[union-attr]
-            if response:
+            response = llm_provider.call(prompt, schema_id="gap_detection")
+            response_text = str(
+                response.get("text", response)
+                if isinstance(response, dict)
+                else response
+            )
+            if response_text:
                 llm_gaps = [
                     line.strip().lstrip("0123456789.-) ")
-                    for line in response.strip().split("\n")
+                    for line in response_text.strip().split("\n")
                     if line.strip() and len(line.strip()) > 10
                 ]
                 for g in llm_gaps[:3]:

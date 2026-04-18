@@ -163,7 +163,7 @@ def _generate_query_variants(
     # Variant 3: each must term paired with all nice terms
     if len(must_terms) > 1:
         for term in must_terms:
-            _add([term] + nice_terms)
+            _add([term, *nice_terms])
             if len(variants) >= max_variants:
                 return variants[:max_variants]
 

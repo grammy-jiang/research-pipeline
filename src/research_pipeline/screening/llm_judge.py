@@ -116,7 +116,7 @@ def _parse_response(raw: dict[str, object]) -> LLMJudgment | None:
             llm_score=score,
             label=label,  # type: ignore[arg-type]
             rationale=[str(r) for r in rationale],
-            evidence_quotes=evidence_quotes,  # type: ignore[arg-type]
+            evidence_quotes=evidence_quotes,
             uncertainties=[str(u) for u in uncertainties],
             needs_fulltext_validation=[str(n) for n in needs_fulltext],
         )

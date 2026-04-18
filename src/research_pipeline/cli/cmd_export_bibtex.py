@@ -8,7 +8,7 @@ from pathlib import Path
 import typer
 
 from research_pipeline.config.loader import load_config
-from research_pipeline.storage.workspace import get_stage_dir
+from research_pipeline.storage.workspace import get_stage_dir, init_run
 from research_pipeline.summarization.bibtex_export import (
     export_candidates_bibtex,
     load_candidates_from_jsonl,
@@ -47,7 +47,9 @@ def export_bibtex_cmd(
         research-pipeline export-bibtex --run-id <RUN_ID> -o refs.bib
     """
     cfg = load_config()
-    stage_dir = get_stage_dir(cfg.runs_dir, run_id, stage)
+    ws = Path(cfg.workspace)
+    _run_id, run_root = init_run(ws, run_id)
+    stage_dir = get_stage_dir(run_root, stage)
 
     # Find the candidates JSONL file
     jsonl_candidates = [

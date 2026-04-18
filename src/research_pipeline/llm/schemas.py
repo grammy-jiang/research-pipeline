@@ -19,7 +19,7 @@ class RelevanceJudgmentOutput(BaseModel):
     llm_score: float = Field(ge=0.0, le=1.0)
     label: str
     rationale: list[str]
-    evidence_quotes: list[dict[str, str]]  # type: ignore[type-arg]
+    evidence_quotes: list[dict[str, str]]
     uncertainties: list[str]
     needs_fulltext_validation: list[str]
 
@@ -29,7 +29,7 @@ class SummarizationInput(BaseModel):
 
     topic: str
     paper_title: str
-    chunks: list[dict[str, str]]  # type: ignore[type-arg]
+    chunks: list[dict[str, str]]
 
 
 class SummarizationOutput(BaseModel):
@@ -39,13 +39,13 @@ class SummarizationOutput(BaseModel):
     methodology: str
     findings: list[str]
     limitations: list[str]
-    evidence: list[dict[str, str]]  # type: ignore[type-arg]
+    evidence: list[dict[str, str]]
     uncertainties: list[str]
 
 
 class SynthesisOutput(BaseModel):
     """Output schema for LLM cross-paper synthesis."""
 
-    agreements: list[dict[str, object]]  # type: ignore[type-arg]
-    disagreements: list[dict[str, object]]  # type: ignore[type-arg]
+    agreements: list[dict[str, object]]
+    disagreements: list[dict[str, object]]
     open_questions: list[str]

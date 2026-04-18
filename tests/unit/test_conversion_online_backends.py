@@ -22,7 +22,7 @@ from research_pipeline.conversion.registry import (
 # ---------------------------------------------------------------------------
 
 
-@pytest.fixture()
+@pytest.fixture
 def pdf_file(tmp_path: Path) -> Path:
     """Create a minimal fake PDF for testing."""
     pdf = tmp_path / "2401.00001v1.pdf"
@@ -30,7 +30,7 @@ def pdf_file(tmp_path: Path) -> Path:
     return pdf
 
 
-@pytest.fixture()
+@pytest.fixture
 def output_dir(tmp_path: Path) -> Path:
     d = tmp_path / "output"
     d.mkdir()

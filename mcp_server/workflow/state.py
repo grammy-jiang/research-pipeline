@@ -192,7 +192,7 @@ class WorkflowState(BaseModel):
 
     def with_execution_record(self, record: ExecutionRecord) -> WorkflowState:
         """Return a new state with the record appended (append-only log)."""
-        new_log = list(self.execution_log) + [record]
+        new_log = [*list(self.execution_log), record]
         return self.model_copy(
             update={
                 "execution_log": new_log,

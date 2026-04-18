@@ -101,7 +101,7 @@ class IndependentAssessment:
         if self.verdict_type == VerdictType.BINARY:
             return str(bool(self.verdict))
         if self.verdict_type == VerdictType.SCALAR:
-            return str(round(float(self.verdict), 6))  # type: ignore[arg-type]
+            return str(round(float(self.verdict), 6))
         return str(self.verdict)
 
     def verify_integrity(self) -> bool:
@@ -345,7 +345,7 @@ class PreCommitmentRound:
     def _reconcile_scalar(
         self, assessments: list[IndependentAssessment]
     ) -> ReconciliationResult:
-        values = [float(a.verdict) for a in assessments]  # type: ignore[arg-type]
+        values = [float(a.verdict) for a in assessments]
         confidences = [a.confidence for a in assessments]
 
         if self.strategy == ReconciliationStrategy.WEIGHTED:
@@ -444,7 +444,7 @@ class PreCommitmentRound:
         result: list[Disagreement] = []
         for i, a in enumerate(assessments):
             for b in assessments[i + 1 :]:
-                diff = abs(float(a.verdict) - float(b.verdict))  # type: ignore[arg-type]
+                diff = abs(float(a.verdict) - float(b.verdict))
                 if diff > self.disagreement_threshold:
                     result.append(
                         Disagreement(
