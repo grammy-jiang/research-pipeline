@@ -2,6 +2,22 @@
 
 All notable changes to research-pipeline.
 
+## [v0.14.3] — 2026-04-18
+
+### Added
+
+- 64 new unit tests covering 16 previously untested CLI handlers and scholar source
+- CI coverage threshold raised from 80% to 85%
+
+### Fixed
+
+- Remove deprecated PEP 639 `License :: OSI Approved :: MIT License` classifier
+  (`license = "MIT"` SPDX identifier is sufficient)
+
+### Changed
+
+- Coverage: 80% → 86% (3430 tests, 15816 statements, only `__main__.py` at 0%)
+
 ## [v0.14.2] — 2026-04-18
 
 ### Added
