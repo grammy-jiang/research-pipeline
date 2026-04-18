@@ -8,7 +8,6 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ── cmd_evaluate ──────────────────────────────────────────────
 
 
@@ -41,6 +40,7 @@ class TestEvaluateCmd:
             stage: str = "plan"
             checks: list = field(default_factory=lambda: [FakeCheck()])
             passed: bool = True
+
             def summary(self) -> str:
                 return f"{self.stage}: PASS"
 
@@ -73,6 +73,7 @@ class TestEvaluateCmd:
         class FakeReport:
             stage: str = "plan"
             checks: list = field(default_factory=lambda: [FakeCheck()])
+
             def summary(self) -> str:
                 return "plan: PASS"
 
@@ -88,9 +89,7 @@ class TestEvaluateCmd:
         from research_pipeline.cli.cmd_evaluate import evaluate_cmd
 
         with pytest.raises((SystemExit, typer.Exit)):
-            evaluate_cmd(
-                run_id="nonexistent", stage="", workspace=str(tmp_path)
-            )
+            evaluate_cmd(run_id="nonexistent", stage="", workspace=str(tmp_path))
 
 
 # ── cmd_run ───────────────────────────────────────────────────
@@ -140,9 +139,7 @@ class TestBlindingAuditHandler:
         "research_pipeline.cli.cmd_blinding_audit.run_blinding_audit_for_workspace",
         autospec=True,
     )
-    def test_handler_calls_audit(
-        self, mock_audit: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_handler_calls_audit(self, mock_audit: MagicMock, tmp_path: Path) -> None:
         """run_blinding_audit_for_workspace is called with workspace."""
         from research_pipeline.cli.cmd_blinding_audit import (
             handle_blinding_audit,
@@ -169,9 +166,7 @@ class TestBlindingAuditHandler:
         "research_pipeline.cli.cmd_blinding_audit.run_blinding_audit_for_workspace",
         autospec=True,
     )
-    def test_handler_json_output(
-        self, mock_audit: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_handler_json_output(self, mock_audit: MagicMock, tmp_path: Path) -> None:
         """output_json=True produces JSON via to_dict()."""
         from research_pipeline.cli.cmd_blinding_audit import (
             handle_blinding_audit,

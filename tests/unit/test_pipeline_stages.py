@@ -21,7 +21,7 @@ class TestStageOrder:
             "extract",
             "summarize",
         ]
-        assert STAGE_ORDER == expected
+        assert expected == STAGE_ORDER
 
     def test_plan_is_first(self) -> None:
         assert STAGE_ORDER[0] == "plan"

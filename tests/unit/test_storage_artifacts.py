@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 from pathlib import Path
-from unittest.mock import patch
 
 from research_pipeline.models.manifest import ArtifactRecord
 from research_pipeline.storage.artifacts import register_artifact
@@ -71,9 +70,7 @@ class TestRegisterArtifact:
         """Explicit inputs are preserved."""
         f = tmp_path / "x.txt"
         f.write_text("x")
-        rec = register_artifact(
-            f, "text", "stage", tmp_path, inputs=["a:1", "b:2"]
-        )
+        rec = register_artifact(f, "text", "stage", tmp_path, inputs=["a:1", "b:2"])
         assert rec.inputs == ["a:1", "b:2"]
 
     def test_tool_fingerprint_none_by_default(self, tmp_path: Path) -> None:

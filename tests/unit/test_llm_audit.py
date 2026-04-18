@@ -102,7 +102,7 @@ class TestLogLlmCall:
     def test_log_dir_creates_directory_and_file(self, tmp_path: Path) -> None:
         """When log_dir is set, the directory and JSON file are created."""
         log_dir = tmp_path / "llm_logs"
-        rec = log_llm_call(
+        log_llm_call(
             call_id="c7",
             provider="p",
             model="m",

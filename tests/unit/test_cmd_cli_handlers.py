@@ -11,7 +11,6 @@ from unittest.mock import MagicMock, patch
 
 import click.exceptions
 import pytest
-import typer
 
 
 # ---------------------------------------------------------------------------
@@ -197,24 +196,18 @@ class TestCmdCbr:
     """Tests for the CBR CLI handlers."""
 
     @patch("research_pipeline.cli.cmd_cbr.cbr_lookup")
-    def test_lookup_json_output(
-        self, mock_lookup: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_lookup_json_output(self, mock_lookup: MagicMock, tmp_path: Path) -> None:
         from research_pipeline.cli.cmd_cbr import handle_cbr_lookup
 
         rec = MagicMock()
         rec.to_dict.return_value = {"confidence": 0.8, "sources": ["arxiv"]}
         mock_lookup.return_value = rec
 
-        handle_cbr_lookup(
-            workspace=tmp_path, topic="AI memory", output_json=True
-        )
+        handle_cbr_lookup(workspace=tmp_path, topic="AI memory", output_json=True)
         mock_lookup.assert_called_once()
 
     @patch("research_pipeline.cli.cmd_cbr.cbr_lookup")
-    def test_lookup_text_output(
-        self, mock_lookup: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_lookup_text_output(self, mock_lookup: MagicMock, tmp_path: Path) -> None:
         from research_pipeline.cli.cmd_cbr import handle_cbr_lookup
 
         rec = MagicMock(
@@ -231,9 +224,7 @@ class TestCmdCbr:
         mock_lookup.assert_called_once()
 
     @patch("research_pipeline.cli.cmd_cbr.cbr_retain")
-    def test_retain_json_output(
-        self, mock_retain: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_retain_json_output(self, mock_retain: MagicMock, tmp_path: Path) -> None:
         from research_pipeline.cli.cmd_cbr import handle_cbr_retain
 
         case = MagicMock()
@@ -249,9 +240,7 @@ class TestCmdCbr:
         mock_retain.assert_called_once()
 
     @patch("research_pipeline.cli.cmd_cbr.cbr_retain")
-    def test_retain_text_output(
-        self, mock_retain: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_retain_text_output(self, mock_retain: MagicMock, tmp_path: Path) -> None:
         from research_pipeline.cli.cmd_cbr import handle_cbr_retain
 
         case = MagicMock(
@@ -265,9 +254,7 @@ class TestCmdCbr:
         )
         mock_retain.return_value = case
 
-        handle_cbr_retain(
-            workspace=tmp_path, run_id="r1", topic="AI"
-        )
+        handle_cbr_retain(workspace=tmp_path, run_id="r1", topic="AI")
         mock_retain.assert_called_once()
 
 
@@ -583,9 +570,7 @@ class TestCmdDualMetrics:
         mock_eval.return_value = result
         mock_agg.return_value = MagicMock(total_queries=1, reliability_gap=0.1)
 
-        handle_dual_metrics(
-            workspace=tmp_path, query="test", run_ids=["r1"]
-        )
+        handle_dual_metrics(workspace=tmp_path, query="test", run_ids=["r1"])
 
 
 # ---------------------------------------------------------------------------
@@ -650,9 +635,7 @@ class TestCmdExportHtml:
             )
 
     @patch("research_pipeline.cli.cmd_export_html.render_html_from_markdown")
-    def test_markdown_mode(
-        self, mock_render: MagicMock, tmp_path: Path
-    ) -> None:
+    def test_markdown_mode(self, mock_render: MagicMock, tmp_path: Path) -> None:
         from research_pipeline.cli.cmd_export_html import export_html_cmd
 
         md_file = tmp_path / "report.md"
@@ -715,3 +698,136 @@ class TestMainModule:
         content = main_src.read_text()
         assert "from research_pipeline.cli.app import app" in content
         assert "app()" in content
+
+
+# ---------------------------------------------------------------------------
+# cmd_export_bibtex
+# ---------------------------------------------------------------------------
+
+
+class TestCmdExportBibtex:
+    """Tests for the export-bibtex CLI handler."""
+
+    @patch("research_pipeline.cli.cmd_export_bibtex.export_candidates_bibtex")
+    @patch("research_pipeline.cli.cmd_export_bibtex.load_candidates_from_jsonl")
+    @patch("research_pipeline.cli.cmd_export_bibtex.init_run")
+    @patch("research_pipeline.cli.cmd_export_bibtex.load_config")
+    def test_export_bibtex_happy_path(
+        self,
+        mock_cfg: MagicMock,
+        mock_init: MagicMock,
+        mock_load_cands: MagicMock,
+        mock_export: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        from research_pipeline.cli.cmd_export_bibtex import export_bibtex_cmd
+
+        stage_dir = tmp_path / "screen"
+        stage_dir.mkdir()
+        jsonl = stage_dir / "candidates.jsonl"
+        jsonl.write_text('{"title":"p1"}\n')
+        mock_cfg.return_value = MagicMock(workspace=str(tmp_path))
+        mock_init.return_value = ("run1", tmp_path)
+        mock_load_cands.return_value = [{"title": "p1"}]
+        mock_export.return_value = 1
+
+        with patch(
+            "research_pipeline.cli.cmd_export_bibtex.get_stage_dir",
+            return_value=stage_dir,
+        ):
+            export_bibtex_cmd(run_id="run1", stage="screen", output="")
+
+        mock_export.assert_called_once()
+
+    @patch("research_pipeline.cli.cmd_export_bibtex.init_run")
+    @patch("research_pipeline.cli.cmd_export_bibtex.load_config")
+    def test_export_bibtex_no_jsonl_exits(
+        self,
+        mock_cfg: MagicMock,
+        mock_init: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        from research_pipeline.cli.cmd_export_bibtex import export_bibtex_cmd
+
+        stage_dir = tmp_path / "screen"
+        stage_dir.mkdir()
+        mock_cfg.return_value = MagicMock(workspace=str(tmp_path))
+        mock_init.return_value = ("run1", tmp_path)
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_export_bibtex.get_stage_dir",
+                return_value=stage_dir,
+            ),
+            pytest.raises(click.exceptions.Exit),
+        ):
+            export_bibtex_cmd(run_id="run1", stage="screen", output="")
+
+
+# ---------------------------------------------------------------------------
+# cmd_cluster
+# ---------------------------------------------------------------------------
+
+
+class TestCmdCluster:
+    """Tests for the cluster CLI handler."""
+
+    @patch("research_pipeline.cli.cmd_cluster.cluster_candidates")
+    @patch("research_pipeline.cli.cmd_cluster.load_candidates_from_jsonl")
+    @patch("research_pipeline.cli.cmd_cluster.init_run")
+    @patch("research_pipeline.cli.cmd_cluster.load_config")
+    def test_cluster_happy_path(
+        self,
+        mock_cfg: MagicMock,
+        mock_init: MagicMock,
+        mock_load_cands: MagicMock,
+        mock_cluster: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        from research_pipeline.cli.cmd_cluster import cluster_cmd
+
+        stage_dir = tmp_path / "screen"
+        stage_dir.mkdir()
+        jsonl = stage_dir / "candidates.jsonl"
+        jsonl.write_text('{"title":"p1"}\n')
+        mock_cfg.return_value = MagicMock(workspace=str(tmp_path))
+        mock_init.return_value = ("run1", tmp_path)
+        mock_load_cands.return_value = [{"title": "p1"}]
+        c = MagicMock(cluster_id=0, label="AI", paper_ids=["p1"], top_terms=["ai"])
+        mock_cluster.return_value = [c]
+
+        with patch(
+            "research_pipeline.cli.cmd_cluster.get_stage_dir",
+            return_value=stage_dir,
+        ):
+            cluster_cmd(run_id="run1", stage="screen", threshold=0.15, output="")
+
+        mock_cluster.assert_called_once()
+        out_file = stage_dir / "clusters.json"
+        assert out_file.exists()
+        data = json.loads(out_file.read_text())
+        assert data["num_clusters"] == 1
+
+    @patch("research_pipeline.cli.cmd_cluster.init_run")
+    @patch("research_pipeline.cli.cmd_cluster.load_config")
+    def test_cluster_no_jsonl_exits(
+        self,
+        mock_cfg: MagicMock,
+        mock_init: MagicMock,
+        tmp_path: Path,
+    ) -> None:
+        from research_pipeline.cli.cmd_cluster import cluster_cmd
+
+        stage_dir = tmp_path / "screen"
+        stage_dir.mkdir()
+        mock_cfg.return_value = MagicMock(workspace=str(tmp_path))
+        mock_init.return_value = ("run1", tmp_path)
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_cluster.get_stage_dir",
+                return_value=stage_dir,
+            ),
+            pytest.raises(click.exceptions.Exit),
+        ):
+            cluster_cmd(run_id="run1", stage="screen", threshold=0.15, output="")

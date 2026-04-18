@@ -2,6 +2,22 @@
 
 All notable changes to research-pipeline.
 
+## [v0.14.2] — 2026-04-18
+
+### Added
+
+- 98 new unit tests across 7 files covering 20+ previously untested modules
+- CI coverage threshold raised from 75% to 80%
+- CI coverage report XML artifact upload (Python 3.12)
+- README badges: CI status, mypy, ruff
+- GitHub repo description and 10 topics
+- PyPI classifiers: Scientific/Engineering, MIT License
+
+### Changed
+
+- Development Status classifier upgraded: Alpha → Beta
+- Coverage: 77% → 80% (3362 tests, 15816 statements)
+
 ## [v0.14.1] — 2026-04-18
 
 ### Fixed
