@@ -16,16 +16,20 @@ from mcp.types import ToolAnnotations
 from mcp_server import completions, prompts, resources
 from mcp_server.schemas import (
     AnalyzePapersInput,
+    CiteContextInput,
+    ClusterInput,
     CompareRunsInput,
     ConvertFileInput,
     ConvertFineInput,
     ConvertPdfsInput,
     ConvertRoughInput,
     DownloadPdfsInput,
+    EnrichInput,
     EvalLogInput,
     EvaluateQualityInput,
     EvidenceAggregateInput,
     ExpandCitationsInput,
+    ExportBibtexInput,
     ExportHtmlInput,
     ExtractContentInput,
     FeedbackInput,
@@ -33,12 +37,14 @@ from mcp_server.schemas import (
     ListBackendsInput,
     ManageIndexInput,
     PlanTopicInput,
+    ReportInput,
     RunPipelineInput,
     ScreenCandidatesInput,
     SearchInput,
     SummarizePapersInput,
     ValidateReportInput,
     VerifyStageInput,
+    WatchInput,
 )
 from mcp_server.tools import (
     adaptive_stopping_tool,
@@ -47,6 +53,8 @@ from mcp_server.tools import (
     blinding_audit_tool,
     cbr_lookup_tool,
     cbr_retain_tool,
+    cite_context_tool,
+    cluster_tool,
     coherence_tool,
     compare_runs,
     confidence_layers_tool,
@@ -57,8 +65,10 @@ from mcp_server.tools import (
     convert_rough,
     download_pdfs,
     dual_metrics_tool,
+    enrich_tool,
     evaluate_quality,
     expand_citations,
+    export_bibtex_tool,
     export_html_tool,
     extract_content,
     gate_info_tool,
@@ -70,12 +80,14 @@ from mcp_server.tools import (
     plan_topic,
     query_eval_log,
     record_feedback,
+    report_tool,
     run_pipeline,
     screen_candidates,
     search,
     summarize_papers,
     validate_report,
     verify_stage,
+    watch_tool,
 )
 
 logger = logging.getLogger(__name__)
@@ -1245,6 +1257,228 @@ async def tool_research_workflow(
         max_iterations=max_iterations,
         resume=resume,
     )
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_export_bibtex(
+    run_id: str,
+    stage: str = "screen",
+    output: str = "",
+    workspace: str = "./workspace",
+) -> dict:
+    """Export papers from a pipeline stage as BibTeX.
+
+    Reads candidate JSONL files from the specified stage and produces
+    a .bib file suitable for LaTeX workflows.
+
+    Args:
+        run_id: Pipeline run ID.
+        stage: Stage to export from (search, screen, download).
+        output: Output .bib file path (default: auto in run dir).
+        workspace: Workspace directory.
+    """
+    params = ExportBibtexInput(
+        run_id=run_id,
+        stage=stage,
+        output=output,
+        workspace=workspace,
+    )
+    result = export_bibtex_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_report(
+    run_id: str,
+    template: str = "survey",
+    custom_template: str = "",
+    output: str = "",
+    workspace: str = "./workspace",
+) -> dict:
+    """Render a synthesis report using a configurable template.
+
+    Reads synthesis_report.json from the summarize stage and renders
+    it through a Jinja2 template to produce a formatted Markdown report.
+
+    Args:
+        run_id: Pipeline run ID.
+        template: Report template (survey, gap_analysis, lit_review, executive).
+        custom_template: Path to a custom Jinja2 template file.
+        output: Output Markdown file path (default: auto in run dir).
+        workspace: Workspace directory.
+    """
+    params = ReportInput(
+        run_id=run_id,
+        template=template,
+        custom_template=custom_template,
+        output=output,
+        workspace=workspace,
+    )
+    result = report_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_cluster(
+    run_id: str,
+    stage: str = "screen",
+    threshold: float = 0.15,
+    output: str = "",
+    workspace: str = "./workspace",
+) -> dict:
+    """Cluster papers by topic similarity using TF-IDF.
+
+    Groups screened candidates into topically coherent clusters for
+    better organization before synthesis.
+
+    Args:
+        run_id: Pipeline run ID.
+        stage: Stage to cluster from (search or screen).
+        threshold: Cosine similarity threshold (0-1).
+        output: Output JSON file path (default: auto in run dir).
+        workspace: Workspace directory.
+    """
+    params = ClusterInput(
+        run_id=run_id,
+        stage=stage,
+        threshold=threshold,
+        output=output,
+        workspace=workspace,
+    )
+    result = cluster_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
+async def tool_enrich(
+    run_id: str,
+    stage: str = "candidates",
+    workspace: str = "./workspace",
+    config_path: str = "",
+) -> dict:
+    """Enrich candidates with missing abstracts/metadata from Semantic Scholar.
+
+    Queries Semantic Scholar by DOI or title to fill in missing abstracts
+    and citation counts for candidate papers.
+
+    Args:
+        run_id: Pipeline run ID.
+        stage: Stage to read candidates from (candidates or screened).
+        workspace: Workspace directory.
+        config_path: Path to config.toml. Empty uses defaults.
+    """
+    params = EnrichInput(
+        run_id=run_id,
+        stage=stage,
+        workspace=workspace,
+        config_path=config_path,
+    )
+    result = enrich_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+async def tool_cite_context(
+    run_id: str,
+    window: int = 1,
+    output: str = "",
+    workspace: str = "./workspace",
+    config_path: str = "",
+) -> dict:
+    """Extract citation contexts from converted Markdown papers.
+
+    Finds citation markers in converted papers and extracts the
+    surrounding sentences for citation analysis.
+
+    Args:
+        run_id: Pipeline run ID.
+        window: Extra sentences before/after citation (0 = citing only).
+        output: Output JSON file path (default: auto in convert dir).
+        workspace: Workspace directory.
+        config_path: Path to config.toml. Empty uses defaults.
+    """
+    params = CiteContextInput(
+        run_id=run_id,
+        window=window,
+        output=output,
+        workspace=workspace,
+        config_path=config_path,
+    )
+    result = cite_context_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
+async def tool_watch(
+    queries: str = "",
+    lookback: int = 7,
+    max_results: int = 20,
+    output: str = "",
+    config_path: str = "",
+) -> dict:
+    """Check for new papers matching saved watch queries on arXiv.
+
+    Monitors saved queries for recently published papers. Designed
+    to be called periodically to track new developments.
+
+    Args:
+        queries: Path to watch queries JSON file (default: ~/.cache/...).
+        lookback: Days to look back for new papers.
+        max_results: Maximum results per query.
+        output: Output JSON file path for new papers found.
+        config_path: Path to config.toml. Empty uses defaults.
+    """
+    params = WatchInput(
+        queries=queries,
+        lookback=lookback,
+        max_results=max_results,
+        output=output,
+        config_path=config_path,
+    )
+    result = watch_tool(params=params)
+    return result.model_dump()
 
 
 # ---------------------------------------------------------------------------

@@ -597,6 +597,119 @@ class ConfidenceLayersInput(BaseModel):
     )
 
 
+class ExportBibtexInput(CommonParams):
+    """Input for the export_bibtex tool."""
+
+    stage: str = Field(
+        default="screen",
+        description="Stage to export from: search, screen, or download.",
+    )
+    output: str = Field(
+        default="",
+        description="Output .bib file path (default: auto in run dir).",
+    )
+
+
+class ReportInput(CommonParams):
+    """Input for the report tool."""
+
+    template: str = Field(
+        default="survey",
+        description=(
+            "Report template: survey, gap_analysis, lit_review, or executive."
+        ),
+    )
+    custom_template: str = Field(
+        default="",
+        description="Path to a custom Jinja2 template file.",
+    )
+    output: str = Field(
+        default="",
+        description="Output Markdown file path (default: auto in run dir).",
+    )
+
+
+class ClusterInput(CommonParams):
+    """Input for the cluster tool."""
+
+    stage: str = Field(
+        default="screen",
+        description="Stage to cluster from: search or screen.",
+    )
+    threshold: float = Field(
+        default=0.15,
+        description=(
+            "Cosine similarity threshold (0-1). " "Lower = fewer, larger clusters."
+        ),
+    )
+    output: str = Field(
+        default="",
+        description="Output JSON file path (default: auto in run dir).",
+    )
+
+
+class EnrichInput(CommonParams):
+    """Input for the enrich tool."""
+
+    stage: str = Field(
+        default="candidates",
+        description="Stage to read candidates from: 'candidates' or 'screened'.",
+    )
+    config_path: str = Field(
+        default="",
+        description="Path to config.toml. Empty uses defaults.",
+    )
+
+
+class CiteContextInput(CommonParams):
+    """Input for the cite_context tool."""
+
+    window: int = Field(
+        default=1,
+        description=(
+            "Extra sentences before/after citation (0 = citing sentence only)."
+        ),
+    )
+    output: str = Field(
+        default="",
+        description=(
+            "Output JSON file path (default: <convert_dir>/citation_contexts.json)."
+        ),
+    )
+    config_path: str = Field(
+        default="",
+        description="Path to config.toml. Empty uses defaults.",
+    )
+
+
+class WatchInput(BaseModel):
+    """Input for the watch tool."""
+
+    queries: str = Field(
+        default="",
+        description=(
+            "Path to a JSON file with watch queries. "
+            "Empty uses default (~/.cache/research-pipeline/watch/watch_queries.json)."
+        ),
+    )
+    lookback: int = Field(
+        default=7,
+        description="Days to look back for new papers.",
+    )
+    max_results: int = Field(
+        default=20,
+        description="Maximum results per query.",
+    )
+    output: str = Field(
+        default="",
+        description="Output JSON file path for new papers found.",
+    )
+    config_path: str = Field(
+        default="",
+        description="Path to config.toml. Empty uses defaults.",
+    )
+
+
 class ResearchWorkflowInput(CommonParams):
     """Input for the research_workflow tool.
 

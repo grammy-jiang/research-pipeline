@@ -21,6 +21,8 @@ from mcp_server.schemas import (
     BlindingAuditInput,
     CbrLookupInput,
     CbrRetainInput,
+    CiteContextInput,
+    ClusterInput,
     CoherenceInput,
     CompareRunsInput,
     ConfidenceLayersInput,
@@ -31,10 +33,12 @@ from mcp_server.schemas import (
     ConvertRoughInput,
     DownloadPdfsInput,
     DualMetricsInput,
+    EnrichInput,
     EvalLogInput,
     EvaluateQualityInput,
     EvidenceAggregateInput,
     ExpandCitationsInput,
+    ExportBibtexInput,
     ExportHtmlInput,
     ExtractContentInput,
     FeedbackInput,
@@ -45,6 +49,7 @@ from mcp_server.schemas import (
     ManageIndexInput,
     ModelRoutingInfoInput,
     PlanTopicInput,
+    ReportInput,
     RunPipelineInput,
     ScreenCandidatesInput,
     SearchInput,
@@ -52,6 +57,7 @@ from mcp_server.schemas import (
     ToolResult,
     ValidateReportInput,
     VerifyStageInput,
+    WatchInput,
 )
 
 logger = logging.getLogger(__name__)
@@ -2174,4 +2180,483 @@ def confidence_layers_tool(
 
     except Exception as exc:
         logger.error("Confidence layers scoring failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def export_bibtex_tool(
+    params: ExportBibtexInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Export papers from a pipeline stage as BibTeX."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.summarization.bibtex_export import (
+            export_candidates_bibtex,
+            load_candidates_from_jsonl,
+        )
+
+        _report_progress(ctx, 0, 3, "Loading config")
+        cfg = load_config()
+        run_root = Path(cfg.runs_dir) / params.run_id
+        stage_dir = get_stage_dir(run_root, params.stage)
+
+        jsonl_candidates = [
+            f for f in stage_dir.glob("*.jsonl") if f.stem.startswith("candidates")
+        ]
+        if not jsonl_candidates:
+            jsonl_candidates = list(stage_dir.glob("*.jsonl"))
+        if not jsonl_candidates:
+            return ToolResult(
+                success=False,
+                message=f"No candidate JSONL files in {stage_dir}.",
+            )
+
+        jsonl_path = sorted(jsonl_candidates)[-1]
+        _report_progress(ctx, 1, 3, "Loading candidates")
+        candidates = load_candidates_from_jsonl(jsonl_path)
+        if not candidates:
+            return ToolResult(
+                success=False,
+                message=f"No candidates found in {jsonl_path}.",
+            )
+
+        out_path = (
+            Path(params.output) if params.output else stage_dir / "references.bib"
+        )
+
+        _report_progress(ctx, 2, 3, "Exporting BibTeX")
+        count = export_candidates_bibtex(candidates, out_path)
+
+        _report_progress(ctx, 3, 3, "Complete")
+        return ToolResult(
+            success=True,
+            message=f"Exported {count} BibTeX entries to {out_path}.",
+            artifacts={
+                "run_id": params.run_id,
+                "stage": params.stage,
+                "path": str(out_path),
+                "count": count,
+            },
+        )
+    except Exception as exc:
+        logger.error("export_bibtex failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def report_tool(
+    params: ReportInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Render a synthesis report using a configurable template."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.summary import SynthesisReport
+        from research_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.summarization.report_templates import (
+            list_templates,
+            render_report_to_file,
+        )
+
+        _report_progress(ctx, 0, 4, "Validating template")
+        available = list_templates()
+        if params.template not in available and not params.custom_template:
+            return ToolResult(
+                success=False,
+                message=(
+                    f"Unknown template {params.template!r}. "
+                    f"Available: {', '.join(available)}"
+                ),
+            )
+
+        cfg = load_config()
+        run_root = Path(cfg.runs_dir) / params.run_id
+        stage_dir = get_stage_dir(run_root, "summarize")
+
+        synthesis_json = stage_dir / "synthesis_report.json"
+        if not synthesis_json.exists():
+            return ToolResult(
+                success=False,
+                message=f"No synthesis_report.json in {stage_dir}.",
+            )
+
+        _report_progress(ctx, 1, 4, "Loading synthesis")
+        data = json.loads(synthesis_json.read_text(encoding="utf-8"))
+        if "report" in data and "topic" in data["report"]:
+            data = data["report"]
+        report = SynthesisReport.model_validate(data)
+
+        custom_tmpl: str | None = None
+        if params.custom_template:
+            tmpl_path = Path(params.custom_template)
+            if not tmpl_path.exists():
+                return ToolResult(
+                    success=False,
+                    message=f"Custom template not found: {tmpl_path}",
+                )
+            custom_tmpl = tmpl_path.read_text(encoding="utf-8")
+
+        out_path = (
+            Path(params.output)
+            if params.output
+            else stage_dir / f"report_{params.template}.md"
+        )
+
+        _report_progress(ctx, 2, 4, "Rendering report")
+        render_report_to_file(
+            report,
+            out_path,
+            template_name=params.template,
+            custom_template=custom_tmpl,
+        )
+
+        _report_progress(ctx, 4, 4, "Complete")
+        return ToolResult(
+            success=True,
+            message=f"Report ({params.template}) written to {out_path}.",
+            artifacts={
+                "run_id": params.run_id,
+                "template": params.template,
+                "path": str(out_path),
+            },
+        )
+    except Exception as exc:
+        logger.error("report failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def cluster_tool(
+    params: ClusterInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Cluster papers by topic similarity using TF-IDF."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.screening.clustering import cluster_candidates
+        from research_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.summarization.bibtex_export import (
+            load_candidates_from_jsonl,
+        )
+
+        _report_progress(ctx, 0, 3, "Loading candidates")
+        cfg = load_config()
+        run_root = Path(cfg.runs_dir) / params.run_id
+        stage_dir = get_stage_dir(run_root, params.stage)
+
+        jsonl_candidates = sorted(stage_dir.glob("*.jsonl"))
+        if not jsonl_candidates:
+            return ToolResult(
+                success=False,
+                message=f"No candidate JSONL files in {stage_dir}.",
+            )
+
+        jsonl_path = jsonl_candidates[-1]
+        candidates = load_candidates_from_jsonl(jsonl_path)
+        if not candidates:
+            return ToolResult(
+                success=False,
+                message=f"No candidates found in {jsonl_path}.",
+            )
+
+        _report_progress(ctx, 1, 3, "Clustering")
+        clusters = cluster_candidates(candidates, threshold=params.threshold)
+
+        result_data = {
+            "run_id": params.run_id,
+            "threshold": params.threshold,
+            "num_papers": len(candidates),
+            "num_clusters": len(clusters),
+            "clusters": [
+                {
+                    "cluster_id": c.cluster_id,
+                    "label": c.label,
+                    "paper_count": len(c.paper_ids),
+                    "paper_ids": c.paper_ids,
+                    "top_terms": c.top_terms,
+                }
+                for c in clusters
+            ],
+        }
+
+        out_path = Path(params.output) if params.output else stage_dir / "clusters.json"
+        out_path.parent.mkdir(parents=True, exist_ok=True)
+        out_path.write_text(
+            json.dumps(result_data, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+        _report_progress(ctx, 3, 3, "Complete")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Clustered {len(candidates)} papers into "
+                f"{len(clusters)} groups → {out_path}."
+            ),
+            artifacts={
+                "run_id": params.run_id,
+                "path": str(out_path),
+                "num_papers": len(candidates),
+                "num_clusters": len(clusters),
+            },
+        )
+    except Exception as exc:
+        logger.error("cluster failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def enrich_tool(
+    params: EnrichInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Enrich candidates with missing abstracts/metadata from Semantic Scholar."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.candidate import CandidateRecord
+        from research_pipeline.sources.enrichment import enrich_candidates
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir
+
+        _report_progress(ctx, 0, 3, "Loading candidates")
+        config = load_config(
+            Path(params.config_path) if params.config_path else None,
+        )
+        run_dir = Path(config.runs_dir) / params.run_id
+        if not run_dir.exists():
+            return ToolResult(
+                success=False,
+                message=f"Run directory not found: {run_dir}",
+            )
+
+        if params.stage == "screened":
+            stage_dir = get_stage_dir(run_dir, "screen")
+            jsonl_file = stage_dir / "screened.jsonl"
+        else:
+            stage_dir = get_stage_dir(run_dir, "search")
+            jsonl_file = stage_dir / "candidates.jsonl"
+
+        if not jsonl_file.exists():
+            return ToolResult(
+                success=False,
+                message=f"Candidates file not found: {jsonl_file}",
+            )
+
+        records = read_jsonl(jsonl_file, CandidateRecord)
+        missing_before = sum(1 for r in records if not r.abstract)
+
+        _report_progress(ctx, 1, 3, "Enriching via Semantic Scholar")
+        s2_api_key = getattr(config, "semantic_scholar_api_key", "") or ""
+        enriched_count = enrich_candidates(records, s2_api_key=s2_api_key)
+
+        _report_progress(ctx, 2, 3, "Writing results")
+        output_file = stage_dir / f"{jsonl_file.stem}_enriched.jsonl"
+        write_jsonl(output_file, records)
+
+        summary = {
+            "total_candidates": len(records),
+            "enriched_count": enriched_count,
+            "missing_abstracts_before": missing_before,
+            "missing_abstracts_after": sum(1 for r in records if not r.abstract),
+        }
+        summary_file = stage_dir / "enrichment_summary.json"
+        summary_file.write_text(json.dumps(summary, indent=2))
+
+        _report_progress(ctx, 3, 3, "Complete")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Enriched {enriched_count}/{len(records)} candidates. "
+                f"Output: {output_file}"
+            ),
+            artifacts={
+                "run_id": params.run_id,
+                "enriched_count": enriched_count,
+                "total": len(records),
+                "output_path": str(output_file),
+                "summary_path": str(summary_file),
+            },
+        )
+    except Exception as exc:
+        logger.error("enrich failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def cite_context_tool(
+    params: CiteContextInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Extract citation contexts from converted Markdown papers."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.extraction.citation_context import (
+            contexts_to_dicts,
+            extract_citation_contexts,
+        )
+        from research_pipeline.storage.workspace import get_stage_dir
+
+        _report_progress(ctx, 0, 3, "Finding Markdown files")
+        config = load_config(
+            Path(params.config_path) if params.config_path else None,
+        )
+        run_dir = Path(config.runs_dir) / params.run_id
+        if not run_dir.exists():
+            return ToolResult(
+                success=False,
+                message=f"Run directory not found: {run_dir}",
+            )
+
+        convert_dir = get_stage_dir(run_dir, "convert")
+        md_files = sorted(convert_dir.glob("**/*.md"))
+        if not md_files:
+            return ToolResult(
+                success=False,
+                message=f"No Markdown files in {convert_dir}.",
+            )
+
+        _report_progress(ctx, 1, 3, "Extracting citation contexts")
+        all_contexts: dict[str, list[dict[str, object]]] = {}
+        total_count = 0
+        for md_file in md_files:
+            text = md_file.read_text(encoding="utf-8")
+            contexts = extract_citation_contexts(
+                text,
+                context_window=params.window,
+            )
+            if contexts:
+                paper_key = md_file.stem
+                all_contexts[paper_key] = contexts_to_dicts(contexts)
+                total_count += len(contexts)
+
+        output_path = (
+            Path(params.output)
+            if params.output
+            else convert_dir / "citation_contexts.json"
+        )
+        output_path.write_text(
+            json.dumps(all_contexts, indent=2, ensure_ascii=False),
+        )
+
+        _report_progress(ctx, 3, 3, "Complete")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Extracted {total_count} citation contexts from "
+                f"{len(all_contexts)}/{len(md_files)} papers → {output_path}."
+            ),
+            artifacts={
+                "run_id": params.run_id,
+                "total_contexts": total_count,
+                "papers_with_contexts": len(all_contexts),
+                "total_papers": len(md_files),
+                "path": str(output_path),
+            },
+        )
+    except Exception as exc:
+        logger.error("cite_context failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def watch_tool(
+    params: WatchInput,
+    ctx: Context | None = None,
+) -> ToolResult:
+    """Check for new papers matching saved watch queries on arXiv."""
+    try:
+        from research_pipeline.arxiv.client import ArxivClient
+        from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
+        from research_pipeline.cli.cmd_watch import (
+            DEFAULT_QUERIES_FILE,
+            _load_queries,
+            _load_watch_state,
+            _save_watch_state,
+        )
+        from research_pipeline.infra.http import create_session
+
+        queries_path = Path(params.queries) if params.queries else DEFAULT_QUERIES_FILE
+        _report_progress(ctx, 0, 3, "Loading watch queries")
+        queries = _load_queries(queries_path)
+        if not queries:
+            return ToolResult(
+                success=False,
+                message=(
+                    f"No queries found. Create {queries_path} with watch queries."
+                ),
+            )
+
+        state_path = queries_path.parent / "watch_state.json"
+        state = _load_watch_state(state_path)
+
+        _report_progress(ctx, 1, 3, "Checking arXiv for new papers")
+        session = create_session()
+        rate_limiter = ArxivRateLimiter()
+        client = ArxivClient(session=session, rate_limiter=rate_limiter)
+
+        from datetime import UTC, datetime, timedelta
+
+        now = datetime.now(tz=UTC)
+        all_new_papers: dict[str, list[dict[str, str]]] = {}
+        total_new = 0
+
+        for query_def in queries:
+            name = query_def.get("name", "unnamed")
+            query_text = query_def.get("query", "")
+            if not query_text:
+                continue
+
+            last_checked_str = state.get(name)
+            if last_checked_str:
+                last_checked = datetime.fromisoformat(last_checked_str)
+            else:
+                last_checked = now - timedelta(days=params.lookback)
+
+            try:
+                results = client.search(
+                    query=query_text,
+                    max_results=params.max_results,
+                )
+            except Exception as exc:
+                logger.warning("Search failed for '%s': %s", name, exc)
+                continue
+
+            new_papers = []
+            for paper in results:
+                if paper.published >= last_checked:
+                    new_papers.append(
+                        {
+                            "arxiv_id": paper.arxiv_id,
+                            "title": paper.title,
+                            "published": paper.published.isoformat(),
+                            "authors": ", ".join(paper.authors[:3]),
+                        }
+                    )
+
+            if new_papers:
+                all_new_papers[name] = new_papers
+                total_new += len(new_papers)
+
+            state[name] = now.isoformat()
+
+        _save_watch_state(state_path, state)
+
+        if params.output and all_new_papers:
+            out = Path(params.output)
+            out.parent.mkdir(parents=True, exist_ok=True)
+            out.write_text(
+                json.dumps(all_new_papers, indent=2, ensure_ascii=False),
+            )
+
+        _report_progress(ctx, 3, 3, "Complete")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Watch complete: {total_new} new papers across "
+                f"{len(queries)} queries."
+            ),
+            artifacts={
+                "total_new": total_new,
+                "queries_checked": len(queries),
+                "papers": all_new_papers,
+            },
+        )
+    except Exception as exc:
+        logger.error("watch failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
