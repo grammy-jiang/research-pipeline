@@ -6,8 +6,8 @@
 searching, screening, downloading, converting, and summarizing academic papers
 from arXiv, Google Scholar, Semantic Scholar, OpenAlex, and DBLP. It provides a
 Typer CLI (`research-pipeline`) and an MCP server (tools via stdio). The codebase
-is ~6,000 lines of Python across 50+ modules. Version is defined in
-`src/research_pipeline/__init__.py` (currently `0.3.0`).
+is ~45,000 lines of Python across 211 modules. Version is defined in
+`src/research_pipeline/__init__.py` (currently `0.14.1`).
 
 ## Environment and bootstrap
 
@@ -20,7 +20,7 @@ uv sync --extra dev --extra docling --extra scholar
 
 # Verify install works
 uv run python -c "import research_pipeline; print(research_pipeline.__version__)"
-# Expected output: 0.3.0
+# Expected output: 0.14.1
 ```
 
 The project requires Python 3.12+. The `.python-version` file pins `3.12`. The
@@ -32,34 +32,30 @@ Run these in order. All commands have been validated and produce clean output on
 the current codebase.
 
 ```bash
-# 1. Run unit tests (407 tests, ~5s, no network required)
+# 1. Run unit tests (3200+ tests, ~30s, no network required)
 uv run pytest tests/unit/ -xvs
 
-# 2. Format imports (isort, black-compatible profile)
-uv run isort .
-
-# 3. Format code (black, 88-char line length)
-uv run black .
-
-# 4. Lint (ruff, rules: E F I W UP B SIM, B008 ignored)
+# 2. Format & lint (ruff handles formatting + linting, 88-char line length)
+uv run ruff format .
 uv run ruff check . --fix
 
-# 5. Type check (mypy strict mode — has existing errors on master, not blocking)
+# 3. Type check (mypy strict mode — enforced in CI, 0 errors)
 uv run mypy src/
 
-# 6. Run all pre-commit hooks at once (combines steps 2-5 plus YAML/TOML checks)
+# 4. Run all pre-commit hooks at once (combines steps 2-3 plus YAML/TOML checks)
 uv run pre-commit run --all-files
 ```
 
-**Important sequencing**: always run `isort` before `black` (isort may reorder
-imports that black then re-wraps). Always run tests before committing.
+Always run tests before committing.
 
 The pre-commit config (`.pre-commit-config.yaml`) runs: trailing-whitespace,
 end-of-file-fixer, check-yaml, check-toml, check-json, check-added-large-files
 (max 1000KB), check-merge-conflict, detect-private-key, debug-statements,
-check-ast, name-tests-test, check-docstring-first, isort, black, ruff, toml-sort.
+check-ast, name-tests-test, check-docstring-first, ruff-format, ruff-check,
+toml-sort, bandit, validate-pyproject.
 
-There are no GitHub Actions workflows configured yet.
+GitHub Actions CI runs: lint (pre-commit), test (3.12 + 3.13), typecheck (mypy),
+security (pip-audit + pip-licenses).
 
 ## Project layout
 
@@ -156,7 +152,7 @@ mcp_server/                     # FastMCP server (separate top-level package)
     references/                 # Reference docs (sub-agents, troubleshooting, etc.)
 
 tests/
-  unit/                         # 489+ fast unit tests (no network)
+  unit/                         # 3200+ fast unit tests (no network)
     test_<module>.py            # Each test file maps to a source module
   integration_offline/          # VCR-cassette offline integration tests
   live/                         # Tests with @pytest.mark.live (real arXiv API)
@@ -206,7 +202,7 @@ can be re-run independently.
 - `pathlib.Path` over `os.path`
 - Pydantic `BaseModel` for all domain objects
 - Exception variable: `as exc`, not `as e`
-- black formatting (88-char lines), isort (black profile)
+- ruff formatting (88-char lines) and import sorting
 
 ## Testing rules
 

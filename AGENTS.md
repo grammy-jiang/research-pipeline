@@ -110,12 +110,11 @@ uv run pytest tests/live/ -xvs -m live
 Always run these before committing:
 
 ```bash
-# Import sorting → code formatting → linting
-uv run isort .
-uv run black .
+# Format & lint (ruff handles both)
+uv run ruff format .
 uv run ruff check . --fix
 
-# Type checking (strict mode)
+# Type checking (strict mode, 0 errors enforced in CI)
 uv run mypy src/
 ```
 
@@ -127,9 +126,9 @@ uv run pre-commit run --all-files
 
 ## Code style
 
-- **Formatter**: black (88 char line length)
-- **Import sorting**: isort (black-compatible profile)
-- **Linter**: ruff (select: E, F, I, W, UP, B, SIM)
+- **Formatter**: ruff format (88 char line length)
+- **Import sorting**: ruff (isort-compatible)
+- **Linter**: ruff (select: A, B, C4, E, F, I, PT, RUF, SIM, UP, W)
 - **Type checking**: mypy (strict mode, Python 3.12)
 - **Docstrings**: Google style
 - Use `logging` module, never `print()` for output

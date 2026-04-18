@@ -2,6 +2,51 @@
 
 All notable changes to research-pipeline.
 
+## [v0.14.1] — 2026-04-18
+
+### Fixed
+
+- Fix all 241 mypy errors across 59 source files (now 0 errors in 211 files)
+- Fix real bugs found via type checking: non-existent `config.runs_dir`,
+  `resolve_workspace`, `LLMProvider.complete()`, wrong `get_stage_dir` args
+- Fix variable type conflicts from shadowing in 5 modules
+- Enforce mypy in CI (removed `|| true` fallback)
+
+### Added
+
+- PEP 561 `py.typed` marker for downstream type checking
+- CLI smoke tests (22 subcommands verified via `--help`)
+- Coverage threshold `--cov-fail-under=70` in CI
+- Expanded ruff rules: A, C4, PT, RUF groups
+
+## [v0.14.0] — 2026-04-18
+
+### Changed
+
+- Replace Black + isort with Ruff format/check (single toolchain)
+- Modernize pre-commit hooks: add bandit, validate-pyproject, remove legacy hooks
+
+### Added
+
+- pip-audit and pip-licenses for security & license auditing
+- vulture for dead code detection
+- hypothesis for property-based testing (36 tests)
+- Security & License Audit CI job
+- Python 3.13 added to CI test matrix
+
+## [v0.13.52] — 2026-04-18
+
+### Added
+
+- MCP tool wrappers for 6 new commands (cite-context, cluster, export-bibtex,
+  eval-log, feedback, export-html) with integration tests (C2+C3)
+
+## [v0.13.51] — 2026-04-18
+
+### Added
+
+- CHANGELOG.md auto-generated from git history (C5)
+
 ## [v0.13.50] — 2026-04-18
 
 ### Documentation

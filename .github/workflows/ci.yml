@@ -52,7 +52,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run unit tests
-        run: uv run pytest tests/unit/ -x -q --tb=short --cov=src/research_pipeline --cov-fail-under=70
+        run: uv run pytest tests/unit/ -x -q --tb=short --cov=src/research_pipeline --cov-fail-under=75
 
   typecheck:
     name: Type Check
