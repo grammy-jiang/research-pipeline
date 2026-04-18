@@ -20,7 +20,9 @@ def test_app_help() -> None:
     """Top-level --help exits 0."""
     result = runner.invoke(app, ["--help"])
     assert result.exit_code == 0
-    assert "research-pipeline" in result.output.lower() or "usage" in result.output.lower()
+    assert (
+        "research-pipeline" in result.output.lower() or "usage" in result.output.lower()
+    )
 
 
 def test_version_callback() -> None:
