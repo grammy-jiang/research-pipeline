@@ -25,6 +25,7 @@ import sqlite3
 from collections import defaultdict
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -146,7 +147,7 @@ class KGQualityScore:
     timeliness_detail: TimelinessMetrics = field(default_factory=TimelinessMetrics)
     redundancy_detail: RedundancyMetrics = field(default_factory=RedundancyMetrics)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Serialize to a plain dictionary."""
         from dataclasses import asdict
 
@@ -431,7 +432,7 @@ def sample_triples_twcs(
     conn: sqlite3.Connection,
     sample_size: int = 100,
     seed: int | None = None,
-) -> list[dict]:
+) -> list[dict[str, Any]]:
     """Type-Weighted Cluster Sampling for scalable KG evaluation.
 
     Samples triples proportional to relation type distribution, ensuring
@@ -466,7 +467,7 @@ def sample_triples_twcs(
         largest = max(allocations, key=lambda k: allocations[k])
         allocations[largest] -= 1
 
-    sampled: list[dict] = []
+    sampled: list[dict[str, Any]] = []
     for rel_type, n in allocations.items():
         if n <= 0:
             continue
@@ -565,7 +566,7 @@ def _count_rows(conn: sqlite3.Connection, table: str) -> int:
     valid = {"entities", "triples", "case_adaptations", "cases"}
     if table not in valid:
         raise ValueError(f"Invalid table: {table}")
-    sql = f"SELECT COUNT(*) FROM {table}"  # noqa: S608  # nosec B608
+    sql = f"SELECT COUNT(*) FROM {table}"  # nosec B608
     return conn.execute(sql).fetchone()[0]
 
 
@@ -631,7 +632,7 @@ def _distribution(conn: sqlite3.Connection, table: str, column: str) -> dict[str
     valid_columns = {"entity_type", "relation"}
     if table not in valid_tables or column not in valid_columns:
         raise ValueError(f"Invalid table/column: {table}.{column}")
-    sql = f"SELECT {column}, COUNT(*) as cnt FROM {table} GROUP BY {column}"  # noqa: S608  # nosec B608
+    sql = f"SELECT {column}, COUNT(*) as cnt FROM {table} GROUP BY {column}"  # nosec B608
     rows = conn.execute(sql).fetchall()
     return {r[0]: r[1] for r in rows}
 

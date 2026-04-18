@@ -78,7 +78,7 @@ class CoherenceIssue:
     evidence: str = ""
     session_id: str = ""
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "dimension": self.dimension.value,
             "severity": self.severity.value,
@@ -97,7 +97,7 @@ class DimensionScore:
     issues: tuple[CoherenceIssue, ...] = ()
     details: str = ""
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "dimension": self.dimension.value,
             "score": round(self.score, 4),
@@ -141,7 +141,7 @@ class CoherenceReport:
     def critical_issues(self) -> list[CoherenceIssue]:
         return [i for i in self.all_issues if i.severity == Severity.CRITICAL]
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "composite_score": round(self.composite_score, 4),
             "dimensions": {

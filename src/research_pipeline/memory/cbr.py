@@ -18,6 +18,7 @@ import re
 import sqlite3
 from dataclasses import asdict, dataclass, field
 from pathlib import Path
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -69,7 +70,7 @@ class Case:
     topic: str
     query_terms: list[str] = field(default_factory=list)
     sources_used: list[str] = field(default_factory=list)
-    screening_config: dict = field(default_factory=dict)
+    screening_config: dict[str, Any] = field(default_factory=dict)
     pipeline_profile: str = "standard"
     paper_count: int = 0
     shortlist_count: int = 0
@@ -79,9 +80,9 @@ class Case:
     outcome: str = "unknown"
     strategy_notes: str = ""
     created_at: str = ""
-    metadata: dict = field(default_factory=dict)
+    metadata: dict[str, Any] = field(default_factory=dict)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -94,7 +95,7 @@ class CaseMatch:
     similarity: float
     match_reasons: list[str] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return {
             "case": self.case.to_dict(),
@@ -110,10 +111,10 @@ class Adaptation:
     source_case_id: str
     target_case_id: str
     adaptation_type: str
-    changes_applied: dict = field(default_factory=dict)
+    changes_applied: dict[str, Any] = field(default_factory=dict)
     quality_delta: float = 0.0
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -125,12 +126,12 @@ class StrategyRecommendation:
     recommended_sources: list[str] = field(default_factory=list)
     recommended_profile: str = "standard"
     recommended_query_terms: list[str] = field(default_factory=list)
-    screening_hints: dict = field(default_factory=dict)
+    screening_hints: dict[str, Any] = field(default_factory=dict)
     confidence: float = 0.0
     basis_cases: list[str] = field(default_factory=list)
     reasoning: str = ""
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         """Convert to dictionary."""
         return asdict(self)
 
@@ -692,7 +693,7 @@ def record_adaptation(
     target_case_id: str,
     *,
     adaptation_type: str = "parameter_adjustment",
-    changes: dict | None = None,
+    changes: dict[str, Any] | None = None,
     quality_delta: float = 0.0,
 ) -> Adaptation:
     """Record that a source case was adapted for a target run.

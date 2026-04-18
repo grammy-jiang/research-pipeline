@@ -26,6 +26,7 @@ import logging
 import time
 from dataclasses import dataclass, field
 from enum import StrEnum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -55,7 +56,7 @@ class ToolSpec:
     name: str
     schema_hash: str
     domain: TrustDomain
-    schema: dict
+    schema: dict[str, Any]
     description: str = ""
     max_calls_per_minute: int = 60
     requires_approval: bool = False
@@ -68,7 +69,7 @@ class AuthResult:
     tool_name: str
     decision: AuthDecision
     reason: str
-    args: dict = field(default_factory=dict)
+    args: dict[str, Any] = field(default_factory=dict)
     caller: str = ""
     timestamp: float = 0.0
 
@@ -91,7 +92,7 @@ class AuditEntry:
     domain: TrustDomain | None = None
 
 
-def compute_schema_hash(schema: dict) -> str:
+def compute_schema_hash(schema: dict[str, Any]) -> str:
     """Compute deterministic SHA-256 hash of a tool schema.
 
     Args:
@@ -104,7 +105,7 @@ def compute_schema_hash(schema: dict) -> str:
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()
 
 
-def compute_args_hash(args: dict) -> str:
+def compute_args_hash(args: dict[str, Any]) -> str:
     """Compute SHA-256 hash of tool arguments for audit.
 
     Args:
@@ -131,7 +132,7 @@ class ToolRegistry:
     def register(
         self,
         name: str,
-        schema: dict,
+        schema: dict[str, Any],
         domain: str | TrustDomain = TrustDomain.READ,
         description: str = "",
         max_calls_per_minute: int = 60,
@@ -317,7 +318,7 @@ class McpGuard:
     def authorize(
         self,
         tool_name: str,
-        args: dict | None = None,
+        args: dict[str, Any] | None = None,
         caller: str = "anonymous",
     ) -> AuthResult:
         """Authorize a tool invocation.

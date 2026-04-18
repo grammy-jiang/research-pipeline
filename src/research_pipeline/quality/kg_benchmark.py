@@ -23,6 +23,7 @@ from collections import defaultdict
 from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import Enum
+from typing import Any
 
 logger = logging.getLogger(__name__)
 
@@ -78,7 +79,7 @@ class GoldTriple:
     def as_tuple(self) -> tuple[str, str, str]:
         return (self.subject, self.predicate, self.obj)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "subject": self.subject,
             "predicate": self.predicate,
@@ -114,7 +115,7 @@ class GoldDataset:
     def predicates(self) -> set[str]:
         return {t.predicate for t in self.triples}
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "name": self.name,
             "domain": self.domain,
@@ -139,7 +140,7 @@ class ExtractedTriple:
     def as_tuple(self) -> tuple[str, str, str]:
         return (self.subject, self.predicate, self.obj)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "subject": self.subject,
             "predicate": self.predicate,
@@ -181,7 +182,7 @@ class BenchmarkMetrics:
     total_gold: int
     total_extracted: int
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "precision": round(self.precision, 4),
             "recall": round(self.recall, 4),
@@ -207,7 +208,7 @@ class EntityMetrics:
     extracted_entities: int
     matched: int
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "precision": round(self.precision, 4),
             "recall": round(self.recall, 4),
@@ -229,7 +230,7 @@ class PredicateMetrics:
     extracted_predicates: int
     matched: int
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "precision": round(self.precision, 4),
             "recall": round(self.recall, 4),
@@ -250,10 +251,10 @@ class FullBenchmarkReport:
     entity_metrics: EntityMetrics
     predicate_metrics: PredicateMetrics
     per_predicate_f1: dict[str, float] = field(default_factory=dict)
-    hallucinated_triples: list[dict] = field(default_factory=list)
-    missing_triples: list[dict] = field(default_factory=list)
+    hallucinated_triples: list[dict[str, Any]] = field(default_factory=list)
+    missing_triples: list[dict[str, Any]] = field(default_factory=list)
 
-    def to_dict(self) -> dict:
+    def to_dict(self) -> dict[str, Any]:
         return {
             "dataset_name": self.dataset_name,
             "system_name": self.system_name,
