@@ -33,7 +33,7 @@ def enrich_command(
 ) -> None:
     """Enrich candidates with missing abstracts/metadata from Semantic Scholar."""
     config = load_config(config_path)
-    run_dir = Path(config.runs_dir) / run_id
+    run_dir = Path(config.workspace) / run_id
 
     if not run_dir.exists():
         logger.error("Run directory not found: %s", run_dir)
@@ -50,7 +50,7 @@ def enrich_command(
         logger.error("Candidates file not found: %s", jsonl_file)
         raise typer.Exit(code=1)
 
-    records = read_jsonl(jsonl_file, CandidateRecord)
+    records = [CandidateRecord.model_validate(d) for d in read_jsonl(jsonl_file)]
     logger.info(
         "Loaded %d candidates from %s",
         len(records),
@@ -73,7 +73,7 @@ def enrich_command(
     )
 
     output_file = stage_dir / f"{jsonl_file.stem}_enriched.jsonl"
-    write_jsonl(output_file, records)
+    write_jsonl(output_file, [r.model_dump(mode="json") for r in records])
 
     summary = {
         "total_candidates": len(records),

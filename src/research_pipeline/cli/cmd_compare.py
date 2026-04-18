@@ -4,10 +4,13 @@ Compares two pipeline runs to produce a structured diff of papers,
 findings, gaps, and confidence-level changes.
 """
 
+from __future__ import annotations
+
 import json
 import logging
 import statistics
 from pathlib import Path
+from typing import Any
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.storage.manifests import read_jsonl
@@ -39,7 +42,7 @@ def _load_paper_ids(run_root: Path) -> set[str]:
     return set()
 
 
-def _load_candidates_map(run_root: Path) -> dict[str, dict[str, object]]:
+def _load_candidates_map(run_root: Path) -> dict[str, dict[str, Any]]:
     """Load candidate records keyed by arxiv_id."""
     result = {}
     for stage, filename in [
@@ -137,7 +140,7 @@ def _load_source_distribution(run_root: Path) -> dict[str, int]:
 def _diff_source_distributions(
     dist_a: dict[str, int],
     dist_b: dict[str, int],
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Compare source distributions between two runs.
 
     Args:
@@ -163,7 +166,7 @@ def _diff_source_distributions(
     }
 
 
-def _load_query_plan(run_root: Path) -> dict[str, object]:
+def _load_query_plan(run_root: Path) -> dict[str, Any]:
     """Load a run's query_plan.json from the plan stage directory.
 
     Args:
@@ -183,9 +186,9 @@ def _load_query_plan(run_root: Path) -> dict[str, object]:
 
 
 def _diff_query_plans(
-    plan_a: dict[str, object],
-    plan_b: dict[str, object],
-) -> dict[str, object]:
+    plan_a: dict[str, Any],
+    plan_b: dict[str, Any],
+) -> dict[str, Any]:
     """Detect topic drift by diffing query plans.
 
     Args:
@@ -214,7 +217,7 @@ def _diff_query_plans(
     }
 
 
-def _load_synthesis_json(run_root: Path) -> dict[str, object] | None:
+def _load_synthesis_json(run_root: Path) -> dict[str, Any] | None:
     """Load synthesis_results.json if it exists."""
     for candidate_path in [
         run_root / "synthesis" / "synthesis_results.json",
@@ -222,7 +225,7 @@ def _load_synthesis_json(run_root: Path) -> dict[str, object] | None:
     ]:
         if candidate_path.exists():
             try:
-                return json.loads(candidate_path.read_text())
+                return json.loads(candidate_path.read_text())  # type: ignore[no-any-return]
             except (json.JSONDecodeError, OSError):
                 continue
     return None
@@ -251,9 +254,9 @@ def _diff_paper_sets(ids_a: set[str], ids_b: set[str]) -> dict[str, list[str]]:
 
 
 def _diff_gaps(
-    synth_a: dict[str, object] | None,
-    synth_b: dict[str, object] | None,
-) -> dict[str, object]:
+    synth_a: dict[str, Any] | None,
+    synth_b: dict[str, Any] | None,
+) -> dict[str, Any]:
     """Compare gaps between two synthesis results."""
     gaps_a = {
         g.get("description", ""): g
@@ -295,9 +298,9 @@ def _diff_gaps(
 
 
 def _diff_confidence(
-    synth_a: dict[str, object] | None,
-    synth_b: dict[str, object] | None,
-) -> list[dict[str, object]]:
+    synth_a: dict[str, Any] | None,
+    synth_b: dict[str, Any] | None,
+) -> list[dict[str, Any]]:
     """Track confidence-level changes for findings across runs."""
     changes = []
 
@@ -334,9 +337,9 @@ def _diff_confidence(
 
 
 def _diff_readiness(
-    synth_a: dict[str, object] | None,
-    synth_b: dict[str, object] | None,
-) -> dict[str, object]:
+    synth_a: dict[str, Any] | None,
+    synth_b: dict[str, Any] | None,
+) -> dict[str, Any]:
     """Compare readiness assessments."""
     ra = (synth_a or {}).get("readiness", {})
     rb = (synth_b or {}).get("readiness", {})
@@ -369,7 +372,7 @@ def compare_runs(
     run_root_b: Path,
     run_id_a: str,
     run_id_b: str,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Compare two pipeline runs and produce a structured diff.
 
     Args:

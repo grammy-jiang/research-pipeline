@@ -2,8 +2,9 @@
 
 import json
 import logging
-from concurrent.futures import ThreadPoolExecutor, as_completed
+from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
+from typing import Any
 
 import typer
 
@@ -145,9 +146,7 @@ def _search_semantic_scholar(
     plan: QueryPlan, config: PipelineConfig
 ) -> list[CandidateRecord]:
     """Search Semantic Scholar and return candidates."""
-    from research_pipeline.sources.semantic_scholar_source import (
-        SemanticScholarSource,
-    )
+    from research_pipeline.sources.semantic_scholar_source import SemanticScholarSource
 
     source = SemanticScholarSource(
         api_key=config.sources.semantic_scholar_api_key,
@@ -257,7 +256,7 @@ def run_search(
     all_candidates: list[CandidateRecord] = []
 
     # Run sources in parallel using ThreadPoolExecutor
-    source_dispatch: dict[str, tuple] = {
+    source_dispatch: dict[str, tuple[Any, tuple[Any, ...]]] = {
         "arxiv": (_search_arxiv, (plan, config, search_dir)),
         "scholar": (_search_scholar, (plan, config)),
         "semantic_scholar": (_search_semantic_scholar, (plan, config)),
@@ -266,7 +265,7 @@ def run_search(
         "huggingface": (_search_huggingface, (plan, config)),
     }
 
-    futures = {}
+    futures: dict[Future[Any], str] = {}
     with ThreadPoolExecutor(max_workers=len(sources)) as executor:
         for src_name in sources:
             entry = source_dispatch.get(src_name)

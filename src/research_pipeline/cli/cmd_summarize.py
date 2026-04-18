@@ -110,8 +110,8 @@ def run_summarize(
                 "claim_id": claim.claim_id,
                 "statement": claim.statement,
                 "type": "agreement",
-                "layered_confidence": result.final_confidence,
-                "layers_used": [lr.value for lr in result.layers_used],
+                "layered_confidence": result.final_score,
+                "layers_used": result.layers_executed,
             }
         )
         claim_idx += 1
@@ -129,8 +129,8 @@ def run_summarize(
                 "claim_id": claim.claim_id,
                 "statement": claim.statement,
                 "type": "disagreement",
-                "layered_confidence": result.final_confidence,
-                "layers_used": [lr.value for lr in result.layers_used],
+                "layered_confidence": result.final_score,
+                "layers_used": result.layers_executed,
             }
         )
         claim_idx += 1

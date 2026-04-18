@@ -9,6 +9,7 @@ import json
 import logging
 import re
 from pathlib import Path
+from typing import Any
 
 from research_pipeline.quality.fact_scoring import compute_fact_score
 from research_pipeline.quality.race_scoring import compute_race_score
@@ -178,7 +179,7 @@ def validate_report(
     report_path: Path,
     paper_ids: list[str] | None = None,
     paper_titles: list[str] | None = None,
-) -> dict[str, object]:
+) -> dict[str, Any]:
     """Validate a research report against template requirements.
 
     Args:
@@ -274,7 +275,7 @@ def validate_report(
                 f"{len(fact.uncited_papers)} paper(s) never cited"
             )
 
-    result: dict[str, object] = {
+    result: dict[str, Any] = {
         "report_path": str(report_path),
         "verdict": verdict,
         "overall_score": overall_score,

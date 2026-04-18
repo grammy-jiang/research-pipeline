@@ -185,7 +185,7 @@ def run_expand(
     # Write expanded candidates
     output_path = expand_dir / "expanded_candidates.jsonl"
     records = [c.model_dump(mode="json") for c in candidates]
-    write_jsonl(records, output_path)
+    write_jsonl(output_path, records)
 
     logger.info(
         "Expansion complete: %d related papers written to %s",

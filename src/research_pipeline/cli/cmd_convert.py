@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 
 from research_pipeline.config.loader import load_config
+from research_pipeline.config.models import PipelineConfig
 from research_pipeline.conversion.base import ConverterBackend
 from research_pipeline.conversion.fallback import FallbackConverter
 from research_pipeline.conversion.registry import (
@@ -21,7 +22,7 @@ logger = logging.getLogger(__name__)
 
 def _backend_kwargs_list(
     backend_name: str,
-    config: "PipelineConfig",  # noqa: F821
+    config: PipelineConfig,
 ) -> list[dict[str, object]]:
     """Build constructor kwargs for each account of a converter backend.
 
@@ -87,7 +88,7 @@ def _backend_kwargs_list(
     return [{}]
 
 
-def _create_converter(config: "PipelineConfig") -> ConverterBackend:  # noqa: F821
+def _create_converter(config: PipelineConfig) -> ConverterBackend:
     """Create a converter backend from pipeline config.
 
     If ``fallback_backends`` is configured, creates a FallbackConverter wrapping
@@ -97,7 +98,7 @@ def _create_converter(config: "PipelineConfig") -> ConverterBackend:  # noqa: F8
     _ensure_builtins_registered()
 
     primary = config.conversion.backend
-    backend_names = [primary] + list(config.conversion.fallback_backends)
+    backend_names = [primary, *list(config.conversion.fallback_backends)]
 
     all_backends: list[ConverterBackend] = []
     for name in backend_names:

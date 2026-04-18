@@ -62,7 +62,7 @@ def _load_queries(queries_path: Path) -> list[dict[str, str]]:
         return []
     data = json.loads(queries_path.read_text())
     if isinstance(data, list):
-        return data  # type: ignore[no-any-return]
+        return data
     return []
 
 
@@ -124,9 +124,13 @@ def watch_command(
         )
 
         try:
-            results = client.search(
+            search_result = client.search(
                 query=query_text,
                 max_results=max_results,
+            )
+            # ArxivClient.search() returns tuple; extract candidates list
+            results = (
+                search_result[0] if isinstance(search_result, tuple) else search_result
             )
         except Exception as exc:
             logger.warning("Search failed for '%s': %s", name, exc)

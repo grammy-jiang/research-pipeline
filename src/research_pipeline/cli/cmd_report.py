@@ -10,7 +10,7 @@ import typer
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.models.summary import SynthesisReport
-from research_pipeline.storage.workspace import get_stage_dir
+from research_pipeline.storage.workspace import get_stage_dir, init_run
 from research_pipeline.summarization.report_templates import (
     list_templates,
     render_report_to_file,
@@ -66,7 +66,9 @@ def report_cmd(
         raise typer.Exit(1)
 
     cfg = load_config()
-    stage_dir = get_stage_dir(cfg.runs_dir, run_id, "summarize")
+    ws = Path(cfg.workspace)
+    _, run_root = init_run(ws, run_id)
+    stage_dir = get_stage_dir(run_root, "summarize")
 
     synthesis_json = stage_dir / "synthesis_report.json"
     if not synthesis_json.exists():

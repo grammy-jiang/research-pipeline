@@ -78,7 +78,7 @@ def run_quality(
         scores.append(qs.model_dump(mode="json"))
 
     output_path = quality_dir / "quality_scores.jsonl"
-    write_jsonl(scores, output_path)
+    write_jsonl(output_path, scores)
 
     logger.info(
         "Quality scoring complete: %d scores written to %s",
@@ -88,9 +88,7 @@ def run_quality(
 
     # Graduated rubric scoring on synthesis report (if available)
     try:
-        from research_pipeline.quality.graduated_rubric import (
-            score_rubric,
-        )
+        from research_pipeline.quality.graduated_rubric import score_rubric
 
         sum_dir = get_stage_dir(run_root, "summarize")
         synthesis_md = sum_dir / "synthesis.md"

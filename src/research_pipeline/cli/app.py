@@ -701,10 +701,7 @@ def install_skill(
     """[Deprecated] Use 'research-pipeline setup' instead."""
     import warnings
 
-    from research_pipeline.cli.cmd_setup import (
-        DEFAULT_SKILL_DIR,
-        run_setup,
-    )
+    from research_pipeline.cli.cmd_setup import DEFAULT_SKILL_DIR, run_setup
     from research_pipeline.infra.logging import setup_logging
 
     warnings.warn(
@@ -1476,7 +1473,7 @@ def enrich_command(
     """Enrich candidates with missing abstracts/metadata from Semantic Scholar."""
     from research_pipeline.cli.cmd_enrich import enrich_command as enrich_cmd
 
-    setup_logging(level=level)
+    setup_logging(level=getattr(logging, level.upper(), logging.INFO))
     from pathlib import Path
 
     enrich_cmd(run_id=run_id, stage=stage, config_path=Path(config_path))
@@ -1505,7 +1502,7 @@ def cite_context_cmd(
 
     from research_pipeline.cli.cmd_cite_context import cite_context_command
 
-    setup_logging(level=level)
+    setup_logging(level=getattr(logging, level.upper(), logging.INFO))
     out = Path(output) if output else None
     cite_context_command(
         run_id=run_id,
@@ -1543,12 +1540,9 @@ def watch_cmd(
     """Check for new papers matching saved watch queries."""
     from pathlib import Path
 
-    from research_pipeline.cli.cmd_watch import (
-        DEFAULT_QUERIES_FILE,
-        watch_command,
-    )
+    from research_pipeline.cli.cmd_watch import DEFAULT_QUERIES_FILE, watch_command
 
-    setup_logging(level=level)
+    setup_logging(level=getattr(logging, level.upper(), logging.INFO))
     qf = Path(queries_file) if queries_file else DEFAULT_QUERIES_FILE
     out = Path(output) if output else None
     watch_command(
