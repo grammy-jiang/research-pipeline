@@ -253,8 +253,7 @@ def compute_fact_score(
     uncited = [pid for pid in paper_ids if pid not in cited_paper_ids]
 
     logger.debug(
-        "FACT score: accuracy=%.3f, effective_ratio=%.3f, "
-        "verified=%d/%d, uncited=%d",
+        "FACT score: accuracy=%.3f, effective_ratio=%.3f, verified=%d/%d, uncited=%d",
         accuracy,
         effective_ratio,
         verified,

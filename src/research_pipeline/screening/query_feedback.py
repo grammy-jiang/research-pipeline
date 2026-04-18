@@ -154,7 +154,7 @@ class QueryRefinement(BaseModel):
     suggested_additions: list[str] = Field(
         default_factory=list,
         description=(
-            "High-signal terms from top-K papers not present in the " "original query."
+            "High-signal terms from top-K papers not present in the original query."
         ),
     )
     suggested_removals: list[str] = Field(
@@ -164,7 +164,7 @@ class QueryRefinement(BaseModel):
     term_coverage: dict[str, float] = Field(
         default_factory=dict,
         description=(
-            "For each query term, the fraction of top-K papers that " "contain it."
+            "For each query term, the fraction of top-K papers that contain it."
         ),
     )
     emergent_terms: list[str] = Field(

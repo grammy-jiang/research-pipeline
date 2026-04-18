@@ -191,9 +191,9 @@ class AuditDB:
         )
     """
 
-    _INDEX_SQL = "CREATE INDEX IF NOT EXISTS idx_audit_stage " "ON audit_log(stage)"
+    _INDEX_SQL = "CREATE INDEX IF NOT EXISTS idx_audit_stage ON audit_log(stage)"
 
-    _INDEX_RUN_SQL = "CREATE INDEX IF NOT EXISTS idx_audit_run " "ON audit_log(run_id)"
+    _INDEX_RUN_SQL = "CREATE INDEX IF NOT EXISTS idx_audit_run ON audit_log(run_id)"
 
     def __init__(self, run_root: Path, *, enabled: bool = True) -> None:
         self._enabled = enabled

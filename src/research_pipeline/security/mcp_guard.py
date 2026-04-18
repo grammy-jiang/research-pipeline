@@ -371,9 +371,7 @@ class McpGuard:
             result = AuthResult(
                 tool_name=tool_name,
                 decision=AuthDecision.DENIED,
-                reason=(
-                    f"Caller '{caller}' lacks " f"'{spec.domain.value}' capability"
-                ),
+                reason=(f"Caller '{caller}' lacks '{spec.domain.value}' capability"),
                 args=args,
                 caller=caller,
                 timestamp=now,

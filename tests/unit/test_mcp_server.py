@@ -27,9 +27,9 @@ class TestServerRegistration:
             "tool_manage_index",
         }
         registered = set(mcp._tool_manager._tools.keys())
-        assert expected_tools.issubset(
-            registered
-        ), f"Missing tools: {expected_tools - registered}"
+        assert expected_tools.issubset(registered), (
+            f"Missing tools: {expected_tools - registered}"
+        )
 
     def test_tool_count(self) -> None:
         # 9 pipeline + convert_file + list_backends + 5 new

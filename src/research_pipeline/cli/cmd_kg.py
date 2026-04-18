@@ -126,8 +126,7 @@ def run_kg_ingest(
         typer.echo(f"\nTotal ingested: {total} items")
         s = kg.stats()
         typer.echo(
-            f"KG now has {s['total_entities']} entities,"
-            f" {s['total_triples']} triples"
+            f"KG now has {s['total_entities']} entities, {s['total_triples']} triples"
         )
     finally:
         kg.close()

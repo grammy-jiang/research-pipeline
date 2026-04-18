@@ -628,7 +628,7 @@ def setup(
     agents_target: str = typer.Option(
         "",
         "--agents-target",
-        help=("Target directory for agent files. " "Default: ~/.claude/agents"),
+        help=("Target directory for agent files. Default: ~/.claude/agents"),
     ),
     symlink: bool = typer.Option(
         False,

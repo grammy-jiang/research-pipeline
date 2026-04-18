@@ -329,7 +329,7 @@ def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
         logger.info("Search returned %d unique candidates", len(deduped))
         return ToolResult(
             success=True,
-            message=(f"Found {len(deduped)} unique candidates " f"({source_summary})."),
+            message=(f"Found {len(deduped)} unique candidates ({source_summary})."),
             artifacts={
                 "candidates": str(candidates_path),
                 "count": len(deduped),
@@ -1227,8 +1227,7 @@ def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolRe
             return ToolResult(
                 success=True,
                 message=(
-                    "Use list_papers=true to browse or gc=true to "
-                    "clean stale entries."
+                    "Use list_papers=true to browse or gc=true to clean stale entries."
                 ),
             )
         finally:
@@ -2648,8 +2647,7 @@ def watch_tool(
         return ToolResult(
             success=True,
             message=(
-                f"Watch complete: {total_new} new papers across "
-                f"{len(queries)} queries."
+                f"Watch complete: {total_new} new papers across {len(queries)} queries."
             ),
             artifacts={
                 "total_new": total_new,

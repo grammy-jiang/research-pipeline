@@ -251,8 +251,7 @@ def verify_synthesize(synthesis: dict[str, Any]) -> VerificationResult:
     all_passed = all(checks.values())
     return VerificationResult(
         all_passed,
-        f"Synthesize verification: "
-        f"{sum(checks.values())}/{len(checks)} checks passed",
+        f"Synthesize verification: {sum(checks.values())}/{len(checks)} checks passed",
         checks,
     )
 

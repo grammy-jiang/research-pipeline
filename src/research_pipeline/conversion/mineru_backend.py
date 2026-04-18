@@ -57,7 +57,7 @@ class MinerUBackend(ConverterBackend):
     def fingerprint(self) -> str:
         """Return converter fingerprint."""
         config_hash = sha256_str(
-            f"parse_method={self.parse_method}" f"|timeout={self.timeout_seconds}"
+            f"parse_method={self.parse_method}|timeout={self.timeout_seconds}"
         )[:8]
         return f"mineru/{self.version}/{config_hash}"
 
@@ -95,7 +95,7 @@ class MinerUBackend(ConverterBackend):
             md_path.unlink()
 
         config_hash = sha256_str(
-            f"parse_method={self.parse_method}" f"|timeout={self.timeout_seconds}"
+            f"parse_method={self.parse_method}|timeout={self.timeout_seconds}"
         )[:8]
 
         if md_path.exists():

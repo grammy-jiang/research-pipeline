@@ -59,7 +59,7 @@ def export_bibtex_cmd(
 
     if not jsonl_candidates:
         logger.error(
-            "No candidate JSONL files found in %s. " "Run the %s stage first.",
+            "No candidate JSONL files found in %s. Run the %s stage first.",
             stage_dir,
             stage,
         )

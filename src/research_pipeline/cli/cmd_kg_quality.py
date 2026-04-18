@@ -103,8 +103,7 @@ def kg_quality_command(
                 typer.echo(f"\n--- TWCS Sample ({len(sample)} triples) ---")
                 for t in sample:
                     typer.echo(
-                        f"  {t['subject_id']} --[{t['relation']}]--> "
-                        f"{t['object_id']}"
+                        f"  {t['subject_id']} --[{t['relation']}]--> {t['object_id']}"
                     )
 
         logger.info("KG quality evaluation complete: composite=%.4f", score.composite)

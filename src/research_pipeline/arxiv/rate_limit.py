@@ -23,8 +23,7 @@ class ArxivRateLimiter(RateLimiter):
     def __init__(self, min_interval: float = 5.0) -> None:
         if min_interval < _HARD_FLOOR_SECONDS:
             logger.warning(
-                "Requested interval %.1fs is below hard floor %.1fs; "
-                "clamping to %.1fs",
+                "Requested interval %.1fs is below hard floor %.1fs; clamping to %.1fs",
                 min_interval,
                 _HARD_FLOOR_SECONDS,
                 _HARD_FLOOR_SECONDS,

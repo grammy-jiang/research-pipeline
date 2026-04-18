@@ -236,8 +236,7 @@ class ValidateReportInput(BaseModel):
     report_path: str = Field(
         default="",
         description=(
-            "Path to the report markdown file. "
-            "If empty, uses run_id to find synthesis."
+            "Path to the report markdown file. If empty, uses run_id to find synthesis."
         ),
     )
     workspace: str = Field(
@@ -247,7 +246,7 @@ class ValidateReportInput(BaseModel):
     run_id: str = Field(
         default="",
         description=(
-            "Run ID to find synthesis_report.md " "(used if report_path is empty)."
+            "Run ID to find synthesis_report.md (used if report_path is empty)."
         ),
     )
 
@@ -308,7 +307,7 @@ class EvalLogInput(CommonParams):
 
     channel: str = Field(
         default="all",
-        description=("Channel to query: traces, audit, snapshots, " "summary, or all."),
+        description=("Channel to query: traces, audit, snapshots, summary, or all."),
     )
     stage: str = Field(
         default="",
@@ -639,7 +638,7 @@ class ClusterInput(CommonParams):
     threshold: float = Field(
         default=0.15,
         description=(
-            "Cosine similarity threshold (0-1). " "Lower = fewer, larger clusters."
+            "Cosine similarity threshold (0-1). Lower = fewer, larger clusters."
         ),
     )
     output: str = Field(
@@ -732,7 +731,7 @@ class ResearchWorkflowInput(CommonParams):
     source: str = Field(
         default="",
         description=(
-            "Search sources: 'arxiv', 'scholar', 'all', " "or '' for config default."
+            "Search sources: 'arxiv', 'scholar', 'all', or '' for config default."
         ),
     )
     max_iterations: int = Field(

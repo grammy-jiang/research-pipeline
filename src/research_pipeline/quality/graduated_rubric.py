@@ -111,7 +111,7 @@ DIMENSION_DESCRIPTORS: dict[str, dict[Grade, str]] = {
             "few concrete findings."
         ),
         Grade.POOR: (
-            "No clear recommendations or actionable findings; " "purely descriptive."
+            "No clear recommendations or actionable findings; purely descriptive."
         ),
     },
     "comprehensiveness": {
@@ -128,7 +128,7 @@ DIMENSION_DESCRIPTORS: dict[str, dict[Grade, str]] = {
             "limited citation diversity."
         ),
         Grade.POOR: (
-            "Major sections missing; insufficient depth or " "citation coverage."
+            "Major sections missing; insufficient depth or citation coverage."
         ),
     },
     "evidence": {

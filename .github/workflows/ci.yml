@@ -74,3 +74,29 @@ jobs:
       - name: Run mypy
         run: uv run mypy src/ || true
         # mypy has pre-existing errors; run for visibility but don't block
+
+  security:
+    name: Security & License Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+
+      - name: Set up Python
+        run: uv python install 3.12
+
+      - name: Install dependencies
+        run: uv sync --extra dev
+
+      - name: Audit dependencies for vulnerabilities
+        run: uv run pip-audit
+
+      - name: Check license compatibility
+        run: |
+          uv run pip-licenses --order=license --format=markdown
+          # Fail on copyleft licenses that are incompatible with MIT
+          uv run pip-licenses --fail-on="GPL-3.0-only;GPL-3.0-or-later;GPL-2.0-only;GPL-2.0-or-later;AGPL-3.0-only;AGPL-3.0-or-later"

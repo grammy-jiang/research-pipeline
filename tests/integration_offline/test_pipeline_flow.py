@@ -7,10 +7,8 @@ flow by creating mock candidate data and exercising CLI functions directly.
 from __future__ import annotations
 
 import json
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from pathlib import Path
-
-import pytest
 
 from research_pipeline.models.candidate import CandidateRecord
 
@@ -22,8 +20,8 @@ def _make_candidate(idx: int, title: str, abstract: str) -> CandidateRecord:
         version="v1",
         title=title,
         authors=[f"Author {idx}"],
-        published=datetime(2024, 1, idx + 1, tzinfo=timezone.utc),
-        updated=datetime(2024, 1, idx + 1, tzinfo=timezone.utc),
+        published=datetime(2024, 1, idx + 1, tzinfo=UTC),
+        updated=datetime(2024, 1, idx + 1, tzinfo=UTC),
         categories=["cs.CL"],
         primary_category="cs.CL",
         abstract=abstract,
@@ -274,10 +272,12 @@ class TestWatchCommandParsing:
 
         queries_file = tmp_path / "queries.json"
         queries_file.write_text(
-            json.dumps([
-                {"query": "transformer attention", "categories": ["cs.CL"]},
-                {"query": "retrieval augmented generation"},
-            ])
+            json.dumps(
+                [
+                    {"query": "transformer attention", "categories": ["cs.CL"]},
+                    {"query": "retrieval augmented generation"},
+                ]
+            )
         )
 
         queries = _load_queries(queries_file)

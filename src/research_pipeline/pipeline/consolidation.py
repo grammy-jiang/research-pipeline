@@ -691,7 +691,6 @@ def prune_stale_episodes(
         try:
             ep_time = datetime.fromisoformat(ep.timestamp)
             if ep_time.tzinfo is None:
-
                 ep_time = ep_time.replace(tzinfo=UTC)
         except (ValueError, TypeError):
             continue

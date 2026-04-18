@@ -243,7 +243,7 @@ def render_report(
         tmpl_str = TEMPLATES[template_name]
     else:
         raise ValueError(
-            f"Unknown template {template_name!r}. " f"Available: {list_templates()}"
+            f"Unknown template {template_name!r}. Available: {list_templates()}"
         )
 
     env = Environment(loader=BaseLoader(), autoescape=False)  # nosec B701

@@ -501,7 +501,7 @@ def evaluate_stopping(
             should_stop=True,
             reason=StopReason.BUDGET_EXHAUSTED,
             details=(
-                f"Budget limit reached: " f"{state.total_results} >= {state.max_budget}"
+                f"Budget limit reached: {state.total_results} >= {state.max_budget}"
             ),
             batches_processed=len(state.batches),
             total_results=state.total_results,

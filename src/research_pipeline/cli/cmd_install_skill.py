@@ -15,10 +15,7 @@ DEFAULT_SKILL_DIR = Path.home() / ".claude" / "skills" / "research-pipeline"
 # Skill source within the repo / installed package data
 _SKILL_SOURCE_CANDIDATES = [
     # When running from the repo root (development)
-    Path(__file__).resolve().parents[3]
-    / ".github"
-    / "skills"
-    / "research-pipeline",
+    Path(__file__).resolve().parents[3] / ".github" / "skills" / "research-pipeline",
 ]
 
 

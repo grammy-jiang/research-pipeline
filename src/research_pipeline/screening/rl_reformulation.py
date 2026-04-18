@@ -444,7 +444,9 @@ class RLReformulator:
                 (
                     1.0
                     if s.reward == RewardSignal.SUCCESS
-                    else 0.5 if s.reward == RewardSignal.PARTIAL else 0.0
+                    else 0.5
+                    if s.reward == RewardSignal.PARTIAL
+                    else 0.0
                 )
                 for s in steps
             ),

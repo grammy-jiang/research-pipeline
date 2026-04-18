@@ -242,7 +242,7 @@ def classify_document_from_text(
     plan.recommended_backend = _recommend_backend(plan)
 
     logger.info(
-        "Page dispatch for %s: %d pages — %d simple, %d moderate, " "%d complex → %s",
+        "Page dispatch for %s: %d pages — %d simple, %d moderate, %d complex → %s",
         Path(pdf_path).name,
         total,
         simple,

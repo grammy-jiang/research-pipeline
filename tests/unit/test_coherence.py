@@ -631,7 +631,7 @@ class TestEvaluateCoherence:
         rids = []
         for i in range(3):
             r = tmp_path / f"run{i}"
-            _write_manifest(r, f"2025-0{i+1}-01T00:00:00")
+            _write_manifest(r, f"2025-0{i + 1}-01T00:00:00")
             _write_synthesis(
                 r,
                 _make_synthesis(

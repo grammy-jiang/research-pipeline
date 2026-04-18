@@ -255,8 +255,7 @@ class CitationGraphClient:
                 remaining_budget = max_total_papers - len(all_results)
                 if remaining_budget <= 0:
                     logger.info(
-                        "BFS budget stop at depth %d: total paper budget "
-                        "of %d reached",
+                        "BFS budget stop at depth %d: total paper budget of %d reached",
                         depth,
                         max_total_papers,
                     )
@@ -281,8 +280,7 @@ class CitationGraphClient:
             # Check total budget after adding
             if max_total_papers > 0 and len(all_results) >= max_total_papers:
                 logger.info(
-                    "BFS budget stop after depth %d: collected %d papers "
-                    "(budget=%d)",
+                    "BFS budget stop after depth %d: collected %d papers (budget=%d)",
                     depth,
                     len(all_results),
                     max_total_papers,

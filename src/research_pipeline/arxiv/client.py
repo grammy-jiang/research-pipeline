@@ -84,7 +84,7 @@ class ArxivClient:
                 last_exc = exc
                 wait = self.backoff_base * (2**attempt)
                 logger.warning(
-                    "Request timed out (attempt %d/%d). " "Retrying in %ds...",
+                    "Request timed out (attempt %d/%d). Retrying in %ds...",
                     attempt + 1,
                     self.max_retries + 1,
                     wait,
@@ -99,7 +99,7 @@ class ArxivClient:
                 else:
                     wait = self.backoff_base * (2**attempt)
                 logger.warning(
-                    "arXiv rate limit (429) hit (attempt %d/%d). " "Backing off %ds...",
+                    "arXiv rate limit (429) hit (attempt %d/%d). Backing off %ds...",
                     attempt + 1,
                     self.max_retries + 1,
                     wait,

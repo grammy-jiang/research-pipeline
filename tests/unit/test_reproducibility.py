@@ -46,7 +46,7 @@ class TestReproducibilityScore:
     def test_abstract_mentions_github(self) -> None:
         c = _make_candidate(
             abstract=(
-                "Our code is available at github.com/test/repo" " for reproducibility."
+                "Our code is available at github.com/test/repo for reproducibility."
             )
         )
         score = reproducibility_score(c)
