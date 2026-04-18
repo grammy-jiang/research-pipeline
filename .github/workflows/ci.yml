@@ -73,7 +73,6 @@ jobs:
 
       - name: Run mypy
         run: uv run mypy src/
-        # mypy has pre-existing errors; run for visibility but don't block
 
   security:
     name: Security & License Audit
