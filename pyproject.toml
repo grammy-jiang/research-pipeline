@@ -88,7 +88,10 @@ dev = [
   "pip-audit>=2.7",
   "pip-licenses>=4.0",
   "vulture>=2.11",
-  "hypothesis>=6.100"
+  "hypothesis>=6.100",
+  "mkdocs>=1.6",
+  "mkdocs-material>=9.5",
+  "mkdocstrings[python]>=0.25"
 ]
 reranker = [
   "sentence-transformers>=2.2"
@@ -98,7 +101,7 @@ reranker = [
 research-pipeline = "research_pipeline.cli.app:app"
 
 [project.urls]
-Documentation = "https://github.com/grammy-jiang/research-pipeline/tree/master/docs"
+Documentation = "https://grammy-jiang.github.io/research-pipeline/"
 Homepage = "https://github.com/grammy-jiang/research-pipeline"
 Issues = "https://github.com/grammy-jiang/research-pipeline/issues"
 Repository = "https://github.com/grammy-jiang/research-pipeline"
