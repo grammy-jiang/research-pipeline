@@ -6,7 +6,7 @@ Each test generates random valid model instances and verifies:
   3. Validators accept all generated data without raising.
 """
 
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
 import hypothesis.strategies as st
 from hypothesis import given, settings
@@ -32,13 +32,21 @@ from research_pipeline.models.summary import (
 # Reusable strategies
 # ---------------------------------------------------------------------------
 
-_nonempty_text = st.text(min_size=1, max_size=80, alphabet=st.characters(categories=("L", "N", "P", "Z")))
-_short_text = st.text(min_size=1, max_size=40, alphabet=st.characters(categories=("L", "N", "P", "Z")))
+_nonempty_text = st.text(
+    min_size=1, max_size=80, alphabet=st.characters(categories=("L", "N", "P", "Z"))
+)
+_short_text = st.text(
+    min_size=1, max_size=40, alphabet=st.characters(categories=("L", "N", "P", "Z"))
+)
 _optional_text = st.none() | _short_text
 _url = st.from_regex(r"https://[a-z]{3,12}\.[a-z]{2,4}/[a-z0-9/]{1,30}", fullmatch=True)
 _sha256 = st.from_regex(r"[0-9a-f]{64}", fullmatch=True)
-_score_0_1 = st.floats(min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False)
-_nonneg_float = st.floats(min_value=0.0, max_value=1e6, allow_nan=False, allow_infinity=False)
+_score_0_1 = st.floats(
+    min_value=0.0, max_value=1.0, allow_nan=False, allow_infinity=False
+)
+_nonneg_float = st.floats(
+    min_value=0.0, max_value=1e6, allow_nan=False, allow_infinity=False
+)
 _nonneg_int = st.integers(min_value=0, max_value=10**7)
 _pos_int = st.integers(min_value=1, max_value=10**7)
 _small_list = lambda s: st.lists(s, min_size=0, max_size=5)  # noqa: E731
@@ -46,7 +54,7 @@ _nonempty_list = lambda s: st.lists(s, min_size=1, max_size=5)  # noqa: E731
 _aware_datetimes = st.datetimes(
     min_value=datetime(2000, 1, 1),
     max_value=datetime(2099, 12, 31),
-    timezones=st.just(timezone.utc),
+    timezones=st.just(UTC),
 )
 
 # ---------------------------------------------------------------------------
@@ -430,15 +438,17 @@ class TestExtractionProperties:
 
 
 class TestSynthesisReportProperties:
-    @given(instance=st.builds(
-        SynthesisReport,
-        topic=_nonempty_text,
-        paper_count=_nonneg_int,
-        agreements=st.just([]),
-        disagreements=st.just([]),
-        open_questions=_small_list(_short_text),
-        paper_summaries=_small_list(st_paper_summary),
-    ))
+    @given(
+        instance=st.builds(
+            SynthesisReport,
+            topic=_nonempty_text,
+            paper_count=_nonneg_int,
+            agreements=st.just([]),
+            disagreements=st.just([]),
+            open_questions=_small_list(_short_text),
+            paper_summaries=_small_list(st_paper_summary),
+        )
+    )
     @settings(max_examples=50)
     def test_synthesis_report_json_roundtrip(self, instance):
         _assert_json_roundtrip(SynthesisReport, instance)
