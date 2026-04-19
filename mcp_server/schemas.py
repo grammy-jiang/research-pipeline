@@ -38,8 +38,9 @@ class SearchInput(CommonParams):
     source: str = Field(
         default="",
         description=(
-            "Search source(s): 'arxiv', 'scholar', 'all', or ''"
-            " (empty = use config default)."
+            "Search source(s): 'arxiv', 'scholar', 'semantic_scholar', "
+            "'openalex', 'dblp', 'huggingface', 'all', or '' "
+            "(empty = use config default)."
         ),
     )
 

@@ -174,7 +174,7 @@ def plan_topic(params: PlanTopicInput, ctx: Context | None = None) -> ToolResult
 
 
 def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
-    """Search arXiv and/or Google Scholar using the query plan."""
+    """Search configured academic paper sources using the query plan."""
     try:
         from concurrent.futures import ThreadPoolExecutor, as_completed
 
@@ -2188,36 +2188,42 @@ def export_bibtex_tool(
 ) -> ToolResult:
     """Export papers from a pipeline stage as BibTeX."""
     try:
-        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.screening import RelevanceDecision
         from research_pipeline.storage.workspace import get_stage_dir
         from research_pipeline.summarization.bibtex_export import (
             export_candidates_bibtex,
             load_candidates_from_jsonl,
         )
 
-        _report_progress(ctx, 0, 3, "Loading config")
-        cfg = load_config()
-        run_root = Path(cfg.runs_dir) / params.run_id
+        _report_progress(ctx, 0, 3, "Loading candidates")
+        workspace = _resolve_workspace(params.workspace)
+        run_root = _get_run_root(workspace, params.run_id)
         stage_dir = get_stage_dir(run_root, params.stage)
 
-        jsonl_candidates = [
-            f for f in stage_dir.glob("*.jsonl") if f.stem.startswith("candidates")
-        ]
-        if not jsonl_candidates:
-            jsonl_candidates = list(stage_dir.glob("*.jsonl"))
-        if not jsonl_candidates:
-            return ToolResult(
-                success=False,
-                message=f"No candidate JSONL files in {stage_dir}.",
-            )
+        shortlist_path = stage_dir / "shortlist.json"
+        if params.stage == "screen" and shortlist_path.exists():
+            raw = json.loads(shortlist_path.read_text(encoding="utf-8"))
+            decisions = [RelevanceDecision.model_validate(item) for item in raw]
+            candidates = [decision.paper for decision in decisions]
+        else:
+            jsonl_candidates = [
+                f for f in stage_dir.glob("*.jsonl") if f.stem.startswith("candidates")
+            ]
+            if not jsonl_candidates:
+                jsonl_candidates = list(stage_dir.glob("*.jsonl"))
+            if not jsonl_candidates:
+                return ToolResult(
+                    success=False,
+                    message=f"No candidate JSONL files in {stage_dir}.",
+                )
 
-        jsonl_path = sorted(jsonl_candidates)[-1]
-        _report_progress(ctx, 1, 3, "Loading candidates")
-        candidates = load_candidates_from_jsonl(jsonl_path)
+            jsonl_path = sorted(jsonl_candidates)[-1]
+            _report_progress(ctx, 1, 3, "Loading candidates")
+            candidates = load_candidates_from_jsonl(jsonl_path)
         if not candidates:
             return ToolResult(
                 success=False,
-                message=f"No candidates found in {jsonl_path}.",
+                message=f"No candidates found in {stage_dir}.",
             )
 
         out_path = (
@@ -2249,7 +2255,6 @@ def report_tool(
 ) -> ToolResult:
     """Render a synthesis report using a configurable template."""
     try:
-        from research_pipeline.config.loader import load_config
         from research_pipeline.models.summary import SynthesisReport
         from research_pipeline.storage.workspace import get_stage_dir
         from research_pipeline.summarization.report_templates import (
@@ -2268,15 +2273,17 @@ def report_tool(
                 ),
             )
 
-        cfg = load_config()
-        run_root = Path(cfg.runs_dir) / params.run_id
+        workspace = _resolve_workspace(params.workspace)
+        run_root = _get_run_root(workspace, params.run_id)
         stage_dir = get_stage_dir(run_root, "summarize")
 
         synthesis_json = stage_dir / "synthesis_report.json"
         if not synthesis_json.exists():
+            synthesis_json = stage_dir / "synthesis.json"
+        if not synthesis_json.exists():
             return ToolResult(
                 success=False,
-                message=f"No synthesis_report.json in {stage_dir}.",
+                message=f"No synthesis_report.json or synthesis.json in {stage_dir}.",
             )
 
         _report_progress(ctx, 1, 4, "Loading synthesis")
@@ -2330,7 +2337,6 @@ def cluster_tool(
 ) -> ToolResult:
     """Cluster papers by topic similarity using TF-IDF."""
     try:
-        from research_pipeline.config.loader import load_config
         from research_pipeline.screening.clustering import cluster_candidates
         from research_pipeline.storage.workspace import get_stage_dir
         from research_pipeline.summarization.bibtex_export import (
@@ -2338,8 +2344,8 @@ def cluster_tool(
         )
 
         _report_progress(ctx, 0, 3, "Loading candidates")
-        cfg = load_config()
-        run_root = Path(cfg.runs_dir) / params.run_id
+        workspace = _resolve_workspace(params.workspace)
+        run_root = _get_run_root(workspace, params.run_id)
         stage_dir = get_stage_dir(run_root, params.stage)
 
         jsonl_candidates = sorted(stage_dir.glob("*.jsonl"))
@@ -2419,12 +2425,8 @@ def enrich_tool(
         config = load_config(
             Path(params.config_path) if params.config_path else None,
         )
-        run_dir = Path(config.runs_dir) / params.run_id
-        if not run_dir.exists():
-            return ToolResult(
-                success=False,
-                message=f"Run directory not found: {run_dir}",
-            )
+        workspace = _resolve_workspace(params.workspace)
+        run_dir = _get_run_root(workspace, params.run_id)
 
         if params.stage == "screened":
             stage_dir = get_stage_dir(run_dir, "screen")
@@ -2485,7 +2487,6 @@ def cite_context_tool(
 ) -> ToolResult:
     """Extract citation contexts from converted Markdown papers."""
     try:
-        from research_pipeline.config.loader import load_config
         from research_pipeline.extraction.citation_context import (
             contexts_to_dicts,
             extract_citation_contexts,
@@ -2493,15 +2494,8 @@ def cite_context_tool(
         from research_pipeline.storage.workspace import get_stage_dir
 
         _report_progress(ctx, 0, 3, "Finding Markdown files")
-        config = load_config(
-            Path(params.config_path) if params.config_path else None,
-        )
-        run_dir = Path(config.runs_dir) / params.run_id
-        if not run_dir.exists():
-            return ToolResult(
-                success=False,
-                message=f"Run directory not found: {run_dir}",
-            )
+        workspace = _resolve_workspace(params.workspace)
+        run_dir = _get_run_root(workspace, params.run_id)
 
         convert_dir = get_stage_dir(run_dir, "convert")
         md_files = sorted(convert_dir.glob("**/*.md"))

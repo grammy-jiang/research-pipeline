@@ -121,6 +121,9 @@ Synthesize findings from N analyzed papers on "<topic>".
 8. Readiness assessment (if system-building mode):
    IMPLEMENTATION_READY | HAS_GAPS | NOT_APPLICABLE
    Classify gaps as ENGINEERING or ACADEMIC (if HAS_GAPS)
+9. Human-readable Markdown: concise sections, LaTeX for formulas, vertical
+   Mermaid diagrams (`flowchart TD`/`TB`) for charts, and internal links
+   between contents, themes, papers, evidence, gaps, and recommendations
 
 Write both the Markdown synthesis and the structured JSON output to:
 /absolute/path/to/runs/<run_id>/synthesis/

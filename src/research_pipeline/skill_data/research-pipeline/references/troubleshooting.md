@@ -45,20 +45,22 @@ These bugs existed in v0.3.0 and are resolved in v0.3.1:
 | arXiv | 1 req / 3s, single connection | Never parallel. 429 triggers exponential backoff |
 | Google Scholar (free) | 10s+ between requests | May get captchas under heavy use |
 | SerpAPI | 5s between requests | Paid, more reliable |
-| Semantic Scholar | 1s between requests | Used by `expand` and `quality` commands |
+| Semantic Scholar | 1s between requests | Search source; also used by `expand` and `quality` |
 
 ## Search Sources
 
-`--source all` currently searches **arXiv + Google Scholar** in parallel.
-Results are deduplicated by arXiv ID and normalized title.
+`--source all` searches **arXiv + Google Scholar + Semantic Scholar +
+OpenAlex + DBLP + HuggingFace daily papers** in parallel. Results are
+deduplicated by arXiv ID, DOI, and normalized title.
 
 Available source values for `--source`:
 - `arxiv` — arXiv API (default)
 - `scholar` — Google Scholar (requires scholarly or SerpAPI)
-- `all` — arXiv + Google Scholar
-
-Semantic Scholar is used by the `expand` (citation graph) and `quality`
-(author h-index) commands, but is not a search source for `--source`.
+- `semantic_scholar` — Semantic Scholar
+- `openalex` — OpenAlex
+- `dblp` — DBLP
+- `huggingface` — HuggingFace daily papers (keyword-filtered, recent papers)
+- `all` — arXiv + Google Scholar + Semantic Scholar + OpenAlex + DBLP + HuggingFace
 
 ## Source Configuration
 
@@ -71,9 +73,15 @@ export RESEARCH_PIPELINE_S2_API_KEY=your-s2-key     # Semantic Scholar (higher r
 ### config.toml
 ```toml
 [sources]
-default_sources = ["arxiv"]     # Available: arxiv, scholar
-semantic_scholar_api_key = ""   # Used by expand and quality commands
+enabled = ["arxiv"]             # Searchable: arxiv, scholar, semantic_scholar, openalex, dblp, huggingface
+scholar_backend = "scholarly"   # scholarly or serpapi
+serpapi_key = ""
+semantic_scholar_api_key = ""
 semantic_scholar_min_interval = 1.0
+openalex_api_key = ""
+openalex_min_interval = 0.1
+dblp_min_interval = 1.0
+huggingface_limit = 100
 
 [screen]
 use_semantic_reranking = false

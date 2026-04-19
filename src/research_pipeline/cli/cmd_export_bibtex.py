@@ -2,12 +2,14 @@
 
 from __future__ import annotations
 
+import json
 import logging
 from pathlib import Path
 
 import typer
 
 from research_pipeline.config.loader import load_config
+from research_pipeline.models.screening import RelevanceDecision
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 from research_pipeline.summarization.bibtex_export import (
     export_candidates_bibtex,
@@ -51,29 +53,37 @@ def export_bibtex_cmd(
     _run_id, run_root = init_run(ws, run_id)
     stage_dir = get_stage_dir(run_root, stage)
 
-    # Find the candidates JSONL file
-    jsonl_candidates = [
-        f for f in stage_dir.glob("*.jsonl") if f.stem.startswith("candidates")
-    ]
-    if not jsonl_candidates:
-        # Fallback: look for screened_candidates.jsonl or any .jsonl
-        jsonl_candidates = list(stage_dir.glob("*.jsonl"))
+    candidates = []
+    shortlist_path = stage_dir / "shortlist.json"
+    if stage == "screen" and shortlist_path.exists():
+        raw = json.loads(shortlist_path.read_text(encoding="utf-8"))
+        decisions = [RelevanceDecision.model_validate(item) for item in raw]
+        candidates = [decision.paper for decision in decisions]
+        logger.info("Loading candidates from %s", shortlist_path)
+    else:
+        # Find the candidates JSONL file
+        jsonl_candidates = [
+            f for f in stage_dir.glob("*.jsonl") if f.stem.startswith("candidates")
+        ]
+        if not jsonl_candidates:
+            # Fallback: look for screened_candidates.jsonl or any .jsonl
+            jsonl_candidates = list(stage_dir.glob("*.jsonl"))
 
-    if not jsonl_candidates:
-        logger.error(
-            "No candidate JSONL files found in %s. Run the %s stage first.",
-            stage_dir,
-            stage,
-        )
-        raise typer.Exit(1)
+        if not jsonl_candidates:
+            logger.error(
+                "No candidate JSONL files found in %s. Run the %s stage first.",
+                stage_dir,
+                stage,
+            )
+            raise typer.Exit(1)
 
-    # Use the first (or most recent) JSONL file
-    jsonl_path = sorted(jsonl_candidates)[-1]
-    logger.info("Loading candidates from %s", jsonl_path)
+        # Use the first (or most recent) JSONL file
+        jsonl_path = sorted(jsonl_candidates)[-1]
+        logger.info("Loading candidates from %s", jsonl_path)
+        candidates = load_candidates_from_jsonl(jsonl_path)
 
-    candidates = load_candidates_from_jsonl(jsonl_path)
     if not candidates:
-        logger.warning("No candidates found in %s", jsonl_path)
+        logger.warning("No candidates found in %s", stage_dir)
         raise typer.Exit(1)
 
     out_path = Path(output) if output else stage_dir / "references.bib"

@@ -142,11 +142,12 @@ def tool_search(
     resume: bool = False,
     source: str = "",
 ) -> dict:
-    """Search arXiv and/or Google Scholar for academic papers.
+    """Search configured academic paper sources.
 
     Queries enabled sources with rate limiting, parses responses,
     and deduplicates across sources and query variants.
-    Use source='arxiv', 'scholar', 'all', or '' (config default).
+    Use source='arxiv', 'scholar', 'semantic_scholar', 'openalex',
+    'dblp', 'huggingface', 'all', or '' (config default).
     """
     result = search(
         SearchInput(
@@ -1311,8 +1312,9 @@ async def tool_report(
 ) -> dict:
     """Render a synthesis report using a configurable template.
 
-    Reads synthesis_report.json from the summarize stage and renders
-    it through a Jinja2 template to produce a formatted Markdown report.
+    Reads synthesis_report.json or synthesis.json from the summarize stage
+    and renders it through a Jinja2 template to produce a formatted Markdown
+    report.
 
     Args:
         run_id: Pipeline run ID.

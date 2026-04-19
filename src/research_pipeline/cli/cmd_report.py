@@ -45,8 +45,9 @@ def report_cmd(
 ) -> None:
     """Render a synthesis report using a configurable template.
 
-    Reads the synthesis_report.json from the summarize stage and renders
-    it through a Jinja2 template to produce a formatted Markdown report.
+    Reads synthesis_report.json or synthesis.json from the summarize stage
+    and renders it through a Jinja2 template to produce a formatted Markdown
+    report.
 
     Available templates: survey, gap_analysis, lit_review, executive.
 
@@ -72,8 +73,11 @@ def report_cmd(
 
     synthesis_json = stage_dir / "synthesis_report.json"
     if not synthesis_json.exists():
+        synthesis_json = stage_dir / "synthesis.json"
+    if not synthesis_json.exists():
         logger.error(
-            "No synthesis_report.json in %s. Run the summarize stage first.",
+            "No synthesis_report.json or synthesis.json in %s. "
+            "Run the summarize stage first.",
             stage_dir,
         )
         raise typer.Exit(1)

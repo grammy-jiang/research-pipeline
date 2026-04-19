@@ -9,285 +9,333 @@
 [![ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Docs](https://img.shields.io/badge/docs-mkdocs-blue)](https://grammy-jiang.github.io/research-pipeline/)
 
-A production-grade, deterministic Python pipeline for searching, screening,
-downloading, converting, and summarizing academic papers from arXiv, Google
-Scholar, Semantic Scholar, OpenAlex, and DBLP.
+`research-pipeline` is a deterministic Python 3.12+ workflow for finding,
+screening, downloading, converting, and synthesizing academic papers. It is
+useful when you need an auditable literature review, not just a one-off paper
+search.
 
-## Features
+It ships as both a Typer CLI and an MCP server for agent-driven research.
 
-- **Multi-stage pipeline**: plan → search → screen → download → convert → extract → summarize
-- **5 new auxiliary commands**: `expand` (citation graph), `quality` (evaluation scoring), `convert-rough` / `convert-fine` (two-tier conversion), `index` (incremental runs)
-- **Modular CLI** with independent, composable stage commands
-- **MCP server** for AI agent integration (17 tools, 15 resources, 6 prompts, completions, progress reporting)
-- **Harness-engineered research workflow** — server-driven orchestration with 6 layers: telemetry, context engineering, governance, structural verification, doom-loop monitoring, and crash recovery
-- **Multi-source search**: arXiv + Google Scholar + Semantic Scholar + OpenAlex + DBLP
-- **Cross-source enrichment** — fill missing abstracts via DOI lookup
-- **Semantic re-ranking** — optional SPECTER2 embeddings for similarity scoring
-- **Citation graph expansion** — discover related papers via Semantic Scholar citations
-- **Quality evaluation** — composite scoring: citation impact, venue reputation, author h-index, recency
-- **Multi-backend PDF conversion**: 3 local (Docling, Marker, PyMuPDF4LLM) + 5 cloud (Mathpix, Datalab, LlamaParse, Mistral OCR, OpenAI Vision)
-- **Two-tier conversion** — fast `convert-rough` for all papers, high-quality `convert-fine` for selected ones
-- **Multi-account rotation** — rotate between accounts per service on quota exhaustion
-- **Cross-service fallback** — automatic failover to next backend when all accounts are exhausted
-- **Incremental runs** — SQLite global index deduplicates papers across runs
-- **Retry & error recovery** — `@retry` decorator with exponential backoff, jitter, and Retry-After support
-- **Idempotent & resumable** — every stage can be re-run safely
-- **arXiv polite-mode** — strict rate limiting, single connection, caching
-- **Deterministic tool chain** with optional LLM judgment
-- **Full artifact lineage** — every run is reproducible and auditable via manifests
-- **Offline-first testing** — no live API calls in CI
+## Contents
+
+- [What It Does](#what-it-does)
+- [Installation](#installation)
+- [Quick Start](#quick-start)
+- [Pipeline](#pipeline)
+- [CLI Commands](#cli-commands)
+- [Readable Reports](#readable-reports)
+- [MCP Server](#mcp-server)
+- [AI Skill And Agents](#ai-skill-and-agents)
+- [Configuration](#configuration)
+- [Artifacts](#artifacts)
+- [Development](#development)
+
+## What It Does
+
+- Searches arXiv, Google Scholar, Semantic Scholar, OpenAlex, DBLP, and
+  HuggingFace daily papers, with cross-source deduplication.
+- Screens candidates with BM25 heuristics, optional SPECTER2 semantic reranking,
+  optional LLM judging, diversity-aware selection, and feedback-adjusted weights.
+- Downloads PDFs politely with rate limits, retry, caching, and manifest tracking.
+- Converts PDFs to Markdown through local or cloud backends: Docling, Marker,
+  PyMuPDF4LLM, MinerU, Mathpix, Datalab, LlamaParse, Mistral OCR, or OpenAI
+  Vision.
+- Supports two-tier conversion: fast rough conversion for all papers and
+  high-quality fine conversion for selected papers.
+- Extracts structured chunks, bibliography data, citation contexts, and retrieval
+  indexes from converted papers.
+- Produces per-paper summaries, cross-paper synthesis, confidence scoring,
+  evidence aggregation, BibTeX exports, templated Markdown reports, and
+  self-contained HTML reports.
+- Adds research quality layers: citation expansion, quality scoring, claim
+  decomposition, knowledge graph ingestion, report validation, multi-run
+  comparison, coherence checks, memory consolidation, blinding audits, Pass@k /
+  Pass[k] metrics, case-based strategy reuse, KG quality checks, adaptive
+  stopping, and 4-layer confidence calibration.
 
 ## Installation
 
 ```bash
-# From PyPI
+# Base package
 pip install research-pipeline
 
-# With local PDF conversion backends
-pip install research-pipeline[docling]       # MIT license, great tables/equations
-pip install research-pipeline[marker]        # Highest accuracy (95.7%), GPL-3.0
-pip install research-pipeline[pymupdf4llm]   # Fastest (10-50x), AGPL
+# Recommended local converter
+pip install 'research-pipeline[docling]'
 
-# With cloud PDF conversion backends (require API keys)
-pip install research-pipeline[mathpix]       # Best LaTeX, 1K free pages/mo
-pip install research-pipeline[datalab]       # Hosted Marker, $5 free credit
-pip install research-pipeline[llamaparse]    # 1K free pages/day
-pip install research-pipeline[mistral-ocr]   # Mistral OCR, free credits
-pip install research-pipeline[openai-vision] # GPT-4o vision
+# Other local converters
+pip install 'research-pipeline[marker]'       # high accuracy, GPL-3.0
+pip install 'research-pipeline[pymupdf4llm]'  # fast CPU conversion, AGPL
+pip install 'research-pipeline[mineru]'       # scientific PDF parser
 
-# With Google Scholar support
-pip install research-pipeline[scholar]
+# Search and reranking extras
+pip install 'research-pipeline[scholar]'      # Google Scholar via scholarly
+pip install 'research-pipeline[serpapi]'      # Google Scholar via SerpAPI
+pip install 'research-pipeline[reranker]'     # sentence-transformers reranker
 
-# With all extras
-pip install research-pipeline[docling,marker,pymupdf4llm,scholar]
+# Cloud conversion extras
+pip install 'research-pipeline[datalab]'
+pip install 'research-pipeline[llamaparse]'
+pip install 'research-pipeline[mistral-ocr]'
+pip install 'research-pipeline[openai-vision]'
+
+# Development checkout
+uv sync --extra dev --extra docling --extra scholar --extra reranker
 ```
 
-### Development install
+## Quick Start
 
 ```bash
-# With uv (recommended)
-uv sync --extra dev --extra docling --extra scholar
+# Fast abstract-only pass
+research-pipeline run --profile quick "transformer architectures for time series"
+
+# Full evidence-backed pipeline
+research-pipeline run "local memory systems for AI agents"
+
+# Deep profile with quality, expansion, claim analysis, and TER gap filling
+research-pipeline run --profile deep "comprehensive survey of AI memory systems"
+
+# Search every configured source family
+research-pipeline run --source all "long-context retrieval augmented generation"
 ```
 
-## Quick start
+Run stages independently when you want control over review points:
 
 ```bash
-# Full end-to-end pipeline
-research-pipeline run "transformer architectures for time series forecasting"
-
-# Or run stages individually
-research-pipeline plan "transformer architectures for time series forecasting"
-research-pipeline search --run-id <RUN_ID>
-research-pipeline screen --run-id <RUN_ID>
+research-pipeline plan "multimodal RAG for long-document QA"
+research-pipeline search --run-id <RUN_ID> --source all
+research-pipeline screen --run-id <RUN_ID> --diversity
+research-pipeline quality --run-id <RUN_ID>
 research-pipeline download --run-id <RUN_ID>
-research-pipeline convert --run-id <RUN_ID>
+research-pipeline convert-rough --run-id <RUN_ID>
+research-pipeline convert-fine --run-id <RUN_ID> --paper-ids "2401.12345"
 research-pipeline extract --run-id <RUN_ID>
 research-pipeline summarize --run-id <RUN_ID>
-
-# Inspect run status
-research-pipeline inspect --run-id <RUN_ID>
-
-# Standalone PDF conversion (no workspace required)
-research-pipeline convert-file paper.pdf -o paper.md
-
-# Use a specific conversion backend
-research-pipeline convert --run-id <RUN_ID> --backend marker
-research-pipeline convert-file paper.pdf --backend pymupdf4llm
-
-# Two-tier conversion: rough (fast) then fine (high-quality)
-research-pipeline convert-rough --run-id <RUN_ID>
-research-pipeline convert-fine --run-id <RUN_ID>
-
-# Evaluate paper quality (citation impact, venue, author)
-research-pipeline quality --run-id <RUN_ID>
-
-# Expand via citation graph (Semantic Scholar)
-research-pipeline expand --run-id <RUN_ID> --direction both
-
-# Manage global paper index (incremental dedup)
-research-pipeline index --list
+research-pipeline report --run-id <RUN_ID> --template survey
+research-pipeline validate --run-id <RUN_ID>
 ```
 
-## Commands
+## Pipeline
 
-| Command | Purpose |
+```mermaid
+flowchart TD
+    A["Plan queries"] --> B["Search sources"]
+    B --> C["Screen candidates"]
+    C --> D["Quality and expansion"]
+    D --> E["Download PDFs"]
+    E --> F["Convert to Markdown"]
+    F --> G["Extract evidence"]
+    G --> H["Summarize papers"]
+    H --> I["Report, validate, export"]
+```
+
+Profiles:
+
+| Profile | Stages | Use Case |
+|---|---|---|
+| `quick` | plan, search, screen, summarize | Fast abstract-only scan |
+| `standard` | plan through summarize | Default full pipeline |
+| `deep` | standard plus quality, expand, claim analysis, TER loop | Comprehensive literature review |
+| `auto` | selected by query complexity | Mixed workloads |
+
+Search sources:
+
+| Source | Notes |
 |---|---|
-| `plan` | Normalize topic → structured query plan |
-| `search` | Execute multi-source search (arXiv, Scholar, Semantic Scholar, OpenAlex, DBLP) |
-| `screen` | Two-stage relevance filtering (BM25 + optional SPECTER2 + optional LLM) |
-| `download` | Download shortlisted PDFs with rate limiting and retry |
-| `convert` | PDF → Markdown (8 backends, multi-account rotation, cross-service fallback) |
-| `convert-rough` | Fast Tier 2 conversion (pymupdf4llm) for all downloaded PDFs |
-| `convert-fine` | High-quality Tier 3 conversion for selected papers |
-| `extract` | Structured content extraction & chunking |
-| `summarize` | Per-paper summaries + cross-paper synthesis |
-| `expand` | Citation graph expansion via Semantic Scholar API |
-| `quality` | Composite quality evaluation (citations, venue, author, recency) |
-| `run` | End-to-end orchestration of all stages |
-| `inspect` | View run manifests and artifacts |
-| `convert-file` | Standalone PDF → Markdown conversion |
-| `index` | Manage the global paper index for incremental runs |
-| `setup` | Install skill + sub-agent definitions to `~/.claude/` |
+| `arxiv` | Polite arXiv API client with cache and rate limits |
+| `scholar` | Google Scholar through `scholarly` or SerpAPI |
+| `semantic_scholar` | Broad metadata, citations, and abstracts |
+| `openalex` | Open bibliographic metadata |
+| `dblp` | Computer science bibliography |
+| `huggingface` | Recent HuggingFace daily papers |
+| `all` | arXiv, Scholar, Semantic Scholar, OpenAlex, DBLP, HuggingFace |
 
-## MCP server
+## CLI Commands
 
-The MCP server provides full Model Context Protocol support for AI agent
-integration:
+| Group | Commands |
+|---|---|
+| Core pipeline | `plan`, `search`, `screen`, `download`, `convert`, `extract`, `summarize`, `run`, `inspect` |
+| Search expansion and organization | `quality`, `expand`, `cluster`, `enrich`, `watch` |
+| Conversion and export | `convert-file`, `convert-rough`, `convert-fine`, `export-bibtex`, `export-html`, `report` |
+| Analysis and validation | `analyze`, `analyze-claims`, `score-claims`, `confidence-layers`, `aggregate`, `validate`, `compare`, `evaluate` |
+| Feedback and memory | `feedback`, `index`, `coherence`, `consolidate`, `memory-stats`, `memory-episodes`, `memory-search` |
+| Knowledge graph | `kg-ingest`, `kg-stats`, `kg-query`, `kg-quality`, `cite-context` |
+| Reliability checks | `blinding-audit`, `dual-metrics`, `adaptive-stopping`, `cbr-lookup`, `cbr-retain` |
+| Setup | `setup` installs the bundled skill and paper-analysis agents |
+
+Useful examples:
 
 ```bash
-# Run via module
+# Citation graph expansion
+research-pipeline expand --run-id <RUN_ID> --paper-ids "2401.12345" \
+  --direction both --bfs-depth 2 --bfs-query "memory,agents"
+
+# Evidence-only aggregation
+research-pipeline aggregate --run-id <RUN_ID> --min-pointers 1
+
+# Multi-run comparison and coherence
+research-pipeline compare --run-a <RUN_A> --run-b <RUN_B>
+research-pipeline coherence <RUN_A> <RUN_B> <RUN_C>
+
+# Knowledge graph
+research-pipeline kg-ingest --run-id <RUN_ID>
+research-pipeline kg-stats
+research-pipeline kg-query 2401.12345
+```
+
+## Readable Reports
+
+The pipeline can produce machine-readable synthesis JSON and human-readable
+Markdown or HTML reports. For human-facing reports, prefer:
+
+- clear headings and a contents section with internal links;
+- Mermaid diagrams for process charts, usually vertical `flowchart TD` charts;
+- LaTeX for formulas, using `$...$` inline and `$$...$$` for display equations;
+- tables for comparisons and coverage matrices;
+- paper links that jump to references or evidence-map entries;
+- recommendations linked back to findings, gaps, and evidence.
+
+```bash
+# Render Markdown from a synthesis JSON
+research-pipeline report --run-id <RUN_ID> --template survey
+
+# Export self-contained HTML
+research-pipeline export-html --run-id <RUN_ID>
+
+# Validate report completeness and readability signals
+research-pipeline validate --run-id <RUN_ID>
+```
+
+## MCP Server
+
+Run the MCP server with:
+
+```bash
+python -m mcp_server
+# or, from a development checkout
 uv run python -m mcp_server
 ```
 
-**17 tools** — all pipeline stages plus auxiliary commands and workflow:
+Current MCP surface:
 
-`plan_topic`, `search`, `screen_candidates`, `download_pdfs`, `convert_pdfs`,
-`extract_content`, `summarize_papers`, `run_pipeline`, `get_run_manifest`,
-`convert_file`, `list_backends`, `expand_citations`, `evaluate_quality`,
-`convert_rough`, `convert_fine`, `manage_index`, `research_workflow`
+- 42 tools covering pipeline stages, conversion, quality, expansion,
+  validation, reporting, memory, KG, reliability, and the server-driven
+  `research_workflow`.
+- 15 resources for run manifests, plans, candidates, shortlists, PDFs,
+  Markdown, summaries, synthesis, quality scores, config, index, workflow
+  state, telemetry, and budget.
+- 6 prompts for topic planning, workflow orchestration, paper analysis,
+  comparison, search refinement, and quality assessment.
 
-**15 resources** — read pipeline artifacts via URI templates:
+The `research_workflow` tool adds harness engineering: telemetry, bounded
+context, governance gates, structural verification, doom-loop monitoring, and
+crash recovery.
 
-`runs://list`, `runs://{run_id}/manifest`, `runs://{run_id}/plan`,
-`runs://{run_id}/candidates`, `runs://{run_id}/shortlist`,
-`runs://{run_id}/papers/{paper_id}`, `runs://{run_id}/markdown/{paper_id}`,
-`runs://{run_id}/summary/{paper_id}`, `runs://{run_id}/synthesis`,
-`runs://{run_id}/quality`, `config://current`, `index://papers`,
-`workflow://{run_id}/state`, `workflow://{run_id}/telemetry`,
-`workflow://{run_id}/budget`
+## AI Skill And Agents
 
-**6 prompts** — research workflow templates:
-
-`research_topic`, `research_workflow`, `analyze_paper`, `compare_papers`,
-`refine_search`, `quality_assessment`
-
-Plus: **tool annotations**, **auto-completions**, and **progress reporting**.
-
-### Harness-engineered workflow
-
-The `research_workflow` tool drives a server-side orchestrated research workflow
-with 6 harness engineering layers derived from a 79-paper synthesis:
-
-| Layer | Purpose |
-|-------|---------|
-| WL1 Telemetry | Three-surface logging (cognitive/operational/contextual) |
-| WL2 Context | Token budgets, 5-stage paper compaction (Tokalator/ACC) |
-| WL3 Governance | Schema-level state machine, verify-before-commit gates |
-| WL4 Verification | Structural output validation (not self-referential) |
-| WL5 Monitoring | Doom-loop detection, iteration drift tracking |
-| WL6 Recovery | Persistent state after every stage, crash-recovery |
-
-Features:
-- **Sampling-based analysis**: LLM paper analysis via `create_message()` (1 round per paper)
-- **Elicitation gates**: user approval at 6 decision points via `ctx.elicit()`
-- **Iterative synthesis**: system-building mode with gap analysis and convergence
-- **Bounded rationality**: max 3 iterations, 7 explicit stop conditions
-- **Graceful degradation**: works without sampling or elicitation capabilities
-
-## AI skill & sub-agents
-
-Install the bundled Claude Code / GitHub Copilot skill and sub-agent definitions:
+Install the bundled Claude Code / GitHub Copilot skill and sub-agent
+definitions:
 
 ```bash
-# Install everything (skill + agents) to ~/.claude/
-research-pipeline setup
-
-# Or create symlinks (for development)
-research-pipeline setup --symlink
-
-# Force overwrite existing
-research-pipeline setup --force
-
-# Install only the skill (skip agents)
+research-pipeline setup              # skill + agents
+research-pipeline setup --symlink    # symlink for development
+research-pipeline setup --force      # overwrite existing files
 research-pipeline setup --skip-agents
-
-# Install only agents (skip skill)
 research-pipeline setup --skip-skill
 ```
 
-This installs:
-- **Skill** → `~/.claude/skills/research-pipeline/` (SKILL.md + references + config)
-- **Sub-agents** → `~/.claude/agents/` (paper-analyzer, paper-screener, paper-synthesizer)
+Installed files:
+
+- Skill: `~/.claude/skills/research-pipeline/`
+- Agents: `~/.claude/agents/paper-screener.md`,
+  `~/.claude/agents/paper-analyzer.md`,
+  `~/.claude/agents/paper-synthesizer.md`
 
 ## Configuration
 
-Copy `config.example.toml` to `config.toml` and adjust settings:
+Start from the example config:
 
 ```bash
 cp config.example.toml config.toml
 ```
 
-Key environment variables:
+High-impact settings:
+
+```toml
+profile = "standard"          # quick, standard, deep, auto
+workspace = "runs"
+
+[sources]
+enabled = ["arxiv"]           # or include scholar, semantic_scholar, openalex, dblp, huggingface
+scholar_backend = "scholarly" # or "serpapi"
+
+[screen]
+diversity = false
+use_semantic_reranking = false
+
+[conversion]
+backend = "docling"
+fallback_backends = []
+
+[llm]
+enabled = false               # enables LLM screening/summarization when configured
+provider = "ollama"           # ollama or openai-compatible
+
+[gates]
+enabled = false
+auto_approve = true
+```
+
+Environment overrides:
 
 | Variable | Purpose |
 |---|---|
-| `ARXIV_PAPER_PIPELINE_CONFIG` | Config file path |
-| `ARXIV_PAPER_PIPELINE_CACHE_DIR` | Override cache directory |
-| `ARXIV_PAPER_PIPELINE_WORKSPACE` | Override workspace directory |
-| `ARXIV_PAPER_PIPELINE_DISABLE_LLM` | Force LLM off |
+| `RESEARCH_PIPELINE_CONFIG` | Config file path |
+| `RESEARCH_PIPELINE_CACHE_DIR` | Override cache directory |
+| `RESEARCH_PIPELINE_WORKSPACE` | Override workspace directory |
+| `RESEARCH_PIPELINE_DISABLE_LLM` | Force LLM features off |
+| `RESEARCH_PIPELINE_LLM_PROFILE` | Select LLM profile |
 
-## Artifact layout
+## Artifacts
 
-Each pipeline run produces outputs in `runs/<run_id>/`:
+Each run writes auditable outputs under `runs/<run_id>/`:
 
-```
+```text
 runs/<run_id>/
-├── run_config.json            # Configuration snapshot
-├── run_manifest.json          # Execution metadata & stage records
-├── plan/query_plan.json       # Normalized query plan
-├── search/
-│   ├── raw/*.xml              # Raw API response pages
-│   └── candidates.jsonl       # Deduplicated candidates
-├── screen/
-│   ├── cheap_scores.jsonl     # Heuristic scores
-│   └── shortlist.json         # Papers selected for download
-├── download/
-│   ├── pdf/*.pdf              # Downloaded papers
-│   └── download_manifest.jsonl
-├── convert/
-│   ├── markdown/*.md          # Converted Markdown
-│   └── convert_manifest.jsonl
-├── convert_rough/             # Tier 2: fast conversion (all PDFs)
-│   ├── markdown/*.md
-│   └── convert_manifest.jsonl
-├── convert_fine/              # Tier 3: high-quality conversion (selected)
-│   ├── markdown/*.md
-│   └── convert_manifest.jsonl
-├── quality/                   # Quality evaluation scores
-│   └── quality_scores.jsonl
-├── expand/                    # Citation graph expansion
-│   └── expanded_candidates.jsonl
-├── extract/*.extract.json     # Chunked & indexed extraction
-├── summarize/
-│   ├── *.summary.json         # Per-paper summaries
-│   ├── synthesis.json         # Cross-paper synthesis
-│   └── synthesis.md           # Human-readable synthesis
-├── workflow/                  # Harness-engineered workflow state
-│   ├── state.json             # Workflow state (stage statuses, execution log)
-│   └── telemetry.jsonl        # Three-surface telemetry events
-└── logs/pipeline.jsonl        # Structured logs
+├── plan/query_plan.json
+├── search/candidates.jsonl
+├── screen/shortlist.json
+├── download/pdf/*.pdf
+├── convert/markdown/*.md
+├── convert_rough/markdown/*.md
+├── convert_fine/markdown/*.md
+├── extract/*.extract.json
+├── extract/*.bibliography.json
+├── summarize/*.summary.json
+├── summarize/synthesis.json
+├── summarize/synthesis_confidence.json
+├── quality/quality_scores.jsonl
+├── expand/expanded_candidates.jsonl
+├── analysis/
+├── comparison/
+└── logs/
 ```
+
+The `runs/` and `workspace/` directories are generated outputs and are not
+tracked by git.
 
 ## Development
 
 ```bash
-# Install dev dependencies
-uv sync --extra dev
-
-# Run unit tests
+uv sync --extra dev --extra docling --extra scholar --extra reranker
 uv run pytest tests/unit/ -xvs
-
-# Format, lint, type check
-uv run isort . && uv run black . && uv run ruff check . --fix
+uv run ruff format .
+uv run ruff check . --fix
 uv run mypy src/
-
-# Run all pre-commit hooks
 uv run pre-commit run --all-files
 ```
 
-See [docs/architecture.md](docs/architecture.md) for detailed architecture
-documentation and [docs/user-guide.md](docs/user-guide.md) for the full user
-guide.
+See [docs/architecture.md](docs/architecture.md) for architecture details and
+[docs/user-guide.md](docs/user-guide.md) for the full user guide.
 
 ## License
 

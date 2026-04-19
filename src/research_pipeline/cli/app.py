@@ -109,13 +109,16 @@ def search(
         None,
         "--source",
         "-s",
-        help="Search source(s): arxiv, scholar, all (default: from config).",
+        help=(
+            "Search source(s): arxiv, scholar, semantic_scholar, openalex, "
+            "dblp, huggingface, all (default: from config)."
+        ),
     ),
 ) -> None:
-    """Search arXiv and Google Scholar in parallel.
+    """Search configured academic paper sources in parallel.
 
-    Both sources run concurrently. Results are deduplicated by
-    arxiv_id and title. Use --source to select a single source.
+    Enabled sources run concurrently. Results are deduplicated by
+    arxiv_id, DOI, and normalized title. Use --source to select sources.
 
     Example: research-pipeline search 'AI agents' --source all
     """
@@ -282,7 +285,10 @@ def run(
         None,
         "--source",
         "-s",
-        help="Search source(s): arxiv, scholar, all (default: from config).",
+        help=(
+            "Search source(s): arxiv, scholar, semantic_scholar, openalex, "
+            "dblp, huggingface, all (default: from config)."
+        ),
     ),
     profile: str = typer.Option(
         "standard",

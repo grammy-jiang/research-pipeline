@@ -4,17 +4,25 @@
 
 All generated reports (final research report, synthesis, analysis) MUST use:
 
+- **Human-readable structure**: clear headings, short paragraphs, concise
+  takeaways before detail, and no wall-of-text sections
 - **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily)
+- **Vertical Mermaid charts by default** (`flowchart TD` or `flowchart TB`);
+  use horizontal charts only for compact diagrams where it improves readability
 - **LaTeX** for mathematical formulas and equations (inline `$...$` or display `$$...$$`)
 - **Markdown tables** for structured data comparisons
+- **Internal Markdown links** for exploration: contents links, section links,
+  paper/reference links, and links from recommendations to supporting findings
+  or gaps
 
 Examples:
 
 ```markdown
 <!-- Mermaid diagram -->
 ```mermaid
-flowchart LR
-    A[Search] --> B[Screen] --> C[Analyze]
+flowchart TD
+    A[Search] --> B[Screen]
+    B --> C[Analyze]
 ```
 
 <!-- LaTeX formula -->
@@ -64,6 +72,18 @@ cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
 ````markdown
 # Research Report: [Topic]
 
+## Contents
+
+- [Executive Summary](#executive-summary)
+- [Research Question](#research-question)
+- [Methodology](#methodology)
+- [Papers Reviewed](#papers-reviewed)
+- [Research Landscape](#research-landscape)
+- [Research Gaps](#research-gaps)
+- [Practical Recommendations](#practical-recommendations)
+- [References](#references)
+- [Appendix: Run Metadata](#appendix-run-metadata)
+
 ## Executive Summary
 
 [3-5 sentences: research question, scope (N papers from M sources),
@@ -90,7 +110,7 @@ what's in vs. out.]
 ### Pipeline Summary
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Searched<br/>N candidates"] --> B["Screened<br/>M shortlisted"]
     B --> C["Downloaded<br/>P PDFs"]
     C --> D["Converted<br/>Q markdown"]

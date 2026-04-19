@@ -123,12 +123,19 @@ min_downloads = 5
 
 # Multi-source search
 [sources]
-default_sources = ["arxiv"]     # Available: arxiv, scholar
-semantic_scholar_api_key = ""   # Used by expand and quality commands (not search)
+enabled = ["arxiv"]             # Available: arxiv, scholar, semantic_scholar, openalex, dblp, huggingface
+scholar_backend = "scholarly"   # scholarly or serpapi
+scholar_min_interval = 10.0
+serpapi_key = ""
+serpapi_min_interval = 5.0
+semantic_scholar_api_key = ""
 semantic_scholar_min_interval = 1.0
+openalex_api_key = ""
 openalex_min_interval = 0.1
-openalex_email = ""             # Polite pool email for OpenAlex
 dblp_min_interval = 1.0
+huggingface_enabled = true
+huggingface_min_interval = 0.5
+huggingface_limit = 100
 
 # Quality evaluation (citations, venue, author, recency)
 [quality]

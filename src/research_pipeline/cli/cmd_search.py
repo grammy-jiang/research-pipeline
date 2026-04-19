@@ -222,7 +222,8 @@ def run_search(
         config_path: Path to config TOML.
         workspace: Workspace directory.
         run_id: Run ID (required for resume or to use existing plan).
-        source: Source override (arxiv, scholar, huggingface, all).
+        source: Source override (arxiv, scholar, semantic_scholar, openalex,
+            dblp, huggingface, all, or comma-separated list).
     """
     config = load_config(config_path)
     ws = workspace or Path(config.workspace)

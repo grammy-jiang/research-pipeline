@@ -4,17 +4,25 @@
 
 All generated reports (final research report, synthesis, analysis) MUST use:
 
+- **Human-readable structure**: clear headings, short paragraphs, concise
+  takeaways before detail, and no wall-of-text sections
 - **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily)
+- **Vertical Mermaid charts by default** (`flowchart TD` or `flowchart TB`);
+  use horizontal charts only for compact diagrams where it improves readability
 - **LaTeX** for mathematical formulas and equations (inline `$...$` or display `$$...$$`)
 - **Markdown tables** for structured data comparisons
+- **Internal Markdown links** for exploration: contents links, section links,
+  paper/reference links, and links from recommendations to supporting findings
+  or gaps
 
 Examples:
 
 ```markdown
 <!-- Mermaid diagram -->
 ```mermaid
-flowchart LR
-    A[Search] --> B[Screen] --> C[Analyze]
+flowchart TD
+    A[Search] --> B[Screen]
+    B --> C[Analyze]
 ```
 
 <!-- LaTeX formula -->
@@ -98,6 +106,18 @@ support level:
 ````markdown
 # Research Report: [Topic]
 
+## Contents
+
+- [Executive Summary](#executive-summary)
+- [Research Question](#research-question)
+- [Methodology](#methodology)
+- [Papers Reviewed](#papers-reviewed)
+- [Research Landscape](#research-landscape)
+- [Research Gaps](#research-gaps)
+- [Practical Recommendations](#practical-recommendations)
+- [References](#references)
+- [Appendix: Run Metadata](#appendix-run-metadata)
+
 ## Executive Summary
 
 [3-5 sentences: research question, scope (N papers from M sources),
@@ -125,7 +145,7 @@ what's in vs. out.]
 ### Pipeline Summary
 
 ```mermaid
-flowchart LR
+flowchart TD
     A["Searched<br/>N candidates"] --> B["Screened<br/>M shortlisted"]
     B --> C["Downloaded<br/>P PDFs"]
     C --> D["Converted<br/>Q markdown"]
@@ -145,19 +165,19 @@ flowchart LR
 
 | # | Title | Authors | Year | Venue | Quality Score | Relevance |
 |---|-------|---------|------|-------|--------------|-----------|
-| 1 | [Title] [arxiv_id] | First Author et al. | YYYY | Venue | X.X/5 | HIGH / MEDIUM / LOW |
+| 1 | [Title](#ref-arxiv_id) [arxiv_id] | First Author et al. | YYYY | Venue | X.X/5 | HIGH / MEDIUM / LOW |
 
 ## Research Landscape
 
 ### Theme 1: [Theme Name]
 
 **Coverage**: N papers | **Confidence**: High / Medium / Low
-**Supporting papers**: [arxiv_id_1], [arxiv_id_2], ...
+**Supporting papers**: [arxiv_id_1](#ref-arxiv_id_1), [arxiv_id_2](#ref-arxiv_id_2), ...
 
 [Narrative description of the theme with evidence citations.] **[EVIDENCE REQUIRED]**
 
 Key findings:
-1. [Finding with citation: "Paper A [arxiv_id] demonstrated X with Y% improvement"]
+1. [Finding with citation: "Paper A [arxiv_id](#ref-arxiv_id) demonstrated X with Y% improvement"]
 2. [Finding with citation]
 
 ### Theme 2: [Theme Name]
@@ -224,6 +244,7 @@ Key findings:
 ## Practical Recommendations **[EVIDENCE REQUIRED]**
 
 1. **[Recommendation]** — Based on [evidence from papers].
+   See: [Research Landscape](#research-landscape), [Research Gaps](#research-gaps).
    *Confidence*: High / Medium / Low
 
 ## Future Directions
@@ -262,7 +283,7 @@ Key findings:
 
 ## References
 
-1. [arxiv_id] — [Title]. [Authors]. [Year]. [Venue].
+1. <a id="ref-arxiv_id"></a>[arxiv_id] — [Title]. [Authors]. [Year]. [Venue].
 2. ...
 
 ## Appendix: Run Metadata
