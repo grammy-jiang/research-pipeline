@@ -628,17 +628,35 @@ def create_case_from_run(
                 data = json.loads(synthesis_file.read_text())
                 if isinstance(data, dict):
                     summaries = data.get("per_paper_summaries", [])
+                    corpus = data.get("corpus", [])
                     findings_count = sum(
                         len(s.get("findings", []))
                         for s in summaries
                         if isinstance(s, dict)
                     )
+                    if findings_count == 0:
+                        findings_count = sum(
+                            len(data.get(section, []))
+                            for section in (
+                                "taxonomy",
+                                "recurring_patterns",
+                                "evidence_strength_map",
+                                "risk_register",
+                            )
+                        )
                     evidence_count = sum(
                         len(s.get("evidence", []))
                         for s in summaries
                         if isinstance(s, dict)
                     )
-                    gaps = data.get("gaps", [])
+                    if evidence_count == 0:
+                        evidence_count = sum(
+                            1
+                            for row in data.get("traceability_appendix", [])
+                            if isinstance(row, dict) and row.get("evidence_ids")
+                        )
+                    gaps = data.get("gaps", []) or data.get("unresolved_questions", [])
+                    paper_count = len(summaries) or len(corpus)
 
                     # Heuristic quality score
                     findings_score = min(1.0, findings_count / 10.0) * 0.4
@@ -649,7 +667,7 @@ def create_case_from_run(
                     ) * 0.3
                     gap_score = min(1.0, len(gaps) / 3.0) * 0.2 if gaps else 0.0
                     coverage_score = (
-                        min(1.0, len(summaries) / 5.0) * 0.1 if summaries else 0.0
+                        min(1.0, paper_count / 5.0) * 0.1 if paper_count else 0.0
                     )
                     synthesis_quality = (
                         findings_score + evidence_score + gap_score + coverage_score

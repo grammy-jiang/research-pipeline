@@ -2,6 +2,28 @@
 
 All notable changes to research-pipeline.
 
+## [v0.14.4] — 2026-04-19
+
+### Added
+
+- Step 1 structured per-paper extraction records with typed statements,
+  evidence snippets, confidence labels, uncertainty notes, and quality scores.
+- Step 2 design-neutral cross-paper synthesis with taxonomy, evidence matrix,
+  recurring patterns, assumption map, contradiction map, evidence-strength map,
+  operational implications, risk register, and traceability appendix.
+- `research-pipeline summarize --step extraction|synthesis|all` for running
+  the structured stages independently.
+- `structured_synthesis` report template and validation support for the new
+  synthesis report shape.
+
+### Changed
+
+- `summarize` now writes rich artifacts under `summarize/extractions/` and
+  `summarize/synthesis_report.*` while preserving legacy `*.summary.json` and
+  `synthesis.json` projections.
+- Bundled AI skill and human docs now describe the structured extraction and
+  synthesis workflow.
+
 ## [v0.14.3] — 2026-04-18
 
 ### Added

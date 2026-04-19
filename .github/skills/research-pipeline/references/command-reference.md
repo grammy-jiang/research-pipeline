@@ -5,13 +5,18 @@ choices. In normal operation, keep only the high-level workflow in context.
 
 ## Invocation
 
-Inside the installed skill environment, always pass:
+Inside the installed skill environment, always pass the config path for the
+assistant host:
 
 ```bash
+# Claude Code / GitHub Copilot
 --config ~/.claude/skills/research-pipeline/config.toml
+
+# Codex
+--config ~/.codex/skills/research-pipeline/config.toml
 ```
 
-`CFG` in examples means that path.
+`CFG` in examples means the appropriate path for the current assistant.
 
 ## Sources
 
@@ -41,7 +46,7 @@ research-pipeline search --run-id <RUN_ID> --source all --config CFG
 | Download | `research-pipeline download --run-id ID --config CFG` | `download/pdf/*.pdf` |
 | Convert | `research-pipeline convert --run-id ID --backend docling --config CFG` | `convert/markdown/*.md` |
 | Extract | `research-pipeline extract --run-id ID --config CFG` | `extract/*.extract.json` |
-| Summarize | `research-pipeline summarize --run-id ID --config CFG` | `summarize/synthesis.json` |
+| Summarize | `research-pipeline summarize --run-id ID --config CFG` | `summarize/extractions/*.extraction.json`, `summarize/synthesis_report.json`, `summarize/synthesis_report.md`, legacy `summarize/synthesis.json` |
 | Run all | `research-pipeline run "topic" --profile standard --source all --config CFG` | full run directory |
 | Inspect | `research-pipeline inspect --run-id ID` | status and artifact paths |
 
@@ -96,13 +101,14 @@ research-pipeline analyze-claims --run-id <RUN_ID>
 research-pipeline score-claims --run-id <RUN_ID>
 research-pipeline confidence-layers --run-id <RUN_ID>
 research-pipeline aggregate --run-id <RUN_ID> --min-pointers 1
-research-pipeline report --run-id <RUN_ID> --template survey
+research-pipeline report --run-id <RUN_ID> --template structured_synthesis
 research-pipeline validate --report ./<topic-slug>-research-report.md
 research-pipeline export-html --markdown report.md -o report.html
 research-pipeline export-bibtex --run-id <RUN_ID> --stage screen -o refs.bib
 ```
 
-Report templates: `survey`, `gap_analysis`, `lit_review`, `executive`.
+Report templates: `structured_synthesis` (preferred), `survey`,
+`gap_analysis`, `lit_review`, `executive`.
 
 ## Multi-Run, Memory, And Reliability Tools
 

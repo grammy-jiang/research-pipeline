@@ -150,6 +150,21 @@ def get_paper_summary(run_id: str, paper_id: str) -> str:
     return json.dumps({"error": f"No summary for paper '{paper_id}' in run '{run_id}'"})
 
 
+def get_paper_extraction(run_id: str, paper_id: str) -> str:
+    """Read a paper's rich Step 1 extraction as JSON."""
+    run_root = _get_run_root(run_id)
+    if run_root is None:
+        return json.dumps({"error": f"Run '{run_id}' not found"})
+    extraction_dir = run_root / "summarize" / "extractions"
+    for pattern in [f"{paper_id}.extraction.json", f"*{paper_id}*.extraction.json"]:
+        matches = list(extraction_dir.glob(pattern))
+        if matches:
+            return matches[0].read_text()
+    return json.dumps(
+        {"error": f"No extraction for paper '{paper_id}' in run '{run_id}'"}
+    )
+
+
 def get_synthesis_report(run_id: str) -> str:
     """Read a run's cross-paper synthesis report."""
     run_root = _get_run_root(run_id)

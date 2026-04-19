@@ -9,7 +9,7 @@ from pathlib import Path
 import typer
 
 from research_pipeline.config.loader import load_config
-from research_pipeline.models.summary import SynthesisReport
+from research_pipeline.models.summary import CrossPaperSynthesisRecord, SynthesisReport
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 from research_pipeline.summarization.report_templates import (
     list_templates,
@@ -26,10 +26,13 @@ def report_cmd(
         help="Pipeline run ID.",
     ),
     template: str = typer.Option(
-        "survey",
+        "structured_synthesis",
         "--template",
         "-t",
-        help="Report template: survey, gap_analysis, lit_review, executive.",
+        help=(
+            "Report template: structured_synthesis, survey, gap_analysis, "
+            "lit_review, executive."
+        ),
     ),
     custom_template: str = typer.Option(
         "",
@@ -49,7 +52,8 @@ def report_cmd(
     and renders it through a Jinja2 template to produce a formatted Markdown
     report.
 
-    Available templates: survey, gap_analysis, lit_review, executive.
+    Available templates: structured_synthesis, survey, gap_analysis, lit_review,
+    executive.
 
     Example::
 
@@ -58,7 +62,11 @@ def report_cmd(
         research-pipeline report --run-id <RUN_ID> --custom-template my.j2
     """
     available = list_templates()
-    if template not in available and not custom_template:
+    if (
+        template not in available
+        and template != "structured_synthesis"
+        and not custom_template
+    ):
         logger.error(
             "Unknown template %r. Available: %s",
             template,
@@ -71,10 +79,15 @@ def report_cmd(
     _, run_root = init_run(ws, run_id)
     stage_dir = get_stage_dir(run_root, "summarize")
 
-    synthesis_json = stage_dir / "synthesis_report.json"
-    if not synthesis_json.exists():
-        synthesis_json = stage_dir / "synthesis.json"
-    if not synthesis_json.exists():
+    structured_json = stage_dir / "synthesis_report.json"
+    legacy_json = stage_dir / "synthesis.json"
+    candidates = (
+        [structured_json, legacy_json]
+        if template == "structured_synthesis"
+        else [legacy_json, structured_json]
+    )
+    synthesis_json = next((path for path in candidates if path.exists()), None)
+    if synthesis_json is None:
         logger.error(
             "No synthesis_report.json or synthesis.json in %s. "
             "Run the summarize stage first.",
@@ -86,7 +99,14 @@ def report_cmd(
     # Handle wrapped format (export.py wraps in {"report": ...})
     if "report" in data and "topic" in data["report"]:
         data = data["report"]
-    report = SynthesisReport.model_validate(data)
+    if "corpus" in data and "taxonomy" in data:
+        report: SynthesisReport | CrossPaperSynthesisRecord = (
+            CrossPaperSynthesisRecord.model_validate(data)
+        )
+        if template != "structured_synthesis" and not custom_template:
+            template = "structured_synthesis"
+    else:
+        report = SynthesisReport.model_validate(data)
 
     custom_tmpl: str | None = None
     if custom_template:

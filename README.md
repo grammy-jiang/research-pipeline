@@ -44,9 +44,9 @@ It ships as both a Typer CLI and an MCP server for agent-driven research.
   high-quality fine conversion for selected papers.
 - Extracts structured chunks, bibliography data, citation contexts, and retrieval
   indexes from converted papers.
-- Produces per-paper summaries, cross-paper synthesis, confidence scoring,
-  evidence aggregation, BibTeX exports, templated Markdown reports, and
-  self-contained HTML reports.
+- Produces schema-first per-paper extraction records, design-neutral
+  cross-paper synthesis, confidence scoring, evidence aggregation, BibTeX
+  exports, templated Markdown reports, and self-contained HTML reports.
 - Adds research quality layers: citation expansion, quality scoring, claim
   decomposition, knowledge graph ingestion, report validation, multi-run
   comparison, coherence checks, memory consolidation, blinding audits, Pass@k /
@@ -110,7 +110,7 @@ research-pipeline convert-rough --run-id <RUN_ID>
 research-pipeline convert-fine --run-id <RUN_ID> --paper-ids "2401.12345"
 research-pipeline extract --run-id <RUN_ID>
 research-pipeline summarize --run-id <RUN_ID>
-research-pipeline report --run-id <RUN_ID> --template survey
+research-pipeline report --run-id <RUN_ID> --template structured_synthesis
 research-pipeline validate --run-id <RUN_ID>
 ```
 
@@ -195,8 +195,8 @@ Markdown or HTML reports. For human-facing reports, prefer:
 - recommendations linked back to findings, gaps, and evidence.
 
 ```bash
-# Render Markdown from a synthesis JSON
-research-pipeline report --run-id <RUN_ID> --template survey
+# Render Markdown from structured synthesis JSON
+research-pipeline report --run-id <RUN_ID> --template structured_synthesis
 
 # Export self-contained HTML
 research-pipeline export-html --run-id <RUN_ID>
@@ -232,11 +232,11 @@ crash recovery.
 
 ## AI Skill And Agents
 
-Install the bundled Claude Code / GitHub Copilot skill and sub-agent
-definitions:
+Install the bundled skill for Claude Code / GitHub Copilot and Codex, plus
+Claude Code sub-agent definitions:
 
 ```bash
-research-pipeline setup              # skill + agents
+research-pipeline setup              # skills + agents
 research-pipeline setup --symlink    # symlink for development
 research-pipeline setup --force      # overwrite existing files
 research-pipeline setup --skip-agents
@@ -245,7 +245,8 @@ research-pipeline setup --skip-skill
 
 Installed files:
 
-- Skill: `~/.claude/skills/research-pipeline/`
+- Claude/GitHub Copilot skill: `~/.claude/skills/research-pipeline/`
+- Codex skill: `~/.codex/skills/research-pipeline/`
 - Agents: `~/.claude/agents/paper-screener.md`,
   `~/.claude/agents/paper-analyzer.md`,
   `~/.claude/agents/paper-synthesizer.md`
@@ -310,7 +311,14 @@ runs/<run_id>/
 ├── convert_fine/markdown/*.md
 ├── extract/*.extract.json
 ├── extract/*.bibliography.json
+├── summarize/extractions/*.extraction.json
+├── summarize/extractions/*.extraction.md
+├── summarize/extractions/extraction_quality.json
 ├── summarize/*.summary.json
+├── summarize/synthesis_report.json
+├── summarize/synthesis_report.md
+├── summarize/synthesis_traceability.json
+├── summarize/synthesis_quality.json
 ├── summarize/synthesis.json
 ├── summarize/synthesis_confidence.json
 ├── quality/quality_scores.jsonl

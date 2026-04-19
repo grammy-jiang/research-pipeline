@@ -367,13 +367,37 @@ research-pipeline extract --run-id <RUN_ID> --cross-encoder
 
 # 7. Generate summaries and synthesis
 research-pipeline summarize --run-id <RUN_ID>
-# Output: runs/<run_id>/summarize/synthesis.md
+# Output:
+# - runs/<run_id>/summarize/extractions/*.extraction.json
+# - runs/<run_id>/summarize/extractions/*.extraction.md
+# - runs/<run_id>/summarize/synthesis_report.json
+# - runs/<run_id>/summarize/synthesis_report.md
+# - runs/<run_id>/summarize/synthesis_traceability.json
+# - runs/<run_id>/summarize/synthesis.json (legacy projection)
+
+# Run only Step 1 per-paper extraction
+research-pipeline summarize --run-id <RUN_ID> --step extraction
+
+# Run only Step 2 synthesis from existing Step 1 extraction records
+research-pipeline summarize --run-id <RUN_ID> --step synthesis
 
 # Export in alternative formats (v0.12.0+)
 research-pipeline summarize --run-id <RUN_ID> -f json       # JSON with metadata + evidence
 research-pipeline summarize --run-id <RUN_ID> -f bibtex     # BibTeX bibliography
 research-pipeline summarize --run-id <RUN_ID> -f structured-json  # Claim-evidence chains
 ```
+
+The default summarize workflow is structured:
+
+- **Step 1** writes one `PaperExtractionRecord` per paper with typed
+  statements, confidence labels, source evidence snippets, uncertainty notes,
+  and extraction quality scores.
+- **Step 2** consumes those extraction records to write a design-neutral
+  `CrossPaperSynthesisRecord` with taxonomy, evidence matrix, recurring
+  patterns, assumption map, contradiction map, evidence-strength map,
+  operational implications, risk register, and traceability appendix.
+- Legacy `*.summary.json` and `synthesis.json` artifacts are still written for
+  older commands and integrations.
 
 ### Claim decomposition (v0.12.3+)
 
@@ -666,8 +690,10 @@ research-pipeline export-bibtex --run-id <RUN_ID> -o refs.bib
 # Output: runs/<run_id>/bibtex/references.bib (or custom -o path)
 
 # Templated report generation (v0.13.45+)
-# Available templates: survey, gap_analysis, lit_review, executive
+# Preferred template: structured_synthesis
+# Legacy templates: survey, gap_analysis, lit_review, executive
 research-pipeline report --run-id <RUN_ID>
+research-pipeline report --run-id <RUN_ID> -t structured_synthesis
 research-pipeline report --run-id <RUN_ID> -t gap_analysis
 research-pipeline report --run-id <RUN_ID> -t executive -o summary.md
 # Custom Jinja2 templates are also supported:
@@ -858,12 +884,13 @@ Add to your MCP client configuration (e.g., Claude Desktop):
 
 ## AI skill
 
-The package includes a bundled skill and sub-agent definitions for Claude Code
-and GitHub Copilot that provide step-by-step research workflow instructions,
-configuration, reference documentation, and specialized analysis agents.
+The package includes a bundled skill for Claude Code, GitHub Copilot, and Codex,
+plus Claude Code sub-agent definitions that provide step-by-step research
+workflow instructions, configuration, reference documentation, and specialized
+analysis agents.
 
 ```bash
-# Install skill + agents to ~/.claude/
+# Install skills to ~/.claude/ and ~/.codex/, plus agents to ~/.claude/
 research-pipeline setup
 
 # Create symlinks (useful during development)
@@ -872,7 +899,7 @@ research-pipeline setup --symlink
 # Force overwrite existing
 research-pipeline setup --force
 
-# Install only the skill (skip agents)
+# Install only the skills (skip agents)
 research-pipeline setup --skip-agents
 
 # Install only agents (skip skill)
@@ -880,13 +907,14 @@ research-pipeline setup --skip-skill
 ```
 
 This installs:
-- **Skill** → `~/.claude/skills/research-pipeline/` — SKILL.md with workflow
-  instructions, configuration template, and reference docs
+- **Claude/GitHub Copilot skill** → `~/.claude/skills/research-pipeline/`
+- **Codex skill** → `~/.codex/skills/research-pipeline/`
 - **Sub-agents** → `~/.claude/agents/` — paper-analyzer.md, paper-screener.md,
   paper-synthesizer.md for deep paper analysis, screening, and synthesis
 
-Once installed, Claude Code and GitHub Copilot will automatically discover the
-skill and agents when you ask about academic paper research.
+Once installed, Claude Code, GitHub Copilot, and Codex can discover the skill
+when you ask about academic paper research. Claude Code can also discover the
+agent definitions.
 
 > **Note:** The deprecated `install-skill` command still works as a hidden alias
 > for `setup` but may be removed in a future release.
@@ -917,8 +945,16 @@ runs/<run_id>/
 ├── extract/
 │   └── *.extract.json         # Chunked content with BM25 index
 ├── summarize/
+│   ├── extractions/
+│   │   ├── *.extraction.json  # Step 1 structured paper extraction
+│   │   ├── *.extraction.md    # Human-readable Step 1 extraction
+│   │   └── extraction_quality.json
 │   ├── *.summary.json         # Per-paper summaries
-│   ├── synthesis.json         # Machine-readable cross-paper synthesis
+│   ├── synthesis_report.json  # Step 2 structured synthesis
+│   ├── synthesis_report.md    # Human-readable Step 2 synthesis
+│   ├── synthesis_traceability.json
+│   ├── synthesis_quality.json
+│   ├── synthesis.json         # Legacy cross-paper synthesis projection
 │   ├── synthesis.md           # Human-readable synthesis report
 │   └── claims/
 │       ├── claim_decomposition.jsonl  # Atomic claims with evidence (v0.12.3+)

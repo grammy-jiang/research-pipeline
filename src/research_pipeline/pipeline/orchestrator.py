@@ -43,7 +43,7 @@ from research_pipeline.models.screening import (
     RelevanceDecision,
     parse_shortlist_lenient,
 )
-from research_pipeline.models.summary import PaperSummary
+from research_pipeline.models.summary import PaperExtractionRecord, PaperSummary
 from research_pipeline.pipeline.gates import (
     AutoApproveGate,
     CliGate,
@@ -66,8 +66,17 @@ from research_pipeline.storage.manifests import (
     write_jsonl,
 )
 from research_pipeline.storage.workspace import get_stage_dir, init_run
-from research_pipeline.summarization.per_paper import summarize_paper
-from research_pipeline.summarization.synthesis import synthesize
+from research_pipeline.summarization.per_paper import (
+    extract_paper,
+    project_extraction_to_summary,
+    render_extraction_markdown,
+)
+from research_pipeline.summarization.synthesis import (
+    project_structured_synthesis_to_report,
+    render_structured_synthesis_markdown,
+    synthesize,
+    synthesize_extractions,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -1374,8 +1383,11 @@ def run_pipeline(
         if eval_log is not None:
             eval_log.trace("stage_started", stage="summarize")
         sum_dir = get_stage_dir(run_root, "summarize")
+        extraction_dir = sum_dir / "extractions"
+        extraction_dir.mkdir(parents=True, exist_ok=True)
 
         summaries = []
+        extraction_records: list[PaperExtractionRecord] = []
 
         if should_run_stage(profile, "download"):
             # Standard/deep path: summarize from converted markdown
@@ -1393,7 +1405,7 @@ def run_pipeline(
                         paper_title = d.paper.title
                         break
 
-                summary = summarize_paper(
+                paper_extraction = extract_paper(
                     markdown_path=md_path,
                     arxiv_id=conv_entry.arxiv_id,
                     version=conv_entry.version,
@@ -1401,12 +1413,21 @@ def run_pipeline(
                     topic_terms=plan.must_terms + plan.nice_terms,
                     llm_provider=llm_provider,
                 )
+                extraction_records.append(paper_extraction)
+                base_name = f"{conv_entry.arxiv_id}{conv_entry.version}"
+                (extraction_dir / f"{base_name}.extraction.json").write_text(
+                    paper_extraction.model_dump_json(indent=2),
+                    encoding="utf-8",
+                )
+                (extraction_dir / f"{base_name}.extraction.md").write_text(
+                    render_extraction_markdown(paper_extraction),
+                    encoding="utf-8",
+                )
+                summary = project_extraction_to_summary(paper_extraction)
                 summaries.append(summary)
 
                 # Save per-paper summary
-                sum_path = (
-                    sum_dir / f"{conv_entry.arxiv_id}{conv_entry.version}.summary.json"
-                )
+                sum_path = sum_dir / f"{base_name}.summary.json"
                 sum_path.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
         else:
             # Quick path: synthesize from abstracts (no PDFs available)
@@ -1439,39 +1460,69 @@ def run_pipeline(
                 sum_path.write_text(summary.model_dump_json(indent=2), encoding="utf-8")
 
         # Cross-paper synthesis
-        report = synthesize(summaries, plan.topic_raw, llm_provider=llm_provider)
+        structured_report = None
+        if extraction_records:
+            structured_report = synthesize_extractions(
+                extraction_records, plan.topic_raw
+            )
+            report = project_structured_synthesis_to_report(
+                structured_report, summaries
+            )
+        else:
+            report = synthesize(summaries, plan.topic_raw, llm_provider=llm_provider)
         synthesis_path = sum_dir / "synthesis.md"
         synthesis_json = sum_dir / "synthesis.json"
         synthesis_json.write_text(report.model_dump_json(indent=2), encoding="utf-8")
 
-        # Generate readable Markdown synthesis
-        md_lines = [
-            f"# Synthesis: {report.topic}",
-            "",
-            f"Papers analyzed: {report.paper_count}",
-            "",
-        ]
-        if report.open_questions:
-            md_lines.append("## Open Questions")
-            md_lines.append("")
-            for q in report.open_questions:
-                md_lines.append(f"- {q}")
-            md_lines.append("")
+        if structured_report is not None:
+            structured_json = sum_dir / "synthesis_report.json"
+            structured_md_path = sum_dir / "synthesis_report.md"
+            traceability_path = sum_dir / "synthesis_traceability.json"
+            quality_path = sum_dir / "synthesis_quality.json"
+            structured_json.write_text(
+                structured_report.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
+            structured_md = render_structured_synthesis_markdown(structured_report)
+            structured_md_path.write_text(structured_md, encoding="utf-8")
+            synthesis_path.write_text(structured_md, encoding="utf-8")
+            traceability_path.write_text(
+                json.dumps(structured_report.traceability_appendix, indent=2),
+                encoding="utf-8",
+            )
+            quality_path.write_text(
+                structured_report.quality.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
+        else:
+            # Generate readable Markdown synthesis for abstract-only quick mode.
+            md_lines = [
+                f"# Synthesis: {report.topic}",
+                "",
+                f"Papers analyzed: {report.paper_count}",
+                "",
+            ]
+            if report.open_questions:
+                md_lines.append("## Open Questions")
+                md_lines.append("")
+                for q in report.open_questions:
+                    md_lines.append(f"- {q}")
+                md_lines.append("")
 
-        md_lines.append("## Paper Summaries")
-        md_lines.append("")
-        for ps in report.paper_summaries:
-            md_lines.append(f"### {ps.title}")
-            md_lines.append(f"- **ID**: {ps.arxiv_id}{ps.version}")
-            md_lines.append(f"- **Objective**: {ps.objective}")
-            md_lines.append(f"- **Methodology**: {ps.methodology}")
-            if ps.findings:
-                md_lines.append("- **Findings**:")
-                for f in ps.findings:
-                    md_lines.append(f"  - {f}")
+            md_lines.append("## Paper Summaries")
             md_lines.append("")
+            for ps in report.paper_summaries:
+                md_lines.append(f"### {ps.title}")
+                md_lines.append(f"- **ID**: {ps.arxiv_id}{ps.version}")
+                md_lines.append(f"- **Objective**: {ps.objective}")
+                md_lines.append(f"- **Methodology**: {ps.methodology}")
+                if ps.findings:
+                    md_lines.append("- **Findings**:")
+                    for f in ps.findings:
+                        md_lines.append(f"  - {f}")
+                md_lines.append("")
 
-        synthesis_path.write_text("\n".join(md_lines), encoding="utf-8")
+            synthesis_path.write_text("\n".join(md_lines), encoding="utf-8")
 
         # Multi-agent parallel analysis (optional enhancement)
         try:

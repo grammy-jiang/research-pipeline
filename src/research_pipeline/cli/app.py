@@ -42,6 +42,11 @@ def main(
     """Multi-source academic paper research pipeline."""
 
 
+def _is_typer_option_default(value: object) -> bool:
+    """Detect Typer's default option sentinel during direct helper calls."""
+    return value.__class__.__name__ == "OptionInfo"
+
+
 def _common_options(
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Enable debug logging."
@@ -65,12 +70,17 @@ def _common_options(
     ),
 ) -> dict:  # type: ignore[type-arg]
     """Parse common options shared by all commands."""
-    level = logging.DEBUG if verbose else logging.INFO
+    verbose_enabled = False if _is_typer_option_default(verbose) else verbose
+    config_path = None if _is_typer_option_default(config) else config
+    workspace_path = None if _is_typer_option_default(workspace) else workspace
+    run_id_value = None if _is_typer_option_default(run_id) else run_id
+
+    level = logging.DEBUG if verbose_enabled else logging.INFO
     setup_logging(level=level)
     return {
-        "config_path": config,
-        "workspace": workspace,
-        "run_id": run_id,
+        "config_path": config_path,
+        "workspace": workspace_path,
+        "run_id": run_id_value,
     }
 
 
@@ -254,6 +264,11 @@ def summarize(
         "-f",
         help="Output format: markdown (default), json, bibtex, structured-json.",
     ),
+    step: str = typer.Option(
+        "all",
+        "--step",
+        help="Structured step to run: extraction, synthesis, or all.",
+    ),
 ) -> None:
     """Generate per-paper summaries and synthesis.
 
@@ -270,7 +285,7 @@ def summarize(
     from research_pipeline.cli.cmd_summarize import run_summarize
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_summarize(output_format=output_format, **opts)
+    run_summarize(output_format=output_format, step=step, **opts)
 
 
 @app.command()
@@ -628,7 +643,8 @@ def setup(
         "--skill-target",
         help=(
             "Target directory for skill installation. "
-            "Default: ~/.claude/skills/research-pipeline"
+            "Default: install to ~/.claude/skills/research-pipeline and "
+            "~/.codex/skills/research-pipeline."
         ),
     ),
     agents_target: str = typer.Option(
@@ -660,11 +676,11 @@ def setup(
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
-    """Install skill and agents to ~/.claude/ for AI assistant discovery.
+    """Install skills and agents for AI assistant discovery.
 
     Copies (or symlinks) the bundled SKILL.md, config.toml, reference docs,
-    and agent definitions (paper-analyzer, paper-screener, paper-synthesizer)
-    so that Claude Code and GitHub Copilot can discover them.
+    and agent definitions. By default, the skill is installed for Claude Code
+    / GitHub Copilot and Codex; agents are installed for Claude Code.
 
     Example: research-pipeline setup
     Example: research-pipeline setup --symlink --force
@@ -672,7 +688,6 @@ def setup(
     """
     from research_pipeline.cli.cmd_setup import (
         DEFAULT_AGENTS_DIR,
-        DEFAULT_SKILL_DIR,
         run_setup,
     )
     from research_pipeline.infra.logging import setup_logging
@@ -680,7 +695,7 @@ def setup(
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
 
-    skill_path = Path(skill_target) if skill_target else DEFAULT_SKILL_DIR
+    skill_path = Path(skill_target) if skill_target else None
     agents_path = Path(agents_target) if agents_target else DEFAULT_AGENTS_DIR
     run_setup(
         skill_target=skill_path,

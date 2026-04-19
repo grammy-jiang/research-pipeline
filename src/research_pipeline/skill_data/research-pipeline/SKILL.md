@@ -10,7 +10,7 @@ description: >
   system. Do not use for general web search or simple PDF reading.
 metadata:
   author: grammy-jiang
-  version: 1.6.0
+  version: 1.7.0
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -25,7 +25,9 @@ files only when that detail is needed.
 
 - Use the installed CLI directly: `research-pipeline`, not `uv run` or
   `python -m`, unless developing this repository itself.
-- Always pass `--config ~/.claude/skills/research-pipeline/config.toml`.
+- Always pass `--config` pointing at this skill's installed config:
+  `~/.claude/skills/research-pipeline/config.toml` for Claude Code/GitHub
+  Copilot, or `~/.codex/skills/research-pipeline/config.toml` for Codex.
   Use `CFG` as shorthand in commands below.
 - Keep work evidence-based. Every substantive finding, recommendation, and
   theme in the final report must cite paper IDs or section-level evidence.
@@ -62,7 +64,11 @@ files only when that detail is needed.
 Set:
 
 ```bash
+# Claude Code / GitHub Copilot
 CFG=~/.claude/skills/research-pipeline/config.toml
+
+# Codex
+# CFG=~/.codex/skills/research-pipeline/config.toml
 ```
 
 1. **Check prior report**
@@ -117,6 +123,12 @@ CFG=~/.claude/skills/research-pipeline/config.toml
    research-pipeline analyze-claims --run-id <RUN_ID>
    research-pipeline score-claims --run-id <RUN_ID>
    ```
+   `summarize` is a two-step structured workflow. Step 1 writes
+   `summarize/extractions/*.extraction.json` and `.md` files with typed
+   statements, evidence snippets, confidence labels, uncertainty notes, and
+   extraction quality scores. Step 2 consumes those records to write
+   `summarize/synthesis_report.json`, `synthesis_report.md`,
+   `synthesis_traceability.json`, and legacy `synthesis.json`.
    For deep work, launch sub-agents after conversion: optional
    `paper-screener`, one `paper-analyzer` per important paper, then
    `paper-synthesizer`. Use the strongest available reasoning model for
@@ -124,7 +136,7 @@ CFG=~/.claude/skills/research-pipeline/config.toml
 
 7. **Write, validate, and export the final report**
    ```bash
-   research-pipeline report --run-id <RUN_ID> --template survey --config CFG
+   research-pipeline report --run-id <RUN_ID> --template structured_synthesis --config CFG
    research-pipeline validate --report ./<topic-slug>-research-report.md --config CFG
    research-pipeline export-html --markdown ./<topic-slug>-research-report.md -o ./<topic-slug>-research-report.html --config CFG
    research-pipeline export-bibtex --run-id <RUN_ID> --stage screen -o refs.bib

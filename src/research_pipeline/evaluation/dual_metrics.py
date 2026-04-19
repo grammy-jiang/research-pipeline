@@ -321,6 +321,20 @@ def _extract_findings(data: dict[str, Any]) -> list[str]:
         for finding in summary.get("findings", []):
             findings.append(finding)
 
+    for section in (
+        "taxonomy",
+        "recurring_patterns",
+        "evidence_strength_map",
+        "operational_implications",
+        "production_readiness",
+        "design_implications",
+        "risk_register",
+    ):
+        for item in data.get(section, []):
+            finding = item.get("finding", "")
+            if finding:
+                findings.append(finding)
+
     return findings
 
 
@@ -334,6 +348,13 @@ def _count_evidence(data: dict[str, Any]) -> int:
     for summary in data.get("per_paper_summaries", []):
         count += len(summary.get("evidence", []))
 
+    for row in data.get("traceability_appendix", []):
+        evidence_ids = row.get("evidence_ids", "")
+        if isinstance(evidence_ids, str) and evidence_ids:
+            count += len([item for item in evidence_ids.split(",") if item.strip()])
+        elif isinstance(evidence_ids, list):
+            count += len(evidence_ids)
+
     return count
 
 
@@ -344,7 +365,8 @@ def _compute_quality_score(data: dict[str, Any]) -> float:
     findings = _extract_findings(data)
     evidence = _count_evidence(data)
     summaries = data.get("per_paper_summaries", [])
-    gaps = data.get("gaps", [])
+    gaps = data.get("gaps", []) or data.get("unresolved_questions", [])
+    corpus = data.get("corpus", [])
 
     # Finding completeness (0-0.3)
     if len(findings) >= 5:
@@ -358,10 +380,11 @@ def _compute_quality_score(data: dict[str, Any]) -> float:
         score += 0.3 * ratio
 
     # Paper coverage (0-0.2)
-    if len(summaries) >= 3:
+    paper_count = len(summaries) or len(corpus)
+    if paper_count >= 3:
         score += 0.2
-    elif summaries:
-        score += 0.2 * min(1.0, len(summaries) / 3)
+    elif paper_count:
+        score += 0.2 * min(1.0, paper_count / 3)
 
     # Gap identification (0-0.2)
     if gaps:

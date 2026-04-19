@@ -1,16 +1,20 @@
-"""Install research-pipeline skill and agents to the user's Claude config."""
+"""Install research-pipeline skill and agents to assistant config directories."""
 
 from __future__ import annotations
 
 import contextlib
 import logging
 import shutil
+from collections.abc import Iterable, Sequence
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 # Default install targets
-DEFAULT_SKILL_DIR = Path.home() / ".claude" / "skills" / "research-pipeline"
+DEFAULT_CLAUDE_SKILL_DIR = Path.home() / ".claude" / "skills" / "research-pipeline"
+DEFAULT_CODEX_SKILL_DIR = Path.home() / ".codex" / "skills" / "research-pipeline"
+DEFAULT_SKILL_DIR = DEFAULT_CLAUDE_SKILL_DIR
+DEFAULT_SKILL_TARGETS = (DEFAULT_CLAUDE_SKILL_DIR, DEFAULT_CODEX_SKILL_DIR)
 DEFAULT_AGENTS_DIR = Path.home() / ".claude" / "agents"
 
 # Source candidates when running from the repo root (development)
@@ -80,13 +84,40 @@ def _find_agent_source() -> Path | None:
     return _find_source(_AGENT_SOURCE_CANDIDATES, "agent_data")
 
 
+def _dedupe_paths(paths: Iterable[Path]) -> list[Path]:
+    """Return paths in input order, removing duplicates."""
+    deduped: list[Path] = []
+    seen: set[str] = set()
+    for path in paths:
+        expanded = path.expanduser()
+        key = str(expanded)
+        if key in seen:
+            continue
+        seen.add(key)
+        deduped.append(expanded)
+    return deduped
+
+
+def _resolve_skill_targets(
+    skill_target: Path | None,
+    skill_targets: Sequence[Path] | None,
+) -> list[Path]:
+    """Resolve explicit or default skill installation targets."""
+    if skill_targets is not None:
+        return _dedupe_paths(skill_targets)
+    if skill_target is not None:
+        return _dedupe_paths([skill_target])
+    return _dedupe_paths(DEFAULT_SKILL_TARGETS)
+
+
 def _install_directory(
     source: Path,
     target: Path,
     symlink: bool,
     force: bool,
     label: str,
-) -> None:
+    skip_existing: bool = False,
+) -> bool:
     """Copy or symlink a source directory to a target.
 
     Args:
@@ -95,11 +126,23 @@ def _install_directory(
         symlink: Create a symlink instead of copying.
         force: Overwrite existing target.
         label: Human-readable label for log messages.
+        skip_existing: If True, leave existing targets untouched instead of
+            failing when force is False.
+
+    Returns:
+        True if the target was installed or overwritten, False if skipped.
     """
     logger.info("%s source: %s", label, source)
     logger.info("%s target: %s", label, target)
 
-    if target.exists():
+    if target.exists() or target.is_symlink():
+        if skip_existing and not force:
+            logger.warning(
+                "%s target already exists: %s. Use --force to overwrite.",
+                label,
+                target,
+            )
+            return False
         if target.is_symlink():
             existing_target = target.resolve()
             if not force:
@@ -135,6 +178,7 @@ def _install_directory(
     else:
         shutil.copytree(source, target)
         logger.info("Copied %s to: %s", label.lower(), target)
+    return True
 
 
 def _install_agent_files(
@@ -180,17 +224,21 @@ def _install_agent_files(
 
 
 def run_setup(
-    skill_target: Path = DEFAULT_SKILL_DIR,
+    skill_target: Path | None = None,
+    skill_targets: Sequence[Path] | None = None,
     agents_target: Path = DEFAULT_AGENTS_DIR,
     symlink: bool = False,
     force: bool = False,
     skip_skill: bool = False,
     skip_agents: bool = False,
 ) -> None:
-    """Install skill and agents to the user's Claude config.
+    """Install skills and agents to assistant config directories.
 
     Args:
-        skill_target: Destination for the skill directory.
+        skill_target: Explicit single destination for the skill directory.
+            When omitted, installs to Claude/GitHub Copilot and Codex paths.
+        skill_targets: Explicit multiple destinations for the skill directory.
+            Takes precedence over ``skill_target`` when set.
         agents_target: Destination directory for agent files.
         symlink: If True, create symlinks instead of copying.
         force: If True, overwrite existing files/directories.
@@ -203,16 +251,30 @@ def run_setup(
 
     # --- Skill ---
     if not skip_skill:
-        source = _find_skill_source()
-        if source is None:
+        skill_source = _find_skill_source()
+        if skill_source is None:
             logger.error(
                 "Could not locate skill source files. "
                 "Ensure you are running from the repo or the package "
                 "includes skill data."
             )
             raise SystemExit(1)
-        _install_directory(source, skill_target, symlink, force, "Skill")
-        logger.info("Skill installed at %s", skill_target)
+
+        targets = _resolve_skill_targets(skill_target, skill_targets)
+        if not targets:
+            logger.warning("No skill targets configured; skipping skill install.")
+        default_multi_target = skill_target is None and skill_targets is None
+        for target in targets:
+            installed = _install_directory(
+                skill_source,
+                target,
+                symlink,
+                force,
+                "Skill",
+                skip_existing=default_multi_target,
+            )
+            if installed:
+                logger.info("Skill installed at %s", target)
 
     # --- Agents ---
     if not skip_agents:

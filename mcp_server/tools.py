@@ -621,8 +621,16 @@ def summarize_papers(
     try:
         from research_pipeline.models.download import DownloadManifestEntry
         from research_pipeline.storage.workspace import get_stage_dir
-        from research_pipeline.summarization.per_paper import summarize_paper
-        from research_pipeline.summarization.synthesis import synthesize
+        from research_pipeline.summarization.per_paper import (
+            extract_paper,
+            project_extraction_to_summary,
+            render_extraction_markdown,
+        )
+        from research_pipeline.summarization.synthesis import (
+            project_structured_synthesis_to_report,
+            render_structured_synthesis_markdown,
+            synthesize_extractions,
+        )
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
@@ -631,6 +639,8 @@ def summarize_papers(
         convert_dir = get_stage_dir(run_root, "convert")
         summarize_dir = get_stage_dir(run_root, "summarize")
         summarize_dir.mkdir(parents=True, exist_ok=True)
+        extraction_dir = summarize_dir / "extractions"
+        extraction_dir.mkdir(parents=True, exist_ok=True)
 
         md_files = list(convert_dir.glob("*.md"))
         if not md_files:
@@ -657,15 +667,54 @@ def summarize_papers(
                     id_map[stem] = entry
 
         summaries = []
+        extraction_records = []
         for md_path in md_files:
             entry = id_map.get(md_path.stem)
             arxiv_id = entry.arxiv_id if entry else md_path.stem
             version = entry.version if entry else "v1"
             title = md_path.stem  # best-effort title from filename
-            summary = summarize_paper(md_path, arxiv_id, version, title, topic_terms)
+            extraction = extract_paper(md_path, arxiv_id, version, title, topic_terms)
+            extraction_records.append(extraction)
+            base_name = f"{arxiv_id}{version}"
+            (extraction_dir / f"{base_name}.extraction.json").write_text(
+                extraction.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
+            (extraction_dir / f"{base_name}.extraction.md").write_text(
+                render_extraction_markdown(extraction),
+                encoding="utf-8",
+            )
+            summary = project_extraction_to_summary(extraction)
             summaries.append(summary)
+            (summarize_dir / f"{base_name}.summary.json").write_text(
+                summary.model_dump_json(indent=2),
+                encoding="utf-8",
+            )
 
-        synthesis = synthesize(summaries, topic)
+        structured = synthesize_extractions(extraction_records, topic)
+        synthesis = project_structured_synthesis_to_report(structured, summaries)
+        structured_md = render_structured_synthesis_markdown(structured)
+        synthesis_json = summarize_dir / "synthesis.json"
+        structured_json = summarize_dir / "synthesis_report.json"
+        structured_md_path = summarize_dir / "synthesis_report.md"
+        synthesis_md_path = summarize_dir / "synthesis.md"
+        traceability_path = summarize_dir / "synthesis_traceability.json"
+        quality_path = summarize_dir / "synthesis_quality.json"
+        synthesis_json.write_text(synthesis.model_dump_json(indent=2), encoding="utf-8")
+        structured_json.write_text(
+            structured.model_dump_json(indent=2),
+            encoding="utf-8",
+        )
+        structured_md_path.write_text(structured_md, encoding="utf-8")
+        synthesis_md_path.write_text(structured_md, encoding="utf-8")
+        traceability_path.write_text(
+            json.dumps(structured.traceability_appendix, indent=2),
+            encoding="utf-8",
+        )
+        quality_path.write_text(
+            structured.quality.model_dump_json(indent=2),
+            encoding="utf-8",
+        )
 
         logger.info("Summarized %d papers, synthesis written", len(summaries))
         return ToolResult(
@@ -673,8 +722,13 @@ def summarize_papers(
             message=f"Summarized {len(summaries)} papers with cross-paper synthesis.",
             artifacts={
                 "summarize_dir": str(summarize_dir),
+                "extraction_dir": str(extraction_dir),
                 "summary_count": len(summaries),
-                "synthesis": str(synthesis) if synthesis else "",
+                "synthesis": str(synthesis_json),
+                "structured_synthesis": str(structured_json),
+                "synthesis_report": str(structured_md_path),
+                "traceability": str(traceability_path),
+                "quality": str(quality_path),
             },
         )
     except Exception as exc:
@@ -1562,7 +1616,9 @@ def aggregate_evidence_tool(
     merge duplicates, and filter by evidence requirements.
     """
     try:
-        from research_pipeline.models.summary import SynthesisReport
+        from research_pipeline.models.summary import (
+            SynthesisReport,
+        )
         from research_pipeline.storage.workspace import resolve_workspace
         from research_pipeline.summarization.evidence_aggregation import (
             aggregate_evidence,
@@ -1578,10 +1634,9 @@ def aggregate_evidence_tool(
         from research_pipeline.storage.workspace import get_stage_dir
 
         sum_dir = get_stage_dir(run_root, "summarize")
-        report_path = sum_dir / "synthesis_report.json"
+        report_path = sum_dir / "synthesis.json"
         if not report_path.exists():
-            # Fall back to synthesis.json
-            report_path = sum_dir / "synthesis.json"
+            report_path = sum_dir / "synthesis_report.json"
         if not report_path.exists():
             return ToolResult(
                 success=False,
@@ -1683,7 +1738,9 @@ def export_html_tool(
                 message="Provide either run_id or markdown_file",
             )
 
-        from research_pipeline.models.summary import SynthesisReport
+        from research_pipeline.models.summary import (
+            SynthesisReport,
+        )
         from research_pipeline.storage.workspace import get_stage_dir, resolve_workspace
 
         ws = resolve_workspace(Path(params.workspace) if params.workspace else None)
@@ -2255,7 +2312,10 @@ def report_tool(
 ) -> ToolResult:
     """Render a synthesis report using a configurable template."""
     try:
-        from research_pipeline.models.summary import SynthesisReport
+        from research_pipeline.models.summary import (
+            CrossPaperSynthesisRecord,
+            SynthesisReport,
+        )
         from research_pipeline.storage.workspace import get_stage_dir
         from research_pipeline.summarization.report_templates import (
             list_templates,
@@ -2264,11 +2324,16 @@ def report_tool(
 
         _report_progress(ctx, 0, 4, "Validating template")
         available = list_templates()
-        if params.template not in available and not params.custom_template:
+        template_name = params.template
+        if (
+            template_name not in available
+            and template_name != "structured_synthesis"
+            and not params.custom_template
+        ):
             return ToolResult(
                 success=False,
                 message=(
-                    f"Unknown template {params.template!r}. "
+                    f"Unknown template {template_name!r}. "
                     f"Available: {', '.join(available)}"
                 ),
             )
@@ -2277,10 +2342,15 @@ def report_tool(
         run_root = _get_run_root(workspace, params.run_id)
         stage_dir = get_stage_dir(run_root, "summarize")
 
-        synthesis_json = stage_dir / "synthesis_report.json"
-        if not synthesis_json.exists():
-            synthesis_json = stage_dir / "synthesis.json"
-        if not synthesis_json.exists():
+        structured_json = stage_dir / "synthesis_report.json"
+        legacy_json = stage_dir / "synthesis.json"
+        candidates = (
+            [structured_json, legacy_json]
+            if template_name == "structured_synthesis"
+            else [legacy_json, structured_json]
+        )
+        synthesis_json = next((path for path in candidates if path.exists()), None)
+        if synthesis_json is None:
             return ToolResult(
                 success=False,
                 message=f"No synthesis_report.json or synthesis.json in {stage_dir}.",
@@ -2290,7 +2360,14 @@ def report_tool(
         data = json.loads(synthesis_json.read_text(encoding="utf-8"))
         if "report" in data and "topic" in data["report"]:
             data = data["report"]
-        report = SynthesisReport.model_validate(data)
+        if "corpus" in data and "taxonomy" in data:
+            report: SynthesisReport | CrossPaperSynthesisRecord = (
+                CrossPaperSynthesisRecord.model_validate(data)
+            )
+            if template_name != "structured_synthesis" and not params.custom_template:
+                template_name = "structured_synthesis"
+        else:
+            report = SynthesisReport.model_validate(data)
 
         custom_tmpl: str | None = None
         if params.custom_template:
@@ -2305,24 +2382,24 @@ def report_tool(
         out_path = (
             Path(params.output)
             if params.output
-            else stage_dir / f"report_{params.template}.md"
+            else stage_dir / f"report_{template_name}.md"
         )
 
         _report_progress(ctx, 2, 4, "Rendering report")
         render_report_to_file(
             report,
             out_path,
-            template_name=params.template,
+            template_name=template_name,
             custom_template=custom_tmpl,
         )
 
         _report_progress(ctx, 4, 4, "Complete")
         return ToolResult(
             success=True,
-            message=f"Report ({params.template}) written to {out_path}.",
+            message=f"Report ({template_name}) written to {out_path}.",
             artifacts={
                 "run_id": params.run_id,
-                "template": params.template,
+                "template": template_name,
                 "path": str(out_path),
             },
         )

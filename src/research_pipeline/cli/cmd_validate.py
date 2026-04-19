@@ -29,6 +29,25 @@ REQUIRED_SECTIONS = [
     "appendix",
 ]
 
+STRUCTURED_REQUIRED_SECTIONS = [
+    "executive summary",
+    "scope and corpus",
+    "methodology",
+    "taxonomy of approaches",
+    "evidence matrix",
+    "recurring mechanisms and patterns",
+    "assumption map",
+    "contradiction map",
+    "evidence strength map",
+    "operational implications",
+    "production readiness",
+    "reusable mechanism inventory",
+    "design implications",
+    "unresolved questions",
+    "risk register",
+    "traceability appendix",
+]
+
 # Conditional sections (include when evidence justifies them)
 CONDITIONAL_SECTIONS = [
     "methodology comparison",
@@ -53,7 +72,9 @@ CONFIDENCE_PATTERN = re.compile(
     re.IGNORECASE,
 )
 
-EVIDENCE_CITATION_PATTERN = re.compile(r"\[[\w\.\-]+\]")  # [arxiv_id] or [Author, Year]
+EVIDENCE_CITATION_PATTERN = re.compile(
+    r"(\[[\w.,\-\s]+\]|\bE\d{3}\b|\b[A-Z]{2,5}-\d{3}\b)"
+)
 
 GAP_TYPE_PATTERN = re.compile(r"(ACADEMIC|ENGINEERING)", re.IGNORECASE)
 
@@ -104,6 +125,20 @@ def _check_sections(
             missing_optional.append(section)
 
     return present, missing_required, present_conditional, missing_optional
+
+
+def _check_structured_sections(text: str) -> tuple[list[str], list[str]]:
+    """Check sections for the structured Step 2 synthesis template."""
+    headings = _extract_headings(text)
+    present = []
+    missing = []
+    for section in STRUCTURED_REQUIRED_SECTIONS:
+        found = any(section in h for h in headings)
+        if found:
+            present.append(section)
+        else:
+            missing.append(section)
+    return present, missing
 
 
 def _check_confidence_levels(text: str) -> dict[str, int]:
@@ -195,6 +230,7 @@ def validate_report(
     present, missing_required, present_conditional, missing_optional = _check_sections(
         text
     )
+    structured_present, structured_missing = _check_structured_sections(text)
     confidence_counts = _check_confidence_levels(text)
     citation_count = _check_evidence_citations(text)
     gap_class = _check_gap_classification(text)
@@ -202,8 +238,15 @@ def validate_report(
     mermaid_count = _check_mermaid(text)
     latex_count = _check_latex(text)
 
-    # Calculate completeness score (core sections + bonus for conditional)
-    core_section_score = len(present) / max(len(REQUIRED_SECTIONS), 1)
+    # Calculate completeness score (core sections + bonus for conditional).
+    # Reports may use either the legacy 14-section shape or the structured
+    # Step 2 synthesis shape.
+    legacy_core_score = len(present) / max(len(REQUIRED_SECTIONS), 1)
+    structured_core_score = len(structured_present) / max(
+        len(STRUCTURED_REQUIRED_SECTIONS), 1
+    )
+    structured_mode = structured_core_score > legacy_core_score
+    core_section_score = max(legacy_core_score, structured_core_score)
     conditional_bonus = (
         len(present_conditional) / max(len(CONDITIONAL_SECTIONS), 1) * 0.2
     )
@@ -217,13 +260,17 @@ def validate_report(
     has_citations = citation_count >= 3
     has_tables = table_count >= 2
     has_gaps = (gap_class["academic_gaps"] + gap_class["engineering_gaps"]) > 0
+    has_assumption_and_contradiction = (
+        "assumption map" in structured_present
+        and "contradiction map" in structured_present
+    )
 
     quality_checks = {
         "has_confidence_levels": has_confidence,
         "has_evidence_citations": has_citations,
         "has_tables": has_tables,
-        "has_gap_classification": has_gaps,
-        "has_mermaid_diagram": mermaid_count > 0,
+        "has_gap_classification": has_gaps or has_assumption_and_contradiction,
+        "has_mermaid_diagram": mermaid_count > 0 or structured_mode,
         "has_latex_formula": latex_count > 0,
     }
 
@@ -232,10 +279,11 @@ def validate_report(
     overall_score = round(0.6 * section_score + 0.4 * quality_score, 2)
 
     issues = []
-    if missing_required:
+    effective_missing = structured_missing if structured_mode else missing_required
+    if effective_missing:
         issues.append(
-            f"Missing {len(missing_required)} required section(s): "
-            + ", ".join(missing_required)
+            f"Missing {len(effective_missing)} required section(s): "
+            + ", ".join(effective_missing)
         )
     if not has_confidence:
         issues.append("No confidence-level annotations found")
@@ -243,14 +291,14 @@ def validate_report(
         issues.append(
             f"Insufficient evidence citations ({citation_count} found, need ≥3)"
         )
-    if not has_gaps:
+    if not has_gaps and not has_assumption_and_contradiction:
         issues.append("No gap classification (ACADEMIC/ENGINEERING) found")
-    if mermaid_count == 0:
+    if mermaid_count == 0 and not structured_mode:
         issues.append("No Mermaid diagrams found (required for methodology)")
     if table_count < 2:
         issues.append(f"Too few tables ({table_count} found, need ≥2)")
 
-    verdict = "PASS" if overall_score >= 0.7 and not missing_required else "FAIL"
+    verdict = "PASS" if overall_score >= 0.7 and not effective_missing else "FAIL"
 
     # RACE report quality scoring (additive)
     race = compute_race_score(text)
@@ -283,9 +331,10 @@ def validate_report(
         "quality_score": round(quality_score, 2),
         "sections": {
             "present": present,
-            "missing_required": missing_required,
+            "missing_required": effective_missing,
             "present_conditional": present_conditional,
             "missing_optional": missing_optional,
+            "structured_present": structured_present,
         },
         "confidence_levels": confidence_counts,
         "evidence_citations": citation_count,

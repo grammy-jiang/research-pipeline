@@ -46,9 +46,15 @@ def _discover_papers(run_root: Path) -> list[dict[str, str]]:
         List of dicts with 'arxiv_id' and 'path' keys.
     """
     papers = []
-    convert_dir = get_stage_dir(run_root, "convert")
-    if convert_dir.exists():
-        for md_file in sorted(convert_dir.glob("*.md")):
+    seen: set[str] = set()
+
+    def add_markdown_files(directory: Path) -> None:
+        if not directory.exists():
+            return
+        for md_file in sorted(directory.glob("*.md")):
+            if md_file.stem in seen:
+                continue
+            seen.add(md_file.stem)
             papers.append(
                 {
                     "arxiv_id": md_file.stem,
@@ -56,18 +62,12 @@ def _discover_papers(run_root: Path) -> list[dict[str, str]]:
                 }
             )
 
+    add_markdown_files(get_stage_dir(run_root, "convert"))
+    add_markdown_files(run_root / "convert")
+
     # Also check convert_rough and convert_fine
     for stage in ("convert_rough", "convert_fine"):
-        stage_dir = get_stage_dir(run_root, stage)
-        if stage_dir.exists():
-            for md_file in sorted(stage_dir.glob("*.md")):
-                if not any(p["arxiv_id"] == md_file.stem for p in papers):
-                    papers.append(
-                        {
-                            "arxiv_id": md_file.stem,
-                            "path": str(md_file),
-                        }
-                    )
+        add_markdown_files(get_stage_dir(run_root, stage))
 
     return papers
 

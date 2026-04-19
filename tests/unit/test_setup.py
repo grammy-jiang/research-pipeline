@@ -133,6 +133,72 @@ class TestRunSetup:
         assert (skill_target / "SKILL.md").is_file()
         assert (agents_target / "paper-analyzer.md").is_file()
 
+    def test_default_installs_claude_and_codex_skills(self, tmp_path: Path) -> None:
+        skill_src = tmp_path / "skill_src"
+        skill_src.mkdir()
+        (skill_src / "SKILL.md").write_text("# Skill")
+
+        agent_src = tmp_path / "agent_src"
+        agent_src.mkdir()
+        (agent_src / "paper-analyzer.md").write_text("# Analyzer")
+
+        claude_target = tmp_path / ".claude" / "skills" / "research-pipeline"
+        codex_target = tmp_path / ".codex" / "skills" / "research-pipeline"
+        agents_target = tmp_path / ".claude" / "agents"
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (claude_target, codex_target),
+            ),
+        ):
+            run_setup(
+                agents_target=agents_target,
+                force=True,
+            )
+
+        assert (claude_target / "SKILL.md").is_file()
+        assert (codex_target / "SKILL.md").is_file()
+        assert (agents_target / "paper-analyzer.md").is_file()
+
+    def test_default_skips_existing_skill_and_installs_missing(
+        self,
+        tmp_path: Path,
+    ) -> None:
+        skill_src = tmp_path / "skill_src"
+        skill_src.mkdir()
+        (skill_src / "SKILL.md").write_text("# New Skill")
+
+        claude_target = tmp_path / ".claude" / "skills" / "research-pipeline"
+        claude_target.mkdir(parents=True)
+        (claude_target / "SKILL.md").write_text("# Existing Skill")
+        codex_target = tmp_path / ".codex" / "skills" / "research-pipeline"
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (claude_target, codex_target),
+            ),
+        ):
+            run_setup(
+                skip_agents=True,
+            )
+
+        assert (claude_target / "SKILL.md").read_text() == "# Existing Skill"
+        assert (codex_target / "SKILL.md").read_text() == "# New Skill"
+
     def test_skip_skill(self, tmp_path: Path) -> None:
         agent_src = tmp_path / "agent_src"
         agent_src.mkdir()

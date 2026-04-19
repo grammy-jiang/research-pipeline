@@ -32,6 +32,18 @@ def _is_embedding_available() -> bool:
         return False
 
 
+def _is_cross_encoder_available() -> bool:
+    """Check whether cross-encoder reranking dependencies are installed."""
+    try:
+        from research_pipeline.extraction.cross_encoder import (
+            _is_cross_encoder_available as is_available,
+        )
+
+        return is_available()
+    except ImportError:
+        return False
+
+
 def _bm25_rank(
     chunks: list[tuple[ChunkMetadata, str]],
     query_terms: list[str],
@@ -155,10 +167,7 @@ def retrieve_relevant_chunks(
     if not chunks or not query_terms:
         return []
 
-    from research_pipeline.extraction.cross_encoder import (
-        _is_cross_encoder_available,
-        cross_encoder_rerank,
-    )
+    from research_pipeline.extraction.cross_encoder import cross_encoder_rerank
 
     # Determine whether to use embeddings
     if use_embeddings is None:
