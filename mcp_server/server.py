@@ -15,6 +15,7 @@ from mcp.types import ToolAnnotations
 
 from mcp_server import completions, prompts, resources
 from mcp_server.schemas import (
+    AnalyzeClaimsInput,
     AnalyzePapersInput,
     CiteContextInput,
     ClusterInput,
@@ -26,6 +27,7 @@ from mcp_server.schemas import (
     DownloadPdfsInput,
     EnrichInput,
     EvalLogInput,
+    EvaluateInput,
     EvaluateQualityInput,
     EvidenceAggregateInput,
     ExpandCitationsInput,
@@ -34,11 +36,18 @@ from mcp_server.schemas import (
     ExtractContentInput,
     FeedbackInput,
     GetRunManifestInput,
+    KGIngestInput,
+    KGQueryInput,
+    KGStatsInput,
     ListBackendsInput,
     ManageIndexInput,
+    MemoryEpisodesInput,
+    MemorySearchInput,
+    MemoryStatsInput,
     PlanTopicInput,
     ReportInput,
     RunPipelineInput,
+    ScoreClaimsInput,
     ScreenCandidatesInput,
     SearchInput,
     SummarizePapersInput,
@@ -49,6 +58,7 @@ from mcp_server.schemas import (
 from mcp_server.tools import (
     adaptive_stopping_tool,
     aggregate_evidence_tool,
+    analyze_claims_tool,
     analyze_papers,
     blinding_audit_tool,
     cbr_lookup_tool,
@@ -67,21 +77,29 @@ from mcp_server.tools import (
     dual_metrics_tool,
     enrich_tool,
     evaluate_quality,
+    evaluate_tool,
     expand_citations,
     export_bibtex_tool,
     export_html_tool,
     extract_content,
     gate_info_tool,
     get_run_manifest,
+    kg_ingest_tool,
     kg_quality_tool,
+    kg_query_tool,
+    kg_stats_tool,
     list_backends,
     manage_index,
+    memory_episodes_tool,
+    memory_search_tool,
+    memory_stats_tool,
     model_routing_info_tool,
     plan_topic,
     query_eval_log,
     record_feedback,
     report_tool,
     run_pipeline,
+    score_claims_tool,
     screen_candidates,
     search,
     summarize_papers,
@@ -1480,6 +1498,250 @@ async def tool_watch(
         config_path=config_path,
     )
     result = watch_tool(params=params)
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_analyze_claims(
+    run_id: str,
+    ctx: Context,
+    workspace: str = "",
+) -> dict:
+    """Decompose paper summaries into atomic claims with evidence classification.
+
+    Breaks each paper's summary into individual factual claims and classifies
+    their evidence type (supported, unsupported, contradicted).
+
+    Args:
+        run_id: Pipeline run ID.
+        workspace: Workspace directory. Empty uses config default.
+    """
+    result = analyze_claims_tool(
+        AnalyzeClaimsInput(run_id=run_id, workspace=workspace), ctx=ctx
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_score_claims(
+    run_id: str,
+    ctx: Context,
+    workspace: str = "",
+) -> dict:
+    """Score confidence for decomposed claims using LLM evaluation.
+
+    Assigns confidence scores to each atomic claim produced by
+    analyze-claims, using LLM-based assessment when available.
+
+    Args:
+        run_id: Pipeline run ID.
+        workspace: Workspace directory. Empty uses config default.
+    """
+    result = score_claims_tool(
+        ScoreClaimsInput(run_id=run_id, workspace=workspace), ctx=ctx
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_kg_stats(
+    db_path: str = "",
+) -> dict:
+    """Show knowledge graph statistics.
+
+    Returns entity and triple counts, type distributions, and
+    other statistics about the knowledge graph.
+
+    Args:
+        db_path: Path to KG database. Empty uses default.
+    """
+    result = kg_stats_tool(KGStatsInput(db_path=db_path))
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_kg_query(
+    entity_id: str,
+    db_path: str = "",
+) -> dict:
+    """Query an entity and its relations in the knowledge graph.
+
+    Returns the entity details and all connected relations
+    (both incoming and outgoing).
+
+    Args:
+        entity_id: Entity ID to query.
+        db_path: Path to KG database. Empty uses default.
+    """
+    result = kg_query_tool(KGQueryInput(entity_id=entity_id, db_path=db_path))
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=False,
+    ),
+)
+def tool_kg_ingest(
+    run_id: str,
+    ctx: Context,
+    workspace: str = "",
+    db_path: str = "",
+) -> dict:
+    """Ingest pipeline results into the knowledge graph.
+
+    Loads candidates and claim decompositions from a pipeline run
+    and creates entities and triples in the knowledge graph.
+
+    Args:
+        run_id: Pipeline run ID to ingest from.
+        workspace: Workspace directory. Empty uses config default.
+        db_path: Path to KG database. Empty uses default.
+    """
+    result = kg_ingest_tool(
+        KGIngestInput(run_id=run_id, workspace=workspace, db_path=db_path), ctx=ctx
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_memory_stats(
+    episodic_db: str = "",
+    kg_db: str = "",
+) -> dict:
+    """Show memory tier statistics.
+
+    Returns statistics for episodic memory (past runs) and
+    knowledge graph (entities, triples).
+
+    Args:
+        episodic_db: Path to episodic memory database. Empty uses default.
+        kg_db: Path to KG database. Empty uses default.
+    """
+    result = memory_stats_tool(MemoryStatsInput(episodic_db=episodic_db, kg_db=kg_db))
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_memory_episodes(
+    limit: int = 20,
+    episodic_db: str = "",
+) -> dict:
+    """List recent episodic memories (past pipeline runs).
+
+    Returns recent pipeline run episodes with topic, paper counts,
+    and completion status.
+
+    Args:
+        limit: Maximum episodes to return.
+        episodic_db: Path to episodic memory database. Empty uses default.
+    """
+    result = memory_episodes_tool(
+        MemoryEpisodesInput(limit=limit, episodic_db=episodic_db)
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_memory_search(
+    topic: str,
+    limit: int = 10,
+    episodic_db: str = "",
+) -> dict:
+    """Search episodic memory for past runs on a topic.
+
+    Finds previous pipeline runs that match the given topic,
+    useful for finding related prior research.
+
+    Args:
+        topic: Topic to search for.
+        limit: Maximum results to return.
+        episodic_db: Path to episodic memory database. Empty uses default.
+    """
+    result = memory_search_tool(
+        MemorySearchInput(topic=topic, limit=limit, episodic_db=episodic_db)
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_evaluate(
+    run_id: str,
+    workspace: str = "./workspace",
+    stage: str = "",
+) -> dict:
+    """Evaluate pipeline outputs against their schemas.
+
+    Validates that pipeline stage outputs conform to expected
+    formats and schemas. Can check a single stage or all stages.
+
+    Args:
+        run_id: Pipeline run ID to evaluate.
+        workspace: Workspace directory.
+        stage: Specific stage to evaluate. Empty checks all.
+    """
+    result = evaluate_tool(
+        EvaluateInput(run_id=run_id, workspace=workspace, stage=stage)
+    )
     return result.model_dump()
 
 

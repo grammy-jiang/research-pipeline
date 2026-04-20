@@ -745,6 +745,120 @@ class ResearchWorkflowInput(CommonParams):
     )
 
 
+class AnalyzeClaimsInput(CommonParams):
+    """Input for the analyze_claims tool.
+
+    Decomposes paper summaries into atomic claims with evidence
+    classification (supported, partial, conflicting, inconclusive,
+    unsupported) using BM25 retrieval against source Markdown.
+    """
+
+
+class ScoreClaimsInput(CommonParams):
+    """Input for the score_claims tool.
+
+    Scores confidence for decomposed claims using evidence strength,
+    hedging-language detection (LVU), citation density, and retrieval
+    quality. Optionally uses LLM multi-sample consistency when available.
+    """
+
+
+class KGStatsInput(BaseModel):
+    """Input for the kg_stats tool."""
+
+    db_path: str = Field(
+        default="",
+        description="Path to KG SQLite database. Empty uses default.",
+    )
+
+
+class KGQueryInput(BaseModel):
+    """Input for the kg_query tool."""
+
+    entity_id: str = Field(
+        description="Entity identifier to look up in the knowledge graph.",
+    )
+    db_path: str = Field(
+        default="",
+        description="Path to KG SQLite database. Empty uses default.",
+    )
+
+
+class KGIngestInput(CommonParams):
+    """Input for the kg_ingest tool.
+
+    Reads candidates and claim decompositions from a completed run
+    and populates the knowledge graph with entities and relations.
+    """
+
+    db_path: str = Field(
+        default="",
+        description="Path to KG SQLite database. Empty uses default.",
+    )
+
+
+class MemoryStatsInput(BaseModel):
+    """Input for the memory_stats tool."""
+
+    episodic_db: str = Field(
+        default="",
+        description="Path to episodic memory database. Empty uses default.",
+    )
+    kg_db: str = Field(
+        default="",
+        description="Path to KG database. Empty uses default.",
+    )
+
+
+class MemoryEpisodesInput(BaseModel):
+    """Input for the memory_episodes tool."""
+
+    limit: int = Field(
+        default=10,
+        description="Maximum number of episodes to return.",
+    )
+    episodic_db: str = Field(
+        default="",
+        description="Path to episodic memory database. Empty uses default.",
+    )
+
+
+class MemorySearchInput(BaseModel):
+    """Input for the memory_search tool."""
+
+    topic: str = Field(
+        description="Topic to search in episodic memory.",
+    )
+    limit: int = Field(
+        default=10,
+        description="Maximum number of results to return.",
+    )
+    episodic_db: str = Field(
+        default="",
+        description="Path to episodic memory database. Empty uses default.",
+    )
+
+
+class EvaluateInput(BaseModel):
+    """Input for the evaluate tool.
+
+    Validates pipeline outputs against their Pydantic schemas,
+    checking completeness, score ranges, and cross-field consistency.
+    """
+
+    run_id: str = Field(
+        description="Run ID to evaluate.",
+    )
+    stage: str = Field(
+        default="",
+        description="Specific stage to evaluate. Empty means all stages.",
+    )
+    workspace: str = Field(
+        default="runs",
+        description="Workspace directory containing run outputs.",
+    )
+
+
 class ToolResult(BaseModel):
     """Standard result envelope for MCP tool outputs."""
 

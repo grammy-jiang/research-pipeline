@@ -36,8 +36,10 @@ class TestServerRegistration:
         # + workflow + 4 quality + feedback + eval_log + aggregate
         # + export_html + model_routing_info + gate_info = 27
         # + 6 auxiliary (export_bibtex, report, cluster, enrich,
-        #   cite_context, watch) + others = 42
-        assert len(mcp._tool_manager._tools) == 42
+        #   cite_context, watch) + 9 parity tools (analyze_claims,
+        #   score_claims, kg_stats, kg_query, kg_ingest,
+        #   memory_stats, memory_episodes, memory_search, evaluate) = 51
+        assert len(mcp._tool_manager._tools) == 51
 
     def test_all_tools_have_annotations(self) -> None:
         """Every registered tool must have ToolAnnotations set."""

@@ -268,10 +268,19 @@ python -m mcp_server
 uv run python -m mcp_server
 ```
 
-Features: 36 tools (with annotations & progress), 15 resources (URI templates),
+Features: 51 tools (with annotations & progress), 15 resources (URI templates),
 6 prompts, auto-completions, harness-engineered research workflow.
 
 New quality tools:
+- `analyze_claims` — decompose summaries into atomic claims
+- `score_claims` — score confidence for decomposed claims
+- `kg_stats` — knowledge graph entity/triple statistics
+- `kg_query` — query entity + relations in KG
+- `kg_ingest` — ingest pipeline results into KG
+- `memory_stats` — memory tier statistics
+- `memory_episodes` — list recent episodic memories
+- `memory_search` — search episodic memory by topic
+- `evaluate` — validate pipeline outputs against schemas
 - `analyze_papers` — prepare per-paper analysis tasks or validate results
 - `validate_report` — check report completeness (14 sections, citations, gaps)
 - `compare_runs` — structured diff between two pipeline runs

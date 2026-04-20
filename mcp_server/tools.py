@@ -17,6 +17,7 @@ if TYPE_CHECKING:
 
 from mcp_server.schemas import (
     AdaptiveStoppingInput,
+    AnalyzeClaimsInput,
     AnalyzePapersInput,
     BlindingAuditInput,
     CbrLookupInput,
@@ -35,6 +36,7 @@ from mcp_server.schemas import (
     DualMetricsInput,
     EnrichInput,
     EvalLogInput,
+    EvaluateInput,
     EvaluateQualityInput,
     EvidenceAggregateInput,
     ExpandCitationsInput,
@@ -44,13 +46,20 @@ from mcp_server.schemas import (
     FeedbackInput,
     GateInfoInput,
     GetRunManifestInput,
+    KGIngestInput,
     KGQualityInput,
+    KGQueryInput,
+    KGStatsInput,
     ListBackendsInput,
     ManageIndexInput,
+    MemoryEpisodesInput,
+    MemorySearchInput,
+    MemoryStatsInput,
     ModelRoutingInfoInput,
     PlanTopicInput,
     ReportInput,
     RunPipelineInput,
+    ScoreClaimsInput,
     ScreenCandidatesInput,
     SearchInput,
     SummarizePapersInput,
@@ -2728,4 +2737,468 @@ def watch_tool(
         )
     except Exception as exc:
         logger.error("watch failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def analyze_claims_tool(
+    params: AnalyzeClaimsInput, ctx: Context | None = None
+) -> ToolResult:
+    """Decompose paper summaries into atomic claims with evidence classification."""
+    try:
+        from research_pipeline.analysis.decomposer import decompose_paper
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.summary import PaperSummary
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        config = load_config()
+        ws = Path(params.workspace) if params.workspace else Path(config.workspace)
+        run_id_str, run_root = init_run(ws, params.run_id or None)
+
+        _report_progress(ctx, 0, 3, "Loading summaries")
+
+        summary_dir = get_stage_dir(run_root, "summarize")
+        summary_path = summary_dir / "paper_summaries.jsonl"
+        if summary_path.exists():
+            raw = read_jsonl(summary_path)
+        else:
+            summary_files = list(summary_dir.glob("*.summary.json"))
+            if not summary_files:
+                return ToolResult(
+                    success=False,
+                    message="No paper summaries found. Run 'summarize' first.",
+                )
+            raw = []
+            for sf in summary_files:
+                raw.append(json.loads(sf.read_text(encoding="utf-8")))
+
+        summaries = [PaperSummary.model_validate(d) for d in raw]
+        md_dir = get_stage_dir(run_root, "convert")
+
+        _report_progress(ctx, 1, 3, "Decomposing claims")
+
+        results = []
+        for summary in summaries:
+            md_path = md_dir / f"{summary.arxiv_id}.md"
+            if not md_path.exists():
+                md_path = md_dir / f"{summary.arxiv_id}{summary.version}.md"
+
+            markdown_path_str = str(md_path) if md_path.exists() else None
+            decomp = decompose_paper(
+                summary=summary,
+                markdown_path=markdown_path_str,
+            )
+            results.append(decomp)
+
+        _report_progress(ctx, 2, 3, "Writing results")
+
+        claims_dir = summary_dir / "claims"
+        claims_dir.mkdir(parents=True, exist_ok=True)
+        output_path = claims_dir / "claim_decomposition.jsonl"
+        write_jsonl(output_path, [r.model_dump(mode="json") for r in results])
+
+        total_claims = sum(r.total_claims for r in results)
+        total_supported = sum(r.evidence_summary.get("supported", 0) for r in results)
+
+        _report_progress(ctx, 3, 3, "Done")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Decomposed {len(results)} papers into {total_claims} claims "
+                f"({total_supported} supported)."
+            ),
+            artifacts={
+                "output": str(output_path),
+                "papers": len(results),
+                "total_claims": total_claims,
+                "supported": total_supported,
+            },
+        )
+    except Exception as exc:
+        logger.error("analyze_claims failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def score_claims_tool(
+    params: ScoreClaimsInput, ctx: Context | None = None
+) -> ToolResult:
+    """Score confidence for decomposed claims."""
+    try:
+        from research_pipeline.confidence.scorer import score_decomposition
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.llm.providers import create_llm_provider
+        from research_pipeline.models.claim import ClaimDecomposition
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        config = load_config()
+        ws = Path(params.workspace) if params.workspace else Path(config.workspace)
+        run_id_str, run_root = init_run(ws, params.run_id or None)
+
+        claims_dir = get_stage_dir(run_root, "summarize") / "claims"
+        claims_path = claims_dir / "claim_decomposition.jsonl"
+        if not claims_path.exists():
+            return ToolResult(
+                success=False,
+                message="No claim decompositions found. Run 'analyze-claims' first.",
+            )
+
+        _report_progress(ctx, 0, 3, "Loading decompositions")
+        raw = read_jsonl(claims_path)
+        decompositions = [ClaimDecomposition.model_validate(d) for d in raw]
+
+        llm_provider = create_llm_provider(config.llm)
+
+        _report_progress(ctx, 1, 3, "Scoring claims")
+        results = []
+        for decomp in decompositions:
+            scored = score_decomposition(decomp, llm_provider)
+            results.append(scored)
+
+        _report_progress(ctx, 2, 3, "Writing results")
+        output_path = claims_dir / "scored_claims.jsonl"
+        write_jsonl(output_path, [r.model_dump(mode="json") for r in results])
+
+        total_claims = sum(len(r.claims) for r in results)
+        avg_confidence = sum(
+            c.confidence_score for r in results for c in r.claims
+        ) / max(total_claims, 1)
+
+        _report_progress(ctx, 3, 3, "Done")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Scored {total_claims} claims across {len(results)} papers. "
+                f"Average confidence: {avg_confidence:.3f}."
+            ),
+            artifacts={
+                "output": str(output_path),
+                "papers": len(results),
+                "total_claims": total_claims,
+                "avg_confidence": round(avg_confidence, 3),
+                "llm_available": llm_provider is not None,
+            },
+        )
+    except Exception as exc:
+        logger.error("score_claims failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def kg_stats_tool(params: KGStatsInput, ctx: Context | None = None) -> ToolResult:
+    """Show knowledge graph statistics."""
+    try:
+        from research_pipeline.storage.knowledge_graph import KnowledgeGraph
+
+        db_path = Path(params.db_path) if params.db_path else None
+        kg = KnowledgeGraph(db_path=db_path)
+        try:
+            stats = kg.stats()
+        finally:
+            kg.close()
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"KG has {stats['total_entities']} entities, "
+                f"{stats['total_triples']} triples."
+            ),
+            artifacts=stats,
+        )
+    except Exception as exc:
+        logger.error("kg_stats failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def kg_query_tool(params: KGQueryInput, ctx: Context | None = None) -> ToolResult:
+    """Query an entity and its relations in the knowledge graph."""
+    try:
+        from research_pipeline.storage.knowledge_graph import KnowledgeGraph
+
+        db_path = Path(params.db_path) if params.db_path else None
+        kg = KnowledgeGraph(db_path=db_path)
+        try:
+            entity = kg.get_entity(params.entity_id)
+            if entity is None:
+                return ToolResult(
+                    success=False,
+                    message=f"Entity not found: {params.entity_id}",
+                )
+
+            neighbors = kg.get_neighbors(params.entity_id)
+
+            entity_data = {
+                "entity_id": entity.entity_id,
+                "name": entity.name,
+                "type": entity.entity_type.value,
+                "properties": entity.properties,
+            }
+
+            relations = []
+            for t in neighbors:
+                direction = (
+                    "outgoing" if t.subject_id == params.entity_id else "incoming"
+                )
+                other = (
+                    t.object_id if t.subject_id == params.entity_id else t.subject_id
+                )
+                relations.append(
+                    {
+                        "direction": direction,
+                        "relation": t.relation.value,
+                        "other_entity": other,
+                        "confidence": t.confidence,
+                    }
+                )
+        finally:
+            kg.close()
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Entity '{entity.name}' ({entity.entity_type.value}) "
+                f"with {len(relations)} relations."
+            ),
+            artifacts={
+                "entity": entity_data,
+                "relations": relations,
+            },
+        )
+    except Exception as exc:
+        logger.error("kg_query failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def kg_ingest_tool(params: KGIngestInput, ctx: Context | None = None) -> ToolResult:
+    """Ingest pipeline results into the knowledge graph."""
+    try:
+        from research_pipeline.config.loader import load_config
+        from research_pipeline.models.candidate import CandidateRecord
+        from research_pipeline.models.claim import ClaimDecomposition
+        from research_pipeline.storage.knowledge_graph import KnowledgeGraph
+        from research_pipeline.storage.manifests import read_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        config = load_config()
+        ws = Path(params.workspace) if params.workspace else Path(config.workspace)
+        run_id_str, run_root = init_run(ws, params.run_id or None)
+
+        db_path = Path(params.db_path) if params.db_path else None
+        kg = KnowledgeGraph(db_path=db_path)
+
+        try:
+            total = 0
+            claim_papers = 0
+
+            _report_progress(ctx, 0, 2, "Ingesting candidates")
+
+            screen_dir = get_stage_dir(run_root, "screen")
+            shortlist_path = screen_dir / "shortlist.jsonl"
+            if shortlist_path.exists():
+                raw = read_jsonl(shortlist_path)
+                candidates = [CandidateRecord.model_validate(d) for d in raw]
+                added = kg.ingest_from_candidates(candidates, run_id=run_id_str)
+                total += added
+
+            _report_progress(ctx, 1, 2, "Ingesting claims")
+
+            claims_dir = get_stage_dir(run_root, "summarize") / "claims"
+            claims_path = claims_dir / "claim_decomposition.jsonl"
+            if claims_path.exists():
+                raw = read_jsonl(claims_path)
+                for d in raw:
+                    decomp = ClaimDecomposition.model_validate(d)
+                    added = kg.ingest_from_claims(decomp, run_id=run_id_str)
+                    total += added
+                    claim_papers += 1
+
+            stats = kg.stats()
+        finally:
+            kg.close()
+
+        _report_progress(ctx, 2, 2, "Done")
+        return ToolResult(
+            success=True,
+            message=(
+                f"Ingested {total} items. KG now has "
+                f"{stats['total_entities']} entities, "
+                f"{stats['total_triples']} triples."
+            ),
+            artifacts={
+                "total_ingested": total,
+                "claim_papers": claim_papers,
+                "kg_entities": stats["total_entities"],
+                "kg_triples": stats["total_triples"],
+            },
+        )
+    except Exception as exc:
+        logger.error("kg_ingest failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def memory_stats_tool(
+    params: MemoryStatsInput, ctx: Context | None = None
+) -> ToolResult:
+    """Show memory tier statistics."""
+    try:
+        from research_pipeline.memory.manager import MemoryManager
+
+        episodic_path = Path(params.episodic_db) if params.episodic_db else None
+        kg_path = Path(params.kg_db) if params.kg_db else None
+
+        manager = MemoryManager(episodic_path=episodic_path, kg_path=kg_path)
+        try:
+            stats = manager.summary()
+        finally:
+            manager.close()
+
+        return ToolResult(
+            success=True,
+            message="Memory tier statistics retrieved.",
+            artifacts=stats,
+        )
+    except Exception as exc:
+        logger.error("memory_stats failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def memory_episodes_tool(
+    params: MemoryEpisodesInput, ctx: Context | None = None
+) -> ToolResult:
+    """List recent episodic memories (past runs)."""
+    try:
+        from research_pipeline.memory.episodic import EpisodicMemory
+
+        episodic_path = Path(params.episodic_db) if params.episodic_db else None
+        mem = EpisodicMemory(db_path=episodic_path)
+        try:
+            episodes = mem.recent_episodes(limit=params.limit)
+        finally:
+            mem.close()
+
+        episode_list = []
+        for ep in episodes:
+            episode_list.append(
+                {
+                    "run_id": ep.run_id,
+                    "topic": ep.topic,
+                    "paper_count": ep.paper_count,
+                    "shortlist_count": ep.shortlist_count,
+                    "stages_completed": list(ep.stages_completed),
+                    "started_at": str(ep.started_at),
+                }
+            )
+
+        return ToolResult(
+            success=True,
+            message=f"Found {len(episode_list)} episode(s).",
+            artifacts={"episodes": episode_list},
+        )
+    except Exception as exc:
+        logger.error("memory_episodes failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def memory_search_tool(
+    params: MemorySearchInput, ctx: Context | None = None
+) -> ToolResult:
+    """Search episodic memory for past runs on a topic."""
+    try:
+        from research_pipeline.memory.episodic import EpisodicMemory
+
+        episodic_path = Path(params.episodic_db) if params.episodic_db else None
+        mem = EpisodicMemory(db_path=episodic_path)
+        try:
+            episodes = mem.search_by_topic(params.topic, limit=params.limit)
+        finally:
+            mem.close()
+
+        episode_list = []
+        for ep in episodes:
+            episode_list.append(
+                {
+                    "run_id": ep.run_id,
+                    "topic": ep.topic,
+                    "paper_count": ep.paper_count,
+                    "shortlist_count": ep.shortlist_count,
+                    "stages_completed": list(ep.stages_completed),
+                    "started_at": str(ep.started_at),
+                }
+            )
+
+        return ToolResult(
+            success=True,
+            message=(
+                f"Found {len(episode_list)} past run(s) matching {params.topic!r}."
+            ),
+            artifacts={"episodes": episode_list, "query": params.topic},
+        )
+    except Exception as exc:
+        logger.error("memory_search failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def evaluate_tool(params: EvaluateInput, ctx: Context | None = None) -> ToolResult:
+    """Evaluate pipeline outputs against their schemas."""
+    try:
+        from research_pipeline.evaluation.schema_eval import (
+            evaluate_run,
+            evaluate_stage,
+        )
+
+        ws = Path(params.workspace)
+        run_root = ws / params.run_id
+
+        if not run_root.exists():
+            return ToolResult(
+                success=False,
+                message=f"Run not found: {run_root}",
+            )
+
+        _report_progress(ctx, 0, 2, "Evaluating")
+
+        if params.stage:
+            report = evaluate_stage(run_root, params.stage)
+            reports = [report]
+        else:
+            reports = evaluate_run(run_root)
+
+        _report_progress(ctx, 1, 2, "Building results")
+
+        all_passed = all(r.passed for r in reports)
+        results = []
+        for r in reports:
+            checks = []
+            for c in r.checks:
+                checks.append(
+                    {
+                        "name": c.name,
+                        "passed": c.passed,
+                        "description": c.description,
+                        "details": c.details,
+                        "severity": c.severity,
+                    }
+                )
+            results.append(
+                {
+                    "stage": r.stage,
+                    "passed": r.passed,
+                    "error_count": r.error_count,
+                    "warning_count": r.warning_count,
+                    "checks": checks,
+                }
+            )
+
+        _report_progress(ctx, 2, 2, "Done")
+        verdict = "PASS" if all_passed else "FAIL"
+        return ToolResult(
+            success=True,
+            message=f"Evaluation: {verdict} ({len(reports)} stage(s) checked).",
+            artifacts={
+                "verdict": verdict,
+                "all_passed": all_passed,
+                "stages": results,
+            },
+        )
+    except Exception as exc:
+        logger.error("evaluate failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

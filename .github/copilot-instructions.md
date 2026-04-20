@@ -188,7 +188,7 @@ can be re-run independently.
 - **Retry**: `@retry` decorator (`infra/retry.py`) — exponential backoff, jitter,
   Retry-After header support
 - **CLI entry point**: registered in `pyproject.toml` as `research-pipeline`
-- **MCP server**: `python -m mcp_server` — 17 tools (with annotations and
+- **MCP server**: `python -m mcp_server` — 51 tools (with annotations and
   progress reporting), 15 resources (URI templates for run artifacts and
   workflow state), 6 prompts (research workflow templates), auto-completions,
   harness-engineered research workflow with sampling, elicitation, and
