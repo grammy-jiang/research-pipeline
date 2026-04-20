@@ -137,6 +137,68 @@ def classify_query_complexity(topic: str) -> PipelineProfile:
     return PipelineProfile.STANDARD
 
 
+def select_topology_by_difficulty(
+    topic: str,
+    *,
+    trace_features: bool = False,
+) -> tuple[PipelineProfile, dict[str, object]]:
+    """Select a pipeline profile via :mod:`llm.difficulty_routing`.
+
+    Unlike :func:`classify_query_complexity` (which uses simple keyword
+    heuristics), this variant uses the full complexity-feature extractor
+    from :mod:`research_pipeline.llm.difficulty_routing`. The mapping is:
+
+    =============================  ====================
+    ``DifficultyLevel``            ``PipelineProfile``
+    =============================  ====================
+    ``TRIVIAL``, ``EASY``          ``QUICK``
+    ``MODERATE``                   ``STANDARD``
+    ``HARD``, ``EXPERT``           ``DEEP``
+    =============================  ====================
+
+    Args:
+        topic: Research topic string.
+        trace_features: If ``True``, include the raw
+            :class:`ComplexityFeatures` in the returned trace dict.
+
+    Returns:
+        ``(profile, trace)`` where ``trace`` contains the decision,
+        difficulty level, routing target, and — optionally — the raw
+        complexity features.
+    """
+    from research_pipeline.llm.difficulty_routing import (
+        DifficultyLevel,
+        extract_features,
+        score_difficulty,
+    )
+
+    features = extract_features(topic)
+    score = score_difficulty(topic, features=features)
+    mapping: dict[DifficultyLevel, PipelineProfile] = {
+        DifficultyLevel.TRIVIAL: PipelineProfile.QUICK,
+        DifficultyLevel.EASY: PipelineProfile.QUICK,
+        DifficultyLevel.MODERATE: PipelineProfile.STANDARD,
+        DifficultyLevel.HARD: PipelineProfile.DEEP,
+        DifficultyLevel.EXPERT: PipelineProfile.DEEP,
+    }
+    profile = mapping[score.level]
+    trace: dict[str, object] = {
+        "profile": profile.value,
+        "difficulty": score.level.value,
+        "routing_target": score.target.value,
+        "raw_score": score.score,
+    }
+    if trace_features:
+        trace["features"] = features.to_dict()
+    logger.info(
+        "Adaptive topology: '%s...' → %s (%s)",
+        topic[:40],
+        profile.value,
+        score.level.value,
+    )
+    return profile, trace
+
+
 def profile_summary(profile: PipelineProfile) -> str:
     """Get a human-readable summary of what a profile does.
 

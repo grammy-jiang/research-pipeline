@@ -156,7 +156,9 @@ class TestCmdPlan:
         mock_augment: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_plan import _filter_stop_words, _split_topic_terms
+        from research_pipeline.cli.cmd_plan import (
+            _split_topic_terms,
+        )
 
         must, nice = _split_topic_terms("the best approach for deep learning")
         assert "the" not in must
@@ -236,9 +238,7 @@ class TestCmdSearch:
             source="arxiv",
         )
 
-        candidates_path = (
-            tmp_path / "test-search-001" / "search" / "candidates.jsonl"
-        )
+        candidates_path = tmp_path / "test-search-001" / "search" / "candidates.jsonl"
         assert candidates_path.exists()
 
     @patch("research_pipeline.cli.cmd_search.load_config")
@@ -425,7 +425,6 @@ class TestCmdConvert:
         tmp_path: Path,
     ) -> None:
         from research_pipeline.cli.cmd_convert import run_convert
-        from research_pipeline.models.conversion import ConvertManifestEntry
 
         cfg = _make_config(tmp_path)
         mock_config.return_value = cfg
@@ -513,9 +512,7 @@ class TestCmdAnalyze:
         # Create query plan
         plan_dir = run_root / "plan"
         plan_dir.mkdir(parents=True)
-        (plan_dir / "query_plan.json").write_text(
-            json.dumps({"topic": "transformers"})
-        )
+        (plan_dir / "query_plan.json").write_text(json.dumps({"topic": "transformers"}))
 
         run_analyze(workspace=tmp_path, run_id="test-analyze-002")
 
@@ -586,11 +583,26 @@ class TestCmdAnalyze:
             "arxiv_id": "2301.00001",
             "title": "Test Paper",
             "ratings": {
-                "methodology": {"score": 4, "justification": "Very solid methodology with good controls"},
-                "experimental_rigor": {"score": 3, "justification": "Adequate experimental setup and baselines"},
-                "novelty": {"score": 5, "justification": "Highly novel approach to the problem"},
-                "practical_value": {"score": 4, "justification": "Strong practical applications shown in paper"},
-                "overall": {"score": 4, "justification": "Good paper overall with strong contributions"},
+                "methodology": {
+                    "score": 4,
+                    "justification": "Very solid methodology with good controls",
+                },
+                "experimental_rigor": {
+                    "score": 3,
+                    "justification": "Adequate experimental setup and baselines",
+                },
+                "novelty": {
+                    "score": 5,
+                    "justification": "Highly novel approach to the problem",
+                },
+                "practical_value": {
+                    "score": 4,
+                    "justification": "Strong practical applications shown in paper",
+                },
+                "overall": {
+                    "score": 4,
+                    "justification": "Good paper overall with strong contributions",
+                },
             },
             "methodology_assessment": "Good",
             "key_findings": [
@@ -632,7 +644,10 @@ class TestCmdAnalyze:
             "title": "T",
             "ratings": {
                 "methodology": {"score": 10, "justification": "bad"},
-                "experimental_rigor": {"score": 1, "justification": "ok stuff here now"},
+                "experimental_rigor": {
+                    "score": 1,
+                    "justification": "ok stuff here now",
+                },
                 "novelty": {"score": 1, "justification": "ok stuff here now"},
                 "practical_value": {"score": 1, "justification": "ok stuff here now"},
                 "overall": {"score": 1, "justification": "ok stuff here now"},
@@ -756,14 +771,19 @@ class TestCmdValidate:
     def test_check_tables(self) -> None:
         from research_pipeline.cli.cmd_validate import _check_tables
 
-        text = "| Col1 | Col2 |\n| --- | --- |\n| val | val |\n\nText\n\n| A | B |\n| - | - |\n"
+        text = (
+            "| Col1 | Col2 |\n| --- | --- |\n| val | val |\n"
+            "\nText\n\n| A | B |\n| - | - |\n"
+        )
         count = _check_tables(text)
         assert count == 2
 
     def test_check_mermaid(self) -> None:
         from research_pipeline.cli.cmd_validate import _check_mermaid
 
-        text = "```mermaid\ngraph TD\n```\nsome text\n```mermaid\nsequenceDiagram\n```\n"
+        text = (
+            "```mermaid\ngraph TD\n```\nsome text\n```mermaid\nsequenceDiagram\n```\n"
+        )
         assert _check_mermaid(text) == 2
 
     def test_check_latex(self) -> None:
@@ -1357,7 +1377,15 @@ class TestMarkerBackend:
         result = backend.convert(pdf_path, tmp_path / "output")
         assert result.status == "skipped_exists"
 
-    @patch.dict("sys.modules", {"marker": None, "marker.converters": None, "marker.converters.pdf": None, "marker.models": None})
+    @patch.dict(
+        "sys.modules",
+        {
+            "marker": None,
+            "marker.converters": None,
+            "marker.converters.pdf": None,
+            "marker.models": None,
+        },
+    )
     def test_convert_import_error(self, tmp_path: Path) -> None:
         from research_pipeline.conversion.marker_backend import MarkerBackend
 
@@ -1532,7 +1560,11 @@ class TestDownloadPdf:
         mock_dl.return_value = entry_downloaded
 
         papers = [
-            {"arxiv_id": f"230{i}", "version": "v1", "pdf_url": f"http://example.com/{i}"}
+            {
+                "arxiv_id": f"230{i}",
+                "version": "v1",
+                "pdf_url": f"http://example.com/{i}",
+            }
             for i in range(10)
         ]
 
@@ -1761,9 +1793,7 @@ class TestArxivClient:
         )
 
         raw_dir = tmp_path / "raw"
-        results, raw_paths = client.search(
-            "test", max_results=10, save_raw_dir=raw_dir
-        )
+        results, raw_paths = client.search("test", max_results=10, save_raw_dir=raw_dir)
         assert len(raw_paths) == 1
         assert Path(raw_paths[0]).exists()
 
@@ -1779,9 +1809,24 @@ class TestExtractionRetrieval:
         from research_pipeline.models.extraction import ChunkMetadata
 
         chunks = [
-            (ChunkMetadata(chunk_id="c1", section="intro", start_line=0, end_line=10), "deep learning transformers"),
-            (ChunkMetadata(chunk_id="c2", section="methods", start_line=11, end_line=20), "random forest classification"),
-            (ChunkMetadata(chunk_id="c3", section="results", start_line=21, end_line=30), "transformer attention mechanism"),
+            (
+                ChunkMetadata(
+                    chunk_id="c1", section="intro", start_line=0, end_line=10
+                ),
+                "deep learning transformers",
+            ),
+            (
+                ChunkMetadata(
+                    chunk_id="c2", section="methods", start_line=11, end_line=20
+                ),
+                "random forest classification",
+            ),
+            (
+                ChunkMetadata(
+                    chunk_id="c3", section="results", start_line=21, end_line=30
+                ),
+                "transformer attention mechanism",
+            ),
         ]
         ranked = _bm25_rank(chunks, ["transformer", "attention"])
         # Chunk c3 should rank highest
@@ -1807,7 +1852,12 @@ class TestExtractionRetrieval:
         from research_pipeline.models.extraction import ChunkMetadata
 
         chunks = [
-            (ChunkMetadata(chunk_id="c1", section="intro", start_line=0, end_line=10), "text"),
+            (
+                ChunkMetadata(
+                    chunk_id="c1", section="intro", start_line=0, end_line=10
+                ),
+                "text",
+            ),
         ]
         result = retrieve_relevant_chunks(chunks, [])
         assert result == []
@@ -1826,11 +1876,25 @@ class TestExtractionRetrieval:
         mock_cross.return_value = False
 
         chunks = [
-            (ChunkMetadata(chunk_id="c1", section="intro", start_line=0, end_line=10), "deep learning models"),
-            (ChunkMetadata(chunk_id="c2", section="methods", start_line=11, end_line=20), "transformer attention layers"),
+            (
+                ChunkMetadata(
+                    chunk_id="c1", section="intro", start_line=0, end_line=10
+                ),
+                "deep learning models",
+            ),
+            (
+                ChunkMetadata(
+                    chunk_id="c2", section="methods", start_line=11, end_line=20
+                ),
+                "transformer attention layers",
+            ),
         ]
         result = retrieve_relevant_chunks(
-            chunks, ["transformer", "attention"], top_k=2, use_embeddings=False, use_cross_encoder=False
+            chunks,
+            ["transformer", "attention"],
+            top_k=2,
+            use_embeddings=False,
+            use_cross_encoder=False,
         )
         assert len(result) <= 2
         assert all(len(r) == 3 for r in result)
@@ -1857,7 +1921,6 @@ class TestCmdReport:
         tmp_path: Path,
     ) -> None:
         from research_pipeline.cli.cmd_report import report_cmd
-        from research_pipeline.models.summary import SynthesisReport
 
         cfg = _make_config(tmp_path)
         mock_config.return_value = cfg
@@ -1901,17 +1964,19 @@ class TestCmdReport:
 
         mock_config.return_value = _make_config(tmp_path)
 
-        with patch(
-            "research_pipeline.cli.cmd_report.list_templates",
-            return_value=["survey"],
+        with (
+            patch(
+                "research_pipeline.cli.cmd_report.list_templates",
+                return_value=["survey"],
+            ),
+            pytest.raises(click.exceptions.Exit),
         ):
-            with pytest.raises(click.exceptions.Exit):
-                report_cmd(
-                    run_id="test-report-002",
-                    template="nonexistent",
-                    custom_template="",
-                    output="",
-                )
+            report_cmd(
+                run_id="test-report-002",
+                template="nonexistent",
+                custom_template="",
+                output="",
+            )
 
     @patch("research_pipeline.cli.cmd_report.load_config")
     def test_report_cmd_no_synthesis_json(
@@ -1923,17 +1988,19 @@ class TestCmdReport:
 
         mock_config.return_value = _make_config(tmp_path)
 
-        with patch(
-            "research_pipeline.cli.cmd_report.list_templates",
-            return_value=["survey"],
+        with (
+            patch(
+                "research_pipeline.cli.cmd_report.list_templates",
+                return_value=["survey"],
+            ),
+            pytest.raises(click.exceptions.Exit),
         ):
-            with pytest.raises(click.exceptions.Exit):
-                report_cmd(
-                    run_id="test-report-003",
-                    template="survey",
-                    custom_template="",
-                    output="",
-                )
+            report_cmd(
+                run_id="test-report-003",
+                template="survey",
+                custom_template="",
+                output="",
+            )
 
 
 # ---------------------------------------------------------------------------

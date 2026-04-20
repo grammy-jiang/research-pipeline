@@ -16,6 +16,7 @@ References:
 from __future__ import annotations
 
 import logging
+from collections.abc import Callable
 from dataclasses import dataclass, field
 from enum import IntEnum
 from typing import Any
@@ -274,6 +275,115 @@ def _build_summary(
     status = "PASS" if passed else "FAIL"
     parts.append(f"Status: {status} (threshold: {GRADE_LABELS[threshold]})")
     return "\n".join(parts)
+
+
+# ── Configurable criteria (FrontierFinance-style rubric extension) ───
+
+
+@dataclass(frozen=True)
+class Criterion:
+    """A single configurable rubric criterion.
+
+    Criteria are grouped under a dimension (e.g. ``evidence``) and scored
+    on ``[0, 1]``. Weights are relative within a dimension; absolute
+    weights are normalised at aggregation time. A criterion is satisfied
+    if its score ≥ ``pass_threshold``.
+    """
+
+    name: str
+    dimension: str
+    weight: float = 1.0
+    pass_threshold: float = 0.5
+    description: str = ""
+
+
+@dataclass
+class CriterionResult:
+    """Scored single-criterion outcome."""
+
+    criterion: Criterion
+    score: float
+    passed: bool
+
+
+def score_criteria(
+    text: str,
+    criteria: list[Criterion],
+    scorer: Callable[[str, Criterion], float] | None = None,
+) -> list[CriterionResult]:
+    """Score each criterion in *criteria* against *text*.
+
+    Args:
+        text: Report content to score.
+        criteria: Configured criteria list (can be loaded from JSON).
+        scorer: Optional function ``(text, criterion) -> score``. The
+            default is a deterministic keyword-density scorer: criterion
+            passes when one of the whitespace-separated keywords in
+            ``criterion.description`` appears in ``text``. This gives
+            tests a hook for stubbing without requiring an LLM.
+    """
+    results: list[CriterionResult] = []
+    actual_scorer = scorer if scorer is not None else _default_criterion_scorer
+    for c in criteria:
+        score = float(max(0.0, min(1.0, actual_scorer(text, c))))
+        results.append(
+            CriterionResult(criterion=c, score=score, passed=score >= c.pass_threshold)
+        )
+    return results
+
+
+def _default_criterion_scorer(text: str, criterion: Criterion) -> float:
+    """Simple keyword-based scorer used when no custom scorer is supplied."""
+    if not criterion.description:
+        return 0.0
+    needle_tokens = [t for t in criterion.description.lower().split() if len(t) > 3]
+    if not needle_tokens:
+        return 0.0
+    haystack = text.lower()
+    hits = sum(1 for t in needle_tokens if t in haystack)
+    return hits / len(needle_tokens)
+
+
+def aggregate_criteria_by_dimension(
+    results: list[CriterionResult],
+) -> dict[str, float]:
+    """Aggregate criterion scores into a per-dimension weighted mean."""
+    grouped: dict[str, list[CriterionResult]] = {}
+    for r in results:
+        grouped.setdefault(r.criterion.dimension, []).append(r)
+    out: dict[str, float] = {}
+    for dim, items in grouped.items():
+        total_w = sum(max(0.0, it.criterion.weight) for it in items)
+        if total_w <= 0:
+            out[dim] = 0.0
+            continue
+        weighted = sum(it.score * max(0.0, it.criterion.weight) for it in items)
+        out[dim] = round(weighted / total_w, 6)
+    return out
+
+
+def load_criteria_from_json(payload: list[dict[str, Any]]) -> list[Criterion]:
+    """Build :class:`Criterion` list from a JSON-compatible payload.
+
+    Each entry must have ``name`` and ``dimension``. ``weight``,
+    ``pass_threshold``, and ``description`` are optional with sensible
+    defaults.
+    """
+    criteria: list[Criterion] = []
+    for entry in payload:
+        try:
+            criteria.append(
+                Criterion(
+                    name=str(entry["name"]),
+                    dimension=str(entry["dimension"]),
+                    weight=float(entry.get("weight", 1.0)),
+                    pass_threshold=float(entry.get("pass_threshold", 0.5)),
+                    description=str(entry.get("description", "")),
+                )
+            )
+        except KeyError as exc:
+            raise ValueError(f"criterion entry missing required field: {exc}") from exc
+    return criteria
 
 
 # ── Batch scoring ────────────────────────────────────────────────────

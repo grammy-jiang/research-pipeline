@@ -13,11 +13,9 @@ from research_pipeline.models.summary import (
     ConfidenceLevel,
     EvidenceSnippet,
     ExtractedStatement,
-    ExtractionQuality,
     PaperExtractionRecord,
     PaperSummary,
     StatementType,
-    SummaryEvidence,
 )
 from research_pipeline.summarization.per_paper import (
     _as_statement_items,
@@ -31,10 +29,10 @@ from research_pipeline.summarization.per_paper import (
     score_extraction_quality,
 )
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
+
 
 def _make_chunk(
     paper_id: str = "2301.00001",
@@ -101,6 +99,7 @@ def _make_mock_provider(
 # _build_extraction_prompt (lines 210-230)
 # ---------------------------------------------------------------------------
 
+
 class TestBuildExtractionPrompt:
     def test_basic_prompt(self) -> None:
         chunks = [(_make_chunk(chunk_id="c1"), "Text of chunk 1", 1.5)]
@@ -133,9 +132,10 @@ class TestBuildExtractionPrompt:
 # _coerce_confidence (lines 233-242)
 # ---------------------------------------------------------------------------
 
+
 class TestCoerceConfidence:
     @pytest.mark.parametrize(
-        "value,expected",
+        ("value", "expected"),
         [
             ("HIGH", ConfidenceLevel.HIGH),
             ("MEDIUM", ConfidenceLevel.MEDIUM),
@@ -157,9 +157,10 @@ class TestCoerceConfidence:
 # _coerce_statement_type (lines 245-258)
 # ---------------------------------------------------------------------------
 
+
 class TestCoerceStatementType:
     @pytest.mark.parametrize(
-        "value,expected",
+        ("value", "expected"),
         [
             ("author_claim", StatementType.AUTHOR_CLAIM),
             ("empirical_result", StatementType.EMPIRICAL_RESULT),
@@ -182,6 +183,7 @@ class TestCoerceStatementType:
 # ---------------------------------------------------------------------------
 # _as_statement_items (lines 261-269)
 # ---------------------------------------------------------------------------
+
 
 class TestAsStatementItems:
     def test_none_returns_empty(self) -> None:
@@ -206,6 +208,7 @@ class TestAsStatementItems:
 # _parse_statement_items (lines 272-324)
 # ---------------------------------------------------------------------------
 
+
 class TestParseStatementItems:
     def test_dict_items(self) -> None:
         items = [
@@ -228,9 +231,7 @@ class TestParseStatementItems:
         assert s.statement_id == "2301.00001:results:001"
 
     def test_dict_text_key(self) -> None:
-        result = _parse_statement_items(
-            [{"text": "A claim"}], "context", "p1", "E001"
-        )
+        result = _parse_statement_items([{"text": "A claim"}], "context", "p1", "E001")
         assert result[0].statement == "A claim"
 
     def test_dict_claim_key(self) -> None:
@@ -246,23 +247,17 @@ class TestParseStatementItems:
         assert result[0].statement == "A desc"
 
     def test_string_items(self) -> None:
-        result = _parse_statement_items(
-            ["plain text"], "methods", "p1", "E001"
-        )
+        result = _parse_statement_items(["plain text"], "methods", "p1", "E001")
         assert len(result) == 1
         assert result[0].statement == "plain text"
         assert result[0].evidence_ids == ["E001"]
 
     def test_empty_statement_skipped(self) -> None:
-        result = _parse_statement_items(
-            [{"statement": "  "}], "methods", "p1", "E001"
-        )
+        result = _parse_statement_items([{"statement": "  "}], "methods", "p1", "E001")
         assert result == []
 
     def test_not_reported_handling(self) -> None:
-        result = _parse_statement_items(
-            ["not_reported"], "datasets", "p1", "E001"
-        )
+        result = _parse_statement_items(["not_reported"], "datasets", "p1", "E001")
         assert len(result) == 1
         s = result[0]
         assert s.statement_type == StatementType.INTERPRETATION
@@ -300,6 +295,7 @@ class TestParseStatementItems:
 # ---------------------------------------------------------------------------
 # score_extraction_quality warnings (lines 382-386)
 # ---------------------------------------------------------------------------
+
 
 class TestScoreExtractionQualityWarnings:
     def test_unsupported_warning(self) -> None:
@@ -361,6 +357,7 @@ class TestScoreExtractionQualityWarnings:
 # _parse_extraction_response (lines 398-463)
 # ---------------------------------------------------------------------------
 
+
 class TestParseExtractionResponse:
     def test_new_schema(self) -> None:
         response = {
@@ -387,7 +384,10 @@ class TestParseExtractionResponse:
         assert record.quality.completeness_score >= 0.0
 
     def test_backward_compat_path(self) -> None:
-        """Old paper_summary schema: objective/methodology keys, no extraction categories."""
+        """Old paper_summary schema: objective/methodology keys.
+
+        No extraction categories.
+        """
         response = {
             "objective": "Study X",
             "methodology": "Approach Y",
@@ -396,9 +396,7 @@ class TestParseExtractionResponse:
             "uncertainties": ["U1"],
         }
         evidence = [_make_evidence()]
-        record = _parse_extraction_response(
-            response, "p1", "v1", "T", evidence
-        )
+        record = _parse_extraction_response(response, "p1", "v1", "T", evidence)
         assert len(record.problem) == 1
         assert record.problem[0].statement == "Study X"
         assert len(record.methods) == 1
@@ -407,9 +405,7 @@ class TestParseExtractionResponse:
         assert len(record.limitations) == 0  # "lims" not mapped
 
     def test_empty_response(self) -> None:
-        record = _parse_extraction_response(
-            {}, "p1", "v1", "T", [_make_evidence()]
-        )
+        record = _parse_extraction_response({}, "p1", "v1", "T", [_make_evidence()])
         assert record.paper_id == "p1"
         assert record.quality is not None
 
@@ -417,6 +413,7 @@ class TestParseExtractionResponse:
 # ---------------------------------------------------------------------------
 # project_extraction_to_summary — "See paper:" fallback (line 578)
 # ---------------------------------------------------------------------------
+
 
 class TestProjectExtractionToSummary:
     def test_see_paper_fallback(self) -> None:
@@ -432,9 +429,7 @@ class TestProjectExtractionToSummary:
                 _make_statement(text="not_reported", category="contributions")
             ],
             results=[_make_statement(text="not_reported", category="results")],
-            limitations=[
-                _make_statement(text="not_reported", category="limitations")
-            ],
+            limitations=[_make_statement(text="not_reported", category="limitations")],
             evidence=[],
         )
         summary = project_extraction_to_summary(record)
@@ -496,7 +491,11 @@ class TestExtractPaper:
         }
         provider = _make_mock_provider(llm_response)
         record = extract_paper(
-            md_file, "2301.00001", "v1", "Test Paper", ["transformers"],
+            md_file,
+            "2301.00001",
+            "v1",
+            "Test Paper",
+            ["transformers"],
             llm_provider=provider,
         )
         assert record.extraction_metadata.mode == "structured"
@@ -508,7 +507,11 @@ class TestExtractPaper:
         md_file.write_text(_SIMPLE_MD, encoding="utf-8")
         provider = _make_mock_provider(RuntimeError("LLM failed"))
         record = extract_paper(
-            md_file, "2301.00001", "v1", "Test Paper", ["transformers"],
+            md_file,
+            "2301.00001",
+            "v1",
+            "Test Paper",
+            ["transformers"],
             llm_provider=provider,
         )
         assert record.extraction_metadata.mode == "template_fallback"
@@ -517,7 +520,11 @@ class TestExtractPaper:
         md_file = tmp_path / "paper.md"
         md_file.write_text(_SIMPLE_MD, encoding="utf-8")
         record = extract_paper(
-            md_file, "2301.00001", "v1", "Test Paper", ["transformers"],
+            md_file,
+            "2301.00001",
+            "v1",
+            "Test Paper",
+            ["transformers"],
         )
         assert record.extraction_metadata.mode == "template_fallback"
         assert len(record.evidence) > 0
@@ -531,7 +538,11 @@ class TestExtractPaper:
             return_value=[],
         ):
             record = extract_paper(
-                md_file, "2301.00001", "v1", "Paper", ["test"],
+                md_file,
+                "2301.00001",
+                "v1",
+                "Paper",
+                ["test"],
             )
         assert record.extraction_metadata.mode == "template_fallback"
         assert len(record.evidence) > 0

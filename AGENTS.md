@@ -38,12 +38,14 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── screening/                # Heuristic BM25 scoring, SPECTER2 embeddings, LLM judge, depth gate
 │   ├── download/                 # Rate-limited PDF downloader with retry
 │   ├── conversion/               # PDF→Markdown backends (3 local + 5 cloud + fallback)
-│   ├── quality/                  # Quality evaluation (citations, venue, author, composite, safety gate, RACE)
+│   ├── quality/                  # Quality evaluation (citations, venue, author, composite, safety gate, RACE, graduated criteria)
 │   ├── extraction/               # Markdown chunking & hybrid BM25+embedding retrieval
 │   ├── summarization/            # Per-paper + cross-paper synthesis
-│   ├── pipeline/                 # Orchestrator, stage sequencing, enhanced checkpoints
+│   ├── pipeline/                 # Orchestrator, stage sequencing, enhanced checkpoints, plan revision, adaptive topology
 │   ├── storage/                  # Workspace, manifests, artifacts, global index
-│   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry, sanitization, audit
+│   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry, sanitization, audit, entropy monitor
+│   ├── memory/                   # Multi-tier memory system (working, episodic, semantic, CMA audit, associative, paging)
+│   ├── security/                 # MCP guard, adversarial robustness (ToolTweak), defense trilemma
 │   ├── skill_data/               # Bundled skill files for pip package
 │   ├── agent_data/               # Bundled sub-agent definitions for pip package
 │   ├── llm/                      # LLM provider interface + providers
@@ -187,6 +189,19 @@ uv run pre-commit run --all-files
     confidence-level, citation, gap classification, and formatting checks
 18. **Cross-run comparison**: structured diff of papers, gaps, confidence
     changes, readiness, and quality scores between pipeline runs
+19. **Multi-tier memory**: working memory (bounded deque), episodic memory
+    (SQLite), semantic KG, CMA six-property audit, A-MEM associative linking,
+    MemGPT-style tiered paging with fault counters
+20. **Adaptive topology**: DifficultyRouter→PipelineProfile mapping for
+    automatic pipeline configuration by query complexity
+21. **Plan revision**: TER-based plan-revision scoring with plateau detection
+    for iterative research loops
+22. **Entropy monitoring**: Shannon entropy rolling-window monitor for
+    token-level drift and in-context locking detection
+23. **Adversarial robustness**: ToolTweak 10-perturbation catalog for tool
+    schema fuzz testing and defense-trilemma K^n budget tracking
+24. **Long-horizon failure modes**: UltraHorizon 8-mode taxonomy for detecting
+    failure patterns in multi-step research workflows
 
 ## CLI entry point
 

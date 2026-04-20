@@ -107,9 +107,7 @@ class TestScoreClaimsCommand:
 class TestKgStatsCommand:
     @patch("research_pipeline.cli.cmd_kg.run_kg_stats")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_kg_stats_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_kg_stats_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import kg_stats
 
         kg_stats(db_path=None, verbose=False)
@@ -122,15 +120,11 @@ class TestKgStatsCommand:
 class TestKgQueryCommand:
     @patch("research_pipeline.cli.cmd_kg.run_kg_query")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_kg_query_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_kg_query_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import kg_query
 
         kg_query(entity_id="2401.12345", db_path=None, verbose=False)
-        mock_run.assert_called_once_with(
-            entity_id="2401.12345", db_path=None
-        )
+        mock_run.assert_called_once_with(entity_id="2401.12345", db_path=None)
 
 
 # ---------------------------------------------------------------------------
@@ -195,9 +189,7 @@ class TestMemorySearchCommand:
     ) -> None:
         from research_pipeline.cli.app import memory_search
 
-        memory_search(
-            topic="transformers", limit=5, verbose=False, episodic_db=None
-        )
+        memory_search(topic="transformers", limit=5, verbose=False, episodic_db=None)
         mock_run.assert_called_once()
 
 
@@ -207,9 +199,7 @@ class TestMemorySearchCommand:
 class TestEvaluateCommand:
     @patch("research_pipeline.cli.cmd_evaluate.evaluate_cmd")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_evaluate_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_evaluate_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import evaluate
 
         evaluate(
@@ -218,9 +208,7 @@ class TestEvaluateCommand:
             workspace="runs",
             verbose=False,
         )
-        mock_run.assert_called_once_with(
-            run_id="test-run", stage="", workspace="runs"
-        )
+        mock_run.assert_called_once_with(run_id="test-run", stage="", workspace="runs")
 
 
 # ---------------------------------------------------------------------------
@@ -229,9 +217,7 @@ class TestEvaluateCommand:
 class TestFeedbackCommand:
     @patch("research_pipeline.cli.cmd_feedback.feedback_cmd")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_feedback_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_feedback_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import feedback
 
         feedback(
@@ -253,9 +239,7 @@ class TestFeedbackCommand:
 class TestEvalLogCommand:
     @patch("research_pipeline.cli.cmd_eval_log.eval_log_cmd")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_eval_log_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_eval_log_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import eval_log
 
         eval_log(
@@ -341,9 +325,7 @@ class TestExportBibtexCommand:
 class TestReportCommand:
     @patch("research_pipeline.cli.cmd_report.report_cmd")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_report_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_report_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import report_command
 
         report_command(
@@ -362,9 +344,7 @@ class TestReportCommand:
 class TestClusterCommand:
     @patch("research_pipeline.cli.cmd_cluster.cluster_cmd")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_cluster_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_cluster_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import cluster_command
 
         cluster_command(
@@ -383,9 +363,7 @@ class TestClusterCommand:
 class TestEnrichCommand:
     @patch("research_pipeline.cli.cmd_enrich.enrich_command")
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_enrich_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_enrich_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import enrich_command
 
         enrich_command(
@@ -422,17 +400,13 @@ class TestCiteContextCommand:
 # watch
 # ---------------------------------------------------------------------------
 class TestWatchCommand:
-    @patch(
-        "research_pipeline.cli.cmd_watch.watch_command"
-    )
+    @patch("research_pipeline.cli.cmd_watch.watch_command")
     @patch(
         "research_pipeline.cli.cmd_watch.DEFAULT_QUERIES_FILE",
         Path("/tmp/queries.json"),
     )
     @patch("research_pipeline.infra.logging.setup_logging")
-    def test_watch_delegates(
-        self, mock_log: MagicMock, mock_run: MagicMock
-    ) -> None:
+    def test_watch_delegates(self, mock_log: MagicMock, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import watch_cmd
 
         watch_cmd(
@@ -557,9 +531,7 @@ class TestKgQualityCommand:
 # adaptive-stopping
 # ---------------------------------------------------------------------------
 class TestAdaptiveStoppingCommand:
-    @patch(
-        "research_pipeline.cli.cmd_adaptive_stopping.adaptive_stopping_command"
-    )
+    @patch("research_pipeline.cli.cmd_adaptive_stopping.adaptive_stopping_command")
     def test_adaptive_stopping_delegates(
         self, mock_run: MagicMock, tmp_path: Path
     ) -> None:
@@ -584,12 +556,8 @@ class TestAdaptiveStoppingCommand:
 # confidence-layers
 # ---------------------------------------------------------------------------
 class TestConfidenceLayersCommand:
-    @patch(
-        "research_pipeline.cli.cmd_confidence_layers.run_confidence_layers"
-    )
-    def test_confidence_layers_delegates(
-        self, mock_run: MagicMock
-    ) -> None:
+    @patch("research_pipeline.cli.cmd_confidence_layers.run_confidence_layers")
+    def test_confidence_layers_delegates(self, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import confidence_layers_cli
 
         confidence_layers_cli(

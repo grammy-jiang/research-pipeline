@@ -15,10 +15,10 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-
 # ===================================================================
 # cmd_validate — run_validate handler
 # ===================================================================
+
 
 class TestRunValidateHandler:
     """Cover run_validate when run_id + workspace are provided."""
@@ -457,12 +457,19 @@ class TestRunCompareHandler:
             "run_a": "run-a",
             "run_b": "run-b",
             "paper_diff": {
-                "count_a": 0, "count_b": 0, "overlap": 0,
-                "new_in_b": 0, "dropped_from_a": 0,
+                "count_a": 0,
+                "count_b": 0,
+                "overlap": 0,
+                "new_in_b": 0,
+                "dropped_from_a": 0,
             },
             "gap_analysis": {
-                "resolved_count": 0, "new_count": 0, "persistent_count": 0,
-                "resolved_gaps": [], "new_gaps": [], "persistent_gaps": [],
+                "resolved_count": 0,
+                "new_count": 0,
+                "persistent_count": 0,
+                "resolved_gaps": [],
+                "new_gaps": [],
+                "persistent_gaps": [],
             },
             "confidence_changes": [],
             "readiness": {"verdict_run_a": "UNKNOWN", "verdict_run_b": "UNKNOWN"},

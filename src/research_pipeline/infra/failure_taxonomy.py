@@ -40,6 +40,52 @@ class FailureCategory(StrEnum):
     UNKNOWN = "unknown"
 
 
+class LongHorizonFailureMode(StrEnum):
+    """UltraHorizon (Paper 29) long-horizon agent failure modes.
+
+    These are orthogonal to :class:`FailureCategory` (which is about single
+    events) — long-horizon modes describe patterns across many iterations
+    of a TER loop or multi-stage synthesis trajectory.
+    """
+
+    PREMATURE_CONVERGENCE = "premature_convergence"
+    REPETITIVE_LOOPING = "repetitive_looping"
+    PLAN_DRIFT = "plan_drift"
+    CONTEXT_LOCK = "context_lock"
+    TOOL_MISUSE = "tool_misuse"
+    CITATION_FABRICATION = "citation_fabrication"
+    GAP_BLINDNESS = "gap_blindness"
+    MEMORY_DRIFT = "memory_drift"
+
+
+LONG_HORIZON_DESCRIPTIONS: dict[LongHorizonFailureMode, str] = {
+    LongHorizonFailureMode.PREMATURE_CONVERGENCE: (
+        "Synthesis terminates after too few iterations, leaving known gaps."
+    ),
+    LongHorizonFailureMode.REPETITIVE_LOOPING: (
+        "TER loop revises to queries that semantically repeat earlier ones."
+    ),
+    LongHorizonFailureMode.PLAN_DRIFT: (
+        "Revised plan loses the original research question's core terms."
+    ),
+    LongHorizonFailureMode.CONTEXT_LOCK: (
+        "LLM output entropy collapses; responses become template-like."
+    ),
+    LongHorizonFailureMode.TOOL_MISUSE: (
+        "MCP tools called with arguments outside their declared schema."
+    ),
+    LongHorizonFailureMode.CITATION_FABRICATION: (
+        "Claims cite papers that were never retrieved."
+    ),
+    LongHorizonFailureMode.GAP_BLINDNESS: (
+        "Synthesis omits a required section even though evidence exists."
+    ),
+    LongHorizonFailureMode.MEMORY_DRIFT: (
+        "Cross-run semantic memory state diverges from its last checkpoint."
+    ),
+}
+
+
 class FailureSeverity(StrEnum):
     """Severity levels for failures."""
 
@@ -283,6 +329,75 @@ class FailureTaxonomyLogger:
         data["severity"] = record.severity.value
         with open(self._log_path, "a", encoding="utf-8") as fh:
             fh.write(json.dumps(data, default=str) + "\n")
+
+    # ── Long-horizon mode detection ───────────────────────────────
+
+    def detect_long_horizon_modes(
+        self,
+        *,
+        plan_revisions: list[object] | None = None,
+        entropy_readings: list[object] | None = None,
+        drift_score: float | None = None,
+        cited_ids: set[str] | None = None,
+        retrieved_ids: set[str] | None = None,
+        missing_sections: list[str] | None = None,
+        tool_calls_outside_schema: int = 0,
+        max_plan_iterations: int = 8,
+    ) -> list[LongHorizonFailureMode]:
+        """Detect which UltraHorizon failure modes are present in a run.
+
+        All arguments are optional; only the signals that are supplied are
+        evaluated. Each detected mode is also logged as a HIGH-severity
+        :class:`FailureRecord` so downstream pipeline code can react.
+        """
+        modes: list[LongHorizonFailureMode] = []
+
+        if plan_revisions is not None:
+            revs = list(plan_revisions)
+            if len(revs) >= max_plan_iterations:
+                modes.append(LongHorizonFailureMode.REPETITIVE_LOOPING)
+            composites: list[float] = []
+            for r in revs:
+                score = getattr(r, "score", None)
+                if score is not None:
+                    composites.append(float(getattr(score, "composite", 0.0)))
+            if composites and all(c < 0.2 for c in composites[-3:]):
+                modes.append(LongHorizonFailureMode.PREMATURE_CONVERGENCE)
+            preservations = [
+                float(getattr(getattr(r, "score", None), "preservation", 1.0))
+                for r in revs
+                if getattr(r, "score", None) is not None
+            ]
+            if preservations and min(preservations) < 0.3:
+                modes.append(LongHorizonFailureMode.PLAN_DRIFT)
+
+        if entropy_readings is not None:
+            alarms = sum(1 for r in entropy_readings if getattr(r, "alarm", False))
+            if alarms >= 2:
+                modes.append(LongHorizonFailureMode.CONTEXT_LOCK)
+
+        if tool_calls_outside_schema > 0:
+            modes.append(LongHorizonFailureMode.TOOL_MISUSE)
+
+        if cited_ids is not None and retrieved_ids is not None:
+            fabricated = cited_ids - retrieved_ids
+            if fabricated:
+                modes.append(LongHorizonFailureMode.CITATION_FABRICATION)
+
+        if missing_sections:
+            modes.append(LongHorizonFailureMode.GAP_BLINDNESS)
+
+        if drift_score is not None and drift_score > 0.5:
+            modes.append(LongHorizonFailureMode.MEMORY_DRIFT)
+
+        for mode in modes:
+            self.log_failure(
+                FailureCategory.VALIDATION_ERROR,
+                LONG_HORIZON_DESCRIPTIONS[mode],
+                subcategory=mode.value,
+                severity=FailureSeverity.HIGH,
+            )
+        return modes
 
     def load_from_disk(self) -> list[FailureRecord]:
         """Reload records from the JSONL log file.

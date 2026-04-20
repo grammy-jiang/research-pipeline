@@ -6,8 +6,8 @@
 searching, screening, downloading, converting, and summarizing academic papers
 from arXiv, Google Scholar, Semantic Scholar, OpenAlex, and DBLP. It provides a
 Typer CLI (`research-pipeline`) and an MCP server (tools via stdio). The codebase
-is ~45,000 lines of Python across 211 modules. Version is defined in
-`src/research_pipeline/__init__.py` (currently `0.14.1`).
+is ~48,000 lines of Python across 218 modules. Version is defined in
+`src/research_pipeline/__init__.py` (currently `0.15.0`).
 
 ## Environment and bootstrap
 
@@ -20,7 +20,7 @@ uv sync --extra dev --extra docling --extra scholar
 
 # Verify install works
 uv run python -c "import research_pipeline; print(research_pipeline.__version__)"
-# Expected output: 0.14.1
+# Expected output: 0.15.0
 ```
 
 The project requires Python 3.12+. The `.python-version` file pins `3.12`. The
@@ -32,7 +32,7 @@ Run these in order. All commands have been validated and produce clean output on
 the current codebase.
 
 ```bash
-# 1. Run unit tests (3200+ tests, ~30s, no network required)
+# 1. Run unit tests (3700+ tests, ~35s, no network required)
 uv run pytest tests/unit/ -xvs
 
 # 2. Format & lint (ruff handles formatting + linting, 88-char line length)
@@ -114,21 +114,36 @@ src/research_pipeline/          # Main library (importable as research_pipeline)
     embedding.py                # SPECTER2 semantic re-ranking
   download/                     # Rate-limited PDF downloader with retry
   conversion/                   # PDF→Markdown backends (3 local + 5 cloud + fallback)
+  memory/                        # Multi-tier memory system
+    manager.py                  # MemoryManager (working + episodic + semantic)
+    working.py                  # Bounded working memory (deque-based)
+    cma_audit.py                # CMA six-property completeness auditor
+    associative.py              # A-MEM associative linking (Jaccard + BFS)
+    paging.py                   # MemGPT-style tiered paging + fault counters
   quality/                      # Quality evaluation
     citation_metrics.py         # Citation impact scoring
     venue_scoring.py            # Venue reputation (CORE rankings)
     author_metrics.py           # Author h-index credibility
     composite.py                # Weighted composite score
+    graduated_rubric.py         # Graduated rubric + configurable criteria
     data/core_rankings.json     # Bundled CORE venue rankings
   extraction/                   # Markdown chunking & BM25 retrieval
   summarization/                # Per-paper + cross-paper synthesis
   pipeline/                     # Orchestrator & stage sequencing
+    plan_revision.py            # TER plan-revision scoring + plateau detection
+    topology.py                 # Pipeline profiles + adaptive difficulty routing
   storage/                      # Workspace dirs, manifests, artifact hashing
     workspace.py                # Stage directory management
     global_index.py             # SQLite global paper index (incremental)
   infra/                        # Cache, HTTP, logging, hashing, clock, paths
     rate_limit.py               # Generic thread-safe rate limiter
     retry.py                    # @retry decorator (backoff, jitter, Retry-After)
+    entropy_monitor.py          # Shannon entropy rolling-window monitor
+    failure_taxonomy.py         # Failure categories + UltraHorizon long-horizon modes
+  security/                     # Security & adversarial robustness
+    mcp_guard.py                # MCP tool registry, pinning, capability policies
+    adversarial.py              # ToolTweak adversarial perturbation catalog
+    trilemma.py                 # Defense-trilemma K^n budget monitor
   llm/                          # LLM provider interface (experimental)
 
 mcp_server/                     # FastMCP server (separate top-level package)
@@ -152,7 +167,7 @@ mcp_server/                     # FastMCP server (separate top-level package)
     references/                 # Reference docs (sub-agents, troubleshooting, etc.)
 
 tests/
-  unit/                         # 3200+ fast unit tests (no network)
+  unit/                         # 3700+ fast unit tests (no network)
     test_<module>.py            # Each test file maps to a source module
   integration_offline/          # VCR-cassette offline integration tests
   live/                         # Tests with @pytest.mark.live (real arXiv API)
