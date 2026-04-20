@@ -36,6 +36,7 @@ from mcp_server.schemas import (
     ExtractContentInput,
     FeedbackInput,
     GetRunManifestInput,
+    HorizonMetricInput,
     KGIngestInput,
     KGQueryInput,
     KGStatsInput,
@@ -46,6 +47,7 @@ from mcp_server.schemas import (
     MemoryStatsInput,
     PlanTopicInput,
     ReportInput,
+    RRPDiagnosticInput,
     RunPipelineInput,
     ScoreClaimsInput,
     ScreenCandidatesInput,
@@ -84,6 +86,7 @@ from mcp_server.tools import (
     extract_content,
     gate_info_tool,
     get_run_manifest,
+    horizon_metric_tool,
     kg_ingest_tool,
     kg_quality_tool,
     kg_query_tool,
@@ -98,6 +101,7 @@ from mcp_server.tools import (
     query_eval_log,
     record_feedback,
     report_tool,
+    rrp_diagnostic_tool,
     run_pipeline,
     score_claims_tool,
     screen_candidates,
@@ -1741,6 +1745,79 @@ def tool_evaluate(
     """
     result = evaluate_tool(
         EvaluateInput(run_id=run_id, workspace=workspace, stage=stage)
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_horizon_metric(
+    normalized_score: float,
+    achieved_steps: int,
+    target_steps: int,
+    difficulty: float = 0.5,
+    entropy_trend: float = 0.0,
+    reliability: float = 1.0,
+) -> dict:
+    """Compute the Unified Horizon Metric (UHM).
+
+    Combines quality, difficulty, horizon-length, and stability into a single
+    comparable number in [0, 1]. Closes gap A3-5 of the Deep Research Report.
+
+    Args:
+        normalized_score: Task quality in [0, 1].
+        achieved_steps: Trajectory length actually completed.
+        target_steps: Benchmark target horizon.
+        difficulty: Task difficulty in [0, 1].
+        entropy_trend: Token-entropy slope across trajectory (neg=locking).
+        reliability: Optional Pass[k] reliability floor in [0, 1].
+    """
+    result = horizon_metric_tool(
+        HorizonMetricInput(
+            normalized_score=normalized_score,
+            achieved_steps=achieved_steps,
+            target_steps=target_steps,
+            difficulty=difficulty,
+            entropy_trend=entropy_trend,
+            reliability=reliability,
+        )
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_rrp_diagnostic(
+    report_text: str,
+    shortlist_ids: list[str] | None = None,
+) -> dict:
+    """Recall / Reasoning / Presentation diagnostic (Theme 16).
+
+    Decomposes a synthesis report's quality along three axes to localize
+    bottlenecks, following DeepResearch Bench II findings (Info Recall is
+    typically <50% while Presentation is near-saturated).
+
+    Args:
+        report_text: Rendered synthesis report text.
+        shortlist_ids: Paper IDs that were supposed to inform the synthesis.
+    """
+    result = rrp_diagnostic_tool(
+        RRPDiagnosticInput(
+            report_text=report_text,
+            shortlist_ids=list(shortlist_ids or []),
+        )
     )
     return result.model_dump()
 

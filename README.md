@@ -176,6 +176,16 @@ research-pipeline aggregate --run-id <RUN_ID> --min-pointers 1
 research-pipeline compare --run-a <RUN_A> --run-b <RUN_B>
 research-pipeline coherence <RUN_A> <RUN_B> <RUN_C>
 
+# Evaluation metrics (Deep Research Report gap closures)
+# Unified Horizon Metric (A3-5): single scalar combining quality, difficulty,
+# horizon length, stability, and Pass[k] reliability.
+research-pipeline horizon --score 0.8 --achieved 40 --target 50 \
+  --difficulty 0.6 --entropy-trend -0.1 --reliability 0.9
+
+# Recall / Reasoning / Presentation diagnostic (Theme 16): localize the
+# bottleneck axis of a synthesis report.
+research-pipeline rrp --report report.md --shortlist shortlist.json
+
 # Knowledge graph
 research-pipeline kg-ingest --run-id <RUN_ID>
 research-pipeline kg-stats

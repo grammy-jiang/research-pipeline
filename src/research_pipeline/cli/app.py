@@ -1133,6 +1133,74 @@ def evaluate(
     evaluate_cmd(run_id=run_id, stage=stage, workspace=workspace)
 
 
+@app.command("horizon")
+def horizon(
+    score: float = typer.Option(
+        ..., "--score", help="Normalized task quality in [0,1]."
+    ),
+    difficulty: float = typer.Option(
+        0.5, "--difficulty", help="Task difficulty in [0,1]."
+    ),
+    achieved: int = typer.Option(
+        ..., "--achieved", help="Trajectory length completed."
+    ),
+    target: int = typer.Option(..., "--target", help="Benchmark target horizon."),
+    entropy_trend: float = typer.Option(
+        0.0, "--entropy-trend", help="Token-entropy slope (neg = locking)."
+    ),
+    reliability: float = typer.Option(
+        1.0, "--reliability", help="Optional Pass[k] reliability floor."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Write JSON result to this path."
+    ),
+) -> None:
+    """Compute the Unified Horizon Metric (UHM) for a long-horizon agent run.
+
+    Resolves A3-5 from the Deep Research Report by combining difficulty-
+    weighted score, horizon efficiency, stability (token-entropy trend),
+    and reliability into a single scalar in [0, 1].
+    """
+    from research_pipeline.cli.cmd_horizon import horizon_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    setup_logging(level=logging.INFO)
+    horizon_cmd(
+        normalized_score=score,
+        difficulty=difficulty,
+        achieved_steps=achieved,
+        target_steps=target,
+        entropy_trend=entropy_trend,
+        reliability=reliability,
+        output=output,
+    )
+
+
+@app.command("rrp")
+def rrp(
+    report: Path = typer.Option(
+        ..., "--report", "-r", help="Path to synthesis report (md/txt)."
+    ),
+    shortlist: Path = typer.Option(
+        ..., "--shortlist", "-s", help="Path to shortlist JSON with paper IDs."
+    ),
+    output: Path | None = typer.Option(
+        None, "--output", "-o", help="Write JSON diagnostic to this path."
+    ),
+) -> None:
+    """Recall / Reasoning / Presentation diagnostic for a synthesis report.
+
+    Operationalizes the DeepResearch Bench II finding (Report Theme 16):
+    Information Recall is the primary bottleneck (<50% of expert rubrics
+    satisfied) while Presentation is near-saturated (~90%).
+    """
+    from research_pipeline.cli.cmd_rrp import rrp_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    setup_logging(level=logging.INFO)
+    rrp_cmd(report=report, shortlist=shortlist, output=output)
+
+
 @app.command()
 def feedback(
     verbose: bool = typer.Option(False, "--verbose", "-v"),

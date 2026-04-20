@@ -859,6 +859,33 @@ class EvaluateInput(BaseModel):
     )
 
 
+class HorizonMetricInput(BaseModel):
+    """Input for the ``horizon_metric`` tool (A3-5 Unified Horizon Metric)."""
+
+    normalized_score: float = Field(description="Normalized task quality in [0, 1].")
+    difficulty: float = Field(default=0.5, description="Task difficulty in [0, 1].")
+    achieved_steps: int = Field(description="Trajectory length actually completed.")
+    target_steps: int = Field(description="Benchmark target horizon.")
+    entropy_trend: float = Field(
+        default=0.0,
+        description="Token-entropy slope across trajectory (neg=locking).",
+    )
+    reliability: float = Field(
+        default=1.0,
+        description="Optional Pass[k] reliability floor in [0, 1].",
+    )
+
+
+class RRPDiagnosticInput(BaseModel):
+    """Input for the ``rrp_diagnostic`` tool (Theme 16 R/R/P)."""
+
+    report_text: str = Field(description="Rendered synthesis report text.")
+    shortlist_ids: list[str] = Field(
+        default_factory=list,
+        description="Paper IDs that were supposed to inform the synthesis.",
+    )
+
+
 class ToolResult(BaseModel):
     """Standard result envelope for MCP tool outputs."""
 

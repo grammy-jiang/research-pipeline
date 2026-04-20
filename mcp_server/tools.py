@@ -46,6 +46,7 @@ from mcp_server.schemas import (
     FeedbackInput,
     GateInfoInput,
     GetRunManifestInput,
+    HorizonMetricInput,
     KGIngestInput,
     KGQualityInput,
     KGQueryInput,
@@ -58,6 +59,7 @@ from mcp_server.schemas import (
     ModelRoutingInfoInput,
     PlanTopicInput,
     ReportInput,
+    RRPDiagnosticInput,
     RunPipelineInput,
     ScoreClaimsInput,
     ScreenCandidatesInput,
@@ -3201,4 +3203,75 @@ def evaluate_tool(params: EvaluateInput, ctx: Context | None = None) -> ToolResu
         )
     except Exception as exc:
         logger.error("evaluate failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def horizon_metric_tool(
+    params: HorizonMetricInput, ctx: Context | None = None
+) -> ToolResult:
+    """Compute the Unified Horizon Metric (UHM) for a long-horizon run.
+
+    Resolves A3-5 from the Deep Research Report. See
+    ``research_pipeline.evaluation.horizon`` for the formula.
+    """
+    try:
+        from research_pipeline.evaluation.horizon import (
+            HorizonInputs,
+            compute_unified_horizon_metric,
+        )
+
+        result = compute_unified_horizon_metric(
+            HorizonInputs(
+                normalized_score=params.normalized_score,
+                difficulty=params.difficulty,
+                achieved_steps=params.achieved_steps,
+                target_steps=params.target_steps,
+                entropy_trend=params.entropy_trend,
+                reliability=params.reliability,
+            )
+        )
+        _log_info(ctx, f"UHM = {result.uhm:.4f}")
+        return ToolResult(
+            success=True,
+            message=f"UHM = {result.uhm:.4f}",
+            artifacts=result.to_dict(),
+        )
+    except Exception as exc:
+        logger.error("horizon_metric failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def rrp_diagnostic_tool(
+    params: RRPDiagnosticInput, ctx: Context | None = None
+) -> ToolResult:
+    """Recall / Reasoning / Presentation diagnostic (Theme 16).
+
+    Operationalizes the DeepResearch Bench II finding: Information Recall is
+    the primary bottleneck; Presentation is usually near-saturated.
+    """
+    try:
+        from research_pipeline.evaluation.recall_diagnostic import (
+            compute_rrp_diagnostic,
+        )
+
+        diagnostic = compute_rrp_diagnostic(
+            params.report_text, list(params.shortlist_ids)
+        )
+        _log_info(
+            ctx,
+            f"RRP: R={diagnostic.recall:.3f} "
+            f"Rs={diagnostic.reasoning:.3f} "
+            f"P={diagnostic.presentation:.3f} "
+            f"(bottleneck={diagnostic.bottleneck})",
+        )
+        return ToolResult(
+            success=True,
+            message=(
+                f"RRP bottleneck: {diagnostic.bottleneck} "
+                f"(overall={diagnostic.overall:.3f})"
+            ),
+            artifacts=diagnostic.to_dict(),
+        )
+    except Exception as exc:
+        logger.error("rrp_diagnostic failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")

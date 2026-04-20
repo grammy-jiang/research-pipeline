@@ -225,6 +225,8 @@ research-pipeline analyze --run-id <ID>        # Prepare per-paper analysis task
 research-pipeline analyze --run-id <ID> --collect  # Validate collected analysis results
 research-pipeline validate --report report.md   # Validate report completeness
 research-pipeline compare --run-a <ID1> --run-b <ID2>  # Cross-run comparison
+research-pipeline horizon --score 0.8 --achieved 40 --target 50  # Unified Horizon Metric (A3-5)
+research-pipeline rrp --report report.md --shortlist shortlist.json  # R/R/P diagnostic (Theme 16)
 
 # Auxiliary commands
 research-pipeline expand --run-id <ID> --direction both

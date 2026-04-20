@@ -2,6 +2,31 @@
 
 All notable changes to research-pipeline.
 
+## [v0.16.0] — 2026-04-20
+
+### Added
+
+- **Unified Horizon Metric (UHM)** — closes gap A3-5 from the Deep Research
+  Report. Combines difficulty-weighted normalized score, horizon efficiency,
+  stability (UltraHorizon token-entropy trend), and Pass[k] reliability into
+  a single scalar in `[0, 1]` via geometric mean + reliability gate.
+  See `src/research_pipeline/evaluation/horizon.py`.
+  - New CLI: `research-pipeline horizon --score ... --achieved ... --target ...`
+  - New MCP tool: `tool_horizon_metric`.
+- **Recall / Reasoning / Presentation (RRP) diagnostic** — operationalizes
+  the DeepResearch Bench II finding (Theme 16) that Information Recall is
+  the dominant bottleneck (<50% of expert rubrics satisfied) while
+  Presentation is usually near-saturated. Decomposes a synthesis report
+  into three axes and identifies the bottleneck.
+  See `src/research_pipeline/evaluation/recall_diagnostic.py`.
+  - New CLI: `research-pipeline rrp --report <md> --shortlist <json>`
+  - New MCP tool: `tool_rrp_diagnostic`.
+- 30 new unit and CLI integration tests for the metrics above.
+
+### Changed
+
+- MCP server now registers 53 tools (was 51).
+
 ## [v0.14.4] — 2026-04-19
 
 ### Added

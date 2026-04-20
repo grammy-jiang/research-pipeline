@@ -145,6 +145,22 @@ CFG=~/.claude/skills/research-pipeline/config.toml
    all core sections, confidence levels, evidence citations, gap
    classifications, readable diagrams, formulas when useful, and internal links.
 
+8. **Diagnose where quality comes from (optional but recommended)**
+   Two evaluation commands operationalize remaining-gap signals from the
+   Deep Research Report:
+   ```bash
+   # A3-5 Unified Horizon Metric: single scalar combining quality, difficulty,
+   # horizon length, entropy stability, and Pass[k] reliability.
+   research-pipeline horizon --score 0.8 --achieved 40 --target 50
+
+   # Theme 16 Recall/Reasoning/Presentation diagnostic: localize the
+   # bottleneck axis of a synthesis report.
+   research-pipeline rrp --report report.md --shortlist shortlist.json
+   ```
+   If `rrp` reports `recall` as the bottleneck, rerun screening or expand
+   the candidate set before re-writing prose; presentation-bottleneck runs
+   usually only need template/format polish.
+
 ## Profiles
 
 Use profiles when running end-to-end:
