@@ -52,7 +52,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Run unit tests
-        run: uv run pytest tests/unit/ -x -q --tb=short --cov=src/research_pipeline --cov-fail-under=85 --cov-report=term-missing --cov-report=xml
+        run: uv run pytest tests/unit/ -x -q --tb=short --cov=src/research_pipeline --cov-fail-under=89 --cov-report=term-missing --cov-report=xml
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.12'
