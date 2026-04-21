@@ -1,0 +1,948 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/step%201/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Step 1 Extraction Framework Design / 第一步提取框架设计 - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#step-1-extraction-framework-design" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Step 1 Extraction Framework Design / 第一步提取框架设计
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python%20development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Executive Summary / 执行摘要
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-why-step-1-is-a-critical-bottleneck" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Why Step 1 is a Critical Bottleneck / 第一步为何是关键瓶颈
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-failure-modes-of-weak-step-1-extraction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Failure Modes of Weak Step 1 Extraction / 弱化第一步提取的失败模式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-design-principles-for-step-1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Design Principles for Step 1 / 第一步设计原则
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-required-information-categories" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Required Information Categories / 必需的信息类别
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-evidence-and-uncertainty-handling-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Evidence and Uncertainty Handling Model / 证据与不确定性处理模型
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-recommended-step-1-schema-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Recommended Step 1 Schema Options / 推荐的第一步输出模式选项
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-recommended-step-1-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Recommended Step 1 Workflow / 推荐的第一步工作流程
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-prompting-and-model-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Prompting and Model Strategy / 提示词与模型策略
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-quality-assurance-framework" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Quality Assurance Framework / 质量保证框架
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-recommended-final-methodology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Recommended Final Methodology / 推荐的最终方法
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-minimum-viable-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Minimum Viable Template / 最低可行模板
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-advanced-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Advanced Template / 高级模板
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-anti-patterns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Anti-Patterns / 反模式
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-open-questions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Open Questions / 开放问题与未来改进
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="step-1-extraction-framework-design">Step 1 Extraction Framework Design / 第一步提取框架设计<a class="headerlink" href="#step-1-extraction-framework-design" title="Permanent link">&para;</a></h1>
+<h2 id="1-executive-summary">1. Executive Summary / 执行摘要<a class="headerlink" href="#1-executive-summary" title="Permanent link">&para;</a></h2>
+<p>A well-designed Step 1 extraction is <strong>critical</strong> for later synthesis and system design.  Rather than a free-form summary, Step 1 should produce a <strong>structured data record</strong> for each paper, with discrete fields for claims, methods, metrics, results, assumptions, etc.  This structured approach preserves provenance (with citations or quotes) and uncertainty flags, avoiding the information loss and hallucination common in naïve summarization【50†L33-L39】【38†L51-L59】.  We recommend a <strong>schema-first, multi-pass pipeline</strong>: for each paper, parse and analyze the text to fill a predefined template (e.g. JSON or structured markdown) with <em>evidence‑backed</em> entries (including explicit source spans) and clear labels (author‑stated vs model‑inferred).  The template should cover <strong>operational details</strong> (throughput, latency, scale, hardware, cost, security, reliability, etc.) and distinguish general reusable components from paper-specific novelties.  We propose concrete schemas (both a minimal and an advanced version) and a multi-step workflow (ingestion, extraction, evidence linking, review).  A rigorous quality checklist and scoring rubric ensure completeness and accuracy.  Anti‑patterns (free-text narrations, missing citations, unsupported claims) are identified and avoided.  The result is a practical, high-fidelity extraction methodology that maximizes downstream synthesis value.【50†L146-L148】【38†L177-L186】</p>
+<h2 id="2-why-step-1-is-a-critical-bottleneck">2. Why Step 1 is a Critical Bottleneck / 第一步为何是关键瓶颈<a class="headerlink" href="#2-why-step-1-is-a-critical-bottleneck" title="Permanent link">&para;</a></h2>
+<p>Step 1 provides the <strong>ground truth</strong> for all later cross‑paper synthesis and design.  If Step 1 is weak—merely a narrative summary—crucial information is lost or blurred【50†L33-L39】【38†L51-L59】.  One-shot summarization “tends to blur retrieval and reasoning, obscure intermediate evidence, and make it difficult to inspect [the] provenance” of claims【50†L33-L39】.  Important details (edge‑case behaviors, context conditions, negative results) vanish as each layer of summarization compounds errors【38†L51-L59】【38†L79-L88】.  Conversely, a structured extraction explicitly <strong>separates retrieval from reasoning</strong>: each paper’s claims, methods, metrics, and evidence are captured as discrete units.  This guarantees that no evidence is inadvertently omitted or reinterpreted by the LLM.  In turn, cross-paper synthesis (Step 2) can reliably compare claims, identify contradictions, and assemble reusable patterns.  In short, downstream design choices hinge on the richness and fidelity of the extracted material【38†L177-L186】【60†L497-L500】.  A robust Step 1 is the <strong>foundation</strong> – without it, synthesis “behaves like a lossy codec” and critical insights are lost【38†L51-L59】【38†L79-L88】.</p>
+<h2 id="3-failure-modes-of-weak-step-1-extraction">3. Failure Modes of Weak Step 1 Extraction / 弱化第一步提取的失败模式<a class="headerlink" href="#3-failure-modes-of-weak-step-1-extraction" title="Permanent link">&para;</a></h2>
+<p>When Step 1 defaults to a generic summary, several failure modes arise:</p>
+<ul>
+<li><strong>Information Loss (“Broken Links”)</strong>: Hierarchical summaries drop details across chunk boundaries【38†L51-L59】【38†L79-L88】.  References to “it” or nuanced conditions are lost, so the final report may omit key context.  (E.g. summarizing separate sections independently can “lose the referent” of earlier observations【38†L79-L88】.)</li>
+<li><strong>Semantic Drift (Telephone Game Effect)</strong>: Repeated rewriting pushes the narrative toward model priors【38†L79-L88】. Minor sentiments or qualifications become exaggerated (e.g. “slightly annoyed” → “very unhappy”), and subtle assumptions vanish.</li>
+<li><strong>Hallucination Anchoring</strong>: Spurious inferences in one layer get treated as fact in the next【38†L79-L88】. An incorrect assumption early (e.g. hardware used) will skew all downstream reasoning, yet an ordinary summary pipeline never flags it.  Early hallucinations “harden” and propagate【38†L79-L88】.</li>
+<li><strong>Opaque Mix of Sources</strong>: A blanket summary often conflates claims from multiple papers, obscuring who said what.  Without structured attributions, one cannot trace a design idea back to its origin.  (This breaks auditability and violates the need to “inspect and challenge model inferences”【60†L497-L500】.)</li>
+<li><strong>Ignored Contradictions</strong>: Contradictory findings across papers are easily glossed over.  For example, clinical studies often have conflicting results, which literature surveys must flag【56†L37-L40】.  A naive summary might average them out, hiding the tension.  The result is that Step 2 can’t build a contradiction map, missing critical engineering trade-offs.</li>
+<li><strong>Over-Generality or Vagueness</strong>: Free-form summaries can introduce generic filler (“the authors also discuss related work” etc.) that dilutes actionable content.  This noise consumes context without adding value for design.</li>
+<li><strong>Unanchored Claims</strong>: Claims in summaries often lack explicit evidence markers (e.g. page numbers or quotes), making validation impossible.   A weak Step 1 makes it impossible to verify “which sentence came from where,” undermining trust.</li>
+<li><strong>Disconnected Insights</strong>: Technical papers contain operational specifics (e.g. protocol details, hardware requirements) that get dropped. Summaries rarely preserve throughput, latency, or reliability implications unless explicitly queried.</li>
+</ul>
+<p>In sum, a weak Step 1 extraction turns the pipeline into a “Chinese whispers” game【38†L79-L88】.  Later design suffers from missed nuance, unchecked hallucinations, and undocumented assumptions – exactly what a structured extraction aims to prevent【50†L33-L39】【38†L177-L186】.</p>
+<h2 id="4-design-principles-for-step-1">4. Design Principles for Step 1 / 第一步设计原则<a class="headerlink" href="#4-design-principles-for-step-1" title="Permanent link">&para;</a></h2>
+<p>Based on the above failure modes, Step 1 should be designed around these principles:</p>
+<ul>
+<li><strong>Structured, Schema-First Output</strong>: Define a strict schema (JSON, XML, or marked-up Markdown) for extracted fields.  Every extracted item belongs to a known field (e.g. <em>Claims</em>, <em>Methods</em>, <em>Results</em>, <em>Limitations</em>)【50†L146-L148】.  This avoids narrative drift and ensures uniform coverage across papers.</li>
+<li><strong>Explicit Evidence Linking</strong>: Each fact or claim must be tied back to the source text.  Include citations, page spans, or verbatim quotes for key points【20†L272-L280】【60†L497-L500】.  Maintain “document-level provenance” so that every field entry is auditable【17†L324-L330】【30†L1-L4】.</li>
+<li><strong>Preservation of Uncertainty and Inference</strong>: Separate <em>explicit paper claims</em> (what the authors stated) from <em>model inferences</em>.  Use separate fields or flags (e.g. “AuthorClaim” vs “Inferred”)【20†L272-L280】.  Attach a confidence score or uncertainty note to each entry so downstream analysis can weigh credibility【20†L272-L280】.</li>
+<li><strong>Modularity and Reusability</strong>: Distinguish paper‑specific details from reusable concepts.  E.g. isolate general algorithms, network architectures, or design patterns that appear across papers.  Flag novelty separately.  This supports later cataloging of reusable modules vs unique contributions.</li>
+<li><strong>Comprehensive Category Coverage</strong>: Do not restrict to classic summary elements (intro, method, result).  Include <em>operational attributes</em>: scalability assumptions, performance metrics (latency/throughput), hardware/infra requirements, security/privacy considerations, observability/data needed, etc.  These are often omitted in summaries but crucial for system design.</li>
+<li><strong>Explicit Assumptions &amp; Constraints</strong>: Capture any stated or implicit assumptions (e.g. “experiments assume unlimited GPU”, “single-thread performance” etc.) and failure modes.  Document limitations in quantitative terms where possible (e.g. input size limits, rare case breakdown).  Flag any “weakly supported” claims as such.</li>
+<li><strong>Multi-Pass and Validated Extraction</strong>: Use an iterative approach rather than forcing all fields at once.  For example, one LLM pass identifies key concepts (with chain-of-thought), another fills fields under schema constraints【37†L248-L257】【54†L83-L86】.  Optionally employ a “review” pass where the LLM checks its own output for consistency and completeness.</li>
+<li><strong>Dual-Format or Hybrid Output</strong>: Consider formats that are both human- and machine-friendly.  For instance, a Markdown template with clearly delimited sections (for readability) that can be parsed by a script, or a JSON output that LLMs can generate reliably.  (Trade-offs are discussed in section 7.)</li>
+<li><strong>Auditability and Versioning</strong>: Log the exact prompt, model version, and timestamp for each extraction.  Maintain version-controlled schemas so that Step 1 can be re-run reproducibly when needed【17†L324-L330】.</li>
+</ul>
+<p>Each recommended schema field (in sections 5 and 7) should be explicitly justified by how it feeds Step 2: e.g. <em>“PerformanceMetrics”</em> field exists so the synthesis can compare results across papers; <em>“Limitations”</em> so contradictions can be mapped; <em>“Assumptions”</em> so design constraints are known, etc.</p>
+<h2 id="5-required-information-categories">5. Required Information Categories / 必需的信息类别<a class="headerlink" href="#5-required-information-categories" title="Permanent link">&para;</a></h2>
+<p>Every paper should be mined for at least the following categories of information (more if context-specific):</p>
+<ul>
+<li><strong>Identification &amp; Metadata</strong>: Title, authors, venue, year, and DOI/URL. (Baseline for traceability.)</li>
+<li><strong>Problem Statement / Context</strong>: The domain and challenge the paper addresses (e.g. “This paper tackles X in Y setting”), including any context like datasets or benchmarks used.</li>
+<li><strong>Core Contributions (Claims)</strong>: Explicit claims or contributions listed by the authors (e.g. “We propose a new scheduling algorithm achieving Z”).</li>
+<li><strong>Approach/Methodology</strong>: Detailed description of methods, architectures, or algorithms.  This includes system diagrams, architectural layers, protocols, mathematical models – anything that could become a reusable component.</li>
+<li><strong>Datasets/Environment</strong>: What data or environment is used (simulated or real, scale of dataset, hardware setup, cloud services, specialized devices).  This category supports understanding of <em>scale assumptions</em> and engineering context.</li>
+<li><strong>Evaluation Metrics &amp; Results</strong>: The performance outcomes, quantified.  Include exact metrics (latency, throughput, accuracy, memory use, etc.) and numeric results.  If results are only in plots, note the extracted values.  Flag which comparisons are being made.</li>
+<li><strong>Operational Characteristics</strong>: Any information on latency, throughput, concurrency limits, scalability behavior, cost model (e.g. “runs in 4 ms per request”), and infrastructure requirements.  E.g. “The system assumes an SSD for caching” or “requires a GPU with &gt;=16GB memory.”</li>
+<li><strong>Security/Privacy</strong>: If mentioned, note data protection or security constraints (e.g. “uses differential privacy”, “trust model assuming honest nodes”).</li>
+<li><strong>Reliability/Fault Tolerance</strong>: Any discussion of failure modes or robustness (e.g. “graceful degradation under load”).</li>
+<li><strong>Assumptions &amp; Preconditions</strong>: Explicit assumptions (e.g. “Assumes centralized coordinator”) or hidden ones (e.g. maybe implied like “the network is synchronous”).  List them in an <em>Assumptions</em> field.</li>
+<li><strong>Limitations and Future Work</strong>: From the paper’s conclusion or discussion: what the authors say about limitations (e.g. “only tested on single-threaded CPU”).</li>
+<li><strong>Evidence Snippets</strong>: Actual quotes or data excerpts supporting key points (linked to pages/paragraphs).</li>
+<li><strong>Reusability/Generality</strong>: Notes on whether a mechanism is general-purpose. For example, if a technique is described as generic or applicable to other domains, mark it as <em>reusable</em>; if it’s heavily tuned for one task, mark it accordingly.</li>
+</ul>
+<p>Categories often <strong>missing in ordinary summaries</strong> but critical here include: <strong>explicit assumptions</strong>, <strong>failures/faults</strong>, <strong>infrastructure requirements</strong>, <strong>observability needs</strong>, and <strong>quantified limitations</strong>.  For system design, we must know “under what conditions this works” – so fields like <em>ScaleAssumptions</em>, <em>Hardware</em>, <em>CostDrivers</em>, <em>Observability</em> are high-value and should not be omitted.</p>
+<p>Cross-paper synthesis will rely on comparability, so fields that should always exist for cross-contrast are: <strong>Problem</strong>, <strong>Claims</strong>, <strong>Metrics/Results</strong>, <strong>Limitations/Failure Modes</strong>, and any <strong>architectural components</strong>.  Inconsistencies or overlaps across these fields can then be automatically aligned.</p>
+<h2 id="6-evidence-and-uncertainty-handling-model">6. Evidence and Uncertainty Handling Model / 证据与不确定性处理模型<a class="headerlink" href="#6-evidence-and-uncertainty-handling-model" title="Permanent link">&para;</a></h2>
+<p>Step 1 must <strong>track provenance and confidence</strong> for every extraction.  We recommend:</p>
+<ul>
+<li><strong>Citation Anchors</strong>: Every non-trivial claim or datum should carry a reference to its location in the paper (e.g. “Source: [Title, page X, paragraph Y]” or direct URL).  This can be an explicit field or annotation.  If the LLM generates a fact, it must attach the <em>source quote</em> or a paraphrase with page number【20†L272-L280】【60†L497-L500】.</li>
+<li><strong>Statement Tagging</strong>: Classify entries as <em>Author-Claim</em>, <em>Empirical-Result</em>, <em>Interpretation</em>, or <em>Model-Inference</em>.  For example, if the paper says “We assume X,” label that as Author-Claim; if the LLM extrapolates beyond the text, mark <em>Inferred</em>.  This distinction helps later judges weigh what is factual vs speculative.</li>
+<li><strong>Evidence Snippets</strong>: For key fields, capture actual text snippets.  For instance, if recording the claim “Algorithm A scales linearly,” include the sentence that states this or the data row that shows it.  This grounds the record.</li>
+<li><strong>Confidence Scores / Flags</strong>: Include a confidence value or ordinal flag (e.g. <em>high/medium/low confidence</em>) on each field.  These can be model‑provided (if available) or filled by an evaluator pass (e.g. “I’m 90% sure this matches the paper’s claim”).  Low-confidence or ambiguous extractions should be marked for later review.</li>
+<li><strong>Explicit Uncertainty Field</strong>: For subjective fields (e.g. “strength of evidence” or “consensus level”), have the extractor indicate if the paper’s support is weak.  E.g. “EvidenceStrength: weak” if a result is anecdotal rather than statistically validated.</li>
+<li><strong>Contradiction Marker</strong>: If an extraction conflicts with common knowledge or prior extractions, flag it (the contradiction analysis step can use this).  For example, if a paper claims higher accuracy but uses a simpler dataset than others, we should note the tension.</li>
+<li><strong>Provenance Logging</strong>: In addition to content fields, log metadata about the extraction itself (model used, prompt version, timestamp).  This ensures we can trace back if errors are found in Step 2 synthesis.</li>
+</ul>
+<p>Ultimately, every fact in Step 1 should form an “evidence package” consisting of (fact, source, confidence).  This is essential so that the synthesis agent can justify conclusions: e.g. “Claim X holds (C=0.92) because paper Y stated Y (p. 5)【20†L272-L280】【60†L497-L500】.”  Without this, the system design derived later would lack verifiable foundations.</p>
+<h2 id="7-recommended-step-1-schema-options">7. Recommended Step 1 Schema Options / 推荐的第一步输出模式选项<a class="headerlink" href="#7-recommended-step-1-schema-options" title="Permanent link">&para;</a></h2>
+<p>We compare several output formats:</p>
+<ul>
+<li><strong>Narrative Markdown</strong>: Prose paragraphs with markdown headings/bullets. <em>Pros:</em> Readable for humans; allows free explanation. <em>Cons:</em> Hard to programmatically parse and validate; model might introduce extraneous text or hallucinations. Good as a <em>fallback</em> if stricter formats fail or for initial brainstorming, but risky as primary output.</li>
+<li><strong>Structured Markdown</strong>: A hybrid using explicit labels or headings for fields (e.g. <code>## Methods</code>, <code>## Results</code> sections with bullet points). <em>Pros:</em> More machine-readable than free prose; still relatively human-friendly. <em>Cons:</em> Lacks strict schema enforcement (different papers may use slightly different phrasing or ordering), so some NLP post-processing is needed.</li>
+<li><strong>JSON/YAML (Strict Schema)</strong>: The model outputs JSON or YAML with fixed keys (e.g. <code>"Claims": [...], "Methods": "...", "Results": {"throughput":..., "latency":...}, "Limitations": "..."</code>). <em>Pros:</em> Fully structured and machine-parseable; fields can be strongly validated; easy to run downstream code on. <em>Cons:</em> Less forgiving to LLM errors (syntax mistakes break JSON); less readable for quick human inspection; requires very clear prompts or function-calling support in the model.</li>
+<li><strong>XML-like Tagging</strong>: Similar to JSON but with XML tags (<code>&lt;claim&gt;...&lt;/claim&gt;</code>).  <em>Pros:</em> Very explicit structure, and some LLMs (e.g. Claude’s XML support) handle this well【37†L198-L207】. <em>Cons:</em> Token-inefficient (lots of tag overhead) and less standard in modern pipelines.</li>
+<li><strong>Function Calling / TOON</strong>: Emerging approaches like function-call interfaces or TOON (token-optimized notation) aim to get structured output efficiently【37†L159-L169】. <em>Pros:</em> Reduces repetition and enforces schema. <em>Cons:</em> Cutting-edge and may not yet be supported in all models.</li>
+</ul>
+<p><strong>Trade-offs:</strong>
+Structured outputs (JSON/XML) reduce hallucination and improve downstream processing【37†L214-L223】【37†L248-L257】, but improper use can inhibit the LLM’s reasoning. For example, requiring the “answer” field first can tempt the model to jump to conclusions【37†L214-L223】. Positioning “reasoning” before “answer” encourages chain-of-thought. As a result, a hybrid approach often works best: allow the model to “think” (optionally in an unconstrained initial pass), then enforce structure on the final extraction step.</p>
+<p><strong>Recommendation:</strong>
+- <strong>Primary Schema:</strong> A strict JSON (or YAML) output schema.  Define required keys with clear prompts. Use function-calling or schema conformance checks if possible. Enforce ordering of reasoning/evidence fields before conclusions to guide the model【37†L214-L223】. JSON maximizes machine-readability and ensures consistent data for synthesis.
+- <strong>Fallback Schema:</strong> A structured Markdown template (with headings and bullet lists).  If JSON output is unstable, a well-defined markdown form (perhaps with automatic parsing rules) is acceptable. For example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="gs">**Title:**</span> …
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="gs">**Year:**</span> …
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a><span class="gs">**Context:**</span> …
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="gs">**Problem:**</span> …
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a><span class="gs">**Methods:**</span> …
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a><span class="gs">**Results:**</span> …
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Latency:*</span> …
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Throughput:*</span> …
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a><span class="k">-</span><span class="w"> </span><span class="ge">*Dataset:*</span> …
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a><span class="gs">**Limitations:**</span> …
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a><span class="gs">**Assumptions:**</span> …
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a><span class="gs">**References/Evidence:**</span> …
+</code></pre></div>
+<p>In pilot experiments, JSON with carefully placed “reasoning” fields has matched or exceeded free-form output accuracy【37†L214-L223】【54†L83-L86】. Whichever format is chosen, validation is essential (e.g. checking JSON validity, ensuring no field is empty). The schema should be documented so that each field’s purpose (for Step 2) is clear.</p>
+<h2 id="8-recommended-step-1-workflow">8. Recommended Step 1 Workflow / 推荐的第一步工作流程<a class="headerlink" href="#8-recommended-step-1-workflow" title="Permanent link">&para;</a></h2>
+<p>A practical multi-pass workflow for each paper might be:</p>
+<ol>
+<li><strong>Document Ingestion</strong>: Convert PDFs to text (OCR if needed). Identify sections (title, abstract, intro, etc.). Tag figures and tables if relevant.</li>
+<li><strong>First-Pass Skim (Concept Extraction)</strong>: Use the LLM to read the paper (e.g. abstract, intro, conclusion) and generate a bulleted list of candidate <em>topics</em> and <em>claims</em>.  This can be an unconstrained or lightly structured “brainstorm” to highlight what’s important. (Low-medium reasoning effort.)</li>
+<li><strong>Extraction Pass (Structured Fill)</strong>: Prompt the LLM with the paper text (or abstract) plus the final schema template. Instruct it to fill each field. For JSON, ask explicitly for valid JSON with the required keys. For markdown, ask for each section. This is the core extraction step. (Medium reasoning effort; model focuses on filling fields precisely.)</li>
+<li><strong>Evidence Pass (Anchoring)</strong>: Independently (or within the same prompt), ask the LLM to supply source anchors. For each claim or result field, it should output the cited text snippet and page number. Alternatively, this pass can cross-check the filled fields by asking “Which part of the paper justifies this?” (High reasoning effort.)</li>
+<li><strong>Quality-Control Pass</strong>: Run a <strong>validator prompt</strong> or simple code to check completeness (no empty critical fields) and consistency (e.g. numerical values parse as numbers). Optionally have the LLM critique its own output or answer a set of yes/no rubric questions.</li>
+<li><strong>Normalization</strong>: Normalize terminology (e.g. “Mb/s” to “Mbps”), units, and formatting so that fields are consistent across papers.</li>
+<li><strong>Final Review</strong>: A human or automated review of flagged issues. This might include seeing if any <em>redundant claims</em> (the same info captured twice) or <em>missing fields</em> remain. Corrections can be fed back into the workflow.</li>
+</ol>
+<p><strong>One-pass vs Multi-pass:</strong>  We strongly advocate multi-pass.  Empirical studies show a two-step extraction (identify entities, then relations) is markedly more accurate than a single shot【54†L83-L86】.  Similarly, “separating thinking from formatting” avoids the reasoning degradation seen in one-step structured prompts【37†L248-L257】.  In practice, the modest extra time for a second pass is justified by the higher fidelity: the first pass can use chain-of-thought to gather insights, and the second pass can strictly conform to the schema.  This rolling state update avoids losing early cues【38†L177-L186】.  Thus, <strong>Step 1 should be at least two-pass</strong>: a free-interpretation pass to gather candidates, followed by a structured output pass.  Additional validator or reviewer passes improve robustness.</p>
+<h2 id="9-prompting-and-model-strategy">9. Prompting and Model Strategy / 提示词与模型策略<a class="headerlink" href="#9-prompting-and-model-strategy" title="Permanent link">&para;</a></h2>
+<p>We recommend leveraging GPT-5.4 or Codex with these prompting strategies:</p>
+<ul>
+<li><strong>Schema-Driven Prompt</strong>: Provide the LLM with the exact output schema (in JSON or template form) in the system or user prompt. For example: <em>“Extract the following fields in JSON format: {Title, Year, Context, Problem, Methods, Results, Limitations, Assumptions, Evidence}. Ensure valid JSON.”</em>  This helps enforce structure from the start.</li>
+<li><strong>Chain-of-Thought (CoT)</strong>: For complex inference (e.g. assessing support for an assumption), use a <em>“moderate to high reasoning”</em> approach: explicitly ask the model to think step-by-step before finalizing a field. Example: <em>“First identify key claims in the abstract with brief reasoning, then fill the ‘Claims’ field.”</em>  Alternatively, adopt the 2-step approach: let the model outline in text, then convert to structured output【37†L248-L257】【54†L83-L86】.</li>
+<li><strong>Multi-Turn Interactions</strong>: Instead of one giant prompt, break it into multiple sub-questions. E.g., ask “What are the paper’s main contributions?”, capture the answer, then ask “For each contribution, provide the supporting quote.” Then ask to reformat these into the final schema.</li>
+<li><strong>Few-Shot Examples</strong>: If using structured output, include 1-2 examples in the prompt that show the model how to map source text to the schema.</li>
+<li><strong>Model Choice</strong>: For purely textual extraction, GPT-5.4 is suitable; for strict format enforcement, Codex or models with robust JSON parsing may excel. Use “xhigh” reasoning settings for fields requiring judgment (assumptions, limitations), and “medium” for straightforward fields (e.g. title, numeric results).</li>
+<li><strong>Validation Prompt</strong>: After the extraction, run a secondary prompt like “Given the extracted JSON, is each claim accurately supported by the provided evidence? List any inconsistencies.”  This can catch hallucinations.</li>
+<li><strong>Zero-Shot vs Few-Shot</strong>: We anticipate having a fixed schema, so after initial engineering we prefer zero- or one-shot prompting (the schema itself serves as the “few-shot example”).</li>
+<li><strong>Error-Handling</strong>: Use temperature=0 or low to minimize randomness. If the model outputs malformed JSON, use a follow-up prompt: “The JSON above has a syntax error. Please fix it.”</li>
+</ul>
+<p>In summary, <strong>structured prompts with clear output instructions</strong> are key. We suggest a <strong>two-phase prompting</strong>: (1) an unconstrained reasoning phase (Chain-of-Thought) to gather info, and (2) a constrained output phase to fill the schema【37†L248-L257】【54†L83-L86】.  This aligns with best practices for “complex reasoning tasks”【37†L248-L257】. Validator passes should be used liberally to verify each field’s support and consistency.</p>
+<h2 id="10-quality-assurance-framework">10. Quality Assurance Framework / 质量保证框架<a class="headerlink" href="#10-quality-assurance-framework" title="Permanent link">&para;</a></h2>
+<p>To ensure Step 1 is “good enough” for synthesis, we propose:</p>
+<ul>
+<li><strong>Acceptance Criteria</strong>:</li>
+<li><em>Completeness:</em> All required fields are non-empty for each paper.</li>
+<li><em>Traceability:</em> Every key fact in each field has a source citation or quote attached.</li>
+<li><em>Accuracy:</em> Fields correctly reflect the paper (no obvious errors or hallucinations).</li>
+<li><em>Clarity:</em> Entries are specific (e.g. numerical values not “high”) and units are consistent.</li>
+<li><strong>Review Checklist</strong> (for manual or automated checks):</li>
+<li>[ ] <em>Meta Fields:</em> Title/year/ID match the source.</li>
+<li>[ ] <em>Claims vs Methods:</em> Clear distinction between <em>what</em> the paper claims and <em>how</em> it does it.</li>
+<li>[ ] <em>Evidence:</em> For each claim or result, verify at least one direct quote/link is recorded.</li>
+<li>[ ] <em>Consistency:</em> No contradiction between fields (e.g. “Results” field values align with quoted figures).</li>
+<li>[ ] <em>Units/Scale:</em> Units are standardized (e.g. ms vs seconds); scale assumptions noted.</li>
+<li>[ ] <em>Implied info:</em> Assumptions/limitations are present even if implicit (e.g. check common ones like scale-out limits).</li>
+<li><strong>Scoring Rubric</strong>: Rate each paper’s extraction (0–5) on categories like <em>Coverage</em>, <em>Factual Accuracy</em>, <em>Provenance</em>, <em>Completeness</em>, <em>Clarity</em>. For instance:</li>
+<li><em>5 – Excellent:</em> All fields present, well-cited, no errors.</li>
+<li><em>3 – Acceptable:</em> Minor omissions or one missing citation, but mostly usable.</li>
+<li><em>1 – Poor:</em> Major fields missing or incorrect, many hallucinated facts.</li>
+<li><strong>Red Flags (warnings)</strong>:</li>
+<li>Fields with <strong>no citation</strong> (requires manual review).</li>
+<li>Generic or vague entries (e.g. “Claims: as above”).</li>
+<li>Conflicting data (e.g. a metric that doesn’t match the quoted value).</li>
+<li>Overly high certainty without evidence (e.g. claiming “provably the best” with no quote).</li>
+<li>No “Limitations” field when it should exist (most papers have some).</li>
+<li><strong>Evaluation Harness/Benchmark</strong>:</li>
+<li>Build a small <strong>gold-standard dataset</strong>: select representative papers, manually create the ideal extraction according to the schema.</li>
+<li>Then run alternative prompting templates or model versions on the same papers and compare. Measure precision/recall of extracted facts.</li>
+<li>Use automated checks like: do extracted numeric results match the paper’s reported tables/graphs? (e.g. text extraction of numbers vs system output).</li>
+<li>Example benchmark: for factual fields, compute BERTScore or exact match between output and reference extraction (treat fields independently). For structure, check JSON schema validity rate.</li>
+<li>Over time, track these metrics to tune the extraction prompt and schema (akin to how SciTrue evaluated traceability【30†L1-L4】【58†L415-L423】).</li>
+<li>Optionally, use peer-review: have multiple agents (or models) do the extraction and cross-validate each other, similar to contradiction detection.</li>
+</ul>
+<p>By routinely scoring extractions and reviewing samples, the team can calibrate the template and prompt.  As Google’s <em>ML Test Score</em> emphasizes, numerical thresholds help – e.g. “≥90% of extractions must have evidence quotes”【46†L236-L244】.  Such quantitative QA guards Step 1 quality so that Step 2 can proceed on a solid basis.</p>
+<h2 id="11-recommended-final-methodology">11. Recommended Final Methodology / 推荐的最终方法<a class="headerlink" href="#11-recommended-final-methodology" title="Permanent link">&para;</a></h2>
+<p><strong>Step 1 Methodology:</strong> For each selected paper, apply a <strong>two-pass extraction</strong>.  First, ask the LLM to read the paper (or abstract/introduction) and list all key elements (contributions, methods, metrics) with rough reasoning. Second, feed this (or the text) to a structured prompt for filling the schema.  Use validation prompts to attach evidence and check consistency.  Store outputs as structured objects (JSON records).  Maintain both human-readable notes and machine‑readable files for each paper.</p>
+<p>Concretely, we recommend:
+- A <strong>JSON template</strong> with fields for <code>Title, Authors, Year, Context, Problem, Methods, Datasets, Results, Performance{latency,throughput}, Limitations, Assumptions, ReuseCandidates, SecurityImplications, EvidenceSnippets, ConfidenceScores</code>.
+- A multi-step <strong>prompt/agent workflow</strong> (analogous to ResearchPilot’s ExtractionAgent) that enforces this schema【50†L146-L148】.
+- <strong>Cross-check step</strong>: after all papers are processed, run a contradiction analyzer (Step 2) as a sanity check on fields like “Results” and “Claims” (e.g. flag if two papers irreconcilably differ on a core claim【56†L37-L40】).
+- Store the structured extractions in a database or spreadsheet (as LitPilot does with an Excel tracker【20†L272-L280】) for human browsing if needed.</p>
+<p>This pipeline ensures that Step 2 (synthesis) receives <strong>rich, precise inputs</strong>: every claim has a source, every assumption is explicit, and no field is left to guesswork.  It becomes straightforward to programmatically build synthesis matrices, spot contradictions, and enumerate patterns directly from these records.</p>
+<h2 id="12-minimum-viable-template">12. Minimum Viable Template / 最低可行模板<a class="headerlink" href="#12-minimum-viable-template" title="Permanent link">&para;</a></h2>
+<p>A minimal Step 1 schema might include:</p>
+<ul>
+<li><strong>Title:</strong></li>
+<li><strong>Year:</strong></li>
+<li><strong>Context/Problem:</strong> (Brief statement of the problem or domain)</li>
+<li><strong>Approach/Method:</strong> (One-line summary of what was done)</li>
+<li><strong>Key Results:</strong> (Numeric outcomes, e.g. “Throughput: 10K ops/s, Latency: 1ms”)</li>
+<li><strong>Limitations/Assumptions:</strong> (Any obvious constraint)</li>
+<li><strong>Evidence (Quote):</strong> (Exact quote supporting the <em>main claim</em>)</li>
+</ul>
+<p>For example (in structured form):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;Title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;High-Throughput Cache Design (2025)&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;Year&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2025&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;Context&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Improving web cache scalability in data centers.&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;Problem&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Existing caches saturate under high concurrency.&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&quot;Approach&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Proposes a lock-free algorithm using multiple shards.&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">  </span><span class="nt">&quot;Results&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;Throughput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;10M req/s&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;Latency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;0.5ms&quot;</span><span class="p">},</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">  </span><span class="nt">&quot;Limitations&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Only evaluated on workload X; relies on custom hardware.&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">  </span><span class="nt">&quot;Evidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;\&quot;our throughput reaches 10M/s\&quot; (p.12)&quot;</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="p">}</span>
+</code></pre></div>
+<p>This <strong>minimum template</strong> ensures that the downstream synthesis at least sees <em>what was done</em>, <em>what was achieved</em>, and <em>what limitations were reported</em>, with a concrete evidence snippet.  Every field directly serves cross-paper comparison (e.g. all “Results” can be tabulated).</p>
+<h2 id="13-advanced-template">13. Advanced Template / 高级模板<a class="headerlink" href="#13-advanced-template" title="Permanent link">&para;</a></h2>
+<p>A more advanced schema might expand the minimum fields. For instance:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="p">{</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="w">  </span><span class="nt">&quot;Title&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="w">  </span><span class="nt">&quot;Authors&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="nt">&quot;Venue&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="nt">&quot;Year&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="nt">&quot;ProblemStatement&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="w">  </span><span class="nt">&quot;Contributions&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">],</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="nt">&quot;Methods&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="nt">&quot;Dataset/Env&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;...&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="nt">&quot;Software/Tools&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="w">  </span><span class="nt">&quot;Performance&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">    </span><span class="nt">&quot;Throughput&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">    </span><span class="nt">&quot;Latency&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="w">    </span><span class="nt">&quot;Accuracy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="w">    </span><span class="nt">&quot;ResourceUsage&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="nt">&quot;CPU&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;Memory&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">}</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="p">},</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="nt">&quot;ScaleAssumptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="w">  </span><span class="nt">&quot;CostDrivers&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="nt">&quot;Security/Privacy&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="w">  </span><span class="nt">&quot;ObservabilityImplications&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="nt">&quot;Reliability/FailureModes&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="w">  </span><span class="nt">&quot;ReusabilityNotes&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="nt">&quot;Limitations&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="nt">&quot;Assumptions&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="w">  </span><span class="nt">&quot;OpenIssues&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="nt">&quot;EvidenceQuotes&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Contributions&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;quote&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;page&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">},</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;field&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Performance&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;quote&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;page&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">}</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">  </span><span class="p">],</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">  </span><span class="nt">&quot;Confidence&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span>
+<a id="__codelineno-2-31" name="__codelineno-2-31" href="#__codelineno-2-31"></a><span class="p">}</span>
+</code></pre></div>
+<ul>
+<li><em>ReusabilityNotes</em>: Describe which parts could generalize.</li>
+<li><em>OpenIssues</em>: Any unknowns or follow-up questions.</li>
+<li><em>EvidenceQuotes</em>: A small array of key quotes linking fields to sources.</li>
+<li><em>Confidence</em>: A summary confidence score or level.</li>
+</ul>
+<p>An example Markdown excerpt might look like:</p>
+<blockquote>
+<p><strong>Methods:</strong> We use a <em>multi-threaded pipeline</em> with local caching (quoting: <em>“We implement caching shards to parallelize reads”</em>).
+<strong>Results:</strong> Sustains <strong>200K ops/s</strong> at 500µs latency on 8-core CPU (p.9).
+<strong>Assumptions:</strong> Assumes data fits in L2 cache; fault tolerance not addressed.</p>
+</blockquote>
+<p>This advanced template, while more verbose, captures finer details needed for engineering design (e.g. hardware assumptions, observability).  It separates concerns so that future designers can quickly find relevant pieces (like security or cost) without wading through prose.</p>
+<h2 id="14-anti-patterns">14. Anti-Patterns / 反模式<a class="headerlink" href="#14-anti-patterns" title="Permanent link">&para;</a></h2>
+<p>Common mistakes to avoid in Step 1 extraction:</p>
+<ul>
+<li><strong>Free-text Narrative Summarizing:</strong> Allowing long prose answers. This leads to the “salad” problem where facts are buried. Avoid answers like, “The paper then discusses….” Instead, stick to the template fields.</li>
+<li><strong>Missing Evidence Links:</strong> Any claim without a citation should be rejected. For instance, “This result is state-of-the-art” without quoting the paper’s assertion is a red flag.</li>
+<li><strong>Mixing Papers:</strong> Do not combine insights from multiple papers in one entry. Each record is for a single paper only.</li>
+<li><strong>Broad Generalizations:</strong> Statements like “always” or “never” that are not in the text. These are likely hallucinations. Check if the source explicitly claimed it.</li>
+<li><strong>Omitting Scale and Env Details:</strong> Phrases like “we assume normal scale” are unhelpful – prefer explicit numbers or scenarios.</li>
+<li><strong>No Uncertainty Handling:</strong> Giving a definite score or claim without noting if it was experimentally verified or only simulated. Every inference beyond the text must be flagged.</li>
+<li><strong>Inconsistent Units/Format:</strong> e.g. writing “Throughput: 100” without units. This makes cross-paper comparison impossible. Normalize these immediately.</li>
+<li><strong>Answer-First JSON:</strong> Putting an “Answer” field before reasoning in JSON encourages jumping to conclusions【37†L214-L223】. Ensure fields like <em>Reasoning</em> or <em>Evidence</em> come first.</li>
+<li><strong>Empty or Excessive Fields:</strong> A field left blank or filled with “N/A” is a loss; conversely, dumping the full abstract text under a field clutters the data. Stick to the key phrases or quotes that answer the field’s purpose.</li>
+</ul>
+<p>These anti-patterns lead to noise and mistrust. By adhering to the structured template and citing sources, we avoid these pitfalls【38†L177-L186】【56†L37-L40】.</p>
+<h2 id="15-open-questions">15. Open Questions / 开放问题与未来改进<a class="headerlink" href="#15-open-questions" title="Permanent link">&para;</a></h2>
+<p>While the above methodology is grounded in current best practices, several open issues remain:</p>
+<ul>
+<li><strong>Full-Text vs Abstract Extraction:</strong> Can we scale to ingest entire papers (especially long systems papers) rather than abstracts? <em>ResearchPilot</em> only handles abstracts by default, citing “abstract-only extraction” as a limitation【50†L21-L23】. Processing full papers with LLMs (while retaining context) is an ongoing challenge.</li>
+<li><strong>Dynamic Schema Evolution:</strong> As we synthesize findings, new needed fields may emerge (e.g. “energy consumption”). How should Step 1 templates adapt over time? Automating schema updates is non-trivial.</li>
+<li><strong>Contradiction Detection:</strong> Automatically spotting contradictions across papers is still hard. Tools like SciTrue【60†L497-L500】 and dedicated contradiction models can help, but integrating these into the pipeline (Step 1 to tag potential contradictions) needs more research.</li>
+<li><strong>LLM Hallucinations and Bias:</strong> Even with prompts, LLMs may invent plausible-sounding data. Developing methods (like SciTrue’s evidence-trace methods【60†L497-L500】) to catch hallucinations remains a critical area.</li>
+<li><strong>Benchmarking Extraction Quality:</strong> How to quantitatively evaluate Step 1 at scale? Manual QA is slow. Building public benchmarks (similar to AID’s query dataset【52†L203-L208】) or open corpora of paper-extraction pairs would accelerate progress.</li>
+<li><strong>Multi-Language Papers:</strong> Technical papers in other languages might be relevant. Extending Step 1 to handle or translate non-English papers is an unresolved extension.</li>
+<li><strong>Human-in-the-Loop Tuning:</strong> What is the optimal human/AI balance? For instance, should experts correct extractions on-the-fly and feed that back to fine-tune models? The best interface for collaboration is an open question.</li>
+<li><strong>Tooling and Automation:</strong> Developing extraction tools (like LitPilot or ResearchPilot) that allow visual inspection of linked quotes, version control of schemas, and branching design paths is needed. The community lacks standardized platforms for this multi-stage process.</li>
+</ul>
+<p>In summary, while the proposed Step 1 framework sets a high bar for engineering literature analysis, it should evolve with advances in LLM capabilities (e.g. future GPT versions, RAG with improved traceability【28†L94-L103】) and with feedback from actual system design experiences. Ongoing refinement – guided by metrics from the QA harness – will be crucial to improving both the extraction quality and its integration into downstream synthesis.</p>
+<p><strong>Sources:</strong> Concepts above are drawn from recent AI systems for literature analysis【50†L33-L39】【54†L83-L86】【20†L272-L280】【38†L177-L186】【60†L497-L500】, as well as empirical studies of summarization pipelines【38†L51-L59】 and user expectations【52†L203-L208】. Each recommended field and process is motivated by maximizing the fidelity and utility of the extracted information for later engineering synthesis.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

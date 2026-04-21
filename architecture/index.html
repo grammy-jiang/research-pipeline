@@ -1,0 +1,2028 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/architecture/">
+      
+      
+        <link rel="prev" href="../user-guide/">
+      
+      
+        <link rel="next" href="../python%20development/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Architecture - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#architecture" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Architecture
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline stages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipeline stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Plan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Screen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Download
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-convert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Convert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-extract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Extract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-summarize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Summarize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-expand-citation-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Expand (Citation Graph)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-quality-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Quality Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-convert-rough-tier-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Convert Rough (Tier 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-convert-fine-tier-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Convert Fine (Tier 3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-index-incremental-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Index (Incremental Runs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-cutting-concerns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-cutting concerns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-cutting concerns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retry-error-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retry &amp; error recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generic rate limiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifest-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest tracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate limiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-source-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-source architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-source architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#candidaterecord-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CandidateRecord extensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP server
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python%20development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../implementation-plan/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#overview" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Overview
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#pipeline-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Pipeline stages
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Pipeline stages">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#core-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Core pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary commands
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#1-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Plan
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#2-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#3-screen" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Screen
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#4-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Download
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#5-convert" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Convert
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#6-extract" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Extract
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#7-summarize" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Summarize
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-expand-citation-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Expand (Citation Graph)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-quality-evaluation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Quality Evaluation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-convert-rough-tier-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Convert Rough (Tier 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-convert-fine-tier-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Convert Fine (Tier 3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#auxiliary-index-incremental-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Auxiliary: Index (Incremental Runs)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#cross-cutting-concerns" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cross-cutting concerns
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Cross-cutting concerns">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#retry-error-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Retry &amp; error recovery
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#generic-rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Generic rate limiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#manifest-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Manifest tracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Rate limiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#caching" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Caching
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#logging" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Logging
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#multi-source-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Multi-source architecture
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Multi-source architecture">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#candidaterecord-extensions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        CandidateRecord extensions
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#mcp-server" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP server
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-tree" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source tree
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="architecture">Architecture<a class="headerlink" href="#architecture" title="Permanent link">&para;</a></h1>
+<h2 id="overview">Overview<a class="headerlink" href="#overview" title="Permanent link">&para;</a></h2>
+<p>research-pipeline is a deterministic, stage-based pipeline for academic paper
+research. It automates the workflow of finding, evaluating, downloading,
+converting, and summarizing scholarly papers from multiple academic databases.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Language</td>
+<td>Python 3.12+</td>
+</tr>
+<tr>
+<td>Build system</td>
+<td>uv (<code>uv_build</code> backend)</td>
+</tr>
+<tr>
+<td>CLI framework</td>
+<td>Typer</td>
+</tr>
+<tr>
+<td>Data models</td>
+<td>Pydantic v2</td>
+</tr>
+<tr>
+<td>Package import</td>
+<td><code>research_pipeline</code></td>
+</tr>
+<tr>
+<td>CLI command</td>
+<td><code>research-pipeline</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="pipeline-stages">Pipeline stages<a class="headerlink" href="#pipeline-stages" title="Permanent link">&para;</a></h2>
+<p>The core pipeline processes a research topic through 7 sequential stages. Each
+stage is <strong>idempotent</strong> — it can be re-run without side effects. Five auxiliary
+commands extend the pipeline with quality evaluation, citation expansion,
+two-tier conversion, and incremental run management.</p>
+<h3 id="core-pipeline">Core pipeline<a class="headerlink" href="#core-pipeline" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>plan → search → screen → download → convert → extract → summarize
+</code></pre></div>
+<h3 id="auxiliary-commands">Auxiliary commands<a class="headerlink" href="#auxiliary-commands" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>expand       — Citation graph expansion (Semantic Scholar)
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>quality      — Composite quality evaluation
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>convert-rough — Fast Tier 2 conversion (pymupdf4llm, all PDFs)
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>convert-fine  — High-quality Tier 3 conversion (selected papers)
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>index         — Global paper index management (incremental dedup)
+</code></pre></div>
+<h3 id="1-plan">1. Plan<a class="headerlink" href="#1-plan" title="Permanent link">&para;</a></h3>
+<p>Normalizes a natural language research topic into a structured <code>QueryPlan</code>
+containing must-have terms, nice-to-have terms, negative terms, and query
+variants optimized for different source APIs.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td>Research topic string</td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>plan/query_plan.json</code> (<code>QueryPlan</code> model)</td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_plan.py</code></td>
+</tr>
+<tr>
+<td>Model</td>
+<td><code>src/research_pipeline/models/query_plan.py</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="2-search">2. Search<a class="headerlink" href="#2-search" title="Permanent link">&para;</a></h3>
+<p>Executes the query plan against one or more sources (arXiv, Google Scholar,
+Semantic Scholar, OpenAlex, DBLP) in parallel, collecting candidate papers
+with metadata (title, abstract, authors, categories, dates). Cross-source
+deduplication is performed by arXiv ID, DOI, and normalized title.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>plan/query_plan.json</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>search/candidates.jsonl</code> (<code>CandidateRecord</code> per line), <code>search/raw/*.xml</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_search.py</code></td>
+</tr>
+<tr>
+<td>Sources</td>
+<td><code>src/research_pipeline/sources/</code> (see Multi-source architecture below)</td>
+</tr>
+<tr>
+<td>Model</td>
+<td><code>src/research_pipeline/models/candidate.py</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="3-screen">3. Screen<a class="headerlink" href="#3-screen" title="Permanent link">&para;</a></h3>
+<p>Multi-stage relevance filtering. First pass uses BM25 heuristic scoring against
+the query terms. Optional SPECTER2 semantic re-ranking computes embedding
+similarity between the query and candidate abstracts. Optional final pass uses
+an LLM judge for deeper evaluation.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>search/candidates.jsonl</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>screen/cheap_scores.jsonl</code>, <code>screen/shortlist.json</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_screen.py</code></td>
+</tr>
+<tr>
+<td>Scoring</td>
+<td><code>src/research_pipeline/screening/heuristic.py</code></td>
+</tr>
+<tr>
+<td>Embeddings</td>
+<td><code>src/research_pipeline/screening/embedding.py</code> (SPECTER2)</td>
+</tr>
+<tr>
+<td>Models</td>
+<td><code>src/research_pipeline/models/screening.py</code> (<code>CheapScoreBreakdown</code>, <code>RelevanceDecision</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="4-download">4. Download<a class="headerlink" href="#4-download" title="Permanent link">&para;</a></h3>
+<p>Downloads PDFs for shortlisted papers with rate limiting, retries, and atomic
+writes. Respects arXiv's polite-mode guidelines.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>screen/shortlist.json</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>download/pdf/*.pdf</code>, <code>download/download_manifest.jsonl</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_download.py</code></td>
+</tr>
+<tr>
+<td>Model</td>
+<td><code>src/research_pipeline/models/download.py</code> (<code>DownloadManifestEntry</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="5-convert">5. Convert<a class="headerlink" href="#5-convert" title="Permanent link">&para;</a></h3>
+<p>Converts downloaded PDFs to Markdown using a pluggable backend system.
+Eight backends are available — three local and five cloud/online:</p>
+<p><strong>Local backends</strong> (run on your machine):</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Package</th>
+<th>License</th>
+<th>Strengths</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docling</code></td>
+<td><code>docling&gt;=2.0</code></td>
+<td>MIT</td>
+<td>Great table/equation preservation</td>
+</tr>
+<tr>
+<td><code>marker</code></td>
+<td><code>marker-pdf&gt;=1.10</code></td>
+<td>GPL-3.0 / Open Rail-M</td>
+<td>Highest accuracy (95.7%), optional LLM boost</td>
+</tr>
+<tr>
+<td><code>pymupdf4llm</code></td>
+<td><code>pymupdf4llm&gt;=0.0.17</code></td>
+<td>AGPL</td>
+<td>10-50x faster, CPU-only, no LaTeX</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Online/cloud backends</strong> (require API credentials):</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Package</th>
+<th>Pricing</th>
+<th>Strengths</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mathpix</code></td>
+<td><em>(uses <code>requests</code>)</em></td>
+<td>~$0.01/page, 1K free/mo</td>
+<td>Best LaTeX equation extraction</td>
+</tr>
+<tr>
+<td><code>datalab</code></td>
+<td><code>datalab-python-sdk&gt;=0.1</code></td>
+<td>$4-6/1K pages, $5 free credit</td>
+<td>Hosted Marker, fast/balanced/accurate modes</td>
+</tr>
+<tr>
+<td><code>llamaparse</code></td>
+<td><code>llama-cloud&gt;=1.0</code></td>
+<td>1K free pages/day</td>
+<td>Good quality, 4 tiers (fast/cost-effective/agentic/agentic-plus), LlamaIndex integration</td>
+</tr>
+<tr>
+<td><code>mistral_ocr</code></td>
+<td><code>mistralai&gt;=1.0</code></td>
+<td>Per-token, free credits</td>
+<td>Very fast, Mistral Document AI</td>
+</tr>
+<tr>
+<td><code>openai_vision</code></td>
+<td><code>openai&gt;=1.0</code>, <code>PyMuPDF&gt;=1.24</code></td>
+<td>Per-token</td>
+<td>GPT-4o vision, page-by-page</td>
+</tr>
+</tbody>
+</table>
+<p>Backends are discovered via the <strong>registry pattern</strong>
+(<code>src/research_pipeline/conversion/registry.py</code>). Each backend class uses
+<code>@register_backend("name")</code> to self-register. The CLI <code>--backend</code> flag and
+config <code>conversion.backend</code> select the active backend at runtime.</p>
+<p><strong>Multi-account rotation &amp; cross-service failover</strong>:</p>
+<p>Each online backend supports <strong>multiple accounts</strong> via <code>[[conversion.&lt;backend&gt;.accounts]]</code>
+TOML array-of-tables. The <code>FallbackConverter</code> (<code>src/research_pipeline/conversion/fallback.py</code>)
+wraps multiple backend instances and tries them in order:</p>
+<ol>
+<li>All accounts of the primary backend are tried first.</li>
+<li>If all primary accounts fail (quota exceeded, rate limited, or any error),
+   it falls through to the next backend in <code>fallback_backends</code>.</li>
+<li>Quota/rate-limit errors are detected via regex patterns (429, "rate limit",
+   "quota exceeded", "insufficient credits", etc.).</li>
+<li>Returns the first successful result, or the last failure if all backends
+   are exhausted.</li>
+</ol>
+<p>The <code>fallback_backends</code> config option specifies an ordered list of backup
+backends to try after the primary backend:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="k">[conversion]</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;mathpix&quot;</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="n">fallback_backends</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;datalab&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;mistral_ocr&quot;</span><span class="p">]</span>
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>download/pdf/*.pdf</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>convert/markdown/*.md</code>, <code>convert/convert_manifest.jsonl</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_convert.py</code></td>
+</tr>
+<tr>
+<td>Registry</td>
+<td><code>src/research_pipeline/conversion/registry.py</code></td>
+</tr>
+<tr>
+<td>Fallback</td>
+<td><code>src/research_pipeline/conversion/fallback.py</code> (<code>FallbackConverter</code>)</td>
+</tr>
+<tr>
+<td>Config models</td>
+<td><code>src/research_pipeline/config/models.py</code> (per-backend <code>*Account</code> + <code>*Config</code>)</td>
+</tr>
+<tr>
+<td>Backends (local)</td>
+<td><code>docling_backend.py</code>, <code>marker_backend.py</code>, <code>pymupdf4llm_backend.py</code></td>
+</tr>
+<tr>
+<td>Backends (online)</td>
+<td><code>mathpix_backend.py</code>, <code>datalab_backend.py</code>, <code>llamaparse_backend.py</code>, <code>mistral_ocr_backend.py</code>, <code>openai_vision_backend.py</code></td>
+</tr>
+<tr>
+<td>Model</td>
+<td><code>src/research_pipeline/models/conversion.py</code> (<code>ConvertManifestEntry</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="6-extract">6. Extract<a class="headerlink" href="#6-extract" title="Permanent link">&para;</a></h3>
+<p>Chunks Markdown documents by heading structure and token limits. Builds a BM25
+index for retrieval during summarization.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>convert/markdown/*.md</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>extract/*.extract.json</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_extract.py</code></td>
+</tr>
+<tr>
+<td>Models</td>
+<td><code>src/research_pipeline/models/extraction.py</code> (<code>ChunkMetadata</code>, <code>MarkdownExtraction</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="7-summarize">7. Summarize<a class="headerlink" href="#7-summarize" title="Permanent link">&para;</a></h3>
+<p>Generates per-paper summaries with evidence citations and a cross-paper
+synthesis report identifying agreements, disagreements, and open questions.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>extract/*.extract.json</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>summarize/*.summary.json</code>, <code>summarize/synthesis.json</code>, <code>summarize/synthesis.md</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_summarize.py</code></td>
+</tr>
+<tr>
+<td>Models</td>
+<td><code>src/research_pipeline/models/summary.py</code> (<code>PaperSummary</code>, <code>SynthesisReport</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auxiliary-expand-citation-graph">Auxiliary: Expand (Citation Graph)<a class="headerlink" href="#auxiliary-expand-citation-graph" title="Permanent link">&para;</a></h3>
+<p>Discovers related papers by traversing the citation graph via the Semantic
+Scholar API. Supports forward citations (papers that cite a given paper),
+backward citations (references of a given paper), or both.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td>Paper IDs (arXiv IDs or S2 corpus IDs)</td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>expand/expanded_candidates.jsonl</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_expand.py</code></td>
+</tr>
+<tr>
+<td>Client</td>
+<td><code>src/research_pipeline/sources/citation_graph.py</code> (<code>CitationGraphClient</code>)</td>
+</tr>
+<tr>
+<td>Options</td>
+<td><code>--direction</code> (forward/backward/both), <code>--limit</code> per direction</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auxiliary-quality-evaluation">Auxiliary: Quality Evaluation<a class="headerlink" href="#auxiliary-quality-evaluation" title="Permanent link">&para;</a></h3>
+<p>Computes a composite quality score for candidates using four weighted
+dimensions: citation impact (log-normalized), venue reputation (CORE rankings),
+author credibility (h-index via S2 API), and recency bonus.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>search/candidates.jsonl</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>quality/quality_scores.jsonl</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_quality.py</code></td>
+</tr>
+<tr>
+<td>Scoring</td>
+<td><code>src/research_pipeline/quality/</code> (<code>citation_metrics</code>, <code>venue_scoring</code>, <code>author_metrics</code>, <code>composite</code>)</td>
+</tr>
+<tr>
+<td>Model</td>
+<td><code>src/research_pipeline/models/quality.py</code> (<code>QualityScore</code>)</td>
+</tr>
+<tr>
+<td>Data</td>
+<td><code>src/research_pipeline/quality/data/core_rankings.json</code> (120+ venues)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auxiliary-convert-rough-tier-2">Auxiliary: Convert Rough (Tier 2)<a class="headerlink" href="#auxiliary-convert-rough-tier-2" title="Permanent link">&para;</a></h3>
+<p>Fast bulk conversion of all downloaded PDFs using pymupdf4llm. Produces
+"good enough" Markdown for initial screening and triage. Runs in parallel
+with configurable worker count.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>download/pdf/*.pdf</code></td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>convert_rough/markdown/*.md</code>, <code>convert_rough/convert_manifest.jsonl</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_convert_rough.py</code></td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>pymupdf4llm (always)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auxiliary-convert-fine-tier-3">Auxiliary: Convert Fine (Tier 3)<a class="headerlink" href="#auxiliary-convert-fine-tier-3" title="Permanent link">&para;</a></h3>
+<p>High-quality conversion of selected papers using the configured primary
+backend (Docling, Marker, or cloud). Used after initial triage to produce
+publication-quality Markdown for the best papers.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td><code>download/pdf/*.pdf</code> (subset via <code>--paper-ids</code>)</td>
+</tr>
+<tr>
+<td>Output</td>
+<td><code>convert_fine/markdown/*.md</code>, <code>convert_fine/convert_manifest.jsonl</code></td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_convert_fine.py</code></td>
+</tr>
+<tr>
+<td>Backend</td>
+<td>Configurable (primary backend from config)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="auxiliary-index-incremental-runs">Auxiliary: Index (Incremental Runs)<a class="headerlink" href="#auxiliary-index-incremental-runs" title="Permanent link">&para;</a></h3>
+<p>Manages a SQLite-backed global paper index that tracks papers across runs.
+Enables incremental dedup — subsequent pipeline runs skip papers already
+processed. Supports listing indexed papers and garbage collection.</p>
+<table>
+<thead>
+<tr>
+<th>Property</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Input</td>
+<td>N/A (manages index database)</td>
+</tr>
+<tr>
+<td>Output</td>
+<td>Terminal output (list/gc operations)</td>
+</tr>
+<tr>
+<td>Implementation</td>
+<td><code>src/research_pipeline/cli/cmd_index.py</code></td>
+</tr>
+<tr>
+<td>Storage</td>
+<td><code>src/research_pipeline/storage/global_index.py</code> (<code>GlobalPaperIndex</code>)</td>
+</tr>
+<tr>
+<td>Config</td>
+<td><code>[incremental]</code> section in config.toml</td>
+</tr>
+</tbody>
+</table>
+<h2 id="cross-cutting-concerns">Cross-cutting concerns<a class="headerlink" href="#cross-cutting-concerns" title="Permanent link">&para;</a></h2>
+<h3 id="retry-error-recovery">Retry &amp; error recovery<a class="headerlink" href="#retry-error-recovery" title="Permanent link">&para;</a></h3>
+<p>All HTTP-based operations (PDF downloads, API calls) use the <code>@retry</code> decorator
+(<code>src/research_pipeline/infra/retry.py</code>) with exponential backoff, jitter, and
+<code>Retry-After</code> header support. Download and conversion manifests track
+<code>retry_count</code> and <code>last_error</code> per file for debugging.</p>
+<h3 id="generic-rate-limiting">Generic rate limiting<a class="headerlink" href="#generic-rate-limiting" title="Permanent link">&para;</a></h3>
+<p>A reusable <code>RateLimiter</code> class (<code>src/research_pipeline/infra/rate_limit.py</code>)
+provides thread-safe, monotonic-clock-based rate limiting. The arXiv-specific
+<code>ArxivRateLimiter</code> extends it with a 3-second hard floor. New sources
+(Semantic Scholar, OpenAlex, DBLP) each use their own <code>RateLimiter</code> instance
+with configurable intervals.</p>
+<h3 id="configuration">Configuration<a class="headerlink" href="#configuration" title="Permanent link">&para;</a></h3>
+<p>Configuration is loaded from multiple sources with this precedence
+(highest wins first):</p>
+<table>
+<thead>
+<tr>
+<th>Priority</th>
+<th>Source</th>
+<th>Example</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Environment variables</td>
+<td><code>ARXIV_PAPER_PIPELINE_CONFIG</code></td>
+</tr>
+<tr>
+<td>2</td>
+<td>TOML config file</td>
+<td><code>config.toml</code></td>
+</tr>
+<tr>
+<td>3</td>
+<td>Built-in defaults</td>
+<td><code>src/research_pipeline/config/defaults.py</code></td>
+</tr>
+</tbody>
+</table>
+<p>Configuration schemas are defined in <code>src/research_pipeline/config/models.py</code>.</p>
+<h3 id="manifest-tracking">Manifest tracking<a class="headerlink" href="#manifest-tracking" title="Permanent link">&para;</a></h3>
+<p>Every pipeline run produces a <code>run_manifest.json</code> that records:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Run ID</td>
+<td>12-character hex identifier</td>
+</tr>
+<tr>
+<td>Timestamps</td>
+<td>Start and end times (ISO 8601)</td>
+</tr>
+<tr>
+<td>Configuration</td>
+<td>Snapshot of active settings</td>
+</tr>
+<tr>
+<td>Stage records</td>
+<td>Per-stage start/end, status, errors</td>
+</tr>
+<tr>
+<td>Artifact records</td>
+<td>File paths with SHA-256 content hashes</td>
+</tr>
+</tbody>
+</table>
+<p>Implementation: <code>src/research_pipeline/storage/manifests.py</code></p>
+<h3 id="rate-limiting">Rate limiting<a class="headerlink" href="#rate-limiting" title="Permanent link">&para;</a></h3>
+<p>arXiv enforces rate limiting on API access. The pipeline uses a global,
+thread-safe rate limiter with a 3-second hard floor and configurable delay
+(default 5 seconds).</p>
+<p>Implementation: <code>src/research_pipeline/arxiv/rate_limit.py</code></p>
+<h3 id="caching">Caching<a class="headerlink" href="#caching" title="Permanent link">&para;</a></h3>
+<p>HTTP responses are cached locally with a configurable TTL (default 24 hours)
+to avoid redundant API calls during development and re-runs.</p>
+<p>Implementation: <code>src/research_pipeline/infra/cache.py</code></p>
+<h3 id="logging">Logging<a class="headerlink" href="#logging" title="Permanent link">&para;</a></h3>
+<p>All logging uses Python's <code>logging</code> module with structured JSONL output to both
+console and file (<code>logs/pipeline.jsonl</code>).</p>
+<p>Implementation: <code>src/research_pipeline/infra/logging.py</code></p>
+<h2 id="multi-source-architecture">Multi-source architecture<a class="headerlink" href="#multi-source-architecture" title="Permanent link">&para;</a></h2>
+<p>The pipeline supports multiple paper sources through the <code>SearchSource</code> protocol:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>SearchSource (protocol)
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>├── ArxivSource              — arXiv API (Atom XML)
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>├── ScholarlySource          — Google Scholar (free, via scholarly library)
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>├── SerpAPISource            — Google Scholar (paid, via SerpAPI)
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>├── SemanticScholarSource    — Semantic Scholar API (paper search)
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>├── OpenAlexSource           — OpenAlex API (works endpoint)
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>└── DBLPSource               — DBLP API (publication search)
+</code></pre></div>
+<p>Sources run in parallel with cross-source deduplication by arXiv ID, DOI,
+and normalized title. The <code>enrichment</code> module fills missing abstracts via
+Semantic Scholar DOI lookup.</p>
+<h3 id="candidaterecord-extensions">CandidateRecord extensions<a class="headerlink" href="#candidaterecord-extensions" title="Permanent link">&para;</a></h3>
+<p>The <code>CandidateRecord</code> model includes optional fields for multi-source metadata:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Source</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>source</code></td>
+<td><code>str</code></td>
+<td>All (arXiv, scholar, semantic_scholar, openalex, dblp)</td>
+</tr>
+<tr>
+<td><code>doi</code></td>
+<td><code>str</code></td>
+<td>S2, OpenAlex, DBLP</td>
+</tr>
+<tr>
+<td><code>semantic_scholar_id</code></td>
+<td><code>str</code></td>
+<td>Semantic Scholar</td>
+</tr>
+<tr>
+<td><code>openalex_id</code></td>
+<td><code>str</code></td>
+<td>OpenAlex</td>
+</tr>
+<tr>
+<td><code>citation_count</code></td>
+<td><code>int</code></td>
+<td>S2, OpenAlex</td>
+</tr>
+<tr>
+<td><code>influential_citation_count</code></td>
+<td><code>int</code></td>
+<td>Semantic Scholar</td>
+</tr>
+<tr>
+<td><code>venue</code></td>
+<td><code>str</code></td>
+<td>S2, DBLP</td>
+</tr>
+<tr>
+<td><code>year</code></td>
+<td><code>int</code></td>
+<td>All</td>
+</tr>
+</tbody>
+</table>
+<h2 id="mcp-server">MCP server<a class="headerlink" href="#mcp-server" title="Permanent link">&para;</a></h2>
+<p>The MCP server (<code>mcp_server/</code>) wraps pipeline functionality into tools
+accessible via the Model Context Protocol. Tools are thin adapters that delegate
+to the same logic used by the CLI. The server uses FastMCP with stdio transport.</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>CLI equivalent</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>plan_topic</code></td>
+<td><code>plan</code></td>
+<td>Create query plan from topic</td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td><code>search</code></td>
+<td>Search sources for papers</td>
+</tr>
+<tr>
+<td><code>screen_candidates</code></td>
+<td><code>screen</code></td>
+<td>Score and filter candidates</td>
+</tr>
+<tr>
+<td><code>download_pdfs</code></td>
+<td><code>download</code></td>
+<td>Download shortlisted PDFs</td>
+</tr>
+<tr>
+<td><code>convert_pdfs</code></td>
+<td><code>convert</code></td>
+<td>Convert PDFs to Markdown (supports backend selection)</td>
+</tr>
+<tr>
+<td><code>extract_content</code></td>
+<td><code>extract</code></td>
+<td>Chunk and index content</td>
+</tr>
+<tr>
+<td><code>summarize_papers</code></td>
+<td><code>summarize</code></td>
+<td>Generate summaries</td>
+</tr>
+<tr>
+<td><code>run_pipeline</code></td>
+<td><code>run</code></td>
+<td>Run full pipeline</td>
+</tr>
+<tr>
+<td><code>get_run_manifest</code></td>
+<td><code>inspect</code></td>
+<td>Read run manifest</td>
+</tr>
+<tr>
+<td><code>convert_file</code></td>
+<td><code>convert-file</code></td>
+<td>Convert single PDF (supports backend selection)</td>
+</tr>
+<tr>
+<td><code>list_backends</code></td>
+<td>—</td>
+<td>List available converter backends</td>
+</tr>
+</tbody>
+</table>
+<h2 id="source-tree">Source tree<a class="headerlink" href="#source-tree" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>src/research_pipeline/
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>├── cli/            # Typer CLI commands (one file per stage)
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>├── models/         # Pydantic domain models (candidate, screening, quality, etc.)
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>├── config/         # Configuration loading and schemas
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>├── arxiv/          # arXiv API client, XML parser, dedup, rate limiter
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>├── sources/        # Multi-source search adapters + citation graph + enrichment
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>├── screening/      # BM25 heuristic scoring, SPECTER2 embeddings, LLM judge
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>├── download/       # Rate-limited PDF downloader with retry
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>├── conversion/     # PDF→Markdown backends (registry + 3 local + 5 cloud + fallback)
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>├── quality/        # Quality evaluation (citations, venue, author, composite)
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>├── extraction/     # Markdown chunking and retrieval
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>├── summarization/  # Per-paper and cross-paper synthesis
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>├── pipeline/       # Orchestrator and stage sequencing
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>├── storage/        # Workspace management, manifests, artifacts, global index
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>├── infra/          # Cache, HTTP, logging, hashing, clock, rate limiting, retry
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>└── llm/            # LLM provider interface (experimental)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

@@ -1,0 +1,3256 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/implementation-plan/">
+      
+      
+        <link rel="prev" href="../python%20development/">
+      
+      
+        <link rel="next" href="../changelog/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Implementation Plan - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#research-pipeline-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../python%20development/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Python Development
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Implementation Plan
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-project-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this project is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-this-project-is-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How this project is used
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-was-proposed-and-selected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What was proposed and selected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v030-codebase-state-baseline-for-this-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.3.0 codebase state (baseline for this plan)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-ai-agent-package-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture: AI Agent ↔ Package Boundary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture: AI Agent ↔ Package Boundary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#design-principles-for-new-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Principles for New Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-autonomous-decision-points-pre-existing-not-changed-by-this-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Autonomous Decision Points (pre-existing, NOT changed by this plan)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-tool-design-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Tool Design Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#progressive-filtering-funnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progressive Filtering Funnel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent-skill-workflow-progressive-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Skill Workflow (progressive filtering)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#external-services-free-tier-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Services &amp; Free Tier Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-infrastructure-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Infrastructure Foundations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Infrastructure Foundations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-generic-rate-limiter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 Generic Rate Limiter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-retry-decorator-with-exponential-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 Retry Decorator with Exponential Backoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-extend-candidaterecord-with-quality-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 Extend CandidateRecord with Quality Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-quality-score-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 Quality Score Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-2-new-search-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: New Search Sources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: New Search Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-semantic-scholar-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Semantic Scholar Search Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-openalex-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 OpenAlex Search Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-dblp-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 DBLP Search Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-source-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Source Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-cross-source-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Cross-Source Enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-enhanced-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 Enhanced Deduplication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-3-semantic-re-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: Semantic Re-Ranking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Semantic Re-Ranking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-embedding-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Embedding Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-semantic-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Semantic Scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-integrate-into-screen-stage-opt-in-for-cli-batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Integrate into Screen Stage (opt-in, for CLI batch mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-4-citation-graph-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: Citation-Graph Expansion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Citation-Graph Expansion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-citation-graph-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Citation Graph Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-expansion-logic-agent-driven-no-autonomous-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Expansion Logic (agent-driven, no autonomous decisions)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-cli-command-batch-mode-for-human-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 CLI Command (batch mode for human users)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-5-quality-evaluation-tier-1-runs-before-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 5: Quality Evaluation (Tier 1 — runs BEFORE download)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 5: Quality Evaluation (Tier 1 — runs BEFORE download)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-citation-metrics-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Citation Metrics Enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-venue-reputation-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Venue Reputation Scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-author-credibility-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Author Credibility Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-composite-quality-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Composite Quality Score
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-quality-stage-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Quality Stage Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-6-retry-error-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 6: Retry &amp; Error Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 6: Retry &amp; Error Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-apply-retry-decorator-from-phase-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Apply Retry Decorator (from Phase 1.2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-dead-letter-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Dead-Letter Tracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-graceful-degradation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Graceful Degradation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-7-two-tier-conversion-tier-2-tier-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 7: Two-Tier Conversion (Tier 2 + Tier 3)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 7: Two-Tier Conversion (Tier 2 + Tier 3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-rough-conversion-stage-tier-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Rough Conversion Stage (Tier 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-fine-conversion-stage-tier-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Fine Conversion Stage (Tier 3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-convertmanifestentry-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 ConvertManifestEntry Extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-extract-stage-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Extract Stage Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 Backward Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#76-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.6 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#77-workspace-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.7 Workspace Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#78-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.8 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#79-progress-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.9 Progress Reporting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-8-incremental-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 8: Incremental Runs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 8: Incremental Runs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-global-paper-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Global Paper Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-dedup-against-previous-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Dedup Against Previous Runs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-artifact-linking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Artifact Linking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-index-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Index Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-dependency-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase Dependency Graph
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-pipeline-stages-final" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Pipeline Stages (Final)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-mcp-tools-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New MCP Tools (Summary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-to-create-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files to Create (Summary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-to-modify-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files to Modify (Summary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#background" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Background
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Background">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-this-project-is" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What this project is
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#how-this-project-is-used" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        How this project is used
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#what-was-proposed-and-selected" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What was proposed and selected
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#constraints" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Constraints
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#v030-codebase-state-baseline-for-this-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        v0.3.0 codebase state (baseline for this plan)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#architecture-ai-agent-package-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Architecture: AI Agent ↔ Package Boundary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Architecture: AI Agent ↔ Package Boundary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#design-principles-for-new-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design Principles for New Features
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#current-autonomous-decision-points-pre-existing-not-changed-by-this-plan" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Current Autonomous Decision Points (pre-existing, NOT changed by this plan)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#new-tool-design-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Tool Design Pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#progressive-filtering-funnel" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Progressive Filtering Funnel
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#agent-skill-workflow-progressive-filtering" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent Skill Workflow (progressive filtering)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#external-services-free-tier-limits" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        External Services &amp; Free Tier Limits
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-1-infrastructure-foundations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 1: Infrastructure Foundations
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 1: Infrastructure Foundations">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#11-generic-rate-limiter" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.1 Generic Rate Limiter
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#12-retry-decorator-with-exponential-backoff" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.2 Retry Decorator with Exponential Backoff
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#13-extend-candidaterecord-with-quality-fields" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.3 Extend CandidateRecord with Quality Fields
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#14-quality-score-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1.4 Quality Score Model
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-2-new-search-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 2: New Search Sources
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 2: New Search Sources">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-semantic-scholar-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Semantic Scholar Search Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-openalex-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 OpenAlex Search Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-dblp-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 DBLP Search Source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#24-source-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.4 Source Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#25-cross-source-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.5 Cross-Source Enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#26-enhanced-deduplication" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.6 Enhanced Deduplication
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#27-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.7 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-3-semantic-re-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 3: Semantic Re-Ranking
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 3: Semantic Re-Ranking">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-embedding-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Embedding Backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-semantic-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Semantic Scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-integrate-into-screen-stage-opt-in-for-cli-batch-mode" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Integrate into Screen Stage (opt-in, for CLI batch mode)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#35-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.5 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-4-citation-graph-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 4: Citation-Graph Expansion
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 4: Citation-Graph Expansion">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-citation-graph-client" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Citation Graph Client
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-expansion-logic-agent-driven-no-autonomous-decisions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Expansion Logic (agent-driven, no autonomous decisions)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-cli-command-batch-mode-for-human-users" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 CLI Command (batch mode for human users)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-5-quality-evaluation-tier-1-runs-before-download" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 5: Quality Evaluation (Tier 1 — runs BEFORE download)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 5: Quality Evaluation (Tier 1 — runs BEFORE download)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-citation-metrics-enrichment" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Citation Metrics Enrichment
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-venue-reputation-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Venue Reputation Scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-author-credibility-metrics" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Author Credibility Metrics
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-composite-quality-score" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Composite Quality Score
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-quality-stage-integration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Quality Stage Integration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-6-retry-error-recovery" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 6: Retry &amp; Error Recovery
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 6: Retry &amp; Error Recovery">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-apply-retry-decorator-from-phase-12" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Apply Retry Decorator (from Phase 1.2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-dead-letter-tracking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Dead-Letter Tracking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-graceful-degradation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Graceful Degradation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-7-two-tier-conversion-tier-2-tier-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 7: Two-Tier Conversion (Tier 2 + Tier 3)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 7: Two-Tier Conversion (Tier 2 + Tier 3)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-rough-conversion-stage-tier-2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Rough Conversion Stage (Tier 2)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-fine-conversion-stage-tier-3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Fine Conversion Stage (Tier 3)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-convertmanifestentry-extension" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 ConvertManifestEntry Extension
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-extract-stage-update" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Extract Stage Update
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-backward-compatibility" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 Backward Compatibility
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#76-mcp-tools-agent-interface" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.6 MCP Tools (agent interface)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#77-workspace-directory-structure" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.7 Workspace Directory Structure
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#78-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.8 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#79-progress-reporting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.9 Progress Reporting
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-8-incremental-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase 8: Incremental Runs
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Phase 8: Incremental Runs">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-global-paper-index" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Global Paper Index
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-dedup-against-previous-runs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Dedup Against Previous Runs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-artifact-linking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Artifact Linking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-index-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Index Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-dependency-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase Dependency Graph
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-order" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation Order
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-pipeline-stages-final" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New Pipeline Stages (Final)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#new-mcp-tools-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        New MCP Tools (Summary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-to-create-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files to Create (Summary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#files-to-modify-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Files to Modify (Summary)
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="research-pipeline-implementation-plan">Research-Pipeline: Implementation Plan<a class="headerlink" href="#research-pipeline-implementation-plan" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Status</strong>: Approved, not yet started
+<strong>Created</strong>: 2026-04-05
+<strong>Baseline version</strong>: v0.3.0 (8 conversion backends, FallbackConverter,
+multi-account rotation)</p>
+</blockquote>
+<hr />
+<h2 id="background">Background<a class="headerlink" href="#background" title="Permanent link">&para;</a></h2>
+<h3 id="what-this-project-is">What this project is<a class="headerlink" href="#what-this-project-is" title="Permanent link">&para;</a></h3>
+<p><strong>research-pipeline</strong> is a deterministic, stage-based Python 3.12+ pipeline
+for searching, screening, downloading, converting, and summarizing academic
+papers from arXiv and Google Scholar. It provides a Typer CLI
+(<code>research-pipeline</code>) and an MCP server (stdio, 11 tools). The codebase is
+~5,000 lines of Python across 40+ modules, managed by <strong>uv</strong>.</p>
+<p>Current pipeline stages (v0.3.0):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>plan → search → screen → download → convert → extract → summarize
+</code></pre></div>
+<p>Target pipeline (after this plan — progressive filtering funnel):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>plan → search → screen/quality → download → convert-rough → convert-fine → extract → summarize
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>                  (Tier 1)        ────────── (Tier 2) ──────  (Tier 3) ──────────────
+</code></pre></div>
+<h3 id="how-this-project-is-used">How this project is used<a class="headerlink" href="#how-this-project-is-used" title="Permanent link">&para;</a></h3>
+<p>This package is called by an <strong>AI agent skill</strong>. The AI agent handles
+non-deterministic work (judgment, decisions, query formulation,
+summarization), and this package handles <strong>deterministic work</strong> (executing
+searches, computing scores, fetching metrics, downloading PDFs, converting
+files). This boundary is central to all design decisions in this plan.</p>
+<h3 id="what-was-proposed-and-selected">What was proposed and selected<a class="headerlink" href="#what-was-proposed-and-selected" title="Permanent link">&para;</a></h3>
+<p>Four improvement areas were explored. The owner selected:</p>
+<ol>
+<li><strong>Search quality</strong>: Semantic re-ranking (SPECTER2), citation-graph
+   expansion (Semantic Scholar), more sources (Semantic Scholar, OpenAlex,
+   DBLP)</li>
+<li><strong>Quality evaluation</strong>: Citation metrics, venue reputation (CORE
+   rankings), author credibility (h-index), composite quality score</li>
+<li><strong>Other improvements</strong>: Parallel conversion, retry &amp; error recovery,
+   incremental runs</li>
+</ol>
+<p><strong>Rejected</strong> (not in scope): LLM query expansion, multi-backend ensemble
+conversion, post-conversion validation, CI/CD pipeline, export formats.</p>
+<h3 id="constraints">Constraints<a class="headerlink" href="#constraints" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong>No paid services.</strong> All external APIs must be free-tier.</li>
+<li><strong>Polite rate limiting.</strong> Conservative request rates on all remote servers.</li>
+<li><strong>Package computes, agent decides.</strong> The package must not autonomously
+  select, filter, or discard papers. It returns computed results; the AI
+  agent makes all selection/judgment decisions.</li>
+</ul>
+<h3 id="v030-codebase-state-baseline-for-this-plan">v0.3.0 codebase state (baseline for this plan)<a class="headerlink" href="#v030-codebase-state-baseline-for-this-plan" title="Permanent link">&para;</a></h3>
+<p>Before starting implementation, be aware of these recent additions:</p>
+<ul>
+<li><strong>5 cloud conversion backends</strong>: Mathpix, Datalab, LlamaParse, Mistral
+  OCR, OpenAI Vision (in addition to 3 local: Docling, Marker, PyMuPDF4LLM)</li>
+<li><strong>FallbackConverter</strong> (<code>conversion/fallback.py</code>): Wraps multiple backends,
+  tries in order, auto-failover on quota/rate-limit errors</li>
+<li><strong>Multi-account rotation</strong>: Each online backend supports multiple API
+  accounts via <code>[[conversion.&lt;backend&gt;.accounts]]</code> TOML array-of-tables</li>
+<li><strong><code>_backend_kwargs_list()</code></strong>: Refactored from <code>_backend_kwargs()</code> to return
+  <code>list[dict]</code> for multi-account support</li>
+<li><strong><code>ConverterBackend.convert()</code> signature</strong>: Now accepts <code>force: bool = False</code></li>
+<li><strong>8 total backends</strong> registered in <code>conversion/registry.py</code></li>
+<li><strong>Grobid backend removed</strong> (was a placeholder)</li>
+<li><strong>Tests added</strong>: <code>test_conversion_fallback.py</code>,
+  <code>test_conversion_online_backends.py</code></li>
+<li><strong>MCP server</strong> (<code>mcp_server/tools.py</code>): Still uses old <code>_backend_kwargs()</code>
+  pattern; does not support fallback yet — not blocking for this plan</li>
+</ul>
+<hr />
+<h2 id="architecture-ai-agent-package-boundary">Architecture: AI Agent ↔ Package Boundary<a class="headerlink" href="#architecture-ai-agent-package-boundary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Responsibility</th>
+<th>Owner</th>
+<th>Examples</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Non-deterministic</strong> (judgment, decisions)</td>
+<td>AI Agent</td>
+<td>Which queries to search, which papers to expand, threshold decisions, interpreting results, summarization strategy</td>
+</tr>
+<tr>
+<td><strong>Deterministic</strong> (execution, computation)</td>
+<td>Package</td>
+<td>Execute search queries, compute BM25/semantic scores, fetch citation metrics, download PDFs, convert files</td>
+</tr>
+</tbody>
+</table>
+<h3 id="design-principles-for-new-features">Design Principles for New Features<a class="headerlink" href="#design-principles-for-new-features" title="Permanent link">&para;</a></h3>
+<ol>
+<li>
+<p><strong>Package computes, agent decides.</strong> Every new stage should produce
+   scored/enriched data and return it. The package MUST NOT autonomously
+   select, filter, or discard papers. Selection is the agent's job.</p>
+</li>
+<li>
+<p><strong>Fine-grained MCP tools.</strong> Each new capability needs a corresponding
+   MCP tool with explicit inputs. The agent calls tools individually and
+   orchestrates the workflow. Example: <code>fetch_citations(paper_id)</code> NOT
+   <code>expand_and_filter_top_n()</code>.</p>
+</li>
+<li>
+<p><strong>CLI still supports batch mode.</strong> For human CLI users, the existing
+   linear pipeline (<code>run</code> command) remains. It uses config-driven defaults
+   for thresholds/selection. But the MCP tools give the agent full control.</p>
+</li>
+<li>
+<p><strong>No hidden decisions.</strong> If the package must apply a threshold (e.g.,
+   rate-limit caps), it should be an explicit input parameter, not a
+   hardcoded policy.</p>
+</li>
+</ol>
+<h3 id="current-autonomous-decision-points-pre-existing-not-changed-by-this-plan">Current Autonomous Decision Points (pre-existing, NOT changed by this plan)<a class="headerlink" href="#current-autonomous-decision-points-pre-existing-not-changed-by-this-plan" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>screen</code> stage</strong>: <code>select_topk()</code> picks top-k by BM25 score — this is
+  deterministic given the config parameters (<code>cheap_top_k</code>, <code>download_top_n</code>,
+  weights). The agent controls behavior via config. The agent skill can also
+  bypass the screen stage and call scoring + selection separately.</li>
+<li><strong><code>run</code> command</strong>: Orchestrates all stages linearly. Kept for CLI
+  convenience. The agent skill calls individual stages instead.</li>
+</ul>
+<h3 id="new-tool-design-pattern">New Tool Design Pattern<a class="headerlink" href="#new-tool-design-pattern" title="Permanent link">&para;</a></h3>
+<p>Each new phase exposes tools that follow this pattern:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>Agent provides:  explicit inputs (paper IDs, queries, parameters)
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>Package returns: computed results (scores, metrics, candidate lists)
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>Agent decides:   what to do next (which papers to keep, expand, download)
+</code></pre></div>
+<h3 id="progressive-filtering-funnel">Progressive Filtering Funnel<a class="headerlink" href="#progressive-filtering-funnel" title="Permanent link">&para;</a></h3>
+<p>The core workflow is a <strong>3-tier progressive filter</strong>. Each tier uses
+increasingly expensive methods to evaluate papers, allowing the agent to
+narrow the set at each stage:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>┌─────────────────────────────────────────────────────────────────────┐
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>│ TIER 1 — Abstract-Level Filter (cheap, no PDF download)            │
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>│                                                                     │
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>│ ~200 candidates from search                                         │
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>│   → BM25 scoring (existing)                                         │
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>│   → Semantic scoring via SPECTER2 (Phase 3)                         │
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>│   → Quality metrics: citations, venue tier, author h-index (Phase 5)│
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>│   → Agent filters to ~30-50 papers worth downloading                │
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>├─────────────────────────────────────────────────────────────────────┤
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>│ TIER 2 — Rough Markdown Filter (medium cost, fast CPU conversion)   │
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>│                                                                     │
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>│ ~30-50 papers downloaded as PDF                                     │
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>│   → Fast convert via pymupdf4llm (always, ~seconds per paper)       │
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>│   → Agent reads rough markdown (no LaTeX, basic tables)             │
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>│   → Agent filters to ~10-15 papers worth fine-converting            │
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>├─────────────────────────────────────────────────────────────────────┤
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>│ TIER 3 — Fine Markdown (expensive, high-quality conversion)         │
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>│                                                                     │
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>│ ~10-15 selected papers                                              │
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>│   → High-quality convert via configured backend (docling/marker/    │
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>│     cloud) with FallbackConverter                                   │
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>│   → Agent performs deep analysis on polished output                 │
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>│   → Extract stage runs on fine markdown for chunk retrieval          │
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>│   → Synthesis and final output                                      │
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>└─────────────────────────────────────────────────────────────────────┘
+</code></pre></div>
+<p><strong>Resource savings</strong>: By filtering at each tier, cloud API costs drop
+~70-80% (converting ~10 papers instead of ~50), and local GPU time drops
+similarly. The agent's judgment at each tier ensures only the most
+relevant and high-quality papers receive expensive processing.</p>
+<h3 id="agent-skill-workflow-progressive-filtering">Agent Skill Workflow (progressive filtering)<a class="headerlink" href="#agent-skill-workflow-progressive-filtering" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>Agent formulates queries
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  → Package: search(topic, source)                     → candidates.jsonl
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>──── TIER 1: Abstract-level filter ────
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>Agent reviews raw candidates
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>  → Package: screen(run_id)                            → BM25 scores
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>  → Package: compute_semantic_scores(run_id, topic)    → semantic scores
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>  → Package: compute_quality_scores(run_id, paper_ids) → quality scores
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>Agent optionally expands citation graph
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>  → Package: fetch_citations(paper_id)                 → related papers
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>Agent picks ~30-50 papers to download
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>──── TIER 2: Rough markdown filter ────
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>  → Package: download(run_id, paper_ids)               → PDFs
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>  → Package: convert_rough(run_id)                     → rough markdown
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>Agent reads rough markdown, evaluates full paper content
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>Agent picks ~10-15 papers worth fine-converting
+<a id="__codelineno-4-18" name="__codelineno-4-18" href="#__codelineno-4-18"></a>
+<a id="__codelineno-4-19" name="__codelineno-4-19" href="#__codelineno-4-19"></a>──── TIER 3: Fine markdown + deep analysis ────
+<a id="__codelineno-4-20" name="__codelineno-4-20" href="#__codelineno-4-20"></a>  → Package: convert_fine(run_id, paper_ids)           → fine markdown
+<a id="__codelineno-4-21" name="__codelineno-4-21" href="#__codelineno-4-21"></a>  → Package: extract(run_id)                           → chunks
+<a id="__codelineno-4-22" name="__codelineno-4-22" href="#__codelineno-4-22"></a>Agent synthesizes findings from fine markdown
+</code></pre></div>
+<hr />
+<h2 id="external-services-free-tier-limits">External Services &amp; Free Tier Limits<a class="headerlink" href="#external-services-free-tier-limits" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Cost</th>
+<th>Rate Limit (Free)</th>
+<th>Use Cases</th>
+<th>Politeness Target</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Semantic Scholar API</strong></td>
+<td>Free (API key recommended)</td>
+<td>1 req/sec (no key); ~100 req/5min (with free key)</td>
+<td>Search, citations, references, author metrics, venue</td>
+<td><strong>1 req/sec</strong> (no-key safe)</td>
+</tr>
+<tr>
+<td><strong>OpenAlex API</strong></td>
+<td>Free (API key required since Feb 2026)</td>
+<td>100K credits/day; 100 req/sec max</td>
+<td>Search, citations, author, venue, works</td>
+<td><strong>5 req/sec</strong> (polite)</td>
+</tr>
+<tr>
+<td><strong>DBLP API</strong></td>
+<td>Free (no key)</td>
+<td>No stated limit; fair-use policy</td>
+<td>CS paper search</td>
+<td><strong>1 req/2sec</strong> (polite)</td>
+</tr>
+<tr>
+<td><strong>SPECTER2</strong></td>
+<td>Free (Apache 2.0, local model)</td>
+<td>∞ (runs locally on CPU/GPU)</td>
+<td>Embedding-based semantic re-ranking</td>
+<td>N/A (local)</td>
+</tr>
+<tr>
+<td><strong>CORE Rankings</strong></td>
+<td>Free (static data file)</td>
+<td>N/A (bundled JSON)</td>
+<td>Venue tier scoring (A*, A, B, C)</td>
+<td>N/A (offline)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="phase-1-infrastructure-foundations">Phase 1: Infrastructure Foundations<a class="headerlink" href="#phase-1-infrastructure-foundations" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Build reusable primitives that all subsequent phases depend on.</p>
+<h3 id="11-generic-rate-limiter">1.1 Generic Rate Limiter<a class="headerlink" href="#11-generic-rate-limiter" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Extract a reusable <code>RateLimiter</code> class from <code>ArxivRateLimiter</code></li>
+<li>Thread-safe, configurable <code>min_interval</code></li>
+<li>Place in <code>src/research_pipeline/infra/rate_limit.py</code></li>
+<li>Refactor <code>ArxivRateLimiter</code> to use/extend it (backward-compatible)</li>
+<li>Each new source gets its own <code>RateLimiter</code> instance</li>
+</ul>
+<h3 id="12-retry-decorator-with-exponential-backoff">1.2 Retry Decorator with Exponential Backoff<a class="headerlink" href="#12-retry-decorator-with-exponential-backoff" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Create <code>src/research_pipeline/infra/retry.py</code></li>
+<li><code>@retry(max_attempts=3, backoff_base=2.0, retryable_exceptions=(RequestException, Timeout))</code></li>
+<li>Respects <code>Retry-After</code> header (HTTP 429)</li>
+<li>Jitter to avoid thundering herd</li>
+<li>Logging at each retry attempt</li>
+<li>Apply retroactively to arXiv client, download, and all new sources</li>
+</ul>
+<h3 id="13-extend-candidaterecord-with-quality-fields">1.3 Extend CandidateRecord with Quality Fields<a class="headerlink" href="#13-extend-candidaterecord-with-quality-fields" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add optional fields to <code>CandidateRecord</code> (backward-compatible, all <code>None</code> default):</li>
+<li><code>source: str = "arxiv"</code> — which source found this paper</li>
+<li><code>doi: str | None = None</code></li>
+<li><code>semantic_scholar_id: str | None = None</code></li>
+<li><code>openalex_id: str | None = None</code></li>
+<li><code>citation_count: int | None = None</code></li>
+<li><code>influential_citation_count: int | None = None</code></li>
+<li><code>venue: str | None = None</code></li>
+<li><code>year: int | None = None</code></li>
+</ul>
+<h3 id="14-quality-score-model">1.4 Quality Score Model<a class="headerlink" href="#14-quality-score-model" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Create <code>src/research_pipeline/models/quality.py</code></li>
+<li><code>QualityScore(BaseModel)</code>:</li>
+<li><code>citation_impact: float</code> (0–1 normalized)</li>
+<li><code>venue_tier: str | None</code> (A*, A, B, C, or None)</li>
+<li><code>venue_score: float</code> (0–1)</li>
+<li><code>author_credibility: float</code> (0–1)</li>
+<li><code>reproducibility: float</code> (0–1, future)</li>
+<li><code>composite_score: float</code> (0–1 weighted blend)</li>
+<li><code>details: dict</code> (raw metrics for transparency)</li>
+</ul>
+<hr />
+<h2 id="phase-2-new-search-sources">Phase 2: New Search Sources<a class="headerlink" href="#phase-2-new-search-sources" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Add Semantic Scholar, OpenAlex, and DBLP as search sources.
+The package executes queries; the agent formulates them.</p>
+<h3 id="21-semantic-scholar-search-source">2.1 Semantic Scholar Search Source<a class="headerlink" href="#21-semantic-scholar-search-source" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/sources/semantic_scholar_source.py</code></li>
+<li>Implements <code>SearchSource</code> protocol</li>
+<li>Uses <code>/paper/search</code> endpoint with query, year range, fields</li>
+<li>Rate limit: 1 req/sec (conservative, no API key needed for search)</li>
+<li>Optional API key via <code>config.sources.semantic_scholar_api_key</code> or
+  env <code>RESEARCH_PIPELINE_S2_API_KEY</code></li>
+<li>Returns <code>CandidateRecord</code> with <code>source="semantic_scholar"</code>,
+  <code>semantic_scholar_id</code>, <code>citation_count</code>, <code>doi</code></li>
+<li>Max 100 results per search (API limit), paginated</li>
+<li>Maps S2 fields → CandidateRecord (arxiv_id extracted from externalIds)</li>
+</ul>
+<h3 id="22-openalex-search-source">2.2 OpenAlex Search Source<a class="headerlink" href="#22-openalex-search-source" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/sources/openalex_source.py</code></li>
+<li>Implements <code>SearchSource</code> protocol</li>
+<li>Uses <code>/works</code> endpoint with <code>search</code> filter + <code>from_publication_date</code></li>
+<li>Rate limit: 5 req/sec (well within 100K credits/day)</li>
+<li>API key via <code>config.sources.openalex_api_key</code> or
+  env <code>RESEARCH_PIPELINE_OPENALEX_API_KEY</code></li>
+<li>Returns <code>CandidateRecord</code> with <code>source="openalex"</code>, <code>openalex_id</code>,
+  <code>citation_count</code>, <code>doi</code>, <code>venue</code></li>
+<li>Pagination via cursor</li>
+<li>Extracts arXiv ID from <code>ids.openalex</code> → <code>locations[].source</code></li>
+</ul>
+<h3 id="23-dblp-search-source">2.3 DBLP Search Source<a class="headerlink" href="#23-dblp-search-source" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/sources/dblp_source.py</code></li>
+<li>Implements <code>SearchSource</code> protocol</li>
+<li>Uses <code>/search/publ/api</code> endpoint (JSON format)</li>
+<li>Rate limit: 1 req/2sec (polite, no key needed)</li>
+<li>Returns <code>CandidateRecord</code> with <code>source="dblp"</code>, <code>doi</code></li>
+<li>Max 1000 results per query (API cap), default 100</li>
+<li>Maps DBLP fields → CandidateRecord</li>
+<li>Note: DBLP has no abstracts; set <code>abstract=""</code> and flag for
+  enrichment from other sources</li>
+</ul>
+<h3 id="24-source-configuration">2.4 Source Configuration<a class="headerlink" href="#24-source-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Extend <code>SourcesConfig</code> in <code>config/models.py</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>semantic_scholar_enabled: bool = False
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>semantic_scholar_api_key: str = &quot;&quot;
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>semantic_scholar_min_interval: float = 1.0
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>openalex_enabled: bool = False
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>openalex_api_key: str = &quot;&quot;
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>openalex_min_interval: float = 0.2  (5 req/sec)
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>dblp_enabled: bool = False
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>dblp_min_interval: float = 2.0
+</code></pre></div></li>
+<li>Update <code>config/defaults.py</code> and <code>config.example.toml</code></li>
+<li>Add to <code>enabled</code> list resolution in <code>cmd_search.py</code></li>
+</ul>
+<h3 id="25-cross-source-enrichment">2.5 Cross-Source Enrichment<a class="headerlink" href="#25-cross-source-enrichment" title="Permanent link">&para;</a></h3>
+<ul>
+<li>After multi-source search + dedup, enrich DBLP results (missing abstracts)
+  by looking up the same paper on Semantic Scholar or OpenAlex via DOI</li>
+<li>New function: <code>enrich_candidates(candidates, sources_config)</code> in
+  <code>sources/enrichment.py</code></li>
+</ul>
+<h3 id="26-enhanced-deduplication">2.6 Enhanced Deduplication<a class="headerlink" href="#26-enhanced-deduplication" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Extend <code>dedup_cross_source()</code> to also dedup by DOI</li>
+<li>Priority order when merging: arXiv &gt; Semantic Scholar &gt; OpenAlex &gt; DBLP
+  (prefer the record with the richest metadata)</li>
+</ul>
+<h3 id="27-mcp-tools-agent-interface">2.7 MCP Tools (agent interface)<a class="headerlink" href="#27-mcp-tools-agent-interface" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The existing <strong><code>search</code></strong> MCP tool already accepts a <code>source</code> parameter.
+  Extend it to accept the new source names: <code>"semantic_scholar"</code>, <code>"openalex"</code>,
+  <code>"dblp"</code>. The agent chooses which sources to query.</li>
+<li><strong><code>enrich_candidates</code></strong> — New MCP tool</li>
+<li>Input: <code>run_id</code> (operates on candidates from search stage)</li>
+<li>Behavior: Fills in missing abstracts/metadata from other sources</li>
+<li>Output: Count of enriched candidates</li>
+<li>Deterministic: just data fetching, no filtering</li>
+</ul>
+<hr />
+<h2 id="phase-3-semantic-re-ranking">Phase 3: Semantic Re-Ranking<a class="headerlink" href="#phase-3-semantic-re-ranking" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Add embedding-based scoring using SPECTER2. The package computes
+similarity scores; the agent decides how to use them.</p>
+<h3 id="31-embedding-backend">3.1 Embedding Backend<a class="headerlink" href="#31-embedding-backend" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/screening/embedding.py</code></li>
+<li>Load SPECTER2 model locally (<code>allenai/specter2</code> from HuggingFace)</li>
+<li>Function: <code>compute_embeddings(texts: list[str]) -&gt; np.ndarray</code></li>
+<li>Batch inference for efficiency (batch_size=32)</li>
+<li>Model loaded lazily (first use) and cached in memory</li>
+<li>CPU-only by default; GPU if available via <code>torch.cuda.is_available()</code></li>
+</ul>
+<h3 id="32-semantic-scoring">3.2 Semantic Scoring<a class="headerlink" href="#32-semantic-scoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Function: <code>score_semantic(topic: str, candidates: list[CandidateRecord]) -&gt; list[float]</code></li>
+<li>Embed topic query (title+abstract format: <code>"{topic} [SEP]"</code>)</li>
+<li>Embed each candidate's <code>title + " " + abstract</code></li>
+<li>Cosine similarity → normalized scores [0, 1]</li>
+<li>Return per-candidate semantic scores</li>
+</ul>
+<h3 id="33-integrate-into-screen-stage-opt-in-for-cli-batch-mode">3.3 Integrate into Screen Stage (opt-in, for CLI batch mode)<a class="headerlink" href="#33-integrate-into-screen-stage-opt-in-for-cli-batch-mode" title="Permanent link">&para;</a></h3>
+<ul>
+<li>In <code>screening/heuristic.py</code>, add <code>"semantic_similarity"</code> weight (default 0.0)</li>
+<li>When <code>config.screen.use_semantic_reranking = True</code> and SPECTER2 available:</li>
+<li>Compute semantic scores</li>
+<li>Blend with BM25: adjust default weights to include semantic</li>
+<li>New default weights when semantic enabled:
+    <div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>bm25_title: 0.20
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>bm25_abstract: 0.25
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>semantic_similarity: 0.25
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>cat_match: 0.12
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>negative_penalty: 0.08
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>recency_bonus: 0.10
+</code></pre></div></li>
+<li>Add <code>CheapScoreBreakdown.semantic_score: float | None</code> field</li>
+<li><strong>Note</strong>: In CLI batch mode, the screen stage uses these blended scores
+  with <code>select_topk()</code> as before. In agent mode, the agent can call scoring
+  and selection separately (see 3.5).</li>
+</ul>
+<h3 id="34-configuration">3.4 Configuration<a class="headerlink" href="#34-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add to <code>ScreenConfig</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>use_semantic_reranking: bool = False
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>embedding_model: str = &quot;allenai/specter2&quot;
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>embedding_batch_size: int = 32
+</code></pre></div></li>
+<li>Add <code>specter2</code> optional dependency in <code>pyproject.toml</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>specter2 = [&quot;transformers&gt;=4.30&quot;, &quot;torch&gt;=2.0&quot;, &quot;adapters&gt;=0.2&quot;]
+</code></pre></div></li>
+</ul>
+<h3 id="35-mcp-tools-agent-interface">3.5 MCP Tools (agent interface)<a class="headerlink" href="#35-mcp-tools-agent-interface" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>compute_semantic_scores</code></strong> — New MCP tool</li>
+<li>Input: <code>run_id</code>, <code>topic</code> (or explicit query text)</li>
+<li>Behavior: Loads candidates from search stage, computes SPECTER2
+    similarity scores for all candidates</li>
+<li>Output: List of <code>{arxiv_id, semantic_score}</code> — returns ALL scores,
+    no filtering or selection</li>
+<li>The agent uses these scores alongside BM25 scores to decide which
+    papers to keep</li>
+<li><strong><code>score_candidates</code></strong> — Enhance existing screen MCP tool to also
+  return individual score breakdowns (BM25 + semantic components) so
+  the agent can inspect WHY a paper scored high/low</li>
+</ul>
+<hr />
+<h2 id="phase-4-citation-graph-expansion">Phase 4: Citation-Graph Expansion<a class="headerlink" href="#phase-4-citation-graph-expansion" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Provide tools to discover related papers via citation graph. The
+agent decides WHICH papers to expand; the package fetches and returns results.</p>
+<h3 id="41-citation-graph-client">4.1 Citation Graph Client<a class="headerlink" href="#41-citation-graph-client" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/sources/citation_graph.py</code></li>
+<li>Uses Semantic Scholar <code>/paper/{id}/citations</code> and <code>/paper/{id}/references</code></li>
+<li>Rate limit: 1 req/sec (shared with S2 rate limiter)</li>
+<li>Functions:</li>
+<li><code>get_citations(paper_id, limit=50) -&gt; list[CandidateRecord]</code></li>
+<li><code>get_references(paper_id, limit=50) -&gt; list[CandidateRecord]</code></li>
+</ul>
+<h3 id="42-expansion-logic-agent-driven-no-autonomous-decisions">4.2 Expansion Logic (agent-driven, no autonomous decisions)<a class="headerlink" href="#42-expansion-logic-agent-driven-no-autonomous-decisions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The package does NOT decide which papers to expand — the agent does.</li>
+<li>The package provides:</li>
+<li><code>fetch_citations(paper_id)</code> — returns citing papers as CandidateRecords</li>
+<li><code>fetch_references(paper_id)</code> — returns referenced papers as CandidateRecords</li>
+<li><code>fetch_related(paper_ids, direction="both|citations|references")</code> — batch
+    helper that fetches for multiple papers and deduplicates results</li>
+<li>All results are returned unfiltered. The agent decides:</li>
+<li>Which seed papers to expand (based on screening scores, its judgment)</li>
+<li>How many to expand (controls the <code>paper_ids</code> list)</li>
+<li>Which expanded papers to add to the shortlist (based on returned metadata)</li>
+<li>Whether expanded papers need scoring (agent can call screen/semantic tools)</li>
+<li>Dedup expanded results against existing candidate set (by arxiv_id, DOI, S2 ID)</li>
+</ul>
+<h3 id="43-configuration">4.3 Configuration<a class="headerlink" href="#43-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add to <code>SearchConfig</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>citation_expansion_max_per_paper: int = 50
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>semantic_scholar_api_key: str = &quot;&quot;  (shared with Phase 2)
+</code></pre></div></li>
+<li>No <code>citation_expansion_top_n</code> — the agent decides how many papers to expand</li>
+<li>No <code>citation_expansion_enabled</code> — the agent calls the tool when it wants to</li>
+</ul>
+<h3 id="44-cli-command-batch-mode-for-human-users">4.4 CLI Command (batch mode for human users)<a class="headerlink" href="#44-cli-command-batch-mode-for-human-users" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>research-pipeline expand --run-id &lt;ID&gt; --paper-ids &lt;comma-separated&gt;</code></li>
+<li>Requires explicit paper IDs — no autonomous "pick top N" logic</li>
+<li>Optional: <code>--direction citations|references|both</code> (default: both)</li>
+<li>Output: <code>expand/expanded_candidates.jsonl</code></li>
+<li>For CLI batch use with <code>run</code> command: expand is <strong>skipped</strong> by default.
+  The agent skill calls it explicitly when needed.</li>
+</ul>
+<h3 id="45-mcp-tools-agent-interface">4.5 MCP Tools (agent interface)<a class="headerlink" href="#45-mcp-tools-agent-interface" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>fetch_citations</code></strong> — New MCP tool</li>
+<li>Input: <code>paper_id</code> (arxiv_id or S2 paper ID), <code>direction</code>, <code>limit</code></li>
+<li>Output: List of CandidateRecords (citing/referenced papers)</li>
+<li>No filtering — returns all results up to limit</li>
+<li><strong><code>batch_fetch_citations</code></strong> — New MCP tool</li>
+<li>Input: <code>paper_ids</code> (list), <code>direction</code>, <code>limit_per_paper</code></li>
+<li>Output: Deduplicated list of CandidateRecords across all input papers</li>
+<li>Respects rate limit (1 req/sec to S2 API)</li>
+<li>The agent decides: "paper X has high relevance + quality → let me
+  explore its citation neighborhood" — this is non-deterministic judgment</li>
+</ul>
+<hr />
+<h2 id="phase-5-quality-evaluation-tier-1-runs-before-download">Phase 5: Quality Evaluation (Tier 1 — runs BEFORE download)<a class="headerlink" href="#phase-5-quality-evaluation-tier-1-runs-before-download" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Multi-dimensional paper quality scoring on abstract + metadata
+only — no PDF download needed. This is part of Tier 1 filtering. The
+package computes metrics deterministically from Semantic Scholar API data;
+the agent interprets scores and decides which papers to download.</p>
+<h3 id="51-citation-metrics-enrichment">5.1 Citation Metrics Enrichment<a class="headerlink" href="#51-citation-metrics-enrichment" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/quality/citation_metrics.py</code></li>
+<li>For each paper (by paper ID), fetch from Semantic Scholar:</li>
+<li><code>citationCount</code>, <code>influentialCitationCount</code></li>
+<li><code>citationVelocity</code> (computed: citations / years_since_publication)</li>
+<li><code>isOpenAccess</code>, <code>fieldsOfStudy</code></li>
+<li>Rate limit: 1 req/sec, batch endpoint (<code>/paper/batch</code>) for efficiency
+  (up to 500 papers per request)</li>
+<li>Normalize citation count per field (CS papers vs. biology differ vastly):</li>
+<li>Log-scale normalization: <code>min(1.0, log(1 + citations) / log(1 + 1000))</code></li>
+</ul>
+<h3 id="52-venue-reputation-scoring">5.2 Venue Reputation Scoring<a class="headerlink" href="#52-venue-reputation-scoring" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/quality/venue_scoring.py</code></li>
+<li><strong>Static tier data</strong>: Bundle CORE rankings as a JSON lookup file in
+  <code>src/research_pipeline/quality/data/core_rankings.json</code></li>
+<li>Map venue name → tier (A*, A, B, C)</li>
+<li>Tier → score: A*=1.0, A=0.8, B=0.5, C=0.3, unknown=0.1</li>
+<li><strong>Dynamic lookup</strong>: If venue not in static data, try Semantic Scholar
+  venue API to get venue name, then fuzzy-match against CORE data</li>
+<li><strong>arXiv-only papers</strong>: Score 0.1 (unreviewed preprint penalty) unless
+  published venue is known from external sources</li>
+</ul>
+<h3 id="53-author-credibility-metrics">5.3 Author Credibility Metrics<a class="headerlink" href="#53-author-credibility-metrics" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/quality/author_metrics.py</code></li>
+<li>For each paper's authors, fetch from Semantic Scholar Author API:</li>
+<li><code>hIndex</code>, <code>citationCount</code>, <code>paperCount</code></li>
+<li>Aggregate per paper: use <strong>max</strong> author h-index (senior author signal)</li>
+<li>Normalize: <code>min(1.0, log(1 + max_h_index) / log(1 + 100))</code></li>
+<li>Rate limit: 1 req/sec; batch by paper (look up authors of each paper)</li>
+<li>Cache author data (authors don't change frequently; 7-day TTL)</li>
+</ul>
+<h3 id="54-composite-quality-score">5.4 Composite Quality Score<a class="headerlink" href="#54-composite-quality-score" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/quality/composite.py</code></li>
+<li>Compute weighted score:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>composite = w_citation * citation_impact
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>          + w_venue * venue_score
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>          + w_author * author_credibility
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>          + w_recency * recency_bonus
+</code></pre></div></li>
+<li>Default weights (configurable in config.toml):
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>citation_weight: 0.35
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>venue_weight: 0.25
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>author_weight: 0.25
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>recency_weight: 0.15
+</code></pre></div></li>
+<li>Output: <code>QualityScore</code> model per paper, stored in quality manifest</li>
+<li><strong>No filtering</strong>: The package returns ALL scores. The agent decides
+  which papers are "high quality enough" to download.</li>
+</ul>
+<h3 id="55-quality-stage-integration">5.5 Quality Stage Integration<a class="headerlink" href="#55-quality-stage-integration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>New CLI command: <code>research-pipeline quality --run-id &lt;ID&gt;</code></li>
+<li>Accepts explicit paper IDs OR operates on shortlist from screen stage</li>
+<li>Produces <code>quality/quality_scores.jsonl</code> — one QualityScore per paper</li>
+<li><strong>Does NOT decide</strong> which papers to download. It only computes and
+  persists scores. In CLI batch mode (<code>run</code> command), the download stage
+  can optionally filter by a <code>min_quality_score</code> threshold. In agent mode,
+  the agent reads quality scores and makes the selection.</li>
+</ul>
+<h3 id="56-mcp-tools-agent-interface">5.6 MCP Tools (agent interface)<a class="headerlink" href="#56-mcp-tools-agent-interface" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>compute_quality_scores</code></strong> — New MCP tool</li>
+<li>Input: <code>run_id</code> + optional <code>paper_ids</code> (list of arxiv_id or S2 ID).
+    If omitted, scores all candidates in the run.</li>
+<li>Output: List of <code>QualityScore</code> objects with full breakdowns
+    (citation_impact, venue_score, author_credibility, composite)</li>
+<li>No filtering — returns all computed scores</li>
+<li>The agent inspects scores and decides the final paper set</li>
+<li><strong><code>get_venue_tier</code></strong> — New MCP tool (lightweight lookup)</li>
+<li>Input: <code>venue_name</code></li>
+<li>Output: <code>{tier: "A*"|"A"|"B"|"C"|null, score: float}</code></li>
+<li>For quick agent inspection without running full quality pipeline</li>
+</ul>
+<h3 id="57-configuration">5.7 Configuration<a class="headerlink" href="#57-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>New <code>QualityConfig</code> in <code>config/models.py</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>enabled: bool = False
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>citation_weight: float = 0.35
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>venue_weight: float = 0.25
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>author_weight: float = 0.25
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>recency_weight: float = 0.15
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>venue_data_path: str = &quot;&quot;  (empty = use bundled data)
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a>author_cache_ttl_hours: float = 168.0  (7 days)
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a>min_quality_score: float = 0.0  (for CLI batch mode; 0 = no filter)
+</code></pre></div></li>
+</ul>
+<hr />
+<h2 id="phase-6-retry-error-recovery">Phase 6: Retry &amp; Error Recovery<a class="headerlink" href="#phase-6-retry-error-recovery" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Make all network operations resilient to transient failures.</p>
+<h3 id="61-apply-retry-decorator-from-phase-12">6.1 Apply Retry Decorator (from Phase 1.2)<a class="headerlink" href="#61-apply-retry-decorator-from-phase-12" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Wrap all HTTP calls in search sources (arXiv, Scholar, S2, OpenAlex, DBLP)</li>
+<li>Wrap PDF download calls</li>
+<li>Wrap citation graph expansion calls</li>
+<li>Wrap quality enrichment calls</li>
+<li>Default: 3 retries, exponential backoff (2s, 4s, 8s), jitter ±25%</li>
+<li><strong>Note</strong>: <code>FallbackConverter</code> (added in v0.3.0) handles backend-level
+  failover with quota/rate-limit detection. The retry decorator is
+  complementary — it handles transient HTTP errors (timeouts, 5xx)
+  <em>within</em> a single backend attempt, while FallbackConverter handles
+  <em>across</em>-backend failover. Both layers are needed.</li>
+</ul>
+<h3 id="62-dead-letter-tracking">6.2 Dead-Letter Tracking<a class="headerlink" href="#62-dead-letter-tracking" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Track permanently failed items in manifest:</li>
+<li><code>download_manifest.jsonl</code>: already has <code>status="failed"</code> + <code>error</code></li>
+<li><code>convert_manifest.jsonl</code>: already has <code>status="failed"</code> + <code>error</code></li>
+<li>Add <code>retry_count: int</code> and <code>last_error: str</code> fields</li>
+<li>New CLI flag: <code>--retry-failed</code> to re-attempt only failed items</li>
+</ul>
+<h3 id="63-graceful-degradation">6.3 Graceful Degradation<a class="headerlink" href="#63-graceful-degradation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>If an optional source (S2, OpenAlex, DBLP) fails entirely, log warning
+  and continue with results from other sources</li>
+<li>If quality enrichment fails for a paper, set quality_score = None
+  (don't block download/conversion)</li>
+<li>If SPECTER2 model fails to load, fall back to BM25-only scoring</li>
+</ul>
+<hr />
+<h2 id="phase-7-two-tier-conversion-tier-2-tier-3">Phase 7: Two-Tier Conversion (Tier 2 + Tier 3)<a class="headerlink" href="#phase-7-two-tier-conversion-tier-2-tier-3" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Split conversion into two tiers aligned with the progressive
+filtering funnel. Tier 2 (rough) converts ALL downloaded PDFs quickly
+with pymupdf4llm so the agent can read the full text. Tier 3 (fine)
+converts only agent-selected papers with a high-quality backend.</p>
+<h3 id="71-rough-conversion-stage-tier-2">7.1 Rough Conversion Stage (Tier 2)<a class="headerlink" href="#71-rough-conversion-stage-tier-2" title="Permanent link">&para;</a></h3>
+<ul>
+<li>New CLI command: <code>research-pipeline convert-rough --run-id &lt;ID&gt;</code></li>
+<li><strong>Always uses pymupdf4llm</strong> — fastest backend, CPU-only, no dependencies</li>
+<li>Converts ALL successfully downloaded PDFs (reads <code>download_manifest.jsonl</code>)</li>
+<li>Output directory: <code>convert_rough/</code> (within the run directory)</li>
+<li>Output manifest: <code>convert_rough/convert_rough_manifest.jsonl</code></li>
+<li>Parallel execution with <code>ProcessPoolExecutor</code> (pymupdf4llm is CPU-bound):</li>
+<li>Configurable: <code>config.conversion.rough_max_workers</code> (default: 4)</li>
+<li>Higher default than fine because pymupdf4llm is lightweight</li>
+<li>This stage is <strong>fast and cheap</strong> — seconds per paper, no GPU or API needed</li>
+<li>The agent reads the rough markdown output to evaluate full paper content
+  and decide which papers deserve fine conversion</li>
+</ul>
+<h3 id="72-fine-conversion-stage-tier-3">7.2 Fine Conversion Stage (Tier 3)<a class="headerlink" href="#72-fine-conversion-stage-tier-3" title="Permanent link">&para;</a></h3>
+<ul>
+<li>New CLI command: <code>research-pipeline convert-fine --run-id &lt;ID&gt; --paper-ids &lt;comma-separated&gt;</code></li>
+<li><strong>Requires explicit paper IDs</strong> — the agent selects which papers to convert</li>
+<li>Uses the configured backend (docling, marker, or cloud) with FallbackConverter</li>
+<li>Backend selection follows existing <code>config.conversion.backend</code> +
+  <code>config.conversion.fallback_backends</code> logic via <code>_create_converter()</code></li>
+<li>Output directory: <code>convert_fine/</code> (within the run directory)</li>
+<li>Output manifest: <code>convert_fine/convert_fine_manifest.jsonl</code></li>
+<li>Parallel execution:</li>
+<li>For local backends (docling, marker): <code>ProcessPoolExecutor</code>
+    (CPU/GPU-bound), <code>config.conversion.fine_max_workers</code> (default: 2)</li>
+<li>For cloud backends via FallbackConverter: <code>ThreadPoolExecutor</code>
+    (I/O-bound, not pickle-safe), same worker config</li>
+<li>Detect via <code>isinstance(converter, FallbackConverter)</code></li>
+<li><strong>FallbackConverter</strong> is only used here (not in rough conversion) — this
+  is where multi-account rotation and backend failover matter</li>
+</ul>
+<h3 id="73-convertmanifestentry-extension">7.3 ConvertManifestEntry Extension<a class="headerlink" href="#73-convertmanifestentry-extension" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add <code>tier: Literal["rough", "fine"] = "rough"</code> field to
+  <code>ConvertManifestEntry</code> (backward-compatible default)</li>
+<li>The existing <code>converter_name</code> field already distinguishes backends
+  (e.g., "pymupdf4llm" vs "docling")</li>
+<li>For the <code>status</code> field: same 3 values (<code>converted</code>, <code>skipped_exists</code>, <code>failed</code>)</li>
+</ul>
+<h3 id="74-extract-stage-update">7.4 Extract Stage Update<a class="headerlink" href="#74-extract-stage-update" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The extract stage reads fine markdown when available, falls back to rough:</li>
+<li>Read <code>convert_fine/convert_fine_manifest.jsonl</code> if it exists</li>
+<li>For papers NOT in fine manifest, read <code>convert_rough/convert_rough_manifest.jsonl</code></li>
+<li>Prefer fine markdown because it has better equation/table rendering</li>
+<li>The extraction chunker is format-agnostic (only needs heading structure),
+  so it works correctly with both rough and fine markdown</li>
+</ul>
+<h3 id="75-backward-compatibility">7.5 Backward Compatibility<a class="headerlink" href="#75-backward-compatibility" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The existing <code>convert</code> command remains as-is — it converts all PDFs with
+  the configured backend (single-tier, pre-existing behavior)</li>
+<li><code>convert-rough</code> and <code>convert-fine</code> are NEW commands for the two-tier workflow</li>
+<li>The existing <code>run</code> command keeps using the single <code>convert</code> stage</li>
+<li>The agent skill uses <code>convert-rough</code> → agent filters → <code>convert-fine</code></li>
+</ul>
+<h3 id="76-mcp-tools-agent-interface">7.6 MCP Tools (agent interface)<a class="headerlink" href="#76-mcp-tools-agent-interface" title="Permanent link">&para;</a></h3>
+<ul>
+<li><strong><code>convert_rough</code></strong> — New MCP tool</li>
+<li>Input: <code>run_id</code></li>
+<li>Behavior: Converts all downloaded PDFs with pymupdf4llm</li>
+<li>Output: Count of converted/skipped/failed papers</li>
+<li>The agent reads the rough markdown files to evaluate content</li>
+<li><strong><code>convert_fine</code></strong> — New MCP tool</li>
+<li>Input: <code>run_id</code>, <code>paper_ids</code> (list of arxiv_id to convert)</li>
+<li>Behavior: Converts selected PDFs with configured high-quality backend</li>
+<li>Output: Count of converted/skipped/failed papers</li>
+<li>The agent selected these papers after reading rough markdown</li>
+</ul>
+<h3 id="77-workspace-directory-structure">7.7 Workspace Directory Structure<a class="headerlink" href="#77-workspace-directory-structure" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>run_&lt;id&gt;/
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>  download/
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    *.pdf
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    download_manifest.jsonl
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>  convert_rough/                    ← Tier 2 (all papers, pymupdf4llm)
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    *.md
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    convert_rough_manifest.jsonl
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>  convert_fine/                     ← Tier 3 (selected papers, high-quality)
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    *.md
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>    convert_fine_manifest.jsonl
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>  extract/                          ← reads fine markdown, falls back to rough
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>    *.extract.json
+</code></pre></div>
+<h3 id="78-configuration">7.8 Configuration<a class="headerlink" href="#78-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add to <code>ConversionConfig</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>rough_max_workers: int = 4     (pymupdf4llm is lightweight)
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>fine_max_workers: int = 2      (docling/cloud are heavier)
+</code></pre></div></li>
+<li>Existing <code>backend</code>, <code>fallback_backends</code>, and account configs apply to
+  fine conversion only</li>
+<li>Rough conversion always uses pymupdf4llm (hardcoded, not configurable)</li>
+</ul>
+<h3 id="79-progress-reporting">7.9 Progress Reporting<a class="headerlink" href="#79-progress-reporting" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Rough: "Rough-converting PDF 3/45 (2401.12345v2)..."</li>
+<li>Fine: "Fine-converting PDF 2/12 (2401.67890v1) [docling]..."</li>
+<li>Summary: "Rough: 42 converted, 3 failed | Fine: 10 converted, 2 failed"</li>
+</ul>
+<hr />
+<h2 id="phase-8-incremental-runs">Phase 8: Incremental Runs<a class="headerlink" href="#phase-8-incremental-runs" title="Permanent link">&para;</a></h2>
+<p><strong>Goal</strong>: Avoid re-processing papers already handled in previous runs.</p>
+<h3 id="81-global-paper-index">8.1 Global Paper Index<a class="headerlink" href="#81-global-paper-index" title="Permanent link">&para;</a></h3>
+<ul>
+<li><code>src/research_pipeline/storage/global_index.py</code></li>
+<li>SQLite database at <code>~/.cache/research-pipeline/paper_index.db</code></li>
+<li>Schema:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">TABLE</span><span class="w"> </span><span class="n">papers</span><span class="w"> </span><span class="p">(</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="n">arxiv_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="n">doi</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">  </span><span class="n">s2_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="n">title</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span><span class="n">run_id</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">  </span><span class="n">stage</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">  </span><span class="n">pdf_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">  </span><span class="n">markdown_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="w">  </span><span class="n">summary_path</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a><span class="w">  </span><span class="n">pdf_sha256</span><span class="w"> </span><span class="nb">TEXT</span><span class="p">,</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a><span class="w">  </span><span class="n">indexed_at</span><span class="w"> </span><span class="nb">TEXT</span><span class="w"> </span><span class="k">NOT</span><span class="w"> </span><span class="k">NULL</span><span class="p">,</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a><span class="w">  </span><span class="k">PRIMARY</span><span class="w"> </span><span class="k">KEY</span><span class="w"> </span><span class="p">(</span><span class="n">arxiv_id</span><span class="p">,</span><span class="w"> </span><span class="n">run_id</span><span class="p">)</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a><span class="p">);</span>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_doi</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">papers</span><span class="p">(</span><span class="n">doi</span><span class="p">);</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_s2_id</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">papers</span><span class="p">(</span><span class="n">s2_id</span><span class="p">);</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a><span class="k">CREATE</span><span class="w"> </span><span class="k">INDEX</span><span class="w"> </span><span class="n">idx_title</span><span class="w"> </span><span class="k">ON</span><span class="w"> </span><span class="n">papers</span><span class="p">(</span><span class="n">title</span><span class="p">);</span>
+</code></pre></div></li>
+</ul>
+<h3 id="82-dedup-against-previous-runs">8.2 Dedup Against Previous Runs<a class="headerlink" href="#82-dedup-against-previous-runs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>During search: check global index for existing papers</li>
+<li>Flag them in <code>CandidateRecord</code> as <code>previously_processed: bool</code></li>
+<li>During screen: optionally skip previously processed papers
+  (configurable: <code>config.search.skip_previously_processed: bool = False</code>)</li>
+</ul>
+<h3 id="83-artifact-linking">8.3 Artifact Linking<a class="headerlink" href="#83-artifact-linking" title="Permanent link">&para;</a></h3>
+<ul>
+<li>During download: if PDF already exists in another run, symlink or copy
+  rather than re-downloading</li>
+<li>During convert: if markdown already exists, reuse it</li>
+<li>Lookup: <code>global_index.find_artifact(arxiv_id, stage) -&gt; Path | None</code></li>
+</ul>
+<h3 id="84-index-maintenance">8.4 Index Maintenance<a class="headerlink" href="#84-index-maintenance" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Auto-register completed artifacts after each stage</li>
+<li>CLI command: <code>research-pipeline index --list</code> to browse the global index</li>
+<li>CLI command: <code>research-pipeline index --gc</code> to clean stale entries
+  (referenced files no longer exist)</li>
+</ul>
+<h3 id="85-configuration">8.5 Configuration<a class="headerlink" href="#85-configuration" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Add to <code>PipelineConfig</code>:
+  <div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>incremental_enabled: bool = False
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>global_index_path: str = &quot;&quot;  (empty = default cache location)
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>reuse_artifacts: bool = True  (symlink existing PDFs/markdown)
+</code></pre></div></li>
+</ul>
+<hr />
+<h2 id="phase-dependency-graph">Phase Dependency Graph<a class="headerlink" href="#phase-dependency-graph" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>Phase 1 (Infra)
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>  ├── Phase 6 (Retry) ──→ applies to all phases
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>  ├── Phase 2 (New Sources)
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>  │     └── Phase 4 (Citation Graph) ──→ uses S2 client from 2.1
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>  ├── Phase 3 (Semantic Re-Ranking)
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>  ├── Phase 5 (Quality Eval) ──→ uses S2 client from 2.1
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>  ├── Phase 7 (Two-Tier Conversion) ──→ independent of 2-5
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>  └── Phase 8 (Incremental Runs) ──→ independent
+</code></pre></div>
+<h2 id="implementation-order">Implementation Order<a class="headerlink" href="#implementation-order" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>Phase 1  →  Phase 6  →  Phase 2  →  Phase 3
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>                          ↓
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>                        Phase 4  →  Phase 5
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>                                      ↓
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>                              Phase 7  →  Phase 8
+</code></pre></div>
+<ul>
+<li>Phase 1 first (all others depend on it)</li>
+<li>Phase 6 early (retry benefits all subsequent phases)</li>
+<li>Phase 2 before 4 and 5 (they reuse S2 client)</li>
+<li>Phase 7 after Phase 5: quality scoring + rough conversion form the
+  Tier 1→2 transition in the progressive filtering funnel</li>
+<li>Phase 8 last (incremental runs benefit from all stages being complete)</li>
+</ul>
+<hr />
+<h2 id="new-pipeline-stages-final">New Pipeline Stages (Final)<a class="headerlink" href="#new-pipeline-stages-final" title="Permanent link">&para;</a></h2>
+<p><strong>CLI batch mode</strong> (for human users — linear, config-driven):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>plan → search → screen → [expand] → quality → download → convert → extract → summarize
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>                           ↑          ↑                     ↑
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>                        (new)      (new, Tier 1)     (existing, single-tier)
+</code></pre></div></p>
+<p>Note: The CLI <code>run</code> command keeps using the existing single <code>convert</code> stage
+for backward compatibility. The two-tier conversion (<code>convert-rough</code> +
+<code>convert-fine</code>) is designed for the agent skill workflow.</p>
+<p><strong>Agent skill mode</strong> (progressive filtering funnel):
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>──── TIER 1: Abstract-level filter (no PDF needed) ────
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a>Agent: formulate queries
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>  Package: search(topic, source)                       → candidates.jsonl
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>Agent: review raw candidates
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>  Package: screen(run_id)                              → BM25 scored candidates
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>  Package: compute_semantic_scores(run_id, topic)      → semantic scores
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>Agent: optionally expand citation graph
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>  Package: fetch_citations(paper_id)                   → related papers
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a>  Package: batch_fetch_citations(paper_ids)            → related papers (batch)
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a>Agent: evaluate quality on abstracts + metadata
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>  Package: compute_quality_scores(run_id, paper_ids)   → quality scores
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>Agent picks ~30-50 papers to download (Tier 1 → Tier 2 transition)
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>──── TIER 2: Rough markdown filter (fast pymupdf4llm) ────
+<a id="__codelineno-20-15" name="__codelineno-20-15" href="#__codelineno-20-15"></a>  Package: download(run_id, paper_ids)                 → PDFs
+<a id="__codelineno-20-16" name="__codelineno-20-16" href="#__codelineno-20-16"></a>  Package: convert_rough(run_id)                       → rough markdown (all)
+<a id="__codelineno-20-17" name="__codelineno-20-17" href="#__codelineno-20-17"></a>Agent reads rough markdown, evaluates full paper content
+<a id="__codelineno-20-18" name="__codelineno-20-18" href="#__codelineno-20-18"></a>Agent picks ~10-15 papers (Tier 2 → Tier 3 transition)
+<a id="__codelineno-20-19" name="__codelineno-20-19" href="#__codelineno-20-19"></a>
+<a id="__codelineno-20-20" name="__codelineno-20-20" href="#__codelineno-20-20"></a>──── TIER 3: Fine markdown + deep analysis ────
+<a id="__codelineno-20-21" name="__codelineno-20-21" href="#__codelineno-20-21"></a>  Package: convert_fine(run_id, paper_ids)             → fine markdown (selected)
+<a id="__codelineno-20-22" name="__codelineno-20-22" href="#__codelineno-20-22"></a>  Package: extract(run_id)                             → chunks from fine markdown
+<a id="__codelineno-20-23" name="__codelineno-20-23" href="#__codelineno-20-23"></a>Agent synthesizes findings from fine markdown
+</code></pre></div></p>
+<p>The agent calls individual MCP tools and makes all selection/judgment
+decisions. The package never autonomously discards papers — it computes
+scores, fetches data, and returns results for the agent to interpret.</p>
+<h2 id="new-mcp-tools-summary">New MCP Tools (Summary)<a class="headerlink" href="#new-mcp-tools-summary" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Phase</th>
+<th>Input</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>compute_semantic_scores</code></td>
+<td>3.5</td>
+<td><code>run_id, topic</code></td>
+<td><code>[{arxiv_id, semantic_score}]</code></td>
+</tr>
+<tr>
+<td><code>enrich_candidates</code></td>
+<td>2.7</td>
+<td><code>run_id</code></td>
+<td>enriched count</td>
+</tr>
+<tr>
+<td><code>fetch_citations</code></td>
+<td>4.5</td>
+<td><code>paper_id, direction, limit</code></td>
+<td><code>[CandidateRecord]</code></td>
+</tr>
+<tr>
+<td><code>batch_fetch_citations</code></td>
+<td>4.5</td>
+<td><code>paper_ids, direction, limit</code></td>
+<td><code>[CandidateRecord]</code> (deduped)</td>
+</tr>
+<tr>
+<td><code>compute_quality_scores</code></td>
+<td>5.6</td>
+<td><code>run_id, paper_ids?</code></td>
+<td><code>[QualityScore]</code></td>
+</tr>
+<tr>
+<td><code>get_venue_tier</code></td>
+<td>5.6</td>
+<td><code>venue_name</code></td>
+<td><code>{tier, score}</code></td>
+</tr>
+<tr>
+<td><code>convert_rough</code></td>
+<td>7.6</td>
+<td><code>run_id</code></td>
+<td>converted/skipped/failed counts</td>
+</tr>
+<tr>
+<td><code>convert_fine</code></td>
+<td>7.6</td>
+<td><code>run_id, paper_ids</code></td>
+<td>converted/skipped/failed counts</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="files-to-create-summary">Files to Create (Summary)<a class="headerlink" href="#files-to-create-summary" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>src/research_pipeline/
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>  infra/
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>    rate_limit.py              (Phase 1.1 — generic rate limiter)
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>    retry.py                   (Phase 1.2 — retry decorator)
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>  models/
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>    quality.py                 (Phase 1.4 — QualityScore model)
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a>  sources/
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>    semantic_scholar_source.py (Phase 2.1)
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>    openalex_source.py         (Phase 2.2)
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a>    dblp_source.py             (Phase 2.3)
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>    enrichment.py              (Phase 2.5)
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>    citation_graph.py          (Phase 4.1)
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a>  screening/
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>    embedding.py               (Phase 3.1–3.2)
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a>  quality/
+<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>    __init__.py                (Phase 5)
+<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>    citation_metrics.py        (Phase 5.1)
+<a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a>    venue_scoring.py           (Phase 5.2)
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>    author_metrics.py          (Phase 5.3)
+<a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a>    composite.py               (Phase 5.4)
+<a id="__codelineno-21-21" name="__codelineno-21-21" href="#__codelineno-21-21"></a>    data/
+<a id="__codelineno-21-22" name="__codelineno-21-22" href="#__codelineno-21-22"></a>      core_rankings.json       (Phase 5.2 — static venue tiers)
+<a id="__codelineno-21-23" name="__codelineno-21-23" href="#__codelineno-21-23"></a>  cli/
+<a id="__codelineno-21-24" name="__codelineno-21-24" href="#__codelineno-21-24"></a>    cmd_expand.py              (Phase 4.4)
+<a id="__codelineno-21-25" name="__codelineno-21-25" href="#__codelineno-21-25"></a>    cmd_quality.py             (Phase 5.5)
+<a id="__codelineno-21-26" name="__codelineno-21-26" href="#__codelineno-21-26"></a>    cmd_convert_rough.py       (Phase 7.1 — rough conversion command)
+<a id="__codelineno-21-27" name="__codelineno-21-27" href="#__codelineno-21-27"></a>    cmd_convert_fine.py        (Phase 7.2 — fine conversion command)
+<a id="__codelineno-21-28" name="__codelineno-21-28" href="#__codelineno-21-28"></a>    cmd_index.py               (Phase 8.4)
+<a id="__codelineno-21-29" name="__codelineno-21-29" href="#__codelineno-21-29"></a>  storage/
+<a id="__codelineno-21-30" name="__codelineno-21-30" href="#__codelineno-21-30"></a>    global_index.py            (Phase 8.1)
+<a id="__codelineno-21-31" name="__codelineno-21-31" href="#__codelineno-21-31"></a>
+<a id="__codelineno-21-32" name="__codelineno-21-32" href="#__codelineno-21-32"></a>tests/unit/
+<a id="__codelineno-21-33" name="__codelineno-21-33" href="#__codelineno-21-33"></a>  test_rate_limit.py           (Phase 1.1)
+<a id="__codelineno-21-34" name="__codelineno-21-34" href="#__codelineno-21-34"></a>  test_retry.py                (Phase 1.2)
+<a id="__codelineno-21-35" name="__codelineno-21-35" href="#__codelineno-21-35"></a>  test_quality_model.py        (Phase 1.4)
+<a id="__codelineno-21-36" name="__codelineno-21-36" href="#__codelineno-21-36"></a>  test_semantic_scholar.py     (Phase 2.1)
+<a id="__codelineno-21-37" name="__codelineno-21-37" href="#__codelineno-21-37"></a>  test_openalex.py             (Phase 2.2)
+<a id="__codelineno-21-38" name="__codelineno-21-38" href="#__codelineno-21-38"></a>  test_dblp.py                 (Phase 2.3)
+<a id="__codelineno-21-39" name="__codelineno-21-39" href="#__codelineno-21-39"></a>  test_enrichment.py           (Phase 2.5)
+<a id="__codelineno-21-40" name="__codelineno-21-40" href="#__codelineno-21-40"></a>  test_embedding.py            (Phase 3)
+<a id="__codelineno-21-41" name="__codelineno-21-41" href="#__codelineno-21-41"></a>  test_citation_graph.py       (Phase 4)
+<a id="__codelineno-21-42" name="__codelineno-21-42" href="#__codelineno-21-42"></a>  test_citation_metrics.py     (Phase 5.1)
+<a id="__codelineno-21-43" name="__codelineno-21-43" href="#__codelineno-21-43"></a>  test_venue_scoring.py        (Phase 5.2)
+<a id="__codelineno-21-44" name="__codelineno-21-44" href="#__codelineno-21-44"></a>  test_author_metrics.py       (Phase 5.3)
+<a id="__codelineno-21-45" name="__codelineno-21-45" href="#__codelineno-21-45"></a>  test_composite_score.py      (Phase 5.4)
+<a id="__codelineno-21-46" name="__codelineno-21-46" href="#__codelineno-21-46"></a>  test_convert_rough.py        (Phase 7.1)
+<a id="__codelineno-21-47" name="__codelineno-21-47" href="#__codelineno-21-47"></a>  test_convert_fine.py         (Phase 7.2)
+<a id="__codelineno-21-48" name="__codelineno-21-48" href="#__codelineno-21-48"></a>  test_global_index.py         (Phase 8)
+</code></pre></div>
+<h2 id="files-to-modify-summary">Files to Modify (Summary)<a class="headerlink" href="#files-to-modify-summary" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>src/research_pipeline/
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>  models/candidate.py          (Phase 1.3 — add optional fields)
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>  models/conversion.py         (Phase 7.3 — add tier field)
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>  models/screening.py          (Phase 3.3 — add semantic_score)
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>  config/models.py             (Phases 2.4, 3.4, 4.3, 5.7, 7.8, 8.5)
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>  config/defaults.py           (same)
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>  config/loader.py             (env var overrides for new config)
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>  sources/base.py              (Phase 2.6 — enhanced dedup)
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a>  screening/heuristic.py       (Phase 3.3 — blend semantic scores)
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a>  cli/app.py                   (register expand, quality, convert-rough,
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>                                convert-fine, index commands)
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>  cli/cmd_search.py            (Phase 2 — add new sources)
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>  cli/cmd_extract.py           (Phase 7.4 — read fine→rough fallback)
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>  pipeline/orchestrator.py     (Phases 4, 5 — add expand+quality stages)
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a>  storage/manifests.py         (Phase 6.2 — retry tracking)
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a>  arxiv/rate_limit.py          (Phase 1.1 — refactor to use generic)
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>config.example.toml            (all phases — document new options)
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>pyproject.toml                 (Phases 2, 3 — new optional deps)
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>mcp_server/tools.py            (Phases 2.7, 3.5, 4.5, 5.6, 7.6 — new MCP tools)
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>mcp_server/schemas.py          (Phases 2.7, 3.5, 4.5, 5.6, 7.6 — new schemas)
+</code></pre></div>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
