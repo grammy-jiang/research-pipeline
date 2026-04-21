@@ -10,7 +10,7 @@ description: >
   system. Do not use for general web search or simple PDF reading.
 metadata:
   author: grammy-jiang
-  version: 1.7.0
+  version: 1.8.0
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -34,13 +34,29 @@ files only when that detail is needed.
 - Write the final human report to the current working directory:
   `./<topic-slug>-research-report.md`. Do not leave the final deliverable only
   under `runs/`.
-- If an older `<topic-slug>-research-report.md` exists, read it for prior
-  context, rename it with a date suffix, and generate a fresh report. Do not
-  append-merge into old reports.
-- Human-facing reports must be easy to read: concise sections, short
-  paragraphs, clear headings, internal Markdown links, Mermaid diagrams
-  (prefer vertical `flowchart TD`/`TB`), LaTeX for formulas, and tables for
-  comparisons.
+- If an older `<topic-slug>-research-report.md` exists in the current directory,
+  **resume on top of it, do not append**:
+  1. Read the old report end-to-end. Extract prior paper IDs, themes,
+     confidence levels, contradictions, and open gaps into working notes.
+  2. Rename the old file to `<topic-slug>-research-report.<YYYY-MM-DD>.md`
+     so it is preserved as a snapshot.
+  3. Seed the new run: feed prior gaps and open questions into
+     `query_plan.json` (as extra variants) and pass prior paper IDs as
+     expansion seeds (`research-pipeline expand --paper-ids "...")` so new
+     searches extend, rather than repeat, prior work.
+  4. Regenerate the final report from scratch using the new run's artifacts
+     plus the extracted prior context. The new report is a full replacement,
+     not a diff or append.
+- Human-facing reports must be easy to read and are REQUIRED to include:
+  - A **table of contents** at the top (`## Contents`) with internal
+    Markdown links to every section.
+  - **Mermaid diagrams** for every process chart, architecture, or
+    taxonomy (never ASCII art). Prefer vertical `flowchart TD`/`TB`.
+  - **LaTeX** for every mathematical formula or equation, inline `$...$`
+    or display `$$...$$` — do not render formulas as plain text.
+  - Concise sections, short paragraphs, clear headings, tables for
+    comparisons, and internal links from recommendations back to the
+    findings, gaps, or evidence that support them.
 - For system-building requests, evaluate implementation readiness and run
   iterative gap-filling when academic gaps remain.
 
@@ -71,11 +87,27 @@ CFG=~/.claude/skills/research-pipeline/config.toml
 # CFG=~/.codex/skills/research-pipeline/config.toml
 ```
 
-1. **Check prior report**
-   - Look for `./<topic-slug>-research-report.md`.
-   - If present, read it for prior paper IDs, findings, confidence levels, and
-     gaps. Rename it to `<topic-slug>-research-report.<date>.md` before writing
-     a replacement.
+1. **Check for a prior report on the same topic (resume, don't restart)**
+   - Look for `./<topic-slug>-research-report.md` in the working directory.
+   - If **present**:
+     1. Read it fully. Extract prior paper IDs, main themes, confidence
+        levels, contradictions, and open gaps into working notes.
+     2. Rename the existing file to
+        `<topic-slug>-research-report.<YYYY-MM-DD>.md` as a snapshot.
+     3. Seed the new pipeline run with that context:
+        - Add prior unanswered gaps and open questions as extra
+          `query_variants` in the new `query_plan.json`.
+        - Pass prior paper IDs to
+          `research-pipeline expand --paper-ids "<ID1,ID2,...>"` so
+          search extends (not duplicates) the earlier shortlist.
+        - The global SQLite paper index deduplicates across runs, so
+          prior papers are not re-downloaded or re-converted unless
+          explicitly re-requested.
+     4. When writing the final report, **regenerate from scratch** using
+        the new run's artifacts plus the extracted prior context. The
+        new report fully replaces the old one — do not append, merge,
+        or diff.
+   - If **absent**: proceed with a fresh run.
 
 2. **Plan and improve queries**
    ```bash
@@ -141,9 +173,16 @@ CFG=~/.claude/skills/research-pipeline/config.toml
    research-pipeline export-html --markdown ./<topic-slug>-research-report.md -o ./<topic-slug>-research-report.html --config CFG
    research-pipeline export-bibtex --run-id <RUN_ID> --stage screen -o refs.bib
    ```
-   Before writing, load `references/output-templates.md`. Ensure the report has
-   all core sections, confidence levels, evidence citations, gap
-   classifications, readable diagrams, formulas when useful, and internal links.
+   Before writing, load `references/output-templates.md`. The report MUST
+   contain:
+   - A `## Contents` section at the top with internal Markdown links to
+     every section (table of contents).
+   - **Mermaid diagrams** (vertical `flowchart TD`/`TB`) for process
+     flows, architectures, and taxonomies — never ASCII art.
+   - **LaTeX** for every formula (`$...$` inline, `$$...$$` display).
+   - Confidence levels, evidence citations, gap classifications, tables
+     for comparisons, and internal links from recommendations back to
+     findings or gaps.
 
 8. **Diagnose where quality comes from (optional but recommended)**
    Two evaluation commands operationalize remaining-gap signals from the

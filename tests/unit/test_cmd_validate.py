@@ -5,6 +5,7 @@ from pathlib import Path
 from research_pipeline.cli.cmd_validate import (
     REQUIRED_SECTIONS,
     _check_confidence_levels,
+    _check_contents,
     _check_evidence_citations,
     _check_gap_classification,
     _check_latex,
@@ -20,6 +21,13 @@ def _make_full_report() -> str:
     """Create a report that passes all validation checks."""
     sections = [
         "# Research Report",
+        "",
+        "## Contents",
+        "",
+        "- [Executive Summary](#executive-summary)",
+        "- [Research Question](#research-question)",
+        "- [Methodology](#methodology)",
+        "- [References](#references)",
         "",
         "## Executive Summary",
         "This is a study on AI memory systems. Verdict: IMPLEMENTATION_READY",
@@ -168,6 +176,27 @@ class TestCheckLatex:
 
     def test_no_latex(self) -> None:
         assert _check_latex("No formulas here") == 0
+
+
+class TestCheckContents:
+    def test_detects_contents_section(self) -> None:
+        text = (
+            "# Title\n\n## Contents\n\n"
+            "- [Intro](#intro)\n- [Methods](#methods)\n\n"
+            "## Intro\nbody\n"
+        )
+        assert _check_contents(text) is True
+
+    def test_requires_links(self) -> None:
+        # Heading exists but body has no links.
+        assert _check_contents("## Contents\n\nsee below\n\n## Next\n") is False
+
+    def test_missing_contents(self) -> None:
+        assert _check_contents("# Title\n\n## Intro\nbody\n") is False
+
+    def test_case_insensitive(self) -> None:
+        text = "## CONTENTS\n\n- [A](#a)\n- [B](#b)\n\n## A\nbody\n"
+        assert _check_contents(text) is True
 
 
 class TestValidateReport:

@@ -4,16 +4,39 @@
 
 All generated reports (final research report, synthesis, analysis) MUST use:
 
+- **Table of contents**: every final report MUST start with a
+  `## Contents` section containing Markdown-link entries to every
+  top-level section (GitHub-flavored slug anchors).
 - **Human-readable structure**: clear headings, short paragraphs, concise
   takeaways before detail, and no wall-of-text sections
-- **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily)
+- **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily).
+  At minimum, include: (a) a pipeline/methodology diagram and (b) at least
+  one diagram per architectural or taxonomic theme discussed.
 - **Vertical Mermaid charts by default** (`flowchart TD` or `flowchart TB`);
   use horizontal charts only for compact diagrams where it improves readability
-- **LaTeX** for mathematical formulas and equations (inline `$...$` or display `$$...$$`)
+- **LaTeX** for every mathematical formula or equation (inline `$...$` or
+  display `$$...$$`). Do not render formulas as plain text, code blocks,
+  or Unicode approximations.
 - **Markdown tables** for structured data comparisons
 - **Internal Markdown links** for exploration: contents links, section links,
   paper/reference links, and links from recommendations to supporting findings
   or gaps
+
+## Resume-on-top workflow
+
+When a prior `<topic-slug>-research-report.md` exists in the working
+directory, the report MUST be regenerated (not appended). Carry forward:
+
+1. Prior paper IDs — pass to `research-pipeline expand --paper-ids ...`
+   and let the global paper index deduplicate downloads/conversions.
+2. Prior unresolved gaps and open questions — inject into the new
+   `query_plan.json` as additional `query_variants`.
+3. Prior contradictions — re-evaluate against the new evidence and
+   either resolve them or carry them into the new contradictions table.
+
+The snapshot of the old report (renamed to
+`<topic-slug>-research-report.<YYYY-MM-DD>.md`) is preserved in the
+working directory but never referenced from the new report body.
 
 Examples:
 
@@ -41,7 +64,7 @@ where $w_c = 0.35$, $w_v = 0.25$, $w_a = 0.25$, $w_r = 0.15$.
 | Stage | Status | Details |
 |-------|--------|---------|
 | Plan | ✅ Done | Topic: "...", N query variants |
-| Search | ✅ Done | N candidates (arXiv: X, Scholar: Y, HuggingFace: Z) |
+| Search | ✅ Done | N candidates (arXiv: X, Scholar: Y) |
 | Screen | ✅ Done | N → M shortlisted |
 | Quality | ⬜ Optional | — |
 | Expand | ⬜ Optional | — |
@@ -65,43 +88,9 @@ NOT inside `runs/<run_id>/`.
 
 ## Final Research Report Template
 
-The final report MUST follow this structure. Sections are divided into
-**core** (always required) and **conditional** (include when evidence
-justifies them). Sections marked **[EVIDENCE REQUIRED]** must cite
-specific papers with `[arxiv_id]` or `[Author, Year]` references.
-
-### Section Classification
-
-**Core sections** — always required:
-1. Executive Summary
-2. Research Question
-3. Methodology
-4. Papers Reviewed
-5. Research Landscape
-6. Research Gaps
-7. Practical Recommendations
-8. References
-9. Appendix: Run Metadata
-
-**Conditional sections** — include only when justified by evidence:
-| Section | Include When |
-|---------|-------------|
-| Methodology Comparison | 2+ distinct approaches studied |
-| Confidence-Graded Findings | Meaningful distinctions exist between confidence levels |
-| Trade-Off Analysis | Real alternative approaches with evidence-backed pros/cons |
-| Points of Agreement | 2+ papers materially agree on a finding |
-| Points of Contradiction | 2+ papers materially disagree |
-| Reproducibility Notes | Code/data availability is relevant to the research goal |
-| Evidence Map | Medium/large studies (5+ papers) or when explicit auditability is required |
-| Readiness Assessment | System-building mode only |
-| Future Directions | Clear research directions emerge from findings |
-
-**Citation-granularity policy**: every evidence claim must indicate its
-support level:
-- **Paper-level**: `[arxiv_id]` — general finding from the paper
-- **Section-level**: `[arxiv_id, §3]` — specific section reference
-- **Agent inference**: mark with *(inferred)* — not directly stated in any paper
-- **Cross-paper consensus**: mark with *(N papers agree)* — convergent finding
+The final report MUST follow this structure. Every section is required
+unless marked (optional). Sections marked **[EVIDENCE REQUIRED]** must
+cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
 
 ````markdown
 # Research Report: [Topic]
@@ -136,8 +125,7 @@ what's in vs. out.]
 ## Methodology
 
 ### Search Strategy
-- **Search sources**: [arXiv, Google Scholar, HuggingFace, ...]
-- **Supporting APIs/services used during analysis**: [Semantic Scholar, OpenAlex, DBLP, ...]
+- **Sources**: [arXiv, Google Scholar, Semantic Scholar, ...]
 - **Query variants**: [list the key queries used]
 - **Time window**: [date range]
 - **Screening**: [BM25 + sub-agent / BM25 only]
@@ -165,19 +153,19 @@ flowchart TD
 
 | # | Title | Authors | Year | Venue | Quality Score | Relevance |
 |---|-------|---------|------|-------|--------------|-----------|
-| 1 | [Title](#ref-arxiv_id) [arxiv_id] | First Author et al. | YYYY | Venue | X.X/5 | HIGH / MEDIUM / LOW |
+| 1 | [Title] [arxiv_id] | First Author et al. | YYYY | Venue | X.X/5 | HIGH / MEDIUM / LOW |
 
 ## Research Landscape
 
 ### Theme 1: [Theme Name]
 
 **Coverage**: N papers | **Confidence**: High / Medium / Low
-**Supporting papers**: [arxiv_id_1](#ref-arxiv_id_1), [arxiv_id_2](#ref-arxiv_id_2), ...
+**Supporting papers**: [arxiv_id_1], [arxiv_id_2], ...
 
 [Narrative description of the theme with evidence citations.] **[EVIDENCE REQUIRED]**
 
 Key findings:
-1. [Finding with citation: "Paper A [arxiv_id](#ref-arxiv_id) demonstrated X with Y% improvement"]
+1. [Finding with citation: "Paper A [arxiv_id] demonstrated X with Y% improvement"]
 2. [Finding with citation]
 
 ### Theme 2: [Theme Name]
@@ -192,7 +180,7 @@ Key findings:
 
 ## Confidence-Graded Findings
 
-### 🟢 High Confidence (supported by 3+ papers with consistent results — heuristic guideline)
+### 🟢 High Confidence (supported by 3+ papers with consistent results)
 
 1. **[Finding]** — Supported by [paper_1], [paper_2], [paper_3].
    [Brief evidence summary with specific numbers if available.]
@@ -244,7 +232,6 @@ Key findings:
 ## Practical Recommendations **[EVIDENCE REQUIRED]**
 
 1. **[Recommendation]** — Based on [evidence from papers].
-   See: [Research Landscape](#research-landscape), [Research Gaps](#research-gaps).
    *Confidence*: High / Medium / Low
 
 ## Future Directions
@@ -283,14 +270,13 @@ Key findings:
 
 ## References
 
-1. <a id="ref-arxiv_id"></a>[arxiv_id] — [Title]. [Authors]. [Year]. [Venue].
+1. [arxiv_id] — [Title]. [Authors]. [Year]. [Venue].
 2. ...
 
 ## Appendix: Run Metadata
 
 - **Run ID**: <RUN_ID>
-- **Search sources**: [list]
-- **Supporting APIs**: [list, if any]
+- **Sources**: [list]
 - **Pipeline version**: [version]
 - **Date**: [date]
 - **Artifacts**: `runs/<RUN_ID>/`
@@ -304,7 +290,7 @@ After writing the full report file, provide this condensed summary in chat:
 ## Research Summary — "<topic>"
 
 **Run ID**: <RUN_ID>
-**Sources**: arXiv, Google Scholar, HuggingFace
+**Sources**: arXiv, Google Scholar
 **Timeline**: <start_time> → <end_time>
 **Iterations**: <N> (if system-building mode)
 

@@ -203,6 +203,23 @@ def _check_mermaid(text: str) -> int:
     return len(re.findall(r"```mermaid", text))
 
 
+def _check_contents(text: str) -> bool:
+    """Check for a top-level ``## Contents`` table-of-contents section.
+
+    The section must contain at least two Markdown links so a single empty
+    heading does not count.
+    """
+    match = re.search(
+        r"^##\s+contents\s*$(.*?)(?=^##\s|\Z)",
+        text,
+        flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    if not match:
+        return False
+    body = match.group(1)
+    return len(re.findall(r"\[[^\]]+\]\([^)]+\)", body)) >= 2
+
+
 def _check_latex(text: str) -> int:
     """Count LaTeX formulas."""
     inline = len(re.findall(r"(?<!\$)\$(?!\$).+?\$(?!\$)", text))
@@ -237,6 +254,7 @@ def validate_report(
     table_count = _check_tables(text)
     mermaid_count = _check_mermaid(text)
     latex_count = _check_latex(text)
+    has_contents = _check_contents(text)
 
     # Calculate completeness score (core sections + bonus for conditional).
     # Reports may use either the legacy 14-section shape or the structured
@@ -272,6 +290,7 @@ def validate_report(
         "has_gap_classification": has_gaps or has_assumption_and_contradiction,
         "has_mermaid_diagram": mermaid_count > 0 or structured_mode,
         "has_latex_formula": latex_count > 0,
+        "has_table_of_contents": has_contents,
     }
 
     quality_score = sum(1 for v in quality_checks.values() if v) / len(quality_checks)
@@ -295,6 +314,10 @@ def validate_report(
         issues.append("No gap classification (ACADEMIC/ENGINEERING) found")
     if mermaid_count == 0 and not structured_mode:
         issues.append("No Mermaid diagrams found (required for methodology)")
+    if not has_contents:
+        issues.append("No '## Contents' table-of-contents section found")
+    if latex_count == 0:
+        issues.append("No LaTeX formulas found (required for quantitative claims)")
     if table_count < 2:
         issues.append(f"Too few tables ({table_count} found, need ≥2)")
 

@@ -4,16 +4,39 @@
 
 All generated reports (final research report, synthesis, analysis) MUST use:
 
+- **Table of contents**: every final report MUST start with a
+  `## Contents` section containing Markdown-link entries to every
+  top-level section (GitHub-flavored slug anchors).
 - **Human-readable structure**: clear headings, short paragraphs, concise
   takeaways before detail, and no wall-of-text sections
-- **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily)
+- **Mermaid** for diagrams and flowcharts (never ASCII art — it breaks easily).
+  At minimum, include: (a) a pipeline/methodology diagram and (b) at least
+  one diagram per architectural or taxonomic theme discussed.
 - **Vertical Mermaid charts by default** (`flowchart TD` or `flowchart TB`);
   use horizontal charts only for compact diagrams where it improves readability
-- **LaTeX** for mathematical formulas and equations (inline `$...$` or display `$$...$$`)
+- **LaTeX** for every mathematical formula or equation (inline `$...$` or
+  display `$$...$$`). Do not render formulas as plain text, code blocks,
+  or Unicode approximations.
 - **Markdown tables** for structured data comparisons
 - **Internal Markdown links** for exploration: contents links, section links,
   paper/reference links, and links from recommendations to supporting findings
   or gaps
+
+## Resume-on-top workflow
+
+When a prior `<topic-slug>-research-report.md` exists in the working
+directory, the report MUST be regenerated (not appended). Carry forward:
+
+1. Prior paper IDs — pass to `research-pipeline expand --paper-ids ...`
+   and let the global paper index deduplicate downloads/conversions.
+2. Prior unresolved gaps and open questions — inject into the new
+   `query_plan.json` as additional `query_variants`.
+3. Prior contradictions — re-evaluate against the new evidence and
+   either resolve them or carry them into the new contradictions table.
+
+The snapshot of the old report (renamed to
+`<topic-slug>-research-report.<YYYY-MM-DD>.md`) is preserved in the
+working directory but never referenced from the new report body.
 
 Examples:
 
