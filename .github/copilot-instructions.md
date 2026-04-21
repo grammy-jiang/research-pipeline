@@ -162,9 +162,15 @@ mcp_server/                     # FastMCP server (separate top-level package)
       research.py               # Main orchestrator (~1100 lines)
 
 .github/skills/research-pipeline/  # Bundled AI skill for Claude Code / Copilot
-    SKILL.md                    # Skill definition and workflow instructions
+    SKILL.md                    # Skill definition (per Skill-Building Guide:
+                                # trigger phrases, license, compatibility,
+                                # examples, 4-round gap-closure loop,
+                                # resume-on-top behavior)
     config.toml                 # Pipeline configuration template
-    references/                 # Reference docs (sub-agents, troubleshooting, etc.)
+    references/                 # Reference docs (command-reference,
+                                # query-optimization, sub-agents,
+                                # output-templates, iterative-synthesis,
+                                # troubleshooting)
 
 tests/
   unit/                         # 3700+ fast unit tests (no network)

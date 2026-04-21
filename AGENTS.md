@@ -314,6 +314,16 @@ Installs:
 - Skill → `~/.claude/skills/research-pipeline/`
 - Sub-agents → `~/.claude/agents/` (paper-analyzer, paper-screener, paper-synthesizer)
 
+The skill is structured per Anthropic's Skill-Building Guide (explicit
+trigger phrases, `license`/`compatibility` frontmatter, Examples section,
+progressive disclosure into `references/`). Core behaviors: **resume on
+top of any prior same-topic report** (snapshot-rename, seed with prior
+paper IDs, regenerate from scratch — never append); **iterate up to 4
+gap-closure rounds** (stop on empty gap list / no-new-papers /
+out-of-scope); and **enforce report formatting** (`## Contents`,
+`## Round History`, Mermaid charts, LaTeX formulas, evidence-cited
+findings validated by `research-pipeline validate`).
+
 ## Adding a new pipeline stage
 
 1. Create the domain model in `src/research_pipeline/models/`

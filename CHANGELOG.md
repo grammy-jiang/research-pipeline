@@ -2,6 +2,27 @@
 
 All notable changes to research-pipeline.
 
+## [v0.16.1] — 2026-04-22
+
+### Changed
+
+- **Skill refined per Anthropic's Skill-Building Guide** (bumped skill
+  metadata version 1.9.0 → 1.10.0):
+  - Stronger YAML `description` with explicit positive and negative
+    trigger phrases (e.g., "resume a prior research report", "fill
+    research gaps"; explicit redirects for general web search,
+    one-off PDF conversion, and requirements analysis).
+  - Added `license: MIT` and `compatibility` frontmatter fields.
+  - Added **`## When To Trigger`** section listing trigger phrases
+    and out-of-scope requests.
+  - Added **`## Examples`** section with four concrete user-prompt →
+    action pairs (fresh review, resume prior report, system-building,
+    out-of-scope redirect).
+  - Reformatted `## Critical Rules` into numbered, scannable items.
+- README, AGENTS.md, and `.github/copilot-instructions.md` updated to
+  document resume-on-top, 4-round gap-closure, and required report
+  formatting (Contents, Round History, Mermaid, LaTeX).
+
 ## [v0.16.0] — 2026-04-20
 
 ### Added

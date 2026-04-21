@@ -261,6 +261,24 @@ Installed files:
   `~/.claude/agents/paper-analyzer.md`,
   `~/.claude/agents/paper-synthesizer.md`
 
+The skill follows Anthropic's Skill-Building Guide: it declares explicit
+trigger phrases and negative triggers, a `license`/`compatibility`
+frontmatter, concrete user-prompt → action Examples, and progressive
+disclosure into `references/`. Behaviorally, every run:
+
+- **Resumes on top of any prior same-topic report** in the working
+  directory — the prior file is snapshot-renamed, prior paper IDs seed
+  the new run, and the new report fully replaces the old one.
+- **Iterates up to 4 gap-closure rounds** — each round extracts the
+  report's academic and engineering gaps, fills them (new pipeline
+  iteration or implementation knowledge), and regenerates the report
+  from scratch. Stops early when the gap list empties, a search
+  returns no new papers, or the user marks gaps out-of-scope.
+- **Enforces human-report formatting**: `## Contents`, `## Round
+  History`, Mermaid for every chart, LaTeX for every formula, and
+  per-section evidence citations validated by `research-pipeline
+  validate`.
+
 ## Configuration
 
 Start from the example config:
