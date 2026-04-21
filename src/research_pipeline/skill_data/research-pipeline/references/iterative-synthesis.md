@@ -1,79 +1,123 @@
-# Iterative Synthesis for System Building
+# Iterative Gap-Closure Rounds
 
-When the user's goal is to **build a system** (not just a literature review),
-the synthesis must be evaluated for implementation-readiness.
+Every research run iterates up to **4 rounds**, stopping early when the
+report has no remaining gaps. This applies to **all** goals — pure
+literature reviews, system-building tasks, surveys — not only
+system-design work. Gaps are the visible signal; closing them
+systematically is what raises a one-shot literature dump into a research
+report that actually converges.
 
-Detect from keywords: "build", "implement", "design", "create", "develop",
-"architecture", "system", or explicit statements about building.
+## Round definition
 
-## After paper-synthesizer Completes
+A round is one full pipeline cycle that **replaces** the prior report
+(resume-on-top from `SKILL.md`):
 
-1. **Read the synthesis report** and its readiness assessment
-2. **Check the verdict**:
-   - `IMPLEMENTATION_READY` — sufficient for system design
-   - `HAS_GAPS` — gaps need filling
-   - `NOT_APPLICABLE` — non-system-building goal (no iteration needed)
+1. Read the prior report's gap sections (both academic and engineering).
+2. Translate each open gap into a targeted search seed.
+3. Run the full pipeline end-to-end for that seed (plan → search →
+   screen → download → convert → extract → summarize).
+4. Regenerate the final report from scratch, integrating prior
+   paper IDs (via the global index + `research-pipeline expand
+   --paper-ids ...`) with the new evidence. The new report is the
+   single source of truth for the next round.
 
-3. **If `HAS_GAPS`**, process each gap by type:
+The prior report is snapshot-renamed with the date
+(`<topic-slug>-research-report.<YYYY-MM-DD>.md`) before regeneration,
+but is never referenced from the new report body.
 
-### Engineering Gaps
+## Per-round procedure
 
-Gaps in implementation details, best practices, configuration, tooling,
-deployment patterns, or integration approaches.
+1. **Extract open gaps** from the most recent report:
+   - Prefer the report's own `Research Gaps` /
+     `Unresolved Questions` / `Assumption Map` / `Risk Register`
+     sections.
+   - Classify each gap as `ACADEMIC` (needs new papers) or
+     `ENGINEERING` (needs implementation knowledge / best practices).
+   - Drop gaps that are truly out-of-scope or that the user has
+     explicitly de-prioritized.
 
-**Action**: Fill using your own knowledge, web searches, and best practices.
-Include the resolutions in the next regenerated synthesis report (under the
-relevant theme sections) rather than appending a separate section.
+2. **Handle engineering gaps locally**:
+   - Fill using implementation knowledge, documentation, and reliable
+     sources. Do **not** spin up a new pipeline run for these.
+   - Record the resolution inline in the corresponding theme of the
+     regenerated report (not a separate "answers" section).
 
-### Academic Gaps
+3. **Handle academic gaps with a new pipeline iteration**:
+   - For each academic gap (or a small merged cluster of related
+     gaps), derive a narrower, more specific research question — one
+     that the broader parent query did not answer.
+   - Feed that question, together with the prior paper IDs as
+     `expand --paper-ids` seeds and any prior
+     `must_terms`/`nice_terms` as variants, into a new run:
+     ```bash
+     research-pipeline plan "<gap-specific topic>" --config CFG
+     # edit query_plan.json if needed (tighter must_terms,
+     #   synonym-rich variants)
+     research-pipeline search --run-id <NEW_RUN_ID> --source all --config CFG
+     research-pipeline screen --run-id <NEW_RUN_ID> --diversity --config CFG
+     research-pipeline expand --run-id <NEW_RUN_ID> \
+       --paper-ids "<prior-paper-ids>" --direction both --config CFG
+     research-pipeline download --run-id <NEW_RUN_ID> --config CFG
+     research-pipeline convert --run-id <NEW_RUN_ID> --config CFG
+     research-pipeline extract --run-id <NEW_RUN_ID> --config CFG
+     research-pipeline summarize --run-id <NEW_RUN_ID> --config CFG
+     ```
+   - Merge the new evidence with the prior corpus; the global
+     SQLite paper index deduplicates downloads and conversions
+     automatically.
 
-Gaps requiring additional research papers — missing algorithms, unexplored
-approaches, theoretical foundations, or evaluation methodologies.
+4. **Regenerate the report** using `research-pipeline report` and the
+   resume-on-top flow. The gap that motivated this round must either
+   appear as **resolved** (with citations) or be **explicitly
+   reclassified** (e.g., from `ACADEMIC, HIGH` to
+   `ACADEMIC, LOW — no new literature found`, or to
+   `ENGINEERING`).
 
-**Action**: For each academic gap:
-1. Extract suggested search terms from synthesizer
-2. Run a new pipeline iteration:
-   ```bash
-   research-pipeline plan "<gap-specific topic>" --config CFG
-   research-pipeline search --run-id <NEW_RUN_ID> --config CFG
-   research-pipeline screen --run-id <NEW_RUN_ID> --config CFG
+5. **Append to the round history table** at the top of the report
+   (under `## Round History`, right after `## Contents`):
+
+   ```markdown
+   | Round | Run ID | Topic / Gap Focus | New Papers | Gaps Addressed | Remaining Gaps |
+   |-------|--------|-------------------|------------|----------------|----------------|
+   | 1 | abc123 | original topic | 8 | initial shortlist | 4 academic, 2 engineering |
+   | 2 | def456 | temporal memory indexing (academic gap) | 3 | 2 academic | 2 academic, 2 engineering |
+   | 3 | ghi789 | memory conflict resolution (academic gap) | 2 | 2 academic | 2 engineering |
+   | 4 | jkl012 | — (engineering polish only) | 0 | 2 engineering | 0 |
    ```
-3. Download, convert, extract, summarize the new papers
-4. Run paper-analyzer and paper-synthesizer on the new run
-5. **Merge** findings into original synthesis
 
-## Iteration Rules
+## Convergence rules
 
-- **Maximum 3 iterations** to prevent infinite loops
-- Each iteration MUST narrow the search (more specific terms)
-- Track all run IDs and relationships
-- Final report must include ALL iterations
-- Report iteration history:
-  ```
-  | # | Run ID | Topic | Papers | Gaps Filled |
-  |---|--------|-------|--------|-------------|
-  | 1 | abc123 | original topic | 8 | initial synthesis |
-  | 2 | def456 | temporal memory indexing | 3 | temporal reasoning |
-  | 3 | ghi789 | memory conflict resolution | 2 | conflict resolution |
-  ```
+Stop iterating when **any** of these are true:
 
-## Convergence
+- The regenerated report has **no open gaps** (both academic and
+  engineering sections are empty or contain only accepted limitations).
+- **4 rounds have been completed.** Hard cap, no exceptions.
+- A round searched and found **no new relevant papers** after
+  screening (`screen` shortlist empty or entirely duplicated against
+  the global index).
+- The user has flagged remaining gaps as out-of-scope.
 
-Stop iterating when:
-- Synthesizer returns `IMPLEMENTATION_READY` or `NOT_APPLICABLE`
-- Maximum 3 iterations reached
-- No new academic gaps identified
-- New searches return no relevant papers
+When stopping, the final round's report must clearly state:
 
-Report to user: remaining gaps (if any), why iteration stopped,
-recommendations for manual investigation.
+- How many rounds were run and why iteration stopped.
+- What gaps (if any) remain, with classification and why they were
+  not closed (out-of-scope, no literature, deferred to
+  implementation, etc.).
+- Recommendations for manual follow-up on any remaining gaps.
+
+## When there are no starting gaps (round 1 produced a clean report)
+
+If the first report already has no open gaps, **do not** invent rounds
+to burn the budget. Report to the user that iteration converged in a
+single round and stop.
 
 ## System-Design Handover
 
-After the final report, if the goal was system-building:
+For system-building requests, after the iterative loop converges:
 
-1. Present a concise study result summary
+1. Present a concise study result summary.
 2. Ask the user whether to proceed to `req-analysis` skill for
-   requirements clarification → story generation → architecture design
-3. If yes: invoke `req-analysis` skill with research report path
-4. If no: end normally
+   requirements clarification → story generation → architecture design.
+3. If yes: invoke `req-analysis` skill with the final research report
+   path.
+4. If no: end normally.

@@ -10,7 +10,7 @@ description: >
   system. Do not use for general web search or simple PDF reading.
 metadata:
   author: grammy-jiang
-  version: 1.8.0
+  version: 1.9.0
   category: research
   tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation]
 ---
@@ -59,6 +59,16 @@ files only when that detail is needed.
     findings, gaps, or evidence that support them.
 - For system-building requests, evaluate implementation readiness and run
   iterative gap-filling when academic gaps remain.
+- **Iterate to close gaps (up to 4 rounds).** After the first report is
+  written and validated, inspect its gap sections. If any academic or
+  engineering gaps remain, run another round: extract the gaps,
+  translate each academic gap into a narrower pipeline iteration, fill
+  engineering gaps from implementation knowledge, then regenerate the
+  report from scratch (resume-on-top). Hard-cap at **4 rounds**; stop
+  earlier if a regenerated report has no open gaps, a search returns
+  no new relevant papers, or the user marks remaining gaps
+  out-of-scope. See `references/iterative-synthesis.md` for the full
+  loop.
 
 ## Load References
 
@@ -70,8 +80,8 @@ files only when that detail is needed.
   `paper-analyzer`, or `paper-synthesizer`.
 - `references/output-templates.md`: use before writing the final report or
   validating report structure.
-- `references/iterative-synthesis.md`: use for system-building goals or
-  `HAS_GAPS` readiness verdicts.
+- `references/iterative-synthesis.md`: use for the mandatory 4-round
+  gap-closure loop (applies to every run, not just system-building).
 - `references/troubleshooting.md`: use for install/config/source/converter/MCP
   failures.
 
@@ -200,6 +210,31 @@ CFG=~/.claude/skills/research-pipeline/config.toml
    the candidate set before re-writing prose; presentation-bottleneck runs
    usually only need template/format polish.
 
+9. **Iterate to close gaps (up to 4 rounds)**
+   Open `./<topic-slug>-research-report.md` and inspect its gap
+   sections (`Research Gaps`, `Unresolved Questions`, `Assumption Map`,
+   `Risk Register`). If every gap is empty or marked as accepted
+   limitation, the loop converged in 1 round — stop and report.
+   Otherwise run another round:
+   - Classify each open gap as `ACADEMIC` or `ENGINEERING`.
+   - Fill `ENGINEERING` gaps from implementation knowledge; record
+     the resolutions inline inside the regenerated report.
+   - For each `ACADEMIC` gap (or small cluster of related gaps),
+     derive a narrower search question and start a new pipeline run
+     (steps 2–7 above) seeded with prior paper IDs via
+     `research-pipeline expand --paper-ids "<ID1,ID2,...>"`. The
+     global SQLite index dedups downloads and conversions across
+     rounds automatically.
+   - Snapshot-rename the existing report to
+     `<topic-slug>-research-report.<YYYY-MM-DD>.md`, regenerate from
+     scratch using the combined corpus, and update the report's
+     `## Round History` table at the top.
+   Stop iterating when any of these are true: regenerated report has
+   no open gaps; **4 rounds** completed; new search returned zero
+   new relevant papers; remaining gaps are user-marked out-of-scope.
+   Never exceed 4 rounds. See `references/iterative-synthesis.md` for
+   the full loop.
+
 ## Profiles
 
 Use profiles when running end-to-end:
@@ -218,16 +253,18 @@ research-pipeline run --profile deep "topic" --source all --ter-iterations 3 --c
 
 ## System-Building Mode
 
-If the user wants to build, design, implement, or architect a system:
+If the user wants to build, design, implement, or architect a system, apply
+the iterative gap-closure loop above with these additional constraints:
 
 1. Require a readiness verdict:
    `IMPLEMENTATION_READY`, `HAS_GAPS`, or `NOT_APPLICABLE`.
-2. Classify gaps as `ACADEMIC` or `ENGINEERING`.
-3. Fill engineering gaps from implementation knowledge and reliable sources.
-4. Fill academic gaps with targeted new pipeline iterations.
-5. Stop after readiness, no new useful gaps, or 3 iterations.
+2. Classify gaps as `ACADEMIC` or `ENGINEERING` (the 4-round loop
+   handles both).
+3. Do not hand off to `req-analysis` until the loop converges
+   (`IMPLEMENTATION_READY`, no open gaps, or 4 rounds used).
 
-Load `references/iterative-synthesis.md` for the full loop.
+Load `references/iterative-synthesis.md` for the full loop (it
+applies to every run, not only system-building).
 
 ## MCP Usage
 
@@ -242,7 +279,10 @@ tool map.
 After completing a run, report:
 
 - final report path;
-- run ID and profile;
+- run ID(s) and profile (list every round's run ID if multiple);
+- **number of gap-closure rounds executed (of the 4-round cap) and
+  why iteration stopped** (converged / cap reached / no new papers /
+  out-of-scope);
 - source counts and shortlist/download/convert totals;
 - top findings with confidence and citations;
 - validation result and any remaining gaps;

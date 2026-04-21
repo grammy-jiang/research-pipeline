@@ -98,6 +98,7 @@ cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
 ## Contents
 
 - [Executive Summary](#executive-summary)
+- [Round History](#round-history)
 - [Research Question](#research-question)
 - [Methodology](#methodology)
 - [Papers Reviewed](#papers-reviewed)
@@ -106,6 +107,19 @@ cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
 - [Practical Recommendations](#practical-recommendations)
 - [References](#references)
 - [Appendix: Run Metadata](#appendix-run-metadata)
+
+## Round History
+
+Iterative gap-closure loop (hard cap: 4 rounds). See
+`references/iterative-synthesis.md` for the full loop definition.
+
+| Round | Run ID | Topic / Gap Focus | New Papers | Gaps Addressed | Remaining Gaps |
+|-------|--------|-------------------|------------|----------------|----------------|
+| 1 | <run-id-1> | <original topic> | N | initial shortlist | A academic, E engineering |
+| 2 | <run-id-2> | <academic gap focus> | N | … | … |
+
+**Stop reason**: [converged — no open gaps | 4-round cap reached |
+new search returned 0 relevant papers | remaining gaps marked out-of-scope]
 
 ## Executive Summary
 
