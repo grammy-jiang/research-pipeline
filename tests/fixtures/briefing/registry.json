@@ -1,0 +1,31 @@
+{
+  "watchlist_terms": ["MCP", "coding-agent", "Claude Code"],
+  "sources": [
+    {
+      "source_id": "github-claude-code",
+      "source_name": "Claude Code Releases",
+      "source_class": "implementation_source",
+      "access_method": "github_releases",
+      "official_url": "https://github.com/anthropics/claude-code",
+      "repo_owner": "anthropics",
+      "repo_name": "claude-code",
+      "fixture_path": "github_releases.json",
+      "trust_weight": 1.5,
+      "noise_weight": 0.0,
+      "enabled": true,
+      "max_events_per_run": 2
+    },
+    {
+      "source_id": "rss-ai-changelog",
+      "source_name": "AI Changelog",
+      "source_class": "primary_artifact",
+      "access_method": "rss_atom",
+      "feed_url": "https://example.com/feed.xml",
+      "fixture_path": "feed.xml",
+      "trust_weight": 1.2,
+      "noise_weight": 0.1,
+      "enabled": true,
+      "max_events_per_run": 2
+    }
+  ]
+}

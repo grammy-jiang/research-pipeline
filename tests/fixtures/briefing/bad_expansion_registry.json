@@ -1,0 +1,13 @@
+{
+  "sources": [
+    {
+      "source_id": "hn-unreviewed",
+      "source_name": "HN Unreviewed",
+      "source_class": "technical_discussion",
+      "access_method": "hacker_news",
+      "fixture_path": "hn.json",
+      "query": "AI agent",
+      "enabled": true
+    }
+  ]
+}

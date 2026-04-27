@@ -1,0 +1,11 @@
+{
+  "hits": [
+    {
+      "objectID": "123",
+      "title": "Agent benchmark discussion links primary repo",
+      "url": "https://example.com/agent-benchmark",
+      "created_at": "2026-04-27T05:00:00Z",
+      "story_text": "HN discussion with a primary artifact link."
+    }
+  ]
+}

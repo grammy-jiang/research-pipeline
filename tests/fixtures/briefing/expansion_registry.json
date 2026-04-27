@@ -1,0 +1,31 @@
+{
+  "watchlist_terms": ["agent"],
+  "sources": [
+    {
+      "source_id": "hn-agent-discussion",
+      "source_name": "HN Agent Discussion",
+      "source_class": "technical_discussion",
+      "access_method": "hacker_news",
+      "api_url": "https://hn.algolia.com/api/v1/search",
+      "fixture_path": "hn.json",
+      "query": "AI agent",
+      "trust_weight": 0.4,
+      "noise_weight": 0.8,
+      "enabled": true,
+      "last_reviewed_at": "2026-04-27",
+      "max_events_per_run": 1
+    },
+    {
+      "source_id": "hf-papers",
+      "source_name": "Hugging Face Papers",
+      "source_class": "academic_source",
+      "access_method": "huggingface_papers",
+      "feed_url": "https://example.com/feed.xml",
+      "fixture_path": "feed.xml",
+      "trust_weight": 1.0,
+      "noise_weight": 0.2,
+      "enabled": false,
+      "max_events_per_run": 1
+    }
+  ]
+}

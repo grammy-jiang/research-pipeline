@@ -1,0 +1,18 @@
+[
+  {
+    "id": 101,
+    "tag_name": "v1.2.0",
+    "name": "Claude Code v1.2.0",
+    "html_url": "https://github.com/anthropics/claude-code/releases/tag/v1.2.0",
+    "published_at": "2026-04-27T01:00:00Z",
+    "body": "Adds MCP workflow improvements and coding-agent reliability fixes."
+  },
+  {
+    "id": 100,
+    "tag_name": "v1.1.0",
+    "name": "Claude Code v1.1.0",
+    "html_url": "https://github.com/anthropics/claude-code/releases/tag/v1.1.0",
+    "published_at": "2026-04-26T01:00:00Z",
+    "body": "Previous release."
+  }
+]

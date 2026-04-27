@@ -2,6 +2,39 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.0] — 2026-04-28
+
+### Added
+
+- Added a parallel daily AI intelligence briefing pipeline under
+  `research_pipeline.briefing` with governed source registry loading, stable
+  event and cluster IDs, JSONL artifacts, telemetry, exact deduplication,
+  deterministic ranking, report validation, and replayable workflow state.
+- Added `research-pipeline brief ...` commands for polling sources, ranking
+  events, generating and validating daily briefs, running the full workflow,
+  recording feedback, reviewing topic aliases, exporting Obsidian notes,
+  generating dossiers, computing preference adjustments, resuming runs,
+  comparing source-expanded runs, and weekly synthesis.
+- Added Phase A-G briefing surfaces: GitHub releases, RSS/Atom, manual,
+  Hacker News, Hugging Face papers, and arXiv-style source adapters; topic
+  memory/fatigue; explicit feedback and reversible preferences; Obsidian
+  daily/topic/source notes; hot-topic dossiers; MCP `brief_*` tools and
+  `briefings://` resources.
+- Added a bundled `daily-ai-intelligence` skill with command, source-policy,
+  report-template, feedback-loop, troubleshooting, and evaluation references.
+- Added offline briefing fixtures and unit tests for the briefing workflow,
+  source expansion gates, feedback conflicts, alias review, dossier
+  generation, replay, MCP resources, and report quality.
+
+### Changed
+
+- `research-pipeline setup` now discovers and installs all bundled skills
+  instead of only the academic `research-pipeline` skill.
+- Daily briefing reports now suppress filler items, select the strongest
+  evidence from duplicate clusters, label factual evidence, expose dynamic
+  novelty/confidence/action fields, and mark reports as validated after
+  deterministic validation passes.
+
 ## [v0.16.2] — 2026-04-27
 
 ### Changed

@@ -886,6 +886,83 @@ class RRPDiagnosticInput(BaseModel):
     )
 
 
+class BriefCommonInput(BaseModel):
+    """Shared input for daily AI intelligence briefing MCP tools."""
+
+    workspace: str = Field(
+        default="./workspace",
+        description="Workspace root for briefing artifacts.",
+    )
+    date: str = Field(
+        default="",
+        description="Briefing date YYYY-MM-DD. Empty means current UTC date.",
+    )
+
+
+class BriefPollSourcesInput(BriefCommonInput):
+    """Input for ``brief_poll_sources``."""
+
+    registry_path: str = Field(
+        default="",
+        description="Path to briefing source registry JSON/TOML.",
+    )
+    fixture_base_dir: str = Field(
+        default="",
+        description="Optional base directory for offline source fixtures.",
+    )
+
+
+class BriefRankEventsInput(BriefCommonInput):
+    """Input for ``brief_rank_events``."""
+
+    registry_path: str = Field(default="", description="Optional source registry path.")
+    use_memory: bool = Field(default=True, description="Apply topic-memory fatigue.")
+    use_feedback: bool = Field(default=True, description="Apply explicit feedback.")
+
+
+class BriefGenerateDailyInput(BriefCommonInput):
+    """Input for ``brief_generate_daily``."""
+
+
+class BriefValidateReportInput(BriefCommonInput):
+    """Input for ``brief_validate_report``."""
+
+
+class BriefRunInput(BriefPollSourcesInput):
+    """Input for ``brief_run``."""
+
+
+class BriefExportObsidianInput(BriefCommonInput):
+    """Input for ``brief_export_obsidian``."""
+
+    vault_path: str = Field(description="Configured Obsidian vault root.")
+    registry_path: str = Field(default="", description="Optional source registry path.")
+
+
+class BriefRecordFeedbackInput(BriefCommonInput):
+    """Input for ``brief_record_feedback``."""
+
+    target_type: str = Field(description="event, cluster, topic, source, or dossier.")
+    target_id: str = Field(description="Target identifier.")
+    signal: str = Field(description="Explicit feedback signal.")
+    reason: str = Field(default="", description="Optional reason.")
+    strength: float = Field(default=1.0, description="Signal strength in [0, 5].")
+
+
+class BriefGenerateDossierInput(BriefCommonInput):
+    """Input for ``brief_generate_dossier``."""
+
+    cluster_id: str = Field(description="Cluster ID to expand into a dossier.")
+
+
+class BriefWeeklySynthesisInput(BaseModel):
+    """Input for ``brief_weekly_synthesis``."""
+
+    workspace: str = Field(default="./workspace", description="Workspace root.")
+    week: str = Field(description="Week ID, e.g. 2026-W18.")
+    output_path: str = Field(default="", description="Optional Markdown output path.")
+
+
 class ToolResult(BaseModel):
     """Standard result envelope for MCP tool outputs."""
 

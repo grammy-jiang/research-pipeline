@@ -218,3 +218,66 @@ def get_global_index() -> str:
         )
     except Exception as exc:
         return json.dumps({"error": str(exc), "count": 0, "papers": []})
+
+
+def _get_briefing_root(date: str) -> Path:
+    return Path(DEFAULT_WORKSPACE).resolve() / "briefings" / date
+
+
+def list_briefings() -> str:
+    """List daily intelligence briefing runs."""
+    root = Path(DEFAULT_WORKSPACE).resolve() / "briefings"
+    if not root.is_dir():
+        return json.dumps({"briefings": [], "root": str(root)})
+    briefings = []
+    for entry in sorted(root.iterdir()):
+        if not entry.is_dir() or entry.name.startswith("."):
+            continue
+        briefings.append(
+            {
+                "date": entry.name,
+                "daily_report": str(entry / "reports" / "daily.md"),
+                "validation": str(entry / "validation" / "validation.json"),
+            }
+        )
+    return json.dumps({"briefings": briefings, "root": str(root)})
+
+
+def get_briefing_daily(date: str) -> str:
+    """Read a daily intelligence brief."""
+    path = _get_briefing_root(date) / "reports" / "daily.md"
+    if not path.exists():
+        return json.dumps({"error": f"No daily brief for {date}"})
+    return path.read_text()
+
+
+def get_briefing_ranked(date: str) -> str:
+    """Read ranked briefing clusters JSONL."""
+    path = _get_briefing_root(date) / "ranked" / "ranked_clusters.jsonl"
+    if not path.exists():
+        return json.dumps({"error": f"No ranked clusters for {date}"})
+    return path.read_text()
+
+
+def get_briefing_telemetry(date: str) -> str:
+    """Read briefing telemetry JSONL."""
+    path = _get_briefing_root(date) / "telemetry.jsonl"
+    if not path.exists():
+        return json.dumps({"error": f"No briefing telemetry for {date}"})
+    return path.read_text()
+
+
+def get_briefing_validation(date: str) -> str:
+    """Read briefing validation JSON."""
+    path = _get_briefing_root(date) / "validation" / "validation.json"
+    if not path.exists():
+        return json.dumps({"error": f"No briefing validation for {date}"})
+    return path.read_text()
+
+
+def get_briefing_workflow_state(date: str) -> str:
+    """Read briefing workflow state JSON."""
+    path = _get_briefing_root(date) / "workflow_state.json"
+    if not path.exists():
+        return json.dumps({"error": f"No briefing workflow state for {date}"})
+    return path.read_text()

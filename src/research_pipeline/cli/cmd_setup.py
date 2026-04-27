@@ -60,6 +60,19 @@ def _find_skill_source() -> Path | None:
     return None
 
 
+def _find_skill_sources() -> list[Path]:
+    """Locate all bundled skill directories."""
+    source = _find_skill_source()
+    if source is None:
+        return []
+    root = source.parent
+    return [
+        path
+        for path in sorted(root.iterdir())
+        if path.is_dir() and (path / "SKILL.md").is_file()
+    ]
+
+
 def _find_agent_source() -> Path | None:
     """Locate the bundled agents directory."""
     return _find_source("agent_data")
@@ -263,8 +276,15 @@ def run_setup(
 
     # --- Skill ---
     if not skip_skill:
-        skill_source = _find_skill_source()
-        if skill_source is None:
+        targets = _resolve_skill_targets(skill_target, skill_targets)
+        default_multi_target = skill_target is None and skill_targets is None
+        primary_skill_source = _find_skill_source()
+        skill_sources = (
+            _find_skill_sources()
+            if default_multi_target
+            else ([primary_skill_source] if primary_skill_source is not None else [])
+        )
+        if not skill_sources:
             logger.error(
                 "Could not locate skill source files. "
                 "Ensure you are running from the repo or the package "
@@ -272,21 +292,26 @@ def run_setup(
             )
             raise SystemExit(1)
 
-        targets = _resolve_skill_targets(skill_target, skill_targets)
         if not targets:
             logger.warning("No skill targets configured; skipping skill install.")
-        default_multi_target = skill_target is None and skill_targets is None
-        for target in targets:
-            installed = _install_directory(
-                skill_source,
-                target,
-                symlink,
-                force,
-                "Skill",
-                skip_existing=default_multi_target,
-            )
-            if installed:
-                logger.info("Skill installed at %s", target)
+        fanout_skill_targets = default_multi_target and len(skill_sources) > 1
+        for skill_source in skill_sources:
+            for target in targets:
+                install_target = (
+                    target.parent / skill_source.name
+                    if fanout_skill_targets
+                    else target
+                )
+                installed = _install_directory(
+                    skill_source,
+                    install_target,
+                    symlink,
+                    force,
+                    "Skill",
+                    skip_existing=default_multi_target,
+                )
+                if installed:
+                    logger.info("Skill installed at %s", install_target)
 
     # --- Agents ---
     if not skip_agents:

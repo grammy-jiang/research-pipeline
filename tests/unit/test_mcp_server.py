@@ -39,7 +39,8 @@ class TestServerRegistration:
         #   cite_context, watch) + 9 parity tools (analyze_claims,
         #   score_claims, kg_stats, kg_query, kg_ingest,
         #   memory_stats, memory_episodes, memory_search, evaluate) = 51
-        assert len(mcp._tool_manager._tools) == 53
+        # + 2 tool-coherence/consolidation + 9 daily briefing tools = 62
+        assert len(mcp._tool_manager._tools) == 62
 
     def test_all_tools_have_annotations(self) -> None:
         """Every registered tool must have ToolAnnotations set."""

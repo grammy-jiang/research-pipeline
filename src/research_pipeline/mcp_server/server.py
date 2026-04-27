@@ -17,6 +17,15 @@ from research_pipeline.mcp_server import completions, prompts, resources
 from research_pipeline.mcp_server.schemas import (
     AnalyzeClaimsInput,
     AnalyzePapersInput,
+    BriefExportObsidianInput,
+    BriefGenerateDailyInput,
+    BriefGenerateDossierInput,
+    BriefPollSourcesInput,
+    BriefRankEventsInput,
+    BriefRecordFeedbackInput,
+    BriefRunInput,
+    BriefValidateReportInput,
+    BriefWeeklySynthesisInput,
     CiteContextInput,
     ClusterInput,
     CompareRunsInput,
@@ -63,6 +72,15 @@ from research_pipeline.mcp_server.tools import (
     analyze_claims_tool,
     analyze_papers,
     blinding_audit_tool,
+    brief_export_obsidian_tool,
+    brief_generate_daily_tool,
+    brief_generate_dossier_tool,
+    brief_poll_sources_tool,
+    brief_rank_events_tool,
+    brief_record_feedback_tool,
+    brief_run_tool,
+    brief_validate_report_tool,
+    brief_weekly_synthesis_tool,
     cbr_lookup_tool,
     cbr_retain_tool,
     cite_context_tool,
@@ -1822,6 +1840,219 @@ def tool_rrp_diagnostic(
     return result.model_dump()
 
 
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
+def brief_poll_sources(
+    registry_path: str = "",
+    workspace: str = "./workspace",
+    date: str = "",
+    fixture_base_dir: str = "",
+) -> dict:
+    """Poll configured daily AI intelligence sources.
+
+    This technical-intelligence tool is networked only to registry-allowed
+    sources and writes raw plus normalized briefing artifacts locally.
+    """
+    return brief_poll_sources_tool(
+        BriefPollSourcesInput(
+            registry_path=registry_path,
+            workspace=workspace,
+            date=date,
+            fixture_base_dir=fixture_base_dir,
+        )
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def brief_rank_events(
+    workspace: str = "./workspace",
+    date: str = "",
+    registry_path: str = "",
+    use_memory: bool = True,
+    use_feedback: bool = True,
+) -> dict:
+    """Deduplicate and rank normalized daily intelligence events locally."""
+    return brief_rank_events_tool(
+        BriefRankEventsInput(
+            workspace=workspace,
+            date=date,
+            registry_path=registry_path,
+            use_memory=use_memory,
+            use_feedback=use_feedback,
+        )
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def brief_generate_daily(workspace: str = "./workspace", date: str = "") -> dict:
+    """Generate a template-based daily AI intelligence Markdown brief."""
+    return brief_generate_daily_tool(
+        BriefGenerateDailyInput(workspace=workspace, date=date)
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def brief_validate_report(workspace: str = "./workspace", date: str = "") -> dict:
+    """Validate daily brief sections, budgets, duplicate titles, and evidence links."""
+    return brief_validate_report_tool(
+        BriefValidateReportInput(workspace=workspace, date=date)
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
+def brief_run(
+    registry_path: str = "",
+    workspace: str = "./workspace",
+    date: str = "",
+    fixture_base_dir: str = "",
+) -> dict:
+    """Run poll, rank, generate, and validate for the daily intelligence brief."""
+    return brief_run_tool(
+        BriefRunInput(
+            registry_path=registry_path,
+            workspace=workspace,
+            date=date,
+            fixture_base_dir=fixture_base_dir,
+        )
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def brief_export_obsidian(
+    vault_path: str,
+    workspace: str = "./workspace",
+    date: str = "",
+    registry_path: str = "",
+) -> dict:
+    """Export daily, topic, and source briefing notes under a configured vault."""
+    return brief_export_obsidian_tool(
+        BriefExportObsidianInput(
+            vault_path=vault_path,
+            workspace=workspace,
+            date=date,
+            registry_path=registry_path,
+        )
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=False,
+    ),
+)
+def brief_record_feedback(
+    target_type: str,
+    target_id: str,
+    signal: str,
+    workspace: str = "./workspace",
+    date: str = "",
+    reason: str = "",
+    strength: float = 1.0,
+) -> dict:
+    """Record explicit local feedback for briefing ranking."""
+    return brief_record_feedback_tool(
+        BriefRecordFeedbackInput(
+            workspace=workspace,
+            date=date,
+            target_type=target_type,
+            target_id=target_id,
+            signal=signal,
+            reason=reason,
+            strength=strength,
+        )
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def brief_generate_dossier(
+    cluster_id: str,
+    workspace: str = "./workspace",
+    date: str = "",
+) -> dict:
+    """Generate one manual hot-topic dossier from a ranked briefing cluster."""
+    return brief_generate_dossier_tool(
+        BriefGenerateDossierInput(
+            cluster_id=cluster_id,
+            workspace=workspace,
+            date=date,
+        )
+    ).model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def brief_weekly_synthesis(
+    week: str,
+    workspace: str = "./workspace",
+    output_path: str = "",
+) -> dict:
+    """Generate a weekly daily-intelligence trend memo from local daily briefs."""
+    return brief_weekly_synthesis_tool(
+        BriefWeeklySynthesisInput(
+            week=week,
+            workspace=workspace,
+            output_path=output_path,
+        )
+    ).model_dump()
+
+
 # ---------------------------------------------------------------------------
 # Resources
 # ---------------------------------------------------------------------------
@@ -1957,6 +2188,72 @@ def resource_current_config() -> str:
 def resource_global_index() -> str:
     """Read the global paper index."""
     return resources.get_global_index()
+
+
+@mcp.resource(
+    "briefings://list",
+    name="briefing_list",
+    description="List daily AI intelligence briefing runs.",
+    mime_type="application/json",
+)
+def resource_briefing_list() -> str:
+    """List daily intelligence briefing runs."""
+    return resources.list_briefings()
+
+
+@mcp.resource(
+    "briefings://{date}/daily",
+    name="briefing_daily",
+    description="Daily AI intelligence Markdown brief.",
+    mime_type="text/markdown",
+)
+def resource_briefing_daily(date: str) -> str:
+    """Read a daily intelligence brief."""
+    return resources.get_briefing_daily(date)
+
+
+@mcp.resource(
+    "briefings://{date}/ranked",
+    name="briefing_ranked_clusters",
+    description="Ranked daily intelligence clusters.",
+    mime_type="application/jsonl",
+)
+def resource_briefing_ranked(date: str) -> str:
+    """Read ranked briefing clusters."""
+    return resources.get_briefing_ranked(date)
+
+
+@mcp.resource(
+    "briefings://{date}/telemetry",
+    name="briefing_telemetry",
+    description="Daily intelligence telemetry JSONL.",
+    mime_type="application/jsonl",
+)
+def resource_briefing_telemetry(date: str) -> str:
+    """Read briefing telemetry."""
+    return resources.get_briefing_telemetry(date)
+
+
+@mcp.resource(
+    "briefings://{date}/validation",
+    name="briefing_validation",
+    description="Daily intelligence validation result.",
+    mime_type="application/json",
+)
+def resource_briefing_validation(date: str) -> str:
+    """Read briefing validation."""
+    return resources.get_briefing_validation(date)
+
+
+@mcp.resource(
+    "briefings://{date}/state",
+    name="briefing_workflow_state",
+    description="Replayable daily intelligence workflow state.",
+    mime_type="application/json",
+)
+def resource_briefing_state(date: str) -> str:
+    """Read briefing workflow state."""
+    return resources.get_briefing_workflow_state(date)
 
 
 @mcp.resource(

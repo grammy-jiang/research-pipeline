@@ -1,0 +1,23 @@
+[briefing]
+watchlist_terms = ["AI agent", "coding agent", "MCP", "Copilot", "Claude Code"]
+max_sources_per_run = 20
+
+[[briefing.sources]]
+source_id = "example-manual"
+source_name = "Example Manual AI Update"
+source_class = "primary_artifact"
+access_method = "manual"
+official_url = "https://example.com"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.0
+enabled = false
+max_events_per_run = 3
+tags = ["example"]
+
+[[briefing.sources.manual_items]]
+title = "Example AI update"
+url = "https://example.com/ai-update"
+summary_hint = "Replace this disabled example with a reviewed source."

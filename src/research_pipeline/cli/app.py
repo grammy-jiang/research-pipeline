@@ -6,6 +6,7 @@ from pathlib import Path
 import typer
 
 from research_pipeline import __version__
+from research_pipeline.cli.cmd_brief import brief_app
 from research_pipeline.infra.logging import setup_logging
 
 app = typer.Typer(
@@ -119,6 +120,7 @@ def mcp_config() -> None:
 
 
 app.add_typer(mcp_app, name="mcp")
+app.add_typer(brief_app, name="brief")
 
 
 @app.command()
