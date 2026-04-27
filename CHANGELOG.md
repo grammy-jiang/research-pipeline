@@ -2,6 +2,21 @@
 
 All notable changes to research-pipeline.
 
+## [v0.16.2] — 2026-04-27
+
+### Changed
+
+- Moved the MCP server into the packaged source tree at
+  `src/research_pipeline/mcp_server/` so it is included in installed wheels.
+- Added the packaged MCP CLI surface:
+  `research-pipeline mcp serve` and `research-pipeline mcp config`.
+- Made packaged skill and agent data the canonical setup source, removing the
+  duplicate `.github/skills/` and `.github/agents/` copies that could drift.
+- Extended `research-pipeline setup` to install a reusable MCP config snippet
+  at `~/.config/research-pipeline/mcp.json` alongside skills and agents.
+- Updated human and AI-agent documentation for the packaged MCP, skill, and
+  agent layout.
+
 ## [v0.16.1] — 2026-04-22
 
 ### Changed

@@ -21,6 +21,12 @@ app = typer.Typer(
     no_args_is_help=True,
 )
 
+mcp_app = typer.Typer(
+    name="mcp",
+    help="Run or configure the packaged research-pipeline MCP server.",
+    no_args_is_help=True,
+)
+
 
 def _version_callback(value: bool) -> None:
     if value:
@@ -82,6 +88,37 @@ def _common_options(
         "workspace": workspace_path,
         "run_id": run_id_value,
     }
+
+
+@mcp_app.command(name="serve")
+def mcp_serve(
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Enable debug logging before starting the server.",
+    ),
+) -> None:
+    """Run the MCP server over stdio.
+
+    Example: research-pipeline mcp serve
+    """
+    from research_pipeline.cli.cmd_mcp import run_mcp_serve
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    run_mcp_serve()
+
+
+@mcp_app.command(name="config")
+def mcp_config() -> None:
+    """Print a reusable MCP client configuration snippet."""
+    from research_pipeline.cli.cmd_mcp import render_mcp_config
+
+    typer.echo(render_mcp_config())
+
+
+app.add_typer(mcp_app, name="mcp")
 
 
 @app.command()
@@ -652,6 +689,14 @@ def setup(
         "--agents-target",
         help=("Target directory for agent files. Default: ~/.claude/agents"),
     ),
+    mcp_config_target: str = typer.Option(
+        "",
+        "--mcp-config-target",
+        help=(
+            "Target file for a reusable MCP config snippet. "
+            "Default: ~/.config/research-pipeline/mcp.json"
+        ),
+    ),
     symlink: bool = typer.Option(
         False,
         "--symlink",
@@ -674,13 +719,19 @@ def setup(
         "--skip-agents",
         help="Skip agent installation.",
     ),
+    skip_mcp: bool = typer.Option(
+        False,
+        "--skip-mcp",
+        help="Skip MCP config snippet installation.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
-    """Install skills and agents for AI assistant discovery.
+    """Install skills, agents, and MCP config for AI assistant discovery.
 
     Copies (or symlinks) the bundled SKILL.md, config.toml, reference docs,
-    and agent definitions. By default, the skill is installed for Claude Code
-    / GitHub Copilot and Codex; agents are installed for Claude Code.
+    agent definitions, and MCP config snippet. By default, the skill is
+    installed for Claude Code / GitHub Copilot and Codex; agents are installed
+    for Claude Code.
 
     Example: research-pipeline setup
     Example: research-pipeline setup --symlink --force
@@ -688,6 +739,7 @@ def setup(
     """
     from research_pipeline.cli.cmd_setup import (
         DEFAULT_AGENTS_DIR,
+        DEFAULT_MCP_CONFIG_FILE,
         run_setup,
     )
     from research_pipeline.infra.logging import setup_logging
@@ -697,13 +749,18 @@ def setup(
 
     skill_path = Path(skill_target) if skill_target else None
     agents_path = Path(agents_target) if agents_target else DEFAULT_AGENTS_DIR
+    mcp_config_path = (
+        Path(mcp_config_target) if mcp_config_target else DEFAULT_MCP_CONFIG_FILE
+    )
     run_setup(
         skill_target=skill_path,
         agents_target=agents_path,
+        mcp_config_target=mcp_config_path,
         symlink=symlink,
         force=force,
         skip_skill=skip_skill,
         skip_agents=skip_agents,
+        skip_mcp=skip_mcp,
     )
 
 
@@ -740,6 +797,7 @@ def install_skill(
         symlink=symlink,
         force=force,
         skip_agents=True,
+        skip_mcp=True,
     )
 
 

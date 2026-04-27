@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from mcp_server.schemas import (
+from research_pipeline.mcp_server.schemas import (
     ConvertFileInput,
     ConvertFineInput,
     ConvertRoughInput,
@@ -15,7 +15,7 @@ from mcp_server.schemas import (
     ScreenCandidatesInput,
     SearchInput,
 )
-from mcp_server.tools import (
+from research_pipeline.mcp_server.tools import (
     _resolve_run_id,
     _resolve_workspace,
     convert_file,

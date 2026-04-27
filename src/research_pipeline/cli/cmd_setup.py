@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import contextlib
+import json
 import logging
 import shutil
 from collections.abc import Iterable, Sequence
@@ -16,37 +17,23 @@ DEFAULT_CODEX_SKILL_DIR = Path.home() / ".codex" / "skills" / "research-pipeline
 DEFAULT_SKILL_DIR = DEFAULT_CLAUDE_SKILL_DIR
 DEFAULT_SKILL_TARGETS = (DEFAULT_CLAUDE_SKILL_DIR, DEFAULT_CODEX_SKILL_DIR)
 DEFAULT_AGENTS_DIR = Path.home() / ".claude" / "agents"
-
-# Source candidates when running from the repo root (development)
-_REPO_ROOT = Path(__file__).resolve().parents[3]
-_SKILL_SOURCE_CANDIDATES = [
-    _REPO_ROOT / ".github" / "skills" / "research-pipeline",
-]
-_AGENT_SOURCE_CANDIDATES = [
-    _REPO_ROOT / ".github" / "agents",
-]
+DEFAULT_MCP_CONFIG_DIR = Path.home() / ".config" / "research-pipeline"
+DEFAULT_MCP_CONFIG_FILE = DEFAULT_MCP_CONFIG_DIR / "mcp.json"
 
 
 def _find_source(
-    candidates: list[Path],
     package_subdir: str,
     marker_file: str | None = None,
 ) -> Path | None:
     """Locate a bundled data directory.
 
     Args:
-        candidates: Filesystem paths to try first (development mode).
         package_subdir: Sub-package name under ``research_pipeline`` for
             installed-package fallback (e.g. ``"skill_data"``).
         marker_file: If set, the directory must contain this file to be valid.
     """
-    for candidate in candidates:
-        if candidate.is_dir() and (
-            marker_file is None or (candidate / marker_file).is_file()
-        ):
-            return candidate
-
-    # Fallback: use importlib.resources for installed package data
+    # Use package data in both installed and editable/development modes so setup
+    # installs exactly the files that ship in the wheel.
     with contextlib.suppress(Exception):
         import importlib.resources as pkg_resources
 
@@ -62,12 +49,6 @@ def _find_source(
 
 def _find_skill_source() -> Path | None:
     """Locate the bundled skill directory."""
-    # Repo source candidates point directly to the skill dir
-    for candidate in _SKILL_SOURCE_CANDIDATES:
-        if candidate.is_dir() and (candidate / "SKILL.md").is_file():
-            return candidate
-
-    # Fallback: installed package has skill_data/research-pipeline/
     with contextlib.suppress(Exception):
         import importlib.resources as pkg_resources
 
@@ -81,7 +62,7 @@ def _find_skill_source() -> Path | None:
 
 def _find_agent_source() -> Path | None:
     """Locate the bundled agents directory."""
-    return _find_source(_AGENT_SOURCE_CANDIDATES, "agent_data")
+    return _find_source("agent_data")
 
 
 def _dedupe_paths(paths: Iterable[Path]) -> list[Path]:
@@ -223,14 +204,44 @@ def _install_agent_files(
     return count
 
 
+def _mcp_server_config() -> dict[str, dict[str, dict[str, object]]]:
+    """Return a generic MCP client configuration for research-pipeline."""
+    from research_pipeline.cli.cmd_mcp import mcp_server_config
+
+    return mcp_server_config()
+
+
+def _install_mcp_config(target: Path, force: bool) -> bool:
+    """Install a reusable MCP client configuration snippet.
+
+    The file is intentionally written to research-pipeline's own config
+    directory rather than mutating client-specific JSON/TOML files with
+    unknown schemas. Local agents can import or copy this zero-argument
+    server definition, and docs show the same command pair.
+    """
+    if target.exists() and not force:
+        logger.warning(
+            "MCP config already exists: %s. Use --force to overwrite.",
+            target,
+        )
+        return False
+
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(_mcp_server_config(), indent=2) + "\n")
+    logger.info("MCP config installed at %s", target)
+    return True
+
+
 def run_setup(
     skill_target: Path | None = None,
     skill_targets: Sequence[Path] | None = None,
     agents_target: Path = DEFAULT_AGENTS_DIR,
+    mcp_config_target: Path = DEFAULT_MCP_CONFIG_FILE,
     symlink: bool = False,
     force: bool = False,
     skip_skill: bool = False,
     skip_agents: bool = False,
+    skip_mcp: bool = False,
 ) -> None:
     """Install skills and agents to assistant config directories.
 
@@ -244,9 +255,10 @@ def run_setup(
         force: If True, overwrite existing files/directories.
         skip_skill: If True, skip skill installation.
         skip_agents: If True, skip agent installation.
+        skip_mcp: If True, skip MCP config snippet installation.
     """
-    if skip_skill and skip_agents:
-        logger.warning("Both --skip-skill and --skip-agents set; nothing to do.")
+    if skip_skill and skip_agents and skip_mcp:
+        logger.warning("All setup components skipped; nothing to do.")
         return
 
     # --- Skill ---
@@ -288,6 +300,10 @@ def run_setup(
             raise SystemExit(1)
         count = _install_agent_files(source, agents_target, symlink, force)
         logger.info("Installed %d agent(s) to %s", count, agents_target)
+
+    # --- MCP server config ---
+    if not skip_mcp:
+        _install_mcp_config(mcp_config_target, force=force)
 
     logger.info("Done.")
 

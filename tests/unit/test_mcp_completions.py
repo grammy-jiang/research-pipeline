@@ -8,7 +8,7 @@ from pathlib import Path
 import pytest
 from mcp.types import CompletionArgument, PromptReference
 
-from mcp_server.completions import (
+from research_pipeline.mcp_server.completions import (
     _list_backends,
     _list_paper_ids,
     _list_run_ids,
@@ -18,13 +18,13 @@ from mcp_server.completions import (
 
 class TestListRunIds:
     def test_empty_dirs(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        import mcp_server.completions as mod
+        import research_pipeline.mcp_server.completions as mod
 
         monkeypatch.setattr(mod, "DEFAULT_RUNS_DIRS", [str(tmp_path / "empty")])
         assert _list_run_ids() == []
 
     def test_finds_runs(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-        import mcp_server.completions as mod
+        import research_pipeline.mcp_server.completions as mod
 
         runs = tmp_path / "runs"
         runs.mkdir()
@@ -38,7 +38,7 @@ class TestListRunIds:
     def test_prefix_filter(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import mcp_server.completions as mod
+        import research_pipeline.mcp_server.completions as mod
 
         runs = tmp_path / "runs"
         runs.mkdir()
@@ -53,7 +53,7 @@ class TestListPaperIds:
     def test_finds_papers(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import mcp_server.completions as mod
+        import research_pipeline.mcp_server.completions as mod
 
         pdf_dir = tmp_path / "run-001" / "download" / "pdf"
         pdf_dir.mkdir(parents=True)
@@ -108,7 +108,7 @@ class TestHandleCompletion:
     async def test_run_id_completion(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import mcp_server.completions as mod
+        import research_pipeline.mcp_server.completions as mod
 
         runs = tmp_path / "runs"
         runs.mkdir()
@@ -124,7 +124,7 @@ class TestHandleCompletion:
     async def test_topic_completion(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
-        import mcp_server.completions as mod
+        import research_pipeline.mcp_server.completions as mod
 
         run_dir = tmp_path / "runs" / "run-001" / "plan"
         run_dir.mkdir(parents=True)

@@ -7,8 +7,8 @@ from pathlib import Path
 
 import pytest
 
-from mcp_server import resources
-from mcp_server.server import mcp
+from research_pipeline.mcp_server import resources
+from research_pipeline.mcp_server.server import mcp
 
 
 class TestResourceRegistration:

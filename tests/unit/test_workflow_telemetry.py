@@ -5,7 +5,7 @@ from __future__ import annotations
 import json
 import tempfile
 
-from mcp_server.workflow.telemetry import (
+from research_pipeline.mcp_server.workflow.telemetry import (
     TelemetryEvent,
     TelemetrySurface,
     WorkflowTelemetry,

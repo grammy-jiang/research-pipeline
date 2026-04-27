@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mcp_server.workflow.monitoring import (
+from research_pipeline.mcp_server.workflow.monitoring import (
     IterationMetrics,
     StopReason,
     check_doom_loop,

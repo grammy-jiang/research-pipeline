@@ -351,7 +351,7 @@ The `CandidateRecord` model includes optional fields for multi-source metadata:
 
 ## MCP server
 
-The MCP server (`mcp_server/`) wraps pipeline functionality into tools
+The MCP server (`src/research_pipeline/mcp_server/`) wraps pipeline functionality into tools
 accessible via the Model Context Protocol. Tools are thin adapters that delegate
 to the same logic used by the CLI. The server uses FastMCP with stdio transport.
 

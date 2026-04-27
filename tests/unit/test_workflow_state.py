@@ -8,7 +8,7 @@ from pathlib import Path
 
 import pytest
 
-from mcp_server.workflow.state import (
+from research_pipeline.mcp_server.workflow.state import (
     ContextBudget,
     ExecutionRecord,
     GovernanceError,
@@ -52,7 +52,7 @@ class TestWorkflowStage:
             assert expected in stages
 
     def test_all_stages_have_transitions(self) -> None:
-        from mcp_server.workflow.state import VALID_TRANSITIONS
+        from research_pipeline.mcp_server.workflow.state import VALID_TRANSITIONS
 
         for stage in WorkflowStage:
             assert stage.value in VALID_TRANSITIONS

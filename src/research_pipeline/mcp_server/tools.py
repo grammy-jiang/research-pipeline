@@ -15,7 +15,7 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
 
-from mcp_server.schemas import (
+from research_pipeline.mcp_server.schemas import (
     AdaptiveStoppingInput,
     AnalyzeClaimsInput,
     AnalyzePapersInput,

@@ -757,7 +757,10 @@ The MCP server provides full Model Context Protocol support for AI agent
 integration via stdio transport:
 
 ```bash
-uv run python -m mcp_server
+research-pipeline mcp serve
+
+# Development checkout
+uv run research-pipeline mcp serve
 ```
 
 ### Tools (18)
@@ -868,15 +871,18 @@ Auto-complete support for: `run_id`, `paper_id`, `backend`, `direction`,
 
 ### MCP client configuration
 
-Add to your MCP client configuration (e.g., Claude Desktop):
+`research-pipeline setup` writes this reusable snippet to
+`~/.config/research-pipeline/mcp.json`. You can also print it with
+`research-pipeline mcp config` and add it to MCP clients that use the common
+`mcpServers` shape:
 
 ```json
 {
   "mcpServers": {
     "research-pipeline": {
-      "command": "uv",
-      "args": ["run", "python", "-m", "mcp_server"],
-      "cwd": "/path/to/research-pipeline"
+      "command": "research-pipeline",
+      "args": ["mcp", "serve"],
+      "description": "Run the packaged research-pipeline MCP server."
     }
   }
 }
@@ -890,7 +896,7 @@ workflow instructions, configuration, reference documentation, and specialized
 analysis agents.
 
 ```bash
-# Install skills to ~/.claude/ and ~/.codex/, plus agents to ~/.claude/
+# Install skills, agents, and MCP config snippet
 research-pipeline setup
 
 # Create symlinks (useful during development)
@@ -904,6 +910,9 @@ research-pipeline setup --skip-agents
 
 # Install only agents (skip skill)
 research-pipeline setup --skip-skill
+
+# Skip MCP config snippet installation
+research-pipeline setup --skip-mcp
 ```
 
 This installs:
@@ -911,6 +920,7 @@ This installs:
 - **Codex skill** → `~/.codex/skills/research-pipeline/`
 - **Sub-agents** → `~/.claude/agents/` — paper-analyzer.md, paper-screener.md,
   paper-synthesizer.md for deep paper analysis, screening, and synthesis
+- **MCP config snippet** → `~/.config/research-pipeline/mcp.json`
 
 Once installed, Claude Code, GitHub Copilot, and Codex can discover the skill
 when you ask about academic paper research. Claude Code can also discover the

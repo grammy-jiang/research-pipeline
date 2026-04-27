@@ -8,9 +8,11 @@ from unittest.mock import patch
 import pytest
 
 from research_pipeline.cli.cmd_setup import (
+    DEFAULT_MCP_CONFIG_FILE,
     _find_agent_source,
     _find_skill_source,
     _install_agent_files,
+    _install_mcp_config,
     run_setup,
 )
 
@@ -20,7 +22,6 @@ class TestFindSources:
 
     def test_find_skill_source_returns_path(self) -> None:
         result = _find_skill_source()
-        # In dev mode, should find .github/skills/research-pipeline
         if result is not None:
             assert (result / "SKILL.md").is_file()
 
@@ -127,11 +128,13 @@ class TestRunSetup:
             run_setup(
                 skill_target=skill_target,
                 agents_target=agents_target,
+                mcp_config_target=tmp_path / "mcp.json",
                 force=True,
             )
 
         assert (skill_target / "SKILL.md").is_file()
         assert (agents_target / "paper-analyzer.md").is_file()
+        assert (tmp_path / "mcp.json").is_file()
 
     def test_default_installs_claude_and_codex_skills(self, tmp_path: Path) -> None:
         skill_src = tmp_path / "skill_src"
@@ -162,12 +165,14 @@ class TestRunSetup:
         ):
             run_setup(
                 agents_target=agents_target,
+                mcp_config_target=tmp_path / "mcp.json",
                 force=True,
             )
 
         assert (claude_target / "SKILL.md").is_file()
         assert (codex_target / "SKILL.md").is_file()
         assert (agents_target / "paper-analyzer.md").is_file()
+        assert (tmp_path / "mcp.json").is_file()
 
     def test_default_skips_existing_skill_and_installs_missing(
         self,
@@ -194,6 +199,7 @@ class TestRunSetup:
         ):
             run_setup(
                 skip_agents=True,
+                skip_mcp=True,
             )
 
         assert (claude_target / "SKILL.md").read_text() == "# Existing Skill"
@@ -214,6 +220,7 @@ class TestRunSetup:
                 skill_target=tmp_path / "skill",
                 agents_target=agents_target,
                 skip_skill=True,
+                skip_mcp=True,
                 force=True,
             )
 
@@ -236,6 +243,7 @@ class TestRunSetup:
                 skill_target=skill_target,
                 agents_target=agents_target,
                 skip_agents=True,
+                skip_mcp=True,
                 force=True,
             )
 
@@ -248,6 +256,7 @@ class TestRunSetup:
             agents_target=tmp_path / "agents",
             skip_skill=True,
             skip_agents=True,
+            skip_mcp=True,
         )
         assert not (tmp_path / "skill").exists()
         assert not (tmp_path / "agents").exists()
@@ -288,3 +297,29 @@ class TestRunSetup:
         from research_pipeline.cli.cmd_setup import run_install_skill
 
         assert run_install_skill is run_setup
+
+
+class TestInstallMcpConfig:
+    """Test MCP config snippet installation."""
+
+    def test_installs_mcp_config(self, tmp_path: Path) -> None:
+        target = tmp_path / "mcp.json"
+
+        installed = _install_mcp_config(target, force=False)
+
+        assert installed is True
+        assert '"research-pipeline"' in target.read_text()
+        assert '"mcp"' in target.read_text()
+        assert '"serve"' in target.read_text()
+
+    def test_skips_existing_without_force(self, tmp_path: Path) -> None:
+        target = tmp_path / "mcp.json"
+        target.write_text("{}\n")
+
+        installed = _install_mcp_config(target, force=False)
+
+        assert installed is False
+        assert target.read_text() == "{}\n"
+
+    def test_default_mcp_config_path_is_packaged_config(self) -> None:
+        assert DEFAULT_MCP_CONFIG_FILE.name == "mcp.json"

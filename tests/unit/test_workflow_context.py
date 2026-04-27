@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from mcp_server.workflow.context import (
+from research_pipeline.mcp_server.workflow.context import (
     CHARS_PER_TOKEN,
     CompactionLevel,
     compact_paper,

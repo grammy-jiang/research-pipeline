@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from mcp_server.schemas import (
+from research_pipeline.mcp_server.schemas import (
     CommonParams,
     ConvertFileInput,
     ConvertFineInput,

@@ -1,6 +1,6 @@
 """Tests for MCP server registration."""
 
-from mcp_server.server import mcp
+from research_pipeline.mcp_server.server import mcp
 
 
 class TestServerRegistration:

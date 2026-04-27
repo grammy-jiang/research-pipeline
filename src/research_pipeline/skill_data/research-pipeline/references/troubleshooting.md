@@ -125,7 +125,7 @@ If found, it copies to the run directory instead of re-downloading.
 
 ## MCP Server
 
-Run with: `python -m mcp_server` (or `uv run python -m mcp_server`)
+Run with: `research-pipeline mcp serve` (or `uv run research-pipeline mcp serve`)
 
 | MCP Tool | CLI Equivalent |
 |----------|---------------|

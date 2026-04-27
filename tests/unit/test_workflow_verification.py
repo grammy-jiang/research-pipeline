@@ -6,7 +6,7 @@ import json
 import tempfile
 from pathlib import Path
 
-from mcp_server.workflow.verification import (
+from research_pipeline.mcp_server.workflow.verification import (
     VerificationResult,
     verify_analyze,
     verify_convert,

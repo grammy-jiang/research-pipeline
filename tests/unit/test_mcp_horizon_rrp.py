@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from mcp_server.schemas import HorizonMetricInput, RRPDiagnosticInput
-from mcp_server.tools import horizon_metric_tool, rrp_diagnostic_tool
+from research_pipeline.mcp_server.schemas import HorizonMetricInput, RRPDiagnosticInput
+from research_pipeline.mcp_server.tools import horizon_metric_tool, rrp_diagnostic_tool
 
 
 def test_horizon_metric_tool_success() -> None:

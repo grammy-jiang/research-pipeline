@@ -22,14 +22,14 @@ if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
     from mcp.server.session import ServerSession
 
-from mcp_server.workflow.context import compact_paper, estimate_tokens
-from mcp_server.workflow.monitoring import (
+from research_pipeline.mcp_server.workflow.context import compact_paper, estimate_tokens
+from research_pipeline.mcp_server.workflow.monitoring import (
     IterationMetrics,
     StopReason,
     check_doom_loop,
     content_fingerprint,
 )
-from mcp_server.workflow.state import (
+from research_pipeline.mcp_server.workflow.state import (
     ExecutionRecord,
     GovernanceError,
     StageStatus,
@@ -38,8 +38,8 @@ from mcp_server.workflow.state import (
     load_state,
     save_state,
 )
-from mcp_server.workflow.telemetry import WorkflowTelemetry
-from mcp_server.workflow.verification import (
+from research_pipeline.mcp_server.workflow.telemetry import WorkflowTelemetry
+from research_pipeline.mcp_server.workflow.verification import (
     STAGE_VERIFIERS,
     VerificationResult,
     verify_analyze,
@@ -111,7 +111,7 @@ def _execute_pipeline_stage(
 
     Returns a result dict with success/message/artifacts.
     """
-    from mcp_server.schemas import (
+    from research_pipeline.mcp_server.schemas import (
         ConvertPdfsInput,
         DownloadPdfsInput,
         ExtractContentInput,
@@ -120,7 +120,7 @@ def _execute_pipeline_stage(
         SearchInput,
         SummarizePapersInput,
     )
-    from mcp_server.tools import (
+    from research_pipeline.mcp_server.tools import (
         convert_pdfs,
         download_pdfs,
         extract_content,

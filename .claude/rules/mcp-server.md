@@ -1,6 +1,6 @@
 ---
 paths:
-  - "mcp_server/**/*.py"
+  - "src/research_pipeline/mcp_server/**/*.py"
 ---
 
 # MCP server conventions
@@ -10,4 +10,4 @@ paths:
 - Every tool has a matching Pydantic schema in `schemas.py`.
 - When adding a new tool: add schema → implement in tools.py → register in
   server.py → add tests in `tests/unit/test_mcp_*.py`.
-- Keep the MCP server runnable via `python -m mcp_server`.
+- Keep the MCP server runnable via `research-pipeline mcp serve`.

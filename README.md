@@ -220,9 +220,9 @@ research-pipeline validate --run-id <RUN_ID>
 Run the MCP server with:
 
 ```bash
-python -m mcp_server
+research-pipeline mcp serve
 # or, from a development checkout
-uv run python -m mcp_server
+uv run research-pipeline mcp serve
 ```
 
 Current MCP surface:
@@ -246,11 +246,12 @@ Install the bundled skill for Claude Code / GitHub Copilot and Codex, plus
 Claude Code sub-agent definitions:
 
 ```bash
-research-pipeline setup              # skills + agents
+research-pipeline setup              # skills + agents + MCP config snippet
 research-pipeline setup --symlink    # symlink for development
 research-pipeline setup --force      # overwrite existing files
 research-pipeline setup --skip-agents
 research-pipeline setup --skip-skill
+research-pipeline setup --skip-mcp
 ```
 
 Installed files:
@@ -260,6 +261,7 @@ Installed files:
 - Agents: `~/.claude/agents/paper-screener.md`,
   `~/.claude/agents/paper-analyzer.md`,
   `~/.claude/agents/paper-synthesizer.md`
+- MCP config snippet: `~/.config/research-pipeline/mcp.json`
 
 The skill follows Anthropic's Skill-Building Guide: it declares explicit
 trigger phrases and negative triggers, a `license`/`compatibility`

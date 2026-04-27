@@ -1039,6 +1039,7 @@ class TestCmdSetup:
             agents_target=tmp_path / "agents",
             skip_skill=True,
             skip_agents=True,
+            skip_mcp=True,
         )
 
     @patch("research_pipeline.cli.cmd_setup._find_skill_source")

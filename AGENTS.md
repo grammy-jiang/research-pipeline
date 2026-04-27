@@ -23,8 +23,8 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 ├── CLAUDE.md                     # Claude Code entry (imports this file)
 ├── .github/
 │   ├── copilot-instructions.md   # GitHub Copilot instructions
-│   ├── skills/research-pipeline/ # Skill definition (SKILL.md + references)
-│   └── agents/                   # Sub-agent definitions (paper-analyzer, screener, synthesizer)
+│   ├── instructions/             # Path-specific coding instructions
+│   └── workflows/                # CI workflows
 ├── pyproject.toml                # Project metadata, deps, tool config
 ├── config.example.toml           # Pipeline configuration template
 ├── .pre-commit-config.yaml       # Pre-commit hooks
@@ -46,6 +46,11 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   ├── infra/                    # Cache, HTTP, logging, hashing, clock, rate limiting, retry, sanitization, audit, entropy monitor
 │   ├── memory/                   # Multi-tier memory system (working, episodic, semantic, CMA audit, associative, paging)
 │   ├── security/                 # MCP guard, adversarial robustness (ToolTweak), defense trilemma
+│   ├── mcp_server/               # Packaged FastMCP server
+│   │   ├── server.py             # Server entry point, registrations
+│   │   ├── tools.py              # MCP tool implementations
+│   │   ├── schemas.py            # Input/output Pydantic schemas
+│   │   └── workflow/             # Harness-engineered research workflow
 │   ├── skill_data/               # Bundled skill files for pip package
 │   ├── agent_data/               # Bundled sub-agent definitions for pip package
 │   ├── llm/                      # LLM provider interface + providers
@@ -53,24 +58,6 @@ both a Typer CLI and an MCP (Model Context Protocol) server.
 │   │   ├── providers.py          # Ollama + OpenAI-compatible implementations
 │   │   ├── schemas.py            # Pydantic I/O schemas for LLM calls
 │   │   └── envelopes.py          # Input/output envelope wrappers
-├── mcp_server/                   # FastMCP server (full MCP spec support)
-│   ├── server.py                 # Server entry point, registrations
-│   ├── tools.py                  # 16 pipeline tool implementations
-│   ├── schemas.py                # Input/output Pydantic schemas
-│   ├── resources.py              # 12 resource handlers
-│   ├── prompts.py                # 5 prompt templates
-│   ├── completions.py            # Auto-complete handler
-│   └── workflow/                 # Harness-engineered research workflow
-│       ├── state.py              # WorkflowState, stage transitions, persistence
-│       ├── telemetry.py          # Three-surface logging (cognitive/operational/contextual)
-│       ├── verification.py       # Structural output verification per stage
-│       ├── context.py            # Token budgets and paper compaction (ACC)
-│       ├── monitoring.py         # Doom-loop detection and iteration drift
-│       └── research.py           # Main orchestrator (~1100 lines)
-├── .github/skills/research-pipeline/  # Bundled AI skill
-│   ├── SKILL.md                  # Skill definition and workflow
-│   ├── config.toml               # Pipeline configuration template
-│   └── references/               # Reference docs
 ├── tests/
 │   ├── unit/                     # Fast, isolated unit tests
 │   ├── integration_offline/      # VCR-cassette offline integration tests
@@ -263,11 +250,8 @@ research-pipeline inspect --run-id <ID>
 The MCP server provides full Model Context Protocol support:
 
 ```bash
-# Run via module
-python -m mcp_server
-
-# Or via uv
-uv run python -m mcp_server
+research-pipeline mcp serve
+uv run research-pipeline mcp serve  # development checkout
 ```
 
 Features: 51 tools (with annotations & progress), 15 resources (URI templates),
@@ -303,16 +287,19 @@ reference.
 Install the bundled Claude Code / GitHub Copilot skill and sub-agent definitions:
 
 ```bash
-research-pipeline setup              # Copy skill + agents to ~/.claude/
+research-pipeline setup              # Copy skills, agents, and MCP config
 research-pipeline setup --symlink    # Symlink for development
 research-pipeline setup --force      # Force overwrite existing
 research-pipeline setup --skip-agents  # Skill only
 research-pipeline setup --skip-skill   # Agents only
+research-pipeline setup --skip-mcp     # Do not write MCP config snippet
 ```
 
 Installs:
 - Skill → `~/.claude/skills/research-pipeline/`
+- Skill → `~/.codex/skills/research-pipeline/`
 - Sub-agents → `~/.claude/agents/` (paper-analyzer, paper-screener, paper-synthesizer)
+- MCP config snippet → `~/.config/research-pipeline/mcp.json`
 
 The skill is structured per Anthropic's Skill-Building Guide (explicit
 trigger phrases, `license`/`compatibility` frontmatter, Examples section,
@@ -331,7 +318,7 @@ findings validated by `research-pipeline validate`).
 3. Add the CLI command in `src/research_pipeline/cli/cmd_<stage>.py`
 4. Register the command in `src/research_pipeline/cli/app.py`
 5. Add the stage to the orchestrator in `src/research_pipeline/pipeline/`
-6. Add MCP tool in `mcp_server/tools.py` and schema in `mcp_server/schemas.py`
+6. Add MCP tool in `src/research_pipeline/mcp_server/tools.py` and schema in `src/research_pipeline/mcp_server/schemas.py`
 7. Write unit tests in `tests/unit/test_<stage>.py`
 8. Run format, lint, type check, and tests before committing
 

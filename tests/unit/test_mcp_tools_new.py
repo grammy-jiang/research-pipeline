@@ -6,7 +6,7 @@ import json
 from pathlib import Path
 from unittest.mock import MagicMock, patch
 
-from mcp_server.schemas import (
+from research_pipeline.mcp_server.schemas import (
     AnalyzeClaimsInput,
     EvaluateInput,
     KGIngestInput,
@@ -17,7 +17,7 @@ from mcp_server.schemas import (
     MemoryStatsInput,
     ScoreClaimsInput,
 )
-from mcp_server.tools import (
+from research_pipeline.mcp_server.tools import (
     analyze_claims_tool,
     evaluate_tool,
     kg_ingest_tool,
@@ -75,7 +75,7 @@ class TestAnalyzeClaimsTool:
         }
 
         with (
-            patch("mcp_server.tools.decompose_paper", create=True),
+            patch("research_pipeline.mcp_server.tools.decompose_paper", create=True),
             patch.dict(
                 "sys.modules",
                 {

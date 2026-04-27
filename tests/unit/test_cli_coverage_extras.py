@@ -505,10 +505,12 @@ class TestSetupCommand:
         setup(
             skill_target="",
             agents_target="",
+            mcp_config_target="",
             symlink=False,
             force=False,
             skip_skill=False,
             skip_agents=False,
+            skip_mcp=False,
             verbose=False,
         )
 
@@ -520,6 +522,7 @@ class TestSetupCommand:
         assert kw["force"] is False
         assert kw["skip_skill"] is False
         assert kw["skip_agents"] is False
+        assert kw["skip_mcp"] is False
 
     @patch("research_pipeline.cli.cmd_setup.run_setup")
     @patch("research_pipeline.infra.logging.setup_logging")
@@ -533,20 +536,24 @@ class TestSetupCommand:
         setup(
             skill_target="/custom/skill",
             agents_target="/custom/agents",
+            mcp_config_target="/custom/mcp.json",
             symlink=True,
             force=True,
             skip_skill=True,
             skip_agents=True,
+            skip_mcp=True,
             verbose=True,
         )
 
         kw = mock_run_setup.call_args[1]
         assert kw["skill_target"] == Path("/custom/skill")
         assert kw["agents_target"] == Path("/custom/agents")
+        assert kw["mcp_config_target"] == Path("/custom/mcp.json")
         assert kw["symlink"] is True
         assert kw["force"] is True
         assert kw["skip_skill"] is True
         assert kw["skip_agents"] is True
+        assert kw["skip_mcp"] is True
 
     @patch("research_pipeline.cli.cmd_setup.run_setup")
     @patch("research_pipeline.infra.logging.setup_logging")
@@ -562,10 +569,12 @@ class TestSetupCommand:
         setup(
             skill_target="",
             agents_target="",
+            mcp_config_target="",
             symlink=False,
             force=False,
             skip_skill=False,
             skip_agents=False,
+            skip_mcp=False,
             verbose=True,
         )
         mock_logging.assert_called_once_with(level=logging.DEBUG)
@@ -597,6 +606,7 @@ class TestInstallSkillDeprecated:
         mock_run_setup.assert_called_once()
         kw = mock_run_setup.call_args[1]
         assert kw["skip_agents"] is True
+        assert kw["skip_mcp"] is True
 
     @patch("research_pipeline.cli.cmd_setup.run_setup")
     @patch("research_pipeline.infra.logging.setup_logging")

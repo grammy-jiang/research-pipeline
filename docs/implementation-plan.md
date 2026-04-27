@@ -78,7 +78,7 @@ Before starting implementation, be aware of these recent additions:
 - **Grobid backend removed** (was a placeholder)
 - **Tests added**: `test_conversion_fallback.py`,
   `test_conversion_online_backends.py`
-- **MCP server** (`mcp_server/tools.py`): Still uses old `_backend_kwargs()`
+- **MCP server** (`src/research_pipeline/mcp_server/tools.py`): Still uses old `_backend_kwargs()`
   pattern; does not support fallback yet — not blocking for this plan
 
 ---
@@ -905,6 +905,6 @@ src/research_pipeline/
   arxiv/rate_limit.py          (Phase 1.1 — refactor to use generic)
 config.example.toml            (all phases — document new options)
 pyproject.toml                 (Phases 2, 3 — new optional deps)
-mcp_server/tools.py            (Phases 2.7, 3.5, 4.5, 5.6, 7.6 — new MCP tools)
-mcp_server/schemas.py          (Phases 2.7, 3.5, 4.5, 5.6, 7.6 — new schemas)
+src/research_pipeline/mcp_server/tools.py            (Phases 2.7, 3.5, 4.5, 5.6, 7.6 — new MCP tools)
+src/research_pipeline/mcp_server/schemas.py          (Phases 2.7, 3.5, 4.5, 5.6, 7.6 — new schemas)
 ```

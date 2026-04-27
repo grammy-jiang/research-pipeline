@@ -144,14 +144,12 @@ src/research_pipeline/          # Main library (importable as research_pipeline)
     mcp_guard.py                # MCP tool registry, pinning, capability policies
     adversarial.py              # ToolTweak adversarial perturbation catalog
     trilemma.py                 # Defense-trilemma K^n budget monitor
-  llm/                          # LLM provider interface (experimental)
-
-mcp_server/                     # FastMCP server (separate top-level package)
+  mcp_server/                   # Packaged FastMCP server
     server.py                   # Server entry point, tool/resource/prompt registration
-    tools.py                    # 16 pipeline tool implementations (thin CLI adapters)
+    tools.py                    # MCP tool implementations (thin CLI adapters)
     schemas.py                  # Pydantic input/output schemas
-    resources.py                # 12 resource handlers (URI template based)
-    prompts.py                  # 5 prompt templates for research workflows
+    resources.py                # Resource handlers (URI template based)
+    prompts.py                  # Prompt templates for research workflows
     completions.py              # Auto-complete handler
     workflow/                   # Harness-engineered research workflow
       state.py                  # WorkflowState, stage transitions, persistence
@@ -160,8 +158,7 @@ mcp_server/                     # FastMCP server (separate top-level package)
       context.py                # Token budgets, 5-stage paper compaction (ACC)
       monitoring.py             # Doom-loop detection, iteration drift tracking
       research.py               # Main orchestrator (~1100 lines)
-
-.github/skills/research-pipeline/  # Bundled AI skill for Claude Code / Copilot
+  skill_data/research-pipeline/ # Bundled AI skill for Claude Code / Copilot
     SKILL.md                    # Skill definition (per Skill-Building Guide:
                                 # trigger phrases, license, compatibility,
                                 # examples, 4-round gap-closure loop,
@@ -171,6 +168,7 @@ mcp_server/                     # FastMCP server (separate top-level package)
                                 # query-optimization, sub-agents,
                                 # output-templates, iterative-synthesis,
                                 # troubleshooting)
+  agent_data/                   # Bundled custom/sub-agent definitions
 
 tests/
   unit/                         # 3700+ fast unit tests (no network)
@@ -194,7 +192,7 @@ can be re-run independently.
 - **Retry**: `@retry` decorator (`infra/retry.py`) — exponential backoff, jitter,
   Retry-After header support
 - **CLI entry point**: registered in `pyproject.toml` as `research-pipeline`
-- **MCP server**: `python -m mcp_server` — 51 tools (with annotations and
+- **MCP server**: `research-pipeline mcp serve` — 51 tools (with annotations and
   progress reporting), 15 resources (URI templates for run artifacts and
   workflow state), 6 prompts (research workflow templates), auto-completions,
   harness-engineered research workflow with sampling, elicitation, and
@@ -241,7 +239,7 @@ can be re-run independently.
 3. Add CLI command in `src/research_pipeline/cli/cmd_<stage>.py`
 4. Register in `src/research_pipeline/cli/app.py`
 5. Add stage to orchestrator in `src/research_pipeline/pipeline/`
-6. Add MCP tool in `mcp_server/tools.py` and schema in `mcp_server/schemas.py`
+6. Add MCP tool in `src/research_pipeline/mcp_server/tools.py` and schema in `src/research_pipeline/mcp_server/schemas.py`
 7. Write unit tests in `tests/unit/test_<stage>.py`
 8. Run format, lint, and tests before committing
 

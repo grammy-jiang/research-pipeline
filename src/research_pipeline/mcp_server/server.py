@@ -1,7 +1,7 @@
 """MCP server entry point for research-pipeline.
 
 Exposes pipeline stages as MCP tools via stdio transport.
-Run with: python -m mcp_server.server
+Run with: research-pipeline mcp serve
 """
 
 from __future__ import annotations
@@ -13,8 +13,8 @@ from pathlib import Path
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.types import ToolAnnotations
 
-from mcp_server import completions, prompts, resources
-from mcp_server.schemas import (
+from research_pipeline.mcp_server import completions, prompts, resources
+from research_pipeline.mcp_server.schemas import (
     AnalyzeClaimsInput,
     AnalyzePapersInput,
     CiteContextInput,
@@ -57,7 +57,7 @@ from mcp_server.schemas import (
     VerifyStageInput,
     WatchInput,
 )
-from mcp_server.tools import (
+from research_pipeline.mcp_server.tools import (
     adaptive_stopping_tool,
     aggregate_evidence_tool,
     analyze_claims_tool,
@@ -848,7 +848,7 @@ async def tool_model_routing_info(
     Returns which LLM provider is assigned to each phase tier
     (mechanical, intelligent, critical_safety) and the stage→tier mapping.
     """
-    from mcp_server.schemas import ModelRoutingInfoInput
+    from research_pipeline.mcp_server.schemas import ModelRoutingInfoInput
 
     params = ModelRoutingInfoInput(config_path=config_path)
     result = model_routing_info_tool(params=params)
@@ -871,7 +871,7 @@ async def tool_gate_info(
     Returns which stages have approval gates and whether
     gates are in auto-approve or interactive mode.
     """
-    from mcp_server.schemas import GateInfoInput
+    from research_pipeline.mcp_server.schemas import GateInfoInput
 
     params = GateInfoInput(config_path=config_path)
     result = gate_info_tool(params=params)
@@ -899,7 +899,7 @@ async def tool_coherence(
         run_ids: Two or more run IDs to evaluate.
         workspace: Workspace directory containing run outputs.
     """
-    from mcp_server.schemas import CoherenceInput
+    from research_pipeline.mcp_server.schemas import CoherenceInput
 
     params = CoherenceInput(run_ids=run_ids, workspace=workspace)
     result = coherence_tool(params=params)
@@ -936,7 +936,7 @@ async def tool_consolidation(
         threshold: Fraction of capacity triggering consolidation.
         min_support: Min run appearances for rule promotion.
     """
-    from mcp_server.schemas import ConsolidationInput
+    from research_pipeline.mcp_server.schemas import ConsolidationInput
 
     params = ConsolidationInput(
         workspace=workspace,
@@ -976,7 +976,7 @@ async def tool_blinding_audit(
         threshold: Contamination threshold for flagging papers.
         store_results: Whether to persist results to SQLite.
     """
-    from mcp_server.schemas import BlindingAuditInput
+    from research_pipeline.mcp_server.schemas import BlindingAuditInput
 
     params = BlindingAuditInput(
         workspace=workspace,
@@ -1018,7 +1018,7 @@ async def tool_dual_metrics(
         k: Number of samples for Pass@k / Pass[k] computation.
         store_results: Whether to persist results to SQLite.
     """
-    from mcp_server.schemas import DualMetricsInput
+    from research_pipeline.mcp_server.schemas import DualMetricsInput
 
     params = DualMetricsInput(
         workspace=workspace,
@@ -1056,7 +1056,7 @@ async def tool_cbr_lookup(
         max_results: Maximum number of similar cases to retrieve.
         min_quality: Minimum synthesis quality to consider.
     """
-    from mcp_server.schemas import CbrLookupInput
+    from research_pipeline.mcp_server.schemas import CbrLookupInput
 
     params = CbrLookupInput(
         workspace=workspace,
@@ -1095,7 +1095,7 @@ async def tool_cbr_retain(
         outcome: Quality outcome: excellent, good, adequate, poor, failed.
         strategy_notes: Free-text notes about the strategy used.
     """
-    from mcp_server.schemas import CbrRetainInput
+    from research_pipeline.mcp_server.schemas import CbrRetainInput
 
     params = CbrRetainInput(
         workspace=workspace,
@@ -1131,7 +1131,7 @@ async def tool_kg_quality(
         staleness_days: Threshold for timeliness staleness.
         sample_size: If > 0, also run TWCS sampling and return sample.
     """
-    from mcp_server.schemas import KGQualityInput
+    from research_pipeline.mcp_server.schemas import KGQualityInput
 
     params = KGQualityInput(
         db_path=db_path,
@@ -1173,7 +1173,7 @@ async def tool_adaptive_stopping(
         max_budget: Hard budget limit on total results.
         relevance_threshold: Score threshold for relevant results.
     """
-    from mcp_server.schemas import AdaptiveStoppingInput
+    from research_pipeline.mcp_server.schemas import AdaptiveStoppingInput
 
     params = AdaptiveStoppingInput(
         batch_scores=batch_scores,
@@ -1216,7 +1216,7 @@ async def tool_confidence_layers(
         damping: Fusion damping exponent (0-1).
         calibrate: Whether to fit Platt scaling from prior scored claims.
     """
-    from mcp_server.schemas import ConfidenceLayersInput
+    from research_pipeline.mcp_server.schemas import ConfidenceLayersInput
 
     params = ConfidenceLayersInput(
         run_id=run_id,
@@ -1267,7 +1267,7 @@ async def tool_research_workflow(
     - Without sampling capability: pipeline-only mode (no LLM analysis)
     - Without elicitation capability: uses sensible defaults at gates
     """
-    from mcp_server.workflow.research import run_research_workflow
+    from research_pipeline.mcp_server.workflow.research import run_research_workflow
 
     return await run_research_workflow(
         topic=topic,
@@ -1970,7 +1970,7 @@ def resource_global_index() -> str:
 )
 def resource_workflow_state(run_id: str) -> str:
     """Read the workflow state for a run."""
-    from mcp_server.workflow.state import load_state
+    from research_pipeline.mcp_server.workflow.state import load_state
 
     state = load_state("./workspace", run_id)
     if state is None:
@@ -2006,7 +2006,7 @@ def resource_workflow_telemetry(run_id: str) -> str:
 )
 def resource_workflow_budget(run_id: str) -> str:
     """Read context budget for a run."""
-    from mcp_server.workflow.state import load_state
+    from research_pipeline.mcp_server.workflow.state import load_state
 
     state = load_state("./workspace", run_id)
     if state is None:

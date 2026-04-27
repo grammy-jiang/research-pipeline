@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from mcp_server import prompts
-from mcp_server.server import mcp
+from research_pipeline.mcp_server import prompts
+from research_pipeline.mcp_server.server import mcp
 
 
 class TestPromptRegistration:

@@ -15,19 +15,19 @@ from unittest.mock import patch
 
 import pytest
 
-from mcp_server.workflow.monitoring import IterationMetrics
-from mcp_server.workflow.research import (
+from research_pipeline.mcp_server.workflow.monitoring import IterationMetrics
+from research_pipeline.mcp_server.workflow.research import (
     _build_result,
     _parse_json_response,
     run_research_workflow,
 )
-from mcp_server.workflow.state import (
+from research_pipeline.mcp_server.workflow.state import (
     StageStatus,
     WorkflowState,
     load_state,
     save_state,
 )
-from mcp_server.workflow.telemetry import WorkflowTelemetry
+from research_pipeline.mcp_server.workflow.telemetry import WorkflowTelemetry
 
 
 class TestParseJsonResponse:
@@ -142,7 +142,9 @@ class TestWorkflowWithoutSampling:
         """Without a context, workflow should complete pipeline stages only."""
         run_id = "test-no-ctx"
 
-        with patch("mcp_server.workflow.research._execute_pipeline_stage") as mock_exec:
+        with patch(
+            "research_pipeline.mcp_server.workflow.research._execute_pipeline_stage"
+        ) as mock_exec:
             mock_exec.return_value = {
                 "success": True,
                 "message": "Stage completed",
@@ -183,7 +185,9 @@ class TestWorkflowRecovery:
 
         _create_mock_stage_output(workspace, run_id)
 
-        with patch("mcp_server.workflow.research._execute_pipeline_stage") as mock_exec:
+        with patch(
+            "research_pipeline.mcp_server.workflow.research._execute_pipeline_stage"
+        ) as mock_exec:
             mock_exec.return_value = {
                 "success": True,
                 "message": "Stage completed",
@@ -210,7 +214,9 @@ class TestWorkflowStateTransitions:
         """Failed stage should still persist state for recovery."""
         run_id = "fail-test"
 
-        with patch("mcp_server.workflow.research._execute_pipeline_stage") as mock_exec:
+        with patch(
+            "research_pipeline.mcp_server.workflow.research._execute_pipeline_stage"
+        ) as mock_exec:
             mock_exec.return_value = {
                 "success": False,
                 "message": "Plan generation failed",
@@ -240,7 +246,9 @@ class TestWorkflowHarnessIntegration:
         run_id = "telemetry-test"
         _create_mock_stage_output(workspace, run_id)
 
-        with patch("mcp_server.workflow.research._execute_pipeline_stage") as mock_exec:
+        with patch(
+            "research_pipeline.mcp_server.workflow.research._execute_pipeline_stage"
+        ) as mock_exec:
             mock_exec.return_value = {
                 "success": True,
                 "message": "OK",
@@ -268,7 +276,9 @@ class TestWorkflowHarnessIntegration:
         run_id = "verify-test"
         _create_mock_stage_output(workspace, run_id)
 
-        with patch("mcp_server.workflow.research._execute_pipeline_stage") as mock_exec:
+        with patch(
+            "research_pipeline.mcp_server.workflow.research._execute_pipeline_stage"
+        ) as mock_exec:
             mock_exec.return_value = {
                 "success": True,
                 "message": "OK",

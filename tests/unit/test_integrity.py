@@ -1,6 +1,9 @@
 """Unit tests for MCP tool description integrity hashing."""
 
-from mcp_server.integrity import compute_tool_hashes, verify_tool_integrity
+from research_pipeline.mcp_server.integrity import (
+    compute_tool_hashes,
+    verify_tool_integrity,
+)
 
 SAMPLE_TOOLS = [
     {"name": "search", "description": "Search for academic papers"},
