@@ -43,7 +43,7 @@ dependencies = [
   "tomli>=2.0;python_version<'3.11'",
   "rank-bm25>=0.2,<1",
   "mcp[cli]>=1.0",
-  "lxml>=6.0.2"
+  "lxml>=6.1.0"
 ]
 
 [project.optional-dependencies]
