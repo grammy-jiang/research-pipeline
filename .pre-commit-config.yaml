@@ -22,6 +22,7 @@ repos:
       - id: check-ast
       - id: name-tests-test
         args: ['--pytest-test-first']
+        exclude: '^tests/unit/_dossier_fixtures\.py$'
       - id: check-docstring-first
 
   # Python linting and formatting (Ruff replaces Black + isort)

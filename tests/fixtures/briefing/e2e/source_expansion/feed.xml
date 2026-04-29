@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>AI Changelog</title>
+    <link>https://example.com/changelog</link>
+    <description>Example AI changelog feed</description>
+    <item>
+      <title>New MCP server release</title>
+      <link>https://example.com/changelog/mcp-1</link>
+      <guid>https://example.com/changelog/mcp-1</guid>
+      <pubDate>Wed, 30 Apr 2026 12:00:00 +0000</pubDate>
+      <description>An MCP server release announcement.</description>
+    </item>
+    <item>
+      <title>Agent framework update</title>
+      <link>https://example.com/changelog/agent-1</link>
+      <guid>https://example.com/changelog/agent-1</guid>
+      <pubDate>Wed, 30 Apr 2026 13:00:00 +0000</pubDate>
+      <description>Agent framework adds new tooling.</description>
+    </item>
+  </channel>
+</rss>

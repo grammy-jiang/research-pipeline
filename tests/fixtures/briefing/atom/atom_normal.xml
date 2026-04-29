@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>Example Atom</title>
+  <entry>
+    <id>atom-item-1</id>
+    <title>Atom Entry Release</title>
+    <updated>2026-04-29T09:30:00Z</updated>
+    <link href="https://example.com/atom/releases/1" />
+    <summary>Atom entry with conservative fields.</summary>
+  </entry>
+</feed>

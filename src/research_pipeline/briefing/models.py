@@ -38,6 +38,10 @@ class AccessMethod(StrEnum):
     HACKER_NEWS = "hacker_news"
     HUGGINGFACE_PAPERS = "huggingface_papers"
     API = "api"
+    REDDIT_API = "reddit_api"
+    BLUESKY_API = "bluesky_api"
+    X_API = "x_api"
+    VIDEO_AUDIO = "video_audio"
 
 
 class SourcePolicy(StrEnum):
@@ -101,6 +105,9 @@ class BriefingSourceConfig(BaseModel):
                 AccessMethod.HACKER_NEWS,
                 AccessMethod.HUGGINGFACE_PAPERS,
                 AccessMethod.ARXIV,
+                AccessMethod.REDDIT_API,
+                AccessMethod.BLUESKY_API,
+                AccessMethod.VIDEO_AUDIO,
             }
             and self.fixture_path is None
             and self.api_url is None
@@ -242,6 +249,38 @@ class TopicMemory(BaseModel):
     report_count_30d: int = 0
 
 
+class TopicMemoryWriteRecord(BaseModel):
+    """Auditable metadata captured for every durable topic-memory write."""
+
+    model_config = ConfigDict(frozen=True)
+
+    timestamp: str
+    topic_id: str
+    trigger: str
+    effect: str
+    rollback: str
+    source_cluster_ids: tuple[str, ...] = ()
+    source_event_ids: tuple[str, ...] = ()
+    owner: str
+    review_required: bool = False
+    review_record: str = ""
+
+    @model_validator(mode="after")
+    def validate_write_metadata(self) -> TopicMemoryWriteRecord:
+        """Require provenance and ownership for every memory write."""
+        if not any((self.source_cluster_ids, self.source_event_ids)):
+            raise ValueError("at least one source cluster or event ID is required")
+        if not self.trigger.strip():
+            raise ValueError("trigger is required")
+        if not self.effect.strip():
+            raise ValueError("effect is required")
+        if not self.rollback.strip():
+            raise ValueError("rollback is required")
+        if not self.owner.strip():
+            raise ValueError("owner is required")
+        return self
+
+
 class TopicAliasSuggestion(BaseModel):
     """Reviewable topic alias/merge suggestion."""
 
@@ -254,6 +293,15 @@ class TopicAliasSuggestion(BaseModel):
     reason: str
     status: Literal["pending", "approved", "rejected"] = "pending"
     review_record: str = ""
+
+    @model_validator(mode="after")
+    def validate_review_state(self) -> TopicAliasSuggestion:
+        """Require an explicit review record after approval or rejection."""
+        if self.status != "pending" and not self.review_record.strip():
+            raise ValueError(
+                "review_record is required once a suggestion is approved or rejected"
+            )
+        return self
 
 
 class BriefingWorkflowState(BaseModel):

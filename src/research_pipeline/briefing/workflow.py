@@ -24,13 +24,18 @@ from research_pipeline.briefing.registry import (
 from research_pipeline.briefing.report import render_daily_brief
 from research_pipeline.briefing.sources.arxiv_events import ArxivEventsSource
 from research_pipeline.briefing.sources.base import BriefingSource
+from research_pipeline.briefing.sources.bluesky import BlueskySource
 from research_pipeline.briefing.sources.github_releases import GitHubReleasesSource
 from research_pipeline.briefing.sources.hacker_news import HackerNewsSource
 from research_pipeline.briefing.sources.huggingface_papers import (
     HuggingFacePapersSource,
 )
 from research_pipeline.briefing.sources.manual import ManualSource
+from research_pipeline.briefing.sources.papers import PaperEventsSource
+from research_pipeline.briefing.sources.reddit import RedditSource
 from research_pipeline.briefing.sources.rss_atom import RssAtomSource
+from research_pipeline.briefing.sources.video_audio import VideoAudioSource
+from research_pipeline.briefing.sources.x_api import XApiSource
 from research_pipeline.briefing.telemetry import BriefingTelemetry
 from research_pipeline.briefing.topic_memory import TopicMemoryStore
 from research_pipeline.briefing.validate import (
@@ -263,9 +268,21 @@ def _adapter_for(
     if source.access_method == AccessMethod.HACKER_NEWS:
         return HackerNewsSource(source, fixture_base_dir=fixture_base_dir)
     if source.access_method == AccessMethod.HUGGINGFACE_PAPERS:
+        if source.fixture_path and source.fixture_path.endswith(".json"):
+            return PaperEventsSource(source, fixture_base_dir=fixture_base_dir)
         return HuggingFacePapersSource(source, fixture_base_dir=fixture_base_dir)
     if source.access_method == AccessMethod.ARXIV:
+        if source.fixture_path and source.fixture_path.endswith((".jsonl", ".json")):
+            return PaperEventsSource(source, fixture_base_dir=fixture_base_dir)
         return ArxivEventsSource(source, fixture_base_dir=fixture_base_dir)
+    if source.access_method == AccessMethod.REDDIT_API:
+        return RedditSource(source, fixture_base_dir=fixture_base_dir)
+    if source.access_method == AccessMethod.BLUESKY_API:
+        return BlueskySource(source, fixture_base_dir=fixture_base_dir)
+    if source.access_method == AccessMethod.VIDEO_AUDIO:
+        return VideoAudioSource(source, fixture_base_dir=fixture_base_dir)
+    if source.access_method == AccessMethod.X_API:
+        return XApiSource(source, fixture_base_dir=fixture_base_dir)
     raise ValueError(
         f"unsupported briefing source access method: {source.access_method}"
     )

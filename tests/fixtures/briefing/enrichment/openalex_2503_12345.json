@@ -1,0 +1,10 @@
+{
+  "id": "https://openalex.org/W2503012345",
+  "doi": "10.48550/arXiv.2503.12345",
+  "cited_by_count": 12,
+  "open_access": {"oa_url": "https://arxiv.org/pdf/2503.12345"},
+  "concepts": [
+    {"display_name": "Authentication"},
+    {"display_name": "Multi-agent systems"}
+  ]
+}

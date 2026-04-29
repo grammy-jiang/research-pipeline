@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom" xmlns:yt="http://www.youtube.com/xml/schemas/2015">
+  <title>Example AI Channel</title>
+  <entry>
+    <id>yt:video:abc123XYZ</id>
+    <yt:videoId>abc123XYZ</yt:videoId>
+    <title>Building Reliable AI Agents</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=abc123XYZ"/>
+    <published>2026-04-29T15:00:00+00:00</published>
+    <author><name>Example AI Channel</name></author>
+  </entry>
+  <entry>
+    <id>yt:video:def456ABC</id>
+    <yt:videoId>def456ABC</yt:videoId>
+    <title>Memory Systems for LLMs Explained</title>
+    <link rel="alternate" href="https://www.youtube.com/watch?v=def456ABC"/>
+    <published>2026-04-30T15:00:00+00:00</published>
+    <author><name>Example AI Channel</name></author>
+  </entry>
+</feed>

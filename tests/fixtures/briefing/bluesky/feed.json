@@ -1,0 +1,28 @@
+{
+  "feed": [
+    {
+      "post": {
+        "uri": "at://did:plc:example1/app.bsky.feed.post/aaa",
+        "cid": "bafycid111",
+        "url": "https://bsky.app/profile/example.bsky.social/post/aaa",
+        "author": {"did": "did:plc:example1", "handle": "example.bsky.social"},
+        "record": {
+          "text": "New benchmark for AI agent evaluation released today.",
+          "createdAt": "2026-04-30T09:15:00Z"
+        }
+      }
+    },
+    {
+      "post": {
+        "uri": "at://did:plc:example2/app.bsky.feed.post/bbb",
+        "cid": "bafycid222",
+        "url": "https://bsky.app/profile/another.bsky.social/post/bbb",
+        "author": {"did": "did:plc:example2", "handle": "another.bsky.social"},
+        "record": {
+          "text": "Memory architectures for long-running LLM agents.",
+          "createdAt": "2026-04-30T10:30:00Z"
+        }
+      }
+    }
+  ]
+}

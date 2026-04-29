@@ -4,11 +4,13 @@ from __future__ import annotations
 
 from collections import Counter
 
+from research_pipeline.briefing.memory_lookup import lookup_recent_topic_context
 from research_pipeline.briefing.models import (
     BriefingCluster,
     IntelligenceEvent,
     SourceClass,
 )
+from research_pipeline.briefing.topic_memory_store import TopicMemoryStore
 
 
 def render_daily_brief(
@@ -17,8 +19,15 @@ def render_daily_brief(
     run_date: str,
     status: str = "draft",
     quiet_sources: list[str] | None = None,
+    topic_memory: TopicMemoryStore | None = None,
+    dossier_links: list[tuple[str, str]] | None = None,
 ) -> str:
-    """Render an extractive daily Markdown brief."""
+    """Render an extractive daily Markdown brief.
+
+    ``dossier_links`` is an optional ordered list of ``(title, path_or_url)``
+    tuples for any manually generated Phase E dossiers. When supplied a
+    ``## Linked Dossiers`` section is rendered just below ``## Top Items``.
+    """
     quiet_sources = quiet_sources or []
     item_count = len(clusters)
     link_count = sum(len(cluster.canonical_urls[:1]) for cluster in clusters)
@@ -66,7 +75,13 @@ def render_daily_brief(
     lines.extend(["", "## Top Items", ""])
     if clusters:
         for index, cluster in enumerate(clusters, start=1):
-            lines.extend(_render_cluster_item(index, cluster))
+            lines.extend(
+                _render_cluster_item(
+                    index,
+                    cluster,
+                    topic_memory=topic_memory,
+                )
+            )
     else:
         lines.append("No ranked items passed the inclusion threshold today.")
         lines.append("")
@@ -98,6 +113,10 @@ def render_daily_brief(
             lines.append(f"- Open [{cluster.title}]({url}) and decide feedback.")
     else:
         lines.append("- Re-run after the next scheduled source cadence.")
+    if dossier_links:
+        lines.extend(["", "## Linked Dossiers", ""])
+        for title, link in dossier_links:
+            lines.append(f"- [{title}]({link})")
     lines.extend(["", "## Suppressed / Not Reported", ""])
     lines.append("Repeated, low-novelty, or hype-heavy topics are suppressed.")
     lines.extend(["", "## No Material Updates", ""])
@@ -184,7 +203,12 @@ def render_weekly_synthesis(
     return "\n".join(lines)
 
 
-def _render_cluster_item(index: int, cluster: BriefingCluster) -> list[str]:
+def _render_cluster_item(
+    index: int,
+    cluster: BriefingCluster,
+    *,
+    topic_memory: TopicMemoryStore | None = None,
+) -> list[str]:
     topic = cluster.topic_ids[0] if cluster.topic_ids else "topic_general"
     source_class = (
         cluster.source_classes[0].value if cluster.source_classes else "unknown"
@@ -193,7 +217,8 @@ def _render_cluster_item(index: int, cluster: BriefingCluster) -> list[str]:
     primary = _primary_event(cluster)
     summary = _summary_text(primary, cluster)
     label = _evidence_label(cluster.evidence_type)
-    return [
+    prior_context = _prior_context_text(cluster, topic_memory)
+    lines = [
         f"### {index}. {cluster.title} `{cluster.cluster_id}`",
         "",
         "| Field | Value |",
@@ -217,6 +242,33 @@ def _render_cluster_item(index: int, cluster: BriefingCluster) -> list[str]:
         f"evidence_type={cluster.evidence_type}.",
         "",
     ]
+    if prior_context:
+        lines.insert(-2, f"**Prior context:** {prior_context}")
+        lines.insert(-2, "")
+    return lines
+
+
+def _prior_context_text(
+    cluster: BriefingCluster,
+    topic_memory: TopicMemoryStore | None,
+) -> str | None:
+    if topic_memory is None:
+        return None
+    memories = lookup_recent_topic_context(topic_memory, cluster)
+    if not memories:
+        return None
+    memory = memories[0]
+    if cluster.novelty_type == "resurfaced" or memory.status == "resurfaced":
+        return (
+            f"resurfaced topic; last reported {memory.last_reported_at}; "
+            f"seen {memory.report_count_30d} times in 30d."
+        )
+    if cluster.fatigue_penalty > 0.0 or cluster.novelty_type == "cooling":
+        return (
+            f"repeated topic; last reported {memory.last_reported_at}; "
+            f"fatigue={memory.fatigue_score:.2f}."
+        )
+    return None
 
 
 def _section_for_class(

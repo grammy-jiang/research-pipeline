@@ -2,25 +2,121 @@
 
 from __future__ import annotations
 
+from enum import StrEnum
 from pathlib import Path
+from typing import Literal
+
+from pydantic import BaseModel, ConfigDict, model_validator
 
 from research_pipeline.briefing.models import BriefingCluster, TopicDossier
 from research_pipeline.briefing.normalize import stable_hash
 
 
+class FactualityLabel(StrEnum):
+    """Phase E factuality labels for dossier claims.
+
+    Every important dossier claim must carry one of these labels.
+    `supported_fact` claims must additionally cite an evidence URL.
+    """
+
+    SUPPORTED_FACT = "supported_fact"
+    INFERENCE = "inference"
+    SPECULATION_OR_WATCH_ITEM = "speculation_or_watch_item"
+
+
+class EvidenceTimelineEntry(BaseModel):
+    """One row of a dossier evidence timeline."""
+
+    model_config = ConfigDict(frozen=True)
+
+    date: str
+    evidence_url: str
+    source_class: str
+    note: str
+    origin: Literal["cluster_event", "topic_memory"] = "cluster_event"
+
+    @model_validator(mode="after")
+    def _validate(self) -> EvidenceTimelineEntry:
+        if not self.date.strip():
+            raise ValueError("timeline entry date is required")
+        if not self.evidence_url.strip():
+            raise ValueError("timeline entry evidence_url is required")
+        if not (
+            self.evidence_url.startswith("http://")
+            or self.evidence_url.startswith("https://")
+            or self.evidence_url.startswith("obsidian://")
+        ):
+            raise ValueError(
+                "timeline entry evidence_url must be http(s) or obsidian:// URL"
+            )
+        return self
+
+
+class DossierClaim(BaseModel):
+    """A single labeled claim that appears in a dossier."""
+
+    model_config = ConfigDict(frozen=True)
+
+    text: str
+    label: FactualityLabel
+    evidence_url: str | None = None
+
+    @model_validator(mode="after")
+    def _validate(self) -> DossierClaim:
+        if not self.text.strip():
+            raise ValueError("claim text is required")
+        if (
+            self.label == FactualityLabel.SUPPORTED_FACT
+            and not (self.evidence_url or "").strip()
+        ):
+            raise ValueError("supported_fact claims require a non-empty evidence_url")
+        if (
+            self.evidence_url is not None
+            and self.evidence_url.strip()
+            and not (
+                self.evidence_url.startswith("http://")
+                or self.evidence_url.startswith("https://")
+            )
+        ):
+            raise ValueError("claim evidence_url must be http(s)")
+        return self
+
+
 def build_dossier(cluster: BriefingCluster, *, run_date: str) -> TopicDossier:
     """Build a single-cluster dossier from primary evidence."""
+    from research_pipeline.briefing.dossier_timeline import build_evidence_timeline
+
     if not cluster.primary_artifact_present:
-        raise ValueError("dossier generation requires at least one primary artifact")
+        raise ValueError(
+            f"dossier generation requires a primary artifact "
+            f"(cluster_id={cluster.cluster_id})"
+        )
+    if not cluster.canonical_urls:
+        raise ValueError(
+            f"dossier generation requires at least one canonical URL "
+            f"(cluster_id={cluster.cluster_id})"
+        )
+    if len(cluster.topic_ids) > 1:
+        raise ValueError(
+            f"dossier focuses on one topic only; got "
+            f"{len(cluster.topic_ids)} (cluster_id={cluster.cluster_id})"
+        )
+    if not cluster.events:
+        raise ValueError(
+            f"dossier requires at least one cluster event "
+            f"(cluster_id={cluster.cluster_id})"
+        )
     topic_id = cluster.topic_ids[0] if cluster.topic_ids else "topic_general"
+    entries = build_evidence_timeline(cluster)
     timeline = tuple(
         {
-            "date": event.published_at or event.retrieved_at[:10],
-            "evidence": str(event.canonical_url),
-            "source_class": event.source_type.value,
-            "note": event.title,
+            "date": entry.date,
+            "evidence": entry.evidence_url,
+            "source_class": entry.source_class,
+            "note": entry.note,
+            "origin": entry.origin,
         }
-        for event in cluster.events
+        for entry in entries
     )
     return TopicDossier(
         dossier_id=stable_hash(run_date, cluster.cluster_id, prefix="dossier_"),
@@ -141,3 +237,25 @@ def write_dossier(path: Path, markdown: str) -> None:
     """Write dossier Markdown."""
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(markdown, encoding="utf-8")
+
+
+def write_dossier_with_archive(
+    path: Path,
+    markdown: str,
+    *,
+    archive_path: Path | None = None,
+) -> tuple[Path, Path | None]:
+    """Write dossier Markdown and optionally mirror to an archive path.
+
+    Returns ``(primary_path, archive_path_written)``. The archive copy is
+    only written when ``archive_path`` is supplied. Both writes are
+    idempotent: re-running with identical markdown produces identical
+    files.
+    """
+    write_dossier(path, markdown)
+    archived: Path | None = None
+    if archive_path is not None:
+        archive_path.parent.mkdir(parents=True, exist_ok=True)
+        archive_path.write_text(markdown, encoding="utf-8")
+        archived = archive_path
+    return path, archived

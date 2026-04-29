@@ -86,25 +86,14 @@ class TopicMemoryStore:
         ).fetchone()
         if row is None:
             return None
-        return TopicMemory(
-            topic_id=row["topic_id"],
-            name=row["name"],
-            aliases=tuple(filter(None, row["aliases"].split(","))),
-            first_seen_at=row["first_seen_at"],
-            last_seen_at=row["last_seen_at"],
-            status=row["status"],
-            summary=row["summary"],
-            key_entities=tuple(filter(None, row["key_entities"].split(","))),
-            canonical_clusters=tuple(
-                filter(None, row["canonical_clusters"].split(","))
-            ),
-            obsidian_note=row["obsidian_note"],
-            interest_score=float(row["interest_score"]),
-            fatigue_score=float(row["fatigue_score"]),
-            last_reported_at=row["last_reported_at"],
-            report_count_7d=int(row["report_count_7d"]),
-            report_count_30d=int(row["report_count_30d"]),
-        )
+        return self._row_to_memory(row)
+
+    def list_memories(self) -> list[TopicMemory]:
+        """List all topic memories in deterministic order."""
+        rows = self._conn.execute(
+            "SELECT * FROM topic_memory ORDER BY topic_id ASC"
+        ).fetchall()
+        return [self._row_to_memory(row) for row in rows]
 
     def upsert_from_clusters(
         self, clusters: list[BriefingCluster], run_date: str
@@ -200,6 +189,10 @@ class TopicMemoryStore:
         self, suggestion_id: str, *, approve: bool, review_record: str
     ) -> TopicAliasSuggestion:
         """Approve or reject a pending alias suggestion."""
+        if not review_record.strip():
+            raise ValueError(
+                "review_record is required once a suggestion is approved or rejected"
+            )
         row = self._conn.execute(
             "SELECT * FROM topic_alias_suggestions WHERE suggestion_id = ?",
             (suggestion_id,),
@@ -327,4 +320,25 @@ class TopicMemoryStore:
             VALUES (?, ?, ?, ?, ?)
             """,
             (timestamp, topic_id, trigger, effect, rollback),
+        )
+
+    def _row_to_memory(self, row: sqlite3.Row) -> TopicMemory:
+        return TopicMemory(
+            topic_id=row["topic_id"],
+            name=row["name"],
+            aliases=tuple(filter(None, row["aliases"].split(","))),
+            first_seen_at=row["first_seen_at"],
+            last_seen_at=row["last_seen_at"],
+            status=row["status"],
+            summary=row["summary"],
+            key_entities=tuple(filter(None, row["key_entities"].split(","))),
+            canonical_clusters=tuple(
+                filter(None, row["canonical_clusters"].split(","))
+            ),
+            obsidian_note=row["obsidian_note"],
+            interest_score=float(row["interest_score"]),
+            fatigue_score=float(row["fatigue_score"]),
+            last_reported_at=row["last_reported_at"],
+            report_count_7d=int(row["report_count_7d"]),
+            report_count_30d=int(row["report_count_30d"]),
         )

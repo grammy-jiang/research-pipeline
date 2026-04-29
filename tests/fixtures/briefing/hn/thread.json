@@ -1,0 +1,15 @@
+{
+  "hits": [
+    {
+      "objectID": "555",
+      "title": "Long-running discussion on AI agent reliability",
+      "url": "https://example.com/agent-reliability",
+      "created_at": "2026-04-29T10:00:00Z",
+      "story_text": "Initial post.",
+      "kids": [
+        {"objectID": "555-1", "comment_text": "Great point about reliability."},
+        {"objectID": "555-2", "comment_text": "Counterpoint: edge cases matter."}
+      ]
+    }
+  ]
+}

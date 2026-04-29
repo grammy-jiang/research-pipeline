@@ -1,0 +1,25 @@
+watchlist_terms = ["MCP", "agent"]
+
+[[sources]]
+source_id = "ai-changelog"
+source_name = "AI Changelog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+fixture_path = "feed.xml"
+trust_weight = 0.9
+noise_weight = 0.2
+enabled = true
+max_events_per_run = 5
+
+[[sources]]
+source_id = "bluesky-ai"
+source_name = "Bluesky AI feed"
+source_class = "social_signal"
+access_method = "bluesky_api"
+fixture_path = "bluesky.json"
+trust_weight = 0.4
+noise_weight = 0.6
+enabled = true
+max_events_per_run = 3
+last_reviewed_at = "2026-04-30"
+tags = ["policy_gate_passed"]

@@ -1,0 +1,18 @@
+[
+  {
+    "id": 2001,
+    "tag_name": "v2.1.0",
+    "name": "Claude Code v2.1.0",
+    "html_url": "https://github.com/anthropics/claude-code/releases/tag/v2.1.0",
+    "published_at": "2026-05-01T10:00:00Z",
+    "body": "Adds multi-agent coordination and improved tool calling."
+  },
+  {
+    "id": 2000,
+    "tag_name": "v2.0.0",
+    "name": "Claude Code v2.0.0",
+    "html_url": "https://github.com/anthropics/claude-code/releases/tag/v2.0.0",
+    "published_at": "2026-04-28T10:00:00Z",
+    "body": "Major release with MCP server improvements."
+  }
+]

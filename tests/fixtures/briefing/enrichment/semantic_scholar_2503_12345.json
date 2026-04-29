@@ -1,0 +1,8 @@
+{
+  "paperId": "abc123",
+  "citationCount": 8,
+  "influentialCitationCount": 2,
+  "venue": "NeurIPS",
+  "fieldsOfStudy": ["Computer Science"],
+  "externalIds": {"DOI": "10.48550/arXiv.2503.12345"}
+}

@@ -1,13 +1,35 @@
-"""Explicit feedback store and reversible preference adjustments."""
+"""Explicit feedback domain logic.
+
+This module owns the Phase D explicit-feedback domain surface:
+
+* ``FeedbackEvent`` and ``FeedbackSignal`` re-exports from :mod:`models`.
+* Signal classification (positive/negative/neutral).
+* Pure validation helpers used by the CLI, store, manual-review importer,
+  and audit module.
+
+The SQLite-backed event store lives in
+:mod:`research_pipeline.briefing.feedback_store` (Phase D02).  This module
+keeps the store class as ``BriefingFeedbackStore`` for backward
+compatibility with Phase A/B/C call sites that imported it from here.
+"""
 
 from __future__ import annotations
 
 import json
 import sqlite3
+import uuid
 from pathlib import Path
+from typing import Literal, get_args
 
 from research_pipeline.briefing.models import FeedbackEvent, FeedbackSignal
 from research_pipeline.briefing.normalize import stable_hash, utc_now_iso
+
+#: Allowed feedback target types (Literal in :class:`FeedbackEvent`).
+ALLOWED_TARGET_TYPES: frozenset[str] = frozenset(
+    get_args(FeedbackEvent.model_fields["target_type"].annotation)
+)
+
+SignalClass = Literal["positive", "negative", "neutral"]
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS feedback_events (
@@ -50,6 +72,74 @@ NEGATIVE_SIGNALS = {
     FeedbackSignal.WRONG_CADENCE,
 }
 
+NEUTRAL_SIGNALS = {FeedbackSignal.NEUTRAL}
+
+
+def classify_signal(signal: FeedbackSignal) -> SignalClass:
+    """Classify a feedback signal as positive, negative, or neutral.
+
+    A signal that is not registered in any of the three explicit sets is
+    rejected as malformed; this guards against silently absorbing
+    behavioral signals.
+    """
+    if signal in POSITIVE_SIGNALS:
+        return "positive"
+    if signal in NEGATIVE_SIGNALS:
+        return "negative"
+    if signal in NEUTRAL_SIGNALS:
+        return "neutral"
+    raise ValueError(f"unsupported feedback signal: {signal!r}")
+
+
+def validate_feedback_input(
+    *,
+    target_type: str,
+    target_id: str,
+    signal: FeedbackSignal | str,
+    strength: float = 1.0,
+) -> tuple[str, FeedbackSignal, float]:
+    """Validate explicit feedback inputs before they reach the store.
+
+    Returns a ``(target_type, signal, strength)`` triple normalised into
+    canonical types.  Raises :class:`ValueError` for malformed input so
+    callers can surface a deterministic non-zero exit status.
+    """
+    if target_type not in ALLOWED_TARGET_TYPES:
+        raise ValueError(
+            f"unsupported feedback target_type: {target_type!r}; "
+            f"allowed: {sorted(ALLOWED_TARGET_TYPES)}"
+        )
+    if not isinstance(target_id, str) or not target_id.strip():
+        raise ValueError("feedback target_id must be a non-empty string")
+    if "\n" in target_id or "\t" in target_id or " " in target_id.strip(" "):
+        # Accept bare alphanumerics, dots, dashes, underscores, colons.
+        # Reject embedded whitespace/newlines that would corrupt audit rows.
+        raise ValueError(f"feedback target_id is malformed: {target_id!r}")
+    if isinstance(signal, str):
+        try:
+            signal_obj = FeedbackSignal(signal)
+        except ValueError as exc:
+            raise ValueError(f"unsupported feedback signal: {signal!r}") from exc
+    else:
+        signal_obj = signal
+    # Trigger classification so behavioral / unknown signals are rejected.
+    classify_signal(signal_obj)
+    if not (0.0 <= strength <= 5.0):
+        raise ValueError(f"feedback strength out of range [0,5]: {strength!r}")
+    return target_type, signal_obj, float(strength)
+
+
+def is_conflicting(events: list[FeedbackEvent]) -> bool:
+    """Return True if a target has both positive and negative feedback."""
+    has_pos = any(event.signal_type in POSITIVE_SIGNALS for event in events)
+    has_neg = any(event.signal_type in NEGATIVE_SIGNALS for event in events)
+    return has_pos and has_neg
+
+
+def feedback_target_key(target_type: str, target_id: str) -> str:
+    """Return the canonical ``"<type>:<id>"`` key used by the store."""
+    return f"{target_type}:{target_id}"
+
 
 class BriefingFeedbackStore:
     """SQLite-backed store for briefing feedback and preference adjustments."""
@@ -77,7 +167,17 @@ class BriefingFeedbackStore:
         context: dict[str, str] | None = None,
     ) -> FeedbackEvent:
         """Record a feedback event."""
+        target_type, signal, strength = validate_feedback_input(
+            target_type=target_type,
+            target_id=target_id,
+            signal=signal,
+            strength=strength,
+        )
         timestamp = utc_now_iso()
+        # Include a per-call uuid so repeated identical feedback in the same
+        # second still produces a unique audit row; the hash remains
+        # deterministic for any single record.
+        nonce = uuid.uuid4().hex
         feedback = FeedbackEvent(
             feedback_id=stable_hash(
                 timestamp,
@@ -85,6 +185,7 @@ class BriefingFeedbackStore:
                 target_id,
                 signal.value,
                 reason,
+                nonce,
                 prefix="feedback_",
             ),
             timestamp=timestamp,

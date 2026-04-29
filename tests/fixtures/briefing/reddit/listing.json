@@ -1,0 +1,32 @@
+{
+  "data": {
+    "children": [
+      {
+        "data": {
+          "id": "abc123",
+          "title": "Best practices for MCP tool authentication",
+          "permalink": "/r/MachineLearning/comments/abc123/best_practices/",
+          "url": "https://www.reddit.com/r/MachineLearning/comments/abc123/best_practices/",
+          "selftext": "Discussion about secure tool auth patterns.",
+          "created_utc": 1714387200,
+          "subreddit": "MachineLearning",
+          "score": 142,
+          "num_comments": 28
+        }
+      },
+      {
+        "data": {
+          "id": "def456",
+          "title": "Open-source local memory systems for agents",
+          "permalink": "/r/LocalLLaMA/comments/def456/local_memory/",
+          "url": "https://www.reddit.com/r/LocalLLaMA/comments/def456/local_memory/",
+          "selftext": "Comparison of local memory backends.",
+          "created_utc": 1714473600,
+          "subreddit": "LocalLLaMA",
+          "score": 89,
+          "num_comments": 14
+        }
+      }
+    ]
+  }
+}

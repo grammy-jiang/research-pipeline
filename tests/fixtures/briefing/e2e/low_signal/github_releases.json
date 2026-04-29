@@ -1,0 +1,10 @@
+[
+  {
+    "id": 3000,
+    "tag_name": "v0.1.0",
+    "name": "Minor patch v0.1.0",
+    "html_url": "https://github.com/anthropics/claude-code/releases/tag/v0.1.0",
+    "published_at": "2026-05-01T06:00:00Z",
+    "body": "Minor patch release."
+  }
+]

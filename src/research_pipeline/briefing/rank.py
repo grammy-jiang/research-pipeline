@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from datetime import datetime
 from typing import Literal
 
 from research_pipeline.briefing.models import BriefingCluster, SourceClass
@@ -62,7 +63,7 @@ def rank_clusters(
         key=lambda cluster: (
             -cluster.rank_score,
             -max(SOURCE_CLASS_WEIGHTS.get(cls, 0.0) for cls in cluster.source_classes),
-            _published_sort_key(cluster),
+            -_published_sort_value(cluster),
             -cluster.authority_score,
             cluster.title.lower(),
             cluster.cluster_id,
@@ -73,6 +74,18 @@ def rank_clusters(
 def _published_sort_key(cluster: BriefingCluster) -> str:
     dates = [event.published_at or "" for event in cluster.events]
     return max(dates) if dates else cluster.last_seen_at
+
+
+def _published_sort_value(cluster: BriefingCluster) -> float:
+    published = _published_sort_key(cluster)
+    if not published:
+        return 0.0
+    normalized = published.replace("Z", "+00:00")
+    try:
+        return datetime.fromisoformat(normalized).timestamp()
+    except ValueError:
+        # Fall back to lexical ordering to keep behavior deterministic.
+        return 0.0
 
 
 def _score_cluster(
@@ -167,6 +180,41 @@ def _feedback_bonus(cluster: BriefingCluster, weights: dict[str, float]) -> floa
     return total
 
 
+def explicit_feedback_components(
+    cluster: BriefingCluster,
+    weights: dict[str, float],
+) -> tuple[float, float, float]:
+    """Decompose explicit feedback weights for a cluster.
+
+    Returns ``(topic_adjustment, source_adjustment, negative_penalty)``
+    where ``negative_penalty`` is a non-negative magnitude expressing the
+    *amount* of negative explicit feedback.  This satisfies the Phase D
+    ranking contract::
+
+        rank_score = phase_c_rank_score
+                     + explicit_topic_adjustment
+                     + explicit_source_adjustment
+                     - explicit_negative_penalty
+
+    Only ``topic:``, ``cluster:``, ``source:``, and ``event:`` keys
+    contribute — never behavioural signals.
+    """
+    topic_adj = 0.0
+    for topic_id in cluster.topic_ids:
+        topic_adj += weights.get(f"topic:{topic_id}", 0.0)
+    topic_adj += weights.get(f"cluster:{cluster.cluster_id}", 0.0)
+
+    source_adj = 0.0
+    for event in cluster.events:
+        source_adj += weights.get(f"source:{event.source_id}", 0.0)
+        source_adj += weights.get(f"event:{event.event_id}", 0.0)
+
+    pos_topic = max(topic_adj, 0.0)
+    pos_source = max(source_adj, 0.0)
+    neg_penalty = max(-topic_adj, 0.0) + max(-source_adj, 0.0)
+    return pos_topic, pos_source, neg_penalty
+
+
 def _memory_adjustments(
     cluster: BriefingCluster, store: TopicMemoryStore | None
 ) -> tuple[float, float]:
@@ -197,7 +245,7 @@ def _novelty_type(
     prior_seen = any(store.get(topic_id) is not None for topic_id in cluster.topic_ids)
     if not prior_seen:
         return "new"
-    if fatigue >= 1.0:
+    if fatigue >= 0.7:
         return "cooling"
     return "active"
 

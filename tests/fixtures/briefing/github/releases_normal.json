@@ -1,0 +1,18 @@
+[
+  {
+    "id": 1001,
+    "tag_name": "v1.2.3",
+    "name": "v1.2.3",
+    "html_url": "https://github.com/example/repo/releases/tag/v1.2.3",
+    "published_at": "2026-04-28T12:00:00Z",
+    "body": "Adds deterministic registry loading and validation."
+  },
+  {
+    "id": 1000,
+    "tag_name": "v1.2.2",
+    "name": "v1.2.2",
+    "html_url": "https://github.com/example/repo/releases/tag/v1.2.2",
+    "published_at": "2026-04-20T12:00:00Z",
+    "body": "Previous maintenance release."
+  }
+]

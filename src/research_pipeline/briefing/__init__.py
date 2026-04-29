@@ -9,8 +9,10 @@ from research_pipeline.briefing.models import (
     FeedbackSignal,
     IntelligenceEvent,
     SourceClass,
+    TopicAliasSuggestion,
     TopicDossier,
     TopicMemory,
+    TopicMemoryWriteRecord,
 )
 
 __all__ = [
@@ -22,6 +24,8 @@ __all__ = [
     "FeedbackSignal",
     "IntelligenceEvent",
     "SourceClass",
+    "TopicAliasSuggestion",
     "TopicDossier",
     "TopicMemory",
+    "TopicMemoryWriteRecord",
 ]

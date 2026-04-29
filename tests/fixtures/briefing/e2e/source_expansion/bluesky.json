@@ -1,0 +1,16 @@
+{
+  "feed": [
+    {
+      "post": {
+        "uri": "at://did:plc:e2e1/app.bsky.feed.post/aaa",
+        "cid": "bafy_e2e_aaa",
+        "url": "https://bsky.app/profile/test.bsky.social/post/aaa",
+        "author": {"did": "did:plc:e2e1", "handle": "test.bsky.social"},
+        "record": {
+          "text": "Notes on MCP agent observability practices.",
+          "createdAt": "2026-04-30T11:00:00Z"
+        }
+      }
+    }
+  ]
+}

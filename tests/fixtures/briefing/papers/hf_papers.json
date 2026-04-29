@@ -1,0 +1,21 @@
+[
+  {
+    "paper": {
+      "id": "2503.55555",
+      "arxiv_id": "2503.55555",
+      "title": "Adaptive Retrieval for Daily AI Briefs",
+      "summary": "Retrieval-augmented daily briefings with provenance.",
+      "publishedAt": "2026-04-30",
+      "upvotes": 42
+    }
+  },
+  {
+    "paper": {
+      "id": "2503.44444",
+      "title": "Source Expansion in News Aggregation",
+      "summary": "Curated multi-source news aggregation.",
+      "publishedAt": "2026-04-29",
+      "upvotes": 17
+    }
+  }
+]

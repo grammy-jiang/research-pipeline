@@ -263,3 +263,63 @@ can be re-run independently.
 
 Trust these instructions. Only search the codebase if the information here is
 incomplete or found to be incorrect.
+
+
+# Daily AI Intelligence — Final Completeness Audit Rules
+
+## Scope
+
+This is a final independent audit stage.
+
+It is not Phase H product development.
+
+## Preconditions
+
+A01-A12, B01-B08, C01-C08, D01-D08, E01-E08, F01-F09, and G01-G09 should be `audit_pass`.
+
+If any earlier ticket is not `audit_pass`, do not run final completion. Reopen and fix that ticket first.
+
+## Final audit goals
+
+Verify that every planned feature/function from A-G is:
+
+- implemented;
+- reachable from expected CLI/MCP/skill surface where applicable;
+- covered by deterministic tests;
+- covered by proof pack or acceptance evidence;
+- included in final traceability matrix;
+- not violating non-goals or governance rules.
+
+## No blind trust
+
+Do not trust `audit_pass` alone.
+
+Re-run or inspect enough evidence to prove the feature still works against the current codebase.
+
+## Gap rule
+
+If a feature is missing or incomplete:
+
+1. mark final audit as failed;
+2. create a gap record;
+3. map the gap to original phase/ticket;
+4. reopen the original ticket or create a scoped gap-fix ticket;
+5. do not mark final audit complete.
+
+## Non-goals
+
+Do not add new sources, UI, behavioral tracking, scraping, or unrelated architecture changes during final audit.
+
+Do not rewrite working implementations unless a verified gap requires it.
+
+## Required outputs
+
+The final audit must produce:
+
+- `docs/daily-ai-intelligence/final-completeness-audit-report.md`
+- `docs/daily-ai-intelligence/final-traceability-matrix.md`
+- `docs/daily-ai-intelligence/final-gap-register.md`
+- updated `phase-status.yaml` or equivalent final status entry
+- final proof pack
+
+Always use `uv run`; no network calls in normal tests.

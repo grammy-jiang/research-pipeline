@@ -17,16 +17,28 @@ from research_pipeline.briefing.feedback import BriefingFeedbackStore
 from research_pipeline.briefing.io import read_jsonl
 from research_pipeline.briefing.layout import resolve_briefing_paths
 from research_pipeline.briefing.models import BriefingCluster, FeedbackSignal
-from research_pipeline.briefing.obsidian import (
+from research_pipeline.briefing.obsidian import ObsidianConfig
+from research_pipeline.briefing.obsidian_daily import (
+    build_daily_note,
+    daily_note_path,
     export_daily_note,
-    export_source_notes,
-    export_topic_notes,
+)
+from research_pipeline.briefing.obsidian_sources import (
+    build_source_note,
+    export_source_note,
+    source_note_path,
+)
+from research_pipeline.briefing.obsidian_topics import (
+    build_topic_note,
+    export_topic_note,
+    topic_note_path,
 )
 from research_pipeline.briefing.preference_update import rollback_preference_adjustment
 from research_pipeline.briefing.registry import SourceRegistry, load_source_registry
 from research_pipeline.briefing.report import render_weekly_synthesis
 from research_pipeline.briefing.topic_memory import TopicMemoryStore
 from research_pipeline.briefing.validate import validate_dossier_report
+from research_pipeline.briefing.validate_obsidian import validate_obsidian_export
 from research_pipeline.briefing.workflow import (
     generate_daily,
     load_registry_snapshot,
@@ -329,6 +341,11 @@ def export_obsidian_command(
         None, "--workspace", "-w", help="Workspace root."
     ),
     date: str | None = typer.Option(None, "--date", help="Briefing date YYYY-MM-DD."),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Compute target paths without writing notes to the vault.",
+    ),
     verbose: bool = typer.Option(
         False, "--verbose", "-v", help="Enable debug logging."
     ),
@@ -336,21 +353,105 @@ def export_obsidian_command(
     """Export daily, topic, and source notes to an Obsidian vault."""
     _setup(verbose)
     paths = resolve_briefing_paths(workspace, date)
+    run_date = date or paths.root.name
     markdown = paths.daily_report_path.read_text(encoding="utf-8")
-    clusters = read_jsonl(paths.ranked_clusters_path, BriefingCluster)
+    clusters = list(read_jsonl(paths.ranked_clusters_path, BriefingCluster))
     source_registry = _registry_or_snapshot(registry, workspace, date)
-    changed = [
-        export_daily_note(markdown, vault_root=vault, run_date=date or paths.root.name),
-        *export_topic_notes(list(clusters), vault_root=vault),
-        *export_source_notes(list(source_registry.sources), vault_root=vault),
-    ]
+
+    config = ObsidianConfig(vault_root=vault, dry_run=dry_run)
+
+    daily_note = build_daily_note(
+        run_date=run_date,
+        body=markdown,
+        item_count=len(clusters),
+        link_count=sum(len(c.canonical_urls) for c in clusters),
+    )
+    try:
+        daily_written = export_daily_note(daily_note, config)
+
+        topic_written: list[Path] = []
+        seen_topics: set[str] = set()
+        for cluster in clusters:
+            for topic_id in cluster.topic_ids:
+                if topic_id in seen_topics:
+                    continue
+                seen_topics.add(topic_id)
+                slug = topic_id.removeprefix("topic_") or topic_id
+                note = build_topic_note(
+                    topic_id=slug,
+                    name=topic_id,
+                    body=(
+                        "## Agent Read Map\n\n"
+                        f"- Latest cluster: `{cluster.cluster_id}`\n"
+                        f"- Title: {cluster.title}\n"
+                    ),
+                )
+                written = export_topic_note(note, config)
+                if written is not None:
+                    topic_written.append(written)
+
+        source_written: list[Path] = []
+        for source in source_registry.sources:
+            note = build_source_note(
+                source_id=source.source_id,
+                name=source.source_name,
+                body=(
+                    "## Agent Read Map\n\n"
+                    f"- Class: {source.source_class.value}\n"
+                    f"- Cadence: {source.cadence}\n"
+                ),
+                source_class=source.source_class.value,
+            )
+            written = export_source_note(note, config)
+            if written is not None:
+                source_written.append(written)
+    except ValueError as exc:
+        logger.error("obsidian export refused: %s", exc)
+        raise typer.Exit(1) from exc
+
+    if dry_run:
+        # Surface the planned target paths without touching the vault.
+        planned_daily = daily_note_path(config, run_date)
+        planned_topics = [
+            topic_note_path(config, (tid.removeprefix("topic_") or tid))
+            for tid in seen_topics
+        ]
+        planned_sources = [
+            source_note_path(config, src.source_id) for src in source_registry.sources
+        ]
+        logger.info(
+            "Dry-run plan: 1 daily, %d topics, %d sources (vault=%s)",
+            len(planned_topics),
+            len(planned_sources),
+            vault,
+        )
+        for planned in (planned_daily, *planned_topics, *planned_sources):
+            logger.debug("planned: %s", planned)
+        return
+
+    written_paths: list[Path] = []
+    if daily_written is not None:
+        written_paths.append(daily_written)
+    written_paths.extend(topic_written)
+    written_paths.extend(source_written)
+
+    validation = validate_obsidian_export(
+        daily_path=daily_written,
+        topic_paths=topic_written,
+        source_paths=source_written,
+    )
+    if not validation.passed:
+        for error in validation.errors:
+            logger.error("obsidian validation error: %s", error)
+        raise typer.Exit(1)
+
     advance_workflow_state(
         paths.root,
         run_date=paths.root.name,
         stage="archived",
-        artifacts={"obsidian_notes": ",".join(str(path) for path in changed)},
+        artifacts={"obsidian_notes": ",".join(str(p) for p in written_paths)},
     )
-    logger.info("Exported %d Obsidian notes under %s", len(changed), vault)
+    logger.info("Exported %d Obsidian notes under %s", len(written_paths), vault)
 
 
 @brief_app.command("dossier")

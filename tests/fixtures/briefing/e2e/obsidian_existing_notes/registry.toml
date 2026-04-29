@@ -1,0 +1,23 @@
+watchlist_terms = ["MCP", "agent"]
+
+[[sources]]
+source_id = "anthropic-releases"
+source_name = "Anthropic Releases"
+source_class = "primary_artifact"
+access_method = "github_releases"
+fixture_path = "github_releases.json"
+trust_weight = 1.0
+noise_weight = 0.1
+enabled = true
+max_events_per_run = 5
+
+[[sources]]
+source_id = "ai-changelog"
+source_name = "AI Changelog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+fixture_path = "feed.xml"
+trust_weight = 0.9
+noise_weight = 0.2
+enabled = true
+max_events_per_run = 5

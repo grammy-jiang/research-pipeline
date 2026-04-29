@@ -1,0 +1,11 @@
+{
+  "hits": [
+    {
+      "objectID": "987",
+      "title": "Show HN: Open-source MCP server",
+      "url": "https://github.com/example/mcp-server",
+      "created_at": "2026-04-30T12:00:00Z",
+      "story_text": "We built an open-source MCP server."
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0">
+  <channel>
+    <title>AI Changelog</title>
+    <item>
+      <title>MCP spec update for tool annotations</title>
+      <link>https://example.com/mcp/spec-update-2026-05</link>
+      <guid>mcp-spec-update-2026-05-01</guid>
+      <pubDate>Thu, 01 May 2026 08:00:00 GMT</pubDate>
+      <description>Official MCP spec update clarifies tool annotations and elicitation.</description>
+    </item>
+    <item>
+      <title>New AI agent framework released</title>
+      <link>https://example.com/agent-framework-v3</link>
+      <guid>agent-framework-v3-2026-04-30</guid>
+      <pubDate>Wed, 30 Apr 2026 08:00:00 GMT</pubDate>
+      <description>Agent framework v3 adds support for multi-hop reasoning.</description>
+    </item>
+  </channel>
+</rss>
