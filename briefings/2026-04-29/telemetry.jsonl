@@ -1,0 +1,8 @@
+{"error": "404 Client Error: Not Found for url: https://www.anthropic.com/news/rss.xml", "event_count": 0, "event_type": "source_polled", "source_id": "anthropic-news", "status": "error", "timestamp": "2026-04-29T23:06:22Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "deepmind-blog", "status": "ok", "timestamp": "2026-04-29T23:06:22Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-transformers", "status": "ok", "timestamp": "2026-04-29T23:06:23Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-anthropic-sdk-python", "status": "ok", "timestamp": "2026-04-29T23:06:23Z"}
+{"duration_seconds": 2.762, "event_count": 4, "event_type": "poll_completed", "timestamp": "2026-04-29T23:06:23Z"}
+{"cluster_count": 4, "event_type": "rank_completed", "ranked_count": 3, "timestamp": "2026-04-29T23:06:23Z"}
+{"event_type": "daily_generated", "item_count": 3, "path": "workspace/briefings/2026-04-29/reports/daily.md", "timestamp": "2026-04-29T23:06:23Z"}
+{"error_count": 0, "event_type": "daily_validated", "passed": true, "timestamp": "2026-04-29T23:06:23Z", "warning_count": 0}
