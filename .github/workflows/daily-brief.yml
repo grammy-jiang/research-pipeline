@@ -1,0 +1,114 @@
+name: Daily AI Intelligence Brief
+
+# Runs the daily-ai-intelligence skill every morning, persists topic memory
+# and feedback across runs via the long-lived `briefs` orphan branch, and
+# also uploads each brief as a 90-day workflow artifact.
+#
+# Schedule: 22:00 UTC ≈ 08:00 AEST (winter) / 09:00 AEDT (summer).
+#           GitHub Actions cron does not honour daylight saving; adjust the
+#           schedule manually if the half-hour drift matters.
+
+on:
+  schedule:
+    - cron: "0 22 * * *"
+  workflow_dispatch:
+    inputs:
+      date:
+        description: "Override run date (YYYY-MM-DD); defaults to today UTC"
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+concurrency:
+  group: daily-brief
+  cancel-in-progress: false
+
+jobs:
+  brief:
+    name: Generate daily brief
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout master
+        uses: actions/checkout@v6
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v7
+        with:
+          enable-cache: true
+
+      - name: Set up Python 3.12
+        run: uv python install 3.12
+
+      - name: Install research-pipeline
+        run: uv sync
+
+      - name: Determine run date
+        id: date
+        run: |
+          if [ -n "${{ inputs.date }}" ]; then
+            echo "value=${{ inputs.date }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "value=$(date -u +%Y-%m-%d)" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Restore prior workspace from briefs branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          mkdir -p workspace
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          if git ls-remote --exit-code --heads origin briefs >/dev/null 2>&1; then
+            git fetch --depth=1 origin briefs
+            git worktree add --force ./_briefs origin/briefs
+          else
+            echo "Bootstrapping new orphan briefs branch."
+            git worktree add --force --detach ./_briefs
+            (cd ./_briefs && git checkout --orphan briefs && git rm -rf . >/dev/null 2>&1 || true)
+          fi
+
+          if [ -d ./_briefs/briefings ]; then
+            cp -r ./_briefs/briefings ./workspace/
+          fi
+
+      - name: Run daily brief
+        run: |
+          uv run research-pipeline brief run \
+            --registry .github/daily-brief/registry.toml \
+            --workspace ./workspace \
+            --date ${{ steps.date.outputs.value }}
+
+      - name: Show validation result
+        run: |
+          DATE=${{ steps.date.outputs.value }}
+          cat ./workspace/briefings/$DATE/validation/validation.json
+
+      - name: Commit brief and state to briefs branch
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          set -euo pipefail
+          DATE=${{ steps.date.outputs.value }}
+          mkdir -p ./_briefs/briefings
+          rsync -a --delete ./workspace/briefings/ ./_briefs/briefings/
+          cd ./_briefs
+          git add briefings
+          if git diff --cached --quiet; then
+            echo "No changes to commit."
+          else
+            git commit -m "brief: $DATE [skip ci]"
+            git push origin HEAD:briefs
+          fi
+
+      - name: Upload brief as artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: daily-brief-${{ steps.date.outputs.value }}
+          path: workspace/briefings/${{ steps.date.outputs.value }}/
+          if-no-files-found: warn
+          retention-days: 90

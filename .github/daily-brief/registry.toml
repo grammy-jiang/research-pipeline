@@ -1,0 +1,153 @@
+# Daily AI Intelligence — Source Registry
+#
+# Phase A access methods only (rss_atom, github_releases, manual). The pipeline
+# polls only what's listed here. Per-source `max_events_per_run` and the
+# global ranker (max_items=10, min_rank_score=4.0) keep the daily brief inside
+# its 15-link / 900-1400 word governance budget.
+
+[briefing]
+watchlist_terms = [
+  "agent",
+  "coding agent",
+  "MCP",
+  "tool use",
+  "reasoning",
+  "RAG",
+  "evaluation",
+  "fine-tuning",
+  "quantization",
+  "inference",
+  "context window",
+  "multimodal",
+  "Copilot",
+  "Claude Code"
+]
+max_sources_per_run = 30
+
+[[briefing.sources]]
+source_id = "anthropic-news"
+source_name = "Anthropic News"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.anthropic.com/news"
+feed_url = "https://www.anthropic.com/news/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.5
+noise_weight = 0.0
+max_events_per_run = 2
+tags = ["vendor", "frontier-lab"]
+
+[[briefing.sources]]
+source_id = "deepmind-blog"
+source_name = "Google DeepMind Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://deepmind.google/discover/blog/"
+feed_url = "https://deepmind.google/blog/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.5
+noise_weight = 0.0
+max_events_per_run = 2
+tags = ["vendor", "frontier-lab", "research"]
+
+[[briefing.sources]]
+source_id = "google-research-blog"
+source_name = "Google Research Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://research.google/blog/"
+feed_url = "https://research.google/blog/rss/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 2
+enabled = false
+tags = ["vendor", "research"]
+
+[[briefing.sources]]
+source_id = "huggingface-blog"
+source_name = "Hugging Face Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://huggingface.co/blog"
+feed_url = "https://huggingface.co/blog/feed.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.1
+max_events_per_run = 2
+enabled = false
+tags = ["vendor", "open-source"]
+
+[[briefing.sources]]
+source_id = "gh-transformers"
+source_name = "Hugging Face Transformers Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/huggingface/transformers"
+repo_owner = "huggingface"
+repo_name = "transformers"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 1
+tags = ["framework", "open-source"]
+
+[[briefing.sources]]
+source_id = "gh-vllm"
+source_name = "vLLM Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/vllm-project/vllm"
+repo_owner = "vllm-project"
+repo_name = "vllm"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.2
+max_events_per_run = 1
+enabled = false
+tags = ["serving", "inference"]
+
+[[briefing.sources]]
+source_id = "gh-mcp-spec"
+source_name = "Model Context Protocol Spec Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/modelcontextprotocol/modelcontextprotocol"
+repo_owner = "modelcontextprotocol"
+repo_name = "modelcontextprotocol"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 1
+enabled = false
+tags = ["protocol", "mcp"]
+
+[[briefing.sources]]
+source_id = "gh-anthropic-sdk-python"
+source_name = "Anthropic Python SDK Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/anthropics/anthropic-sdk-python"
+repo_owner = "anthropics"
+repo_name = "anthropic-sdk-python"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["sdk", "vendor"]
