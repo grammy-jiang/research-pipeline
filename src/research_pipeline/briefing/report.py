@@ -270,6 +270,7 @@ def _flatten_summary(text: str) -> str:
     if not text:
         return ""
     flat = re.sub(r"<[^>]+>", " ", text)
+    flat = re.sub(r"<[^>]*$", " ", flat)
     flat = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", flat)
     flat = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", flat)
     flat = re.sub(r"^\s*#+\s*", "", flat, flags=re.MULTILINE)
@@ -359,13 +360,14 @@ def _render_cluster_item(
         )
         if part
     )
+    flat_summary = _shorten(_flatten_summary(summary), 400, fallback=cluster.title)
     heading = _top_item_heading(index, cluster)
     lines = [
         f"### {heading}",
         "",
         badges,
         "",
-        f"{icon} {label} {_shorten(summary, 400, fallback=cluster.title)}".strip(),
+        f"{icon} {label} {flat_summary}".strip(),
         "",
         f"🔗 [{_primary_event_label(primary, cluster)}]({evidence_url})",
         "",

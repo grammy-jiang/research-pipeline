@@ -1,9 +1,10 @@
 # Daily AI Intelligence — Source Registry
 #
-# Phase A access methods only (rss_atom, github_releases, manual). The pipeline
-# polls only what's listed here. Per-source `max_events_per_run` and the
-# global ranker (max_items=10, min_rank_score=4.0) keep the daily brief inside
-# its 15-link / 900-1400 word governance budget.
+# Phase A access methods only (rss_atom, github_releases, html_scrape, manual).
+# The pipeline polls only what's listed here. Per-source `max_events_per_run`
+# and the global ranker (max_items=30) keep the daily brief inside its
+# 80-link / 400-6000 word governance budget — large enough for ~15-20 minutes
+# of focused morning reading.
 
 [briefing]
 watchlist_terms = [
@@ -22,7 +23,7 @@ watchlist_terms = [
   "Copilot",
   "Claude Code"
 ]
-max_sources_per_run = 30
+max_sources_per_run = 60
 
 [[briefing.sources]]
 source_id = "anthropic-news"
@@ -32,6 +33,53 @@ access_method = "html_scrape"
 official_url = "https://www.anthropic.com/research"
 feed_url = "https://www.anthropic.com/research"
 link_path_prefix = "/research/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.5
+noise_weight = 0.0
+max_events_per_run = 3
+tags = ["vendor", "frontier-lab"]
+
+[[briefing.sources]]
+source_id = "anthropic-engineering"
+source_name = "Anthropic Engineering"
+source_class = "primary_artifact"
+access_method = "html_scrape"
+official_url = "https://www.anthropic.com/engineering"
+feed_url = "https://www.anthropic.com/engineering"
+link_path_prefix = "/engineering/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.5
+noise_weight = 0.0
+max_events_per_run = 3
+tags = ["vendor", "frontier-lab", "engineering"]
+
+[[briefing.sources]]
+source_id = "anthropic-news-feed"
+source_name = "Anthropic News"
+source_class = "primary_artifact"
+access_method = "html_scrape"
+official_url = "https://www.anthropic.com/news"
+feed_url = "https://www.anthropic.com/news"
+link_path_prefix = "/news/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 3
+tags = ["vendor", "frontier-lab", "news"]
+
+[[briefing.sources]]
+source_id = "openai-news"
+source_name = "OpenAI"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://openai.com/news/"
+feed_url = "https://openai.com/news/rss.xml"
 cadence = "daily"
 retention_policy = "metadata_only"
 allowed_raw_storage = true
@@ -72,6 +120,81 @@ enabled = true
 tags = ["vendor", "research"]
 
 [[briefing.sources]]
+source_id = "meta-research"
+source_name = "Meta Research"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://research.facebook.com/blog/"
+feed_url = "https://research.facebook.com/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["vendor", "frontier-lab", "research"]
+
+[[briefing.sources]]
+source_id = "meta-engineering"
+source_name = "Meta Engineering"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://engineering.fb.com/"
+feed_url = "https://engineering.fb.com/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 2
+tags = ["vendor", "engineering"]
+
+[[briefing.sources]]
+source_id = "apple-ml-research"
+source_name = "Apple Machine Learning Research"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://machinelearning.apple.com/"
+feed_url = "https://machinelearning.apple.com/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["vendor", "research"]
+
+[[briefing.sources]]
+source_id = "nvidia-developer-genai"
+source_name = "NVIDIA Developer Blog (Generative AI)"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://developer.nvidia.com/blog/category/generative-ai/"
+feed_url = "https://developer.nvidia.com/blog/category/generative-ai/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 2
+tags = ["vendor", "infrastructure"]
+
+[[briefing.sources]]
+source_id = "nvidia-blog-deep-learning"
+source_name = "NVIDIA Blog (Deep Learning)"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://blogs.nvidia.com/blog/category/deep-learning/"
+feed_url = "https://blogs.nvidia.com/blog/category/deep-learning/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "infrastructure"]
+
+[[briefing.sources]]
 source_id = "huggingface-blog"
 source_name = "Hugging Face Blog"
 source_class = "primary_artifact"
@@ -86,6 +209,96 @@ noise_weight = 0.1
 max_events_per_run = 2
 enabled = true
 tags = ["vendor", "open-source"]
+
+[[briefing.sources]]
+source_id = "bair-blog"
+source_name = "Berkeley AI Research Blog"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://bair.berkeley.edu/blog/"
+feed_url = "https://bair.berkeley.edu/blog/feed.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["academic", "research"]
+
+[[briefing.sources]]
+source_id = "langchain-blog"
+source_name = "LangChain Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://blog.langchain.dev/"
+feed_url = "https://blog.langchain.dev/rss/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 2
+tags = ["vendor", "framework", "agents"]
+
+[[briefing.sources]]
+source_id = "cohere-blog"
+source_name = "Cohere Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://cohere.com/blog"
+feed_url = "https://cohere.com/blog/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "frontier-lab"]
+
+[[briefing.sources]]
+source_id = "together-ai-blog"
+source_name = "Together AI Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.together.ai/blog"
+feed_url = "https://www.together.ai/blog/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "infrastructure"]
+
+[[briefing.sources]]
+source_id = "simonwillison-blog"
+source_name = "Simon Willison's Weblog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://simonwillison.net/"
+feed_url = "https://simonwillison.net/atom/everything/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 2
+tags = ["independent", "practitioner"]
+
+[[briefing.sources]]
+source_id = "raschka-magazine"
+source_name = "Sebastian Raschka — Ahead of AI"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://magazine.sebastianraschka.com/"
+feed_url = "https://magazine.sebastianraschka.com/feed"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 1
+tags = ["independent", "researcher"]
 
 [[briefing.sources]]
 source_id = "gh-transformers"
@@ -152,3 +365,83 @@ trust_weight = 1.2
 noise_weight = 0.1
 max_events_per_run = 1
 tags = ["sdk", "vendor"]
+
+[[briefing.sources]]
+source_id = "gh-openai-python"
+source_name = "OpenAI Python SDK Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/openai/openai-python"
+repo_owner = "openai"
+repo_name = "openai-python"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["sdk", "vendor"]
+
+[[briefing.sources]]
+source_id = "gh-langchain"
+source_name = "LangChain Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/langchain-ai/langchain"
+repo_owner = "langchain-ai"
+repo_name = "langchain"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["framework", "agents"]
+
+[[briefing.sources]]
+source_id = "gh-llama-cpp"
+source_name = "llama.cpp Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/ggerganov/llama.cpp"
+repo_owner = "ggerganov"
+repo_name = "llama.cpp"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 1
+tags = ["inference", "open-source"]
+
+[[briefing.sources]]
+source_id = "gh-pydantic-ai"
+source_name = "Pydantic AI Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/pydantic/pydantic-ai"
+repo_owner = "pydantic"
+repo_name = "pydantic-ai"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["framework", "agents"]
+
+[[briefing.sources]]
+source_id = "gh-autogen"
+source_name = "Microsoft AutoGen Releases"
+source_class = "implementation_source"
+access_method = "github_releases"
+official_url = "https://github.com/microsoft/autogen"
+repo_owner = "microsoft"
+repo_name = "autogen"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["framework", "agents"]
