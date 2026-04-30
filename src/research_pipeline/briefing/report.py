@@ -93,8 +93,7 @@ def render_daily_brief(
         lines.append(header_facts)
         lines.append("")
 
-    extra_sections = _present_class_sections(clusters)
-    lines.extend(_render_contents(extra_sections, has_also_tracked=bool(compact)))
+    lines.extend(_render_contents([], has_also_tracked=bool(compact)))
     lines.append("")
 
     lines.extend(["## 🔥 Executive Signal", ""])
@@ -124,11 +123,6 @@ def render_daily_brief(
     else:
         lines.append("No ranked items passed the inclusion threshold today.")
         lines.append("")
-
-    for heading, source_class, limit in _CLASS_HEADINGS:
-        section_lines = _render_class_section(heading, clusters, source_class, limit)
-        if section_lines:
-            lines.extend(section_lines)
 
     if dossier_links:
         lines.extend(["## 📚 Linked Dossiers", ""])
@@ -219,34 +213,18 @@ def _render_class_section(
     source_class: SourceClass,
     limit: int,
 ) -> list[str]:
-    selected = [
-        cluster for cluster in clusters if source_class in cluster.source_classes
-    ][:limit]
-    if not selected:
-        return []
-    lines = [f"## {heading}", ""]
-    for cluster in selected:
-        action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
-        url = cluster.canonical_urls[0] if cluster.canonical_urls else ""
-        title_md = f"[{cluster.title}]({url})" if url else cluster.title
-        summary = _summary_text(_primary_event(cluster), cluster)
-        if summary and summary != cluster.title:
-            snippet = _shorten(_flatten_summary(summary), 220, fallback="")
-            lines.append(
-                f"- {action} · **{title_md}** — {snippet} (`{cluster.cluster_id}`)"
-            )
-        else:
-            lines.append(f"- {action} · **{title_md}** (`{cluster.cluster_id}`)")
-    lines.append("")
-    return lines
+    """Deprecated. Retained for backward compatibility but no longer
+    invoked: class-grouped sections duplicated items already shown in
+    Top Items + Also tracked, so the renderer now skips them.
+    """
+    return []
 
 
 def _present_class_sections(clusters: list[BriefingCluster]) -> list[str]:
-    return [
-        heading
-        for heading, source_class, _ in _CLASS_HEADINGS
-        if any(source_class in cluster.source_classes for cluster in clusters)
-    ]
+    """Deprecated. Always returns an empty list now that the renderer no
+    longer emits class-grouped sections.
+    """
+    return []
 
 
 def _header_summary(item_count: int, source_mix: Counter[str]) -> str:

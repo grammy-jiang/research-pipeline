@@ -141,7 +141,7 @@ class TestObsidianExportE2E:
         )
         assert second.exit_code == 0, second.stdout
         restored = daily.read_text(encoding="utf-8")
-        assert "## Agent Read Map" in restored
+        assert "## ⭐ Top Items" in restored
         assert "stale body" not in restored
 
 
