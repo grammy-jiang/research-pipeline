@@ -1,0 +1,150 @@
+# Merge into docs/daily-ai-intelligence/phase-status.yaml after Phase A is complete.
+# Do not replace existing Phase A ticket records.
+
+current_phase: B
+current_ticket: B01_topic_memory_models
+
+phases:
+  A:
+    status: complete
+  B:
+    name: "Memory and fatigue"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-b-gate"
+    tickets:
+      B01_topic_memory_models:
+        status: pending
+        title: "Add topic memory models"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B01_topic_memory_models.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B01_topic_memory_models.md"
+        owned_files:
+          - "src/research_pipeline/briefing/topic_memory.py"
+          - "tests/unit/test_briefing_topic_memory.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_topic_memory.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B02_topic_memory_store:
+        status: pending
+        title: "Add SQLite-backed topic memory store"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B02_topic_memory_store.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B02_topic_memory_store.md"
+        owned_files:
+          - "src/research_pipeline/briefing/topic_memory_store.py"
+          - "tests/unit/test_briefing_topic_memory_store.py"
+          - "tests/fixtures/briefing/memory/topic_memory_empty.sqlite"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_topic_memory_store.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B03_memory_lookup:
+        status: pending
+        title: "Add memory lookup for recent clusters"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B03_memory_lookup.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B03_memory_lookup.md"
+        owned_files:
+          - "src/research_pipeline/briefing/memory_lookup.py"
+          - "tests/unit/test_briefing_memory_lookup.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_memory_lookup.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B04_lifecycle_classification:
+        status: pending
+        title: "Add topic lifecycle classification"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B04_lifecycle_classification.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B04_lifecycle_classification.md"
+        owned_files:
+          - "src/research_pipeline/briefing/lifecycle.py"
+          - "tests/unit/test_briefing_lifecycle.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_lifecycle.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B05_ranking_fatigue_and_resurfaced_boost:
+        status: pending
+        title: "Extend ranking with fatigue penalty and resurfaced-topic boost"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B05_ranking_fatigue_and_resurfaced_boost.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B05_ranking_fatigue_and_resurfaced_boost.md"
+        owned_files:
+          - "src/research_pipeline/briefing/rank.py"
+          - "tests/unit/test_briefing_rank_memory.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_rank_memory.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B06_report_prior_context:
+        status: pending
+        title: "Extend daily report with prior-topic context"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B06_report_prior_context.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B06_report_prior_context.md"
+        owned_files:
+          - "src/research_pipeline/briefing/report.py"
+          - "tests/unit/test_briefing_report_memory.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_report_memory.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B07_alias_merge_review_queue:
+        status: pending
+        title: "Add review queue for topic alias and merge suggestions"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B07_alias_merge_review_queue.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B07_alias_merge_review_queue.md"
+        owned_files:
+          - "src/research_pipeline/briefing/topic_review.py"
+          - "tests/unit/test_briefing_topic_review.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_topic_review.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      B08_memory_validation_and_e2e:
+        status: pending
+        title: "Add memory validation and offline Phase B e2e tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B08_memory_validation_and_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B08_memory_validation_and_e2e.md"
+        owned_files:
+          - "src/research_pipeline/briefing/validate_memory.py"
+          - "tests/unit/test_briefing_validate_memory.py"
+          - "tests/integration_offline/test_briefing_phase_b_memory_e2e.py"
+          - "tests/fixtures/briefing/e2e/memory_repeated_topic/"
+          - "tests/fixtures/briefing/e2e/memory_resurfaced_topic/"
+          - "tests/fixtures/briefing/e2e/memory_false_merge/"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate_memory.py tests/integration_offline/test_briefing_phase_b_memory_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+
+  C:
+    status: blocked_until_B_done
+  D:
+    status: blocked_until_C_done
+  E:
+    status: blocked_until_D_done
+  F:
+    status: blocked_until_E_done
+  G:
+    status: blocked_until_F_done

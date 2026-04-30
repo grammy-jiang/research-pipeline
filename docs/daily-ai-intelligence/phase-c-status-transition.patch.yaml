@@ -1,0 +1,14 @@
+# Apply to phase-status.yaml without deleting A/B ticket records.
+
+current_phase: C
+current_ticket: C01_obsidian_config_and_path_allowlist
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C:
+    name: "Obsidian archive"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-c-gate"
+    tickets: "<copy C01-C08 from phase-c-status-addendum.yaml>"
+  D: {status: blocked_until_C_done}

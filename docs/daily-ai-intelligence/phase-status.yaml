@@ -1,0 +1,1078 @@
+current_phase: complete
+current_ticket: null
+
+valid_ticket_states:
+  - pending
+  - acceptance_defined
+  - tests_defined
+  - in_progress
+  - verification_failed
+  - verified
+  - audit_pass
+  - needs_reaudit
+  - reopened
+  - blocked
+
+phases:
+  A:
+    name: "Thin daily report with minimal governance"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-a-gate"
+    tickets:
+      A01_briefing_package_skeleton_and_models:
+        status: verified
+        title: "Add briefing package skeleton and models"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A01_briefing_package_skeleton_and_models.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A01_briefing_package_skeleton_and_models.md"
+        depends_on:
+          []
+        owned_files:
+          - "src/research_pipeline/briefing/__init__.py"
+          - "src/research_pipeline/briefing/models.py"
+          - "tests/unit/test_briefing_models.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_models.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A01 verification commands passed on current commit; proof pack added."
+      A02_source_registry_loader_and_validation:
+        status: verified
+        title: "Add source registry loader and validation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A02_source_registry_loader_and_validation.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A02_source_registry_loader_and_validation.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+        owned_files:
+          - "src/research_pipeline/briefing/registry.py"
+          - "tests/unit/test_briefing_registry.py"
+          - "docs/daily-ai-intelligence/source-registry.phase-a.example.yaml"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_registry.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A02 verification commands passed on current commit; proof pack added."
+      A03_github_releases_adapter_with_fixtures:
+        status: verified
+        title: "Add GitHub releases adapter with fixtures"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A03_github_releases_adapter_with_fixtures.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A03_github_releases_adapter_with_fixtures.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A02_source_registry_loader_and_validation
+        owned_files:
+          - "src/research_pipeline/briefing/sources/__init__.py"
+          - "src/research_pipeline/briefing/sources/base.py"
+          - "src/research_pipeline/briefing/sources/github_releases.py"
+          - "tests/unit/test_briefing_github_releases.py"
+          - "tests/fixtures/briefing/github/releases_normal.json"
+          - "tests/fixtures/briefing/github/releases_empty.json"
+          - "tests/fixtures/briefing/github/releases_malformed.json"
+          - "tests/fixtures/briefing/github/releases_rate_limited.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_github_releases.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A03 verification commands passed on current commit; proof pack added."
+      A04_rss_atom_adapter_with_fixtures:
+        status: verified
+        title: "Add RSS/Atom adapter with fixtures"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A04_rss_atom_adapter_with_fixtures.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A04_rss_atom_adapter_with_fixtures.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A02_source_registry_loader_and_validation
+        owned_files:
+          - "src/research_pipeline/briefing/sources/rss_atom.py"
+          - "tests/unit/test_briefing_rss_atom.py"
+          - "tests/fixtures/briefing/rss/rss_normal.xml"
+          - "tests/fixtures/briefing/rss/rss_empty.xml"
+          - "tests/fixtures/briefing/rss/rss_malformed.xml"
+          - "tests/fixtures/briefing/atom/atom_normal.xml"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_rss_atom.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A04 verification commands passed on current commit; proof pack added."
+      A05_normalization_and_stable_id_generation:
+        status: verified
+        title: "Add normalization and stable ID generation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A05_normalization_and_stable_id_generation.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A05_normalization_and_stable_id_generation.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+        owned_files:
+          - "src/research_pipeline/briefing/normalize.py"
+          - "tests/unit/test_briefing_normalize.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_normalize.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A05 verification commands passed on current commit; proof pack added."
+      A06_exact_deduplication:
+        status: verified
+        title: "Add exact deduplication"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A06_exact_deduplication.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A06_exact_deduplication.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A05_normalization_and_stable_id_generation
+        owned_files:
+          - "src/research_pipeline/briefing/dedup.py"
+          - "tests/unit/test_briefing_dedup.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dedup.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A06 verification commands passed on current commit; proof pack added."
+      A07_deterministic_ranking_and_tie_breakers:
+        status: verified
+        title: "Add deterministic ranking and tie-breakers"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A07_deterministic_ranking_and_tie_breakers.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A07_deterministic_ranking_and_tie_breakers.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A06_exact_deduplication
+        owned_files:
+          - "src/research_pipeline/briefing/rank.py"
+          - "tests/unit/test_briefing_rank.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_rank.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A07 verification commands passed on current commit; proof pack added."
+      A08_markdown_daily_report_renderer:
+        status: verified
+        title: "Add Markdown daily report renderer"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A08_markdown_daily_report_renderer.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A08_markdown_daily_report_renderer.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A07_deterministic_ranking_and_tie_breakers
+        owned_files:
+          - "src/research_pipeline/briefing/report.py"
+          - "tests/unit/test_briefing_report.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_report.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A08 verification commands passed on current commit; proof pack added."
+      A09_report_and_event_validator:
+        status: verified
+        title: "Add report/event validator"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A09_report_and_event_validator.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A09_report_and_event_validator.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A08_markdown_daily_report_renderer
+        owned_files:
+          - "src/research_pipeline/briefing/validate.py"
+          - "tests/unit/test_briefing_validate.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "A09 verification commands passed on current commit; 14/14 tests pass; ruff/mypy clean; proof pack created."
+      A10_cli_command_group_and_artifact_layout:
+        status: verified
+        title: "Add CLI command group and fixed artifact layout"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A10_cli_command_group_and_artifact_layout.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A10_cli_command_group_and_artifact_layout.md"
+        depends_on:
+          - A02_source_registry_loader_and_validation
+          - A03_github_releases_adapter_with_fixtures
+          - A04_rss_atom_adapter_with_fixtures
+          - A07_deterministic_ranking_and_tie_breakers
+          - A08_markdown_daily_report_renderer
+          - A09_report_and_event_validator
+        owned_files:
+          - "src/research_pipeline/briefing/artifacts.py"
+          - "src/research_pipeline/cli/cmd_brief.py"
+          - "src/research_pipeline/cli/app.py"
+          - "tests/unit/test_briefing_artifacts.py"
+          - "tests/unit/test_briefing_cli.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_artifacts.py tests/unit/test_briefing_cli.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Startup audit reopened A10 for a local ruff failure in tests/unit/test_briefing_cli.py. Repaired the unused variable/assertion issue and re-verified pytest tests/unit/test_briefing_cli.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing on the current working tree."
+      A11_telemetry_jsonl:
+        status: verified
+        title: "Add telemetry JSONL"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A11_telemetry_jsonl.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A11_telemetry_jsonl.md"
+        depends_on:
+          - A10_cli_command_group_and_artifact_layout
+        owned_files:
+          - "src/research_pipeline/briefing/telemetry.py"
+          - "tests/unit/test_briefing_telemetry.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_telemetry.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "af858f6d4c0b8f6d2e8e0d5a3b1c0d3e2f1a0b8c"
+        audit_status: audit_pass
+        audit_reason: "A11 verification commands all pass: pytest 15/15, ruff clean, mypy --strict clean. Proof pack created at docs/daily-ai-intelligence/proofs/A11_telemetry_jsonl.md"
+      A12_offline_e2e_tests_normal_low_signal_no_news:
+        status: verified
+        title: "Add offline end-to-end tests for normal, low-signal, and no-news days"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/A12_offline_e2e_tests_normal_low_signal_no_news.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/A12_offline_e2e_tests_normal_low_signal_no_news.md"
+        depends_on:
+          - A01_briefing_package_skeleton_and_models
+          - A02_source_registry_loader_and_validation
+          - A03_github_releases_adapter_with_fixtures
+          - A04_rss_atom_adapter_with_fixtures
+          - A05_normalization_and_stable_id_generation
+          - A06_exact_deduplication
+          - A07_deterministic_ranking_and_tie_breakers
+          - A08_markdown_daily_report_renderer
+          - A09_report_and_event_validator
+          - A10_cli_command_group_and_artifact_layout
+          - A11_telemetry_jsonl
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_a_e2e.py"
+          - "tests/fixtures/briefing/e2e/normal/"
+          - "tests/fixtures/briefing/e2e/low_signal/"
+          - "tests/fixtures/briefing/e2e/no_news/"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_a_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "head"
+        audit_status: audit_pass
+        audit_reason: "A12: 29/29 integration tests pass across TestNormalDay(12), TestLowSignalDay(4), TestNoNewsDay(6), TestDuplicateDeduplication(2), TestArtifactLayout(5). ruff clean, mypy clean. source_class fixed to primary_artifact."
+
+  B:
+    name: "Memory and fatigue"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-b-gate"
+    tickets:
+      B01_topic_memory_models:
+        status: verified
+        title: "Add topic memory models"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B01_topic_memory_models.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B01_topic_memory_models.md"
+        owned_files:
+          - "src/research_pipeline/briefing/models.py"
+          - "src/research_pipeline/briefing/__init__.py"
+          - "tests/unit/test_briefing_topic_memory.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_topic_memory.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Added TopicMemoryWriteRecord and alias-review validation in the briefing model layer, exported the new surface, and verified with pytest tests/unit/test_briefing_topic_memory.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing on the current working tree."
+      B02_topic_memory_store:
+        status: verified
+        title: "Add SQLite-backed topic memory store"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B02_topic_memory_store.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B02_topic_memory_store.md"
+        owned_files:
+          - "src/research_pipeline/briefing/topic_memory_store.py"
+          - "tests/unit/test_briefing_topic_memory_store.py"
+          - "tests/fixtures/briefing/memory/topic_memory_empty.sqlite"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_topic_memory_store.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Added topic_memory_store module surface and B02 unit tests, enforced review_record requirement before alias approval/rejection writes, and verified with pytest tests/unit/test_briefing_topic_memory_store.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing."
+      B03_memory_lookup:
+        status: verified
+        title: "Add memory lookup for recent clusters"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B03_memory_lookup.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B03_memory_lookup.md"
+        owned_files:
+          - "src/research_pipeline/briefing/memory_lookup.py"
+          - "tests/unit/test_briefing_memory_lookup.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_memory_lookup.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Implemented lookup fallback by normalized title/alias and canonical cluster linkage, preserved explicit topic ID precedence, and verified with pytest tests/unit/test_briefing_memory_lookup.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing."
+      B04_lifecycle_classification:
+        status: verified
+        title: "Add topic lifecycle classification"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B04_lifecycle_classification.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B04_lifecycle_classification.md"
+        owned_files:
+          - "src/research_pipeline/briefing/lifecycle.py"
+          - "tests/unit/test_briefing_lifecycle.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_lifecycle.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Implemented deterministic read-only lifecycle classification (new/active/cooling/dormant/resurfaced) with explicit topic-ID precedence; verified via pytest tests/unit/test_briefing_lifecycle.py -xvs (7/7), ruff check on touched files, and mypy on lifecycle module."
+      B05_ranking_fatigue_and_resurfaced_boost:
+        status: verified
+        title: "Extend ranking with fatigue penalty and resurfaced-topic boost"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B05_ranking_fatigue_and_resurfaced_boost.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B05_ranking_fatigue_and_resurfaced_boost.md"
+        owned_files:
+          - "src/research_pipeline/briefing/rank.py"
+          - "tests/unit/test_briefing_rank_memory.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_rank_memory.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Added B05 rank-memory coverage for no-memory, cooling, and resurfaced cases; aligned novelty classification with fatigue behavior and verified via pytest tests/unit/test_briefing_rank_memory.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing."
+      B06_report_prior_context:
+        status: verified
+        title: "Extend daily report with prior-topic context"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B06_report_prior_context.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B06_report_prior_context.md"
+        owned_files:
+          - "src/research_pipeline/briefing/report.py"
+          - "tests/unit/test_briefing_report_memory.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_report_memory.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Added concise inline prior-context rendering for resurfaced and fatigue-affected items, verified with pytest tests/unit/test_briefing_report.py tests/unit/test_briefing_report_memory.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing."
+      B07_alias_merge_review_queue:
+        status: verified
+        title: "Add review queue for topic alias and merge suggestions"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B07_alias_merge_review_queue.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B07_alias_merge_review_queue.md"
+        owned_files:
+          - "src/research_pipeline/briefing/topic_review.py"
+          - "tests/unit/test_briefing_topic_review.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_topic_review.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Added a thin topic-review queue over the existing alias-suggestion store APIs, verified queue persistence, deduplication, and review-record enforcement via pytest tests/unit/test_briefing_topic_review.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing."
+      B08_memory_validation_and_e2e:
+        status: verified
+        title: "Add memory validation and offline Phase B e2e tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/B08_memory_validation_and_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/B08_memory_validation_and_e2e.md"
+        owned_files:
+          - "src/research_pipeline/briefing/validate_memory.py"
+          - "tests/unit/test_briefing_validate_memory.py"
+          - "tests/integration_offline/test_briefing_phase_b_memory_e2e.py"
+          - "tests/fixtures/briefing/e2e/memory_repeated_topic/"
+          - "tests/fixtures/briefing/e2e/memory_resurfaced_topic/"
+          - "tests/fixtures/briefing/e2e/memory_false_merge/"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate_memory.py tests/integration_offline/test_briefing_phase_b_memory_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "Added read-only Phase B memory validation plus offline repeated-topic, resurfaced-topic, and false-merge e2e coverage; verified via pytest tests/unit/test_briefing_validate_memory.py tests/integration_offline/test_briefing_phase_b_memory_e2e.py -xvs, ruff check src/research_pipeline/briefing tests/, and mypy src/research_pipeline/briefing."
+  C:
+    name: "Obsidian archive"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-c-gate"
+    tickets:
+      C01_obsidian_config_and_path_allowlist:
+        status: verified
+        title: "Add Obsidian config and path allowlist"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C01_obsidian_config_and_path_allowlist.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C01_obsidian_config_and_path_allowlist.md"
+        depends_on: []
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian.py"
+          - "tests/unit/test_briefing_obsidian_paths.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_paths.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C01 verification commands passed: 15/15 path-allowlist unit tests, ruff clean, mypy clean; full briefing regression (202 tests) green; ObsidianConfig + validate_vault_path + is_owned_generated_note added; no Phase D+ surface introduced."
+      C02_obsidian_note_models_and_frontmatter:
+        status: verified
+        title: "Add Obsidian note models and YAML frontmatter"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C02_obsidian_note_models_and_frontmatter.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C02_obsidian_note_models_and_frontmatter.md"
+        depends_on:
+          - C01_obsidian_config_and_path_allowlist
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_notes.py"
+          - "tests/unit/test_briefing_obsidian_notes.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_notes.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C02 verification commands passed: 13/13 obsidian-notes unit tests, ruff clean, mypy clean; deterministic frontmatter renderer + parser + ObsidianNote model with reserved-key/Agent-Read-Map/separator guards; no filesystem I/O introduced."
+      C03_daily_note_export:
+        status: verified
+        title: "Add daily note export"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C03_daily_note_export.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C03_daily_note_export.md"
+        depends_on:
+          - C02_obsidian_note_models_and_frontmatter
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_daily.py"
+          - "tests/unit/test_briefing_obsidian_daily.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_daily.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C03 verification commands passed: 9/9 daily-note unit tests, ruff clean, mypy clean; export honors C01 path/ownership gates and config.dry_run; legacy frontmatter stripped, wiki-links preserved, idempotent re-write verified."
+      C04_topic_and_source_note_export:
+        status: verified
+        title: "Add topic and source note export"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C04_topic_and_source_note_export.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C04_topic_and_source_note_export.md"
+        depends_on:
+          - C02_obsidian_note_models_and_frontmatter
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_topics.py"
+          - "src/research_pipeline/briefing/obsidian_sources.py"
+          - "tests/unit/test_briefing_obsidian_topics.py"
+          - "tests/unit/test_briefing_obsidian_sources.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_topics.py tests/unit/test_briefing_obsidian_sources.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C04 verification commands passed: 16/16 unit tests, ruff clean, mypy clean; topic/source paths reject traversal payloads, ownership/dry-run gates honored, wiki-links preserved, idempotent re-write verified."
+      C05_wikilink_backlink_and_idempotent_update:
+        status: verified
+        title: "Add wiki-link, backlink, and idempotent update handling"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C05_wikilink_backlink_and_idempotent_update.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C05_wikilink_backlink_and_idempotent_update.md"
+        depends_on:
+          - C03_daily_note_export
+          - C04_topic_and_source_note_export
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_links.py"
+          - "tests/unit/test_briefing_obsidian_links.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_links.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C05 verification commands passed: 11/11 unit tests, ruff clean, mypy clean; wiki-links never rewritten to markdown links, slugify rejects empties, inject_backlinks deterministic and idempotent."
+      C06_obsidian_export_validation:
+        status: verified
+        title: "Add Obsidian export validation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C06_obsidian_export_validation.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C06_obsidian_export_validation.md"
+        depends_on:
+          - C05_wikilink_backlink_and_idempotent_update
+        owned_files:
+          - "src/research_pipeline/briefing/validate_obsidian.py"
+          - "tests/unit/test_briefing_validate_obsidian.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate_obsidian.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C06 verification commands passed: 10/10 unit tests, ruff clean, mypy clean; validators detect wrong type / missing headings / wiki-to-markdown rewrites and aggregate full export results."
+      C07_cli_export_obsidian:
+        status: verified
+        title: "Add CLI command brief export-obsidian"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C07_cli_export_obsidian.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C07_cli_export_obsidian.md"
+        depends_on:
+          - C06_obsidian_export_validation
+        owned_files:
+          - "src/research_pipeline/cli/cmd_brief.py"
+          - "src/research_pipeline/briefing/obsidian.py"
+          - "tests/unit/test_briefing_cli_export_obsidian.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_cli_export_obsidian.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C07 verification commands passed: 5/5 CLI unit tests, ruff clean, mypy clean; CLI rewired to ObsidianConfig + C03/C04 exporters with --dry-run, refuses to overwrite human notes, runs C06 validator post-export."
+      C08_obsidian_offline_e2e:
+        status: verified
+        title: "Add offline Obsidian export e2e tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C08_obsidian_offline_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C08_obsidian_offline_e2e.md"
+        depends_on:
+          - C07_cli_export_obsidian
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_c_obsidian_e2e.py"
+          - "tests/fixtures/briefing/e2e/obsidian_export/"
+          - "tests/fixtures/briefing/e2e/obsidian_existing_notes/"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_c_obsidian_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "C08 verification commands passed: 6/6 offline e2e tests covering full export, dry-run, byte-idempotency, owned-note rewrite, human-note refusal, and unsafe-vault rejection; ruff clean; mypy clean. Reuses C01-C07 production code unchanged and runs without network."
+  D:
+    name: "Explicit feedback loop"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-d-gate"
+    tickets:
+      D01_feedback_models:
+        status: verified
+        title: "Add feedback domain models"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D01_feedback_models.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D01_feedback_models.md"
+        owned_files:
+          - "src/research_pipeline/briefing/feedback.py"
+          - "tests/unit/test_briefing_feedback_models.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_feedback_models.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D01 verification commands passed: 17/17 model unit tests covering FeedbackEvent, FeedbackSignal, ALLOWED_TARGET_TYPES, classify_signal, validate_feedback_input, is_conflicting, feedback_target_key. Explicit-feedback-only invariant enforced via target_type Literal and signal-class taxonomy. ruff and mypy --strict clean."
+      D02_feedback_store:
+        status: verified
+        title: "Add feedback event store"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D02_feedback_store.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D02_feedback_store.md"
+        owned_files:
+          - "src/research_pipeline/briefing/feedback_store.py"
+          - "tests/unit/test_briefing_feedback_store.py"
+          - "tests/fixtures/briefing/feedback/feedback_empty.sqlite"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_feedback_store.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D02 verification commands passed: 9/9 store tests covering append, list, weights_by_target, conflict_summary, schema migration, idempotent record (uuid nonce), preference_adjustments table. Empty-DB fixture committed. ruff and mypy --strict clean."
+      D03_feedback_cli_command:
+        status: verified
+        title: "Add CLI command brief feedback"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D03_feedback_cli_command.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D03_feedback_cli_command.md"
+        owned_files:
+          - "src/research_pipeline/cli/cmd_brief.py"
+          - "tests/unit/test_briefing_cli_feedback.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_cli_feedback.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D03 verification commands passed: 6/6 CLI tests covering required-target enforcement, signal/strength flags, --show, --conflicts, default workspace path resolution. brief feedback writes to briefings/<date>/feedback/feedback.db only. ruff and mypy --strict clean."
+      D04_manual_review_labels_as_feedback:
+        status: verified
+        title: "Import manual review labels as feedback"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D04_manual_review_labels_as_feedback.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D04_manual_review_labels_as_feedback.md"
+        owned_files:
+          - "src/research_pipeline/briefing/manual_review.py"
+          - "tests/unit/test_briefing_manual_review.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_manual_review.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D04 verification commands passed: 4/4 tests covering approved->MORE_LIKE_THIS, rejected->LESS_LIKE_THIS, pending->skip, batch import filter. Manual labels routed through the same explicit-feedback API; no behavioural-signal path. ruff and mypy --strict clean."
+      D05_preference_update_engine:
+        status: verified
+        title: "Add reversible preference update engine"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D05_preference_update_engine.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D05_preference_update_engine.md"
+        owned_files:
+          - "src/research_pipeline/briefing/preference_update.py"
+          - "tests/unit/test_briefing_preference_update.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_preference_update.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D05 verification commands passed: 6/6 tests covering trigger+procedure+observable_effect+before/after weights+rollback metadata+review_record on every promotion; conflicting and insufficient feedback yield empty result; rollback removes durable change. ruff and mypy --strict clean."
+      D06_feedback_adjusted_ranking:
+        status: verified
+        title: "Apply explicit feedback to ranking weights"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D06_feedback_adjusted_ranking.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D06_feedback_adjusted_ranking.md"
+        owned_files:
+          - "src/research_pipeline/briefing/rank.py"
+          - "tests/unit/test_briefing_rank_feedback.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_rank_feedback.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D06 verification commands passed: 7/7 tests covering rank_score = phase_c_rank_score + topic_adj + source_adj - negative_penalty; cluster/topic/source/event keys all consumed; explicit_feedback_components helper exposed for downstream audit. No behavioural-signal path in ranking. ruff and mypy --strict clean."
+      D07_feedback_rollback_and_audit:
+        status: verified
+        title: "Add feedback rollback and audit validation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D07_feedback_rollback_and_audit.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D07_feedback_rollback_and_audit.md"
+        owned_files:
+          - "src/research_pipeline/briefing/feedback_audit.py"
+          - "tests/unit/test_briefing_feedback_audit.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_feedback_audit.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D07 verification commands passed: 11/11 tests covering audit_promotion_record (full/missing/empty/no-change), audit_feedback_sufficiency (insufficient/conflicting/passes/min_count>=1), safe_rollback (envelope+row clearance+unknown id raises). Rollback envelope records trigger, procedure, observable_effect, rollback metadata, and review record. ruff and mypy --strict clean."
+      D08_feedback_weekly_section_and_e2e:
+        status: verified
+        title: "Add weekly feedback section and e2e tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/D08_feedback_weekly_section_and_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/D08_feedback_weekly_section_and_e2e.md"
+        owned_files:
+          - "src/research_pipeline/briefing/weekly.py"
+          - "tests/unit/test_briefing_weekly_feedback.py"
+          - "tests/integration_offline/test_briefing_phase_d_feedback_e2e.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_weekly_feedback.py tests/integration_offline/test_briefing_phase_d_feedback_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "D08 verification commands passed: 4 unit + 2 offline e2e tests. render_feedback_section emits explicit-feedback counts, top boosted/penalised targets, conflict summary, and never references behavioural signals. Full e2e loop record->apply->re-rank->rollback verified. No network. ruff and mypy --strict clean."
+  E:
+    name: "Manual topic dossiers"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-e-gate"
+    tickets:
+      E01_dossier_models:
+        status: verified
+        title: "Add topic dossier domain models"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E01_dossier_models.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_models.py"
+          - "tests/unit/_dossier_fixtures.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_models.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E01 verification commands passed: 17/17 unit tests on FactualityLabel, EvidenceTimelineEntry, DossierClaim invariants. SUPPORTED_FACT requires non-empty http(s) evidence_url; topic-memory entries require obsidian:// or http(s) URL. ruff and mypy --strict clean. Working-tree-verified locally on commit 19c27936f87a482d2ae885bc6779a5588f39911f."
+      E02_dossier_renderer:
+        status: verified
+        title: "Render single-topic dossier markdown"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E02_dossier_renderer.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_renderer.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_renderer.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E02 verification commands passed: 8/8 unit tests confirming the renderer emits Agent Read Map, One-paragraph Summary, What Changed, Why It Matters Technically, Evidence Timeline, Artifacts To Open, Open Questions, and Agent Notes (with factuality_label=supported_fact). ruff and mypy --strict clean."
+      E03_dossier_cli_manual:
+        status: verified
+        title: "Add brief dossier CLI command (manual only)"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E03_dossier_cli_manual.md"
+        owned_files:
+          - "src/research_pipeline/cli/cmd_brief.py"
+          - "tests/unit/test_briefing_cli_dossier.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_cli_dossier.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E03 verification commands passed: 5/5 CLI tests. brief dossier --cluster <id> resolves the cluster from ranked_clusters.jsonl, writes <dossier_id>.md under briefings/<date>/reports/dossiers/, validates output, and exits non-zero on gate violation. No scheduler hook. ruff and mypy --strict clean."
+      E04_primary_artifact_gate:
+        status: verified
+        title: "Enforce primary-artifact and single-topic gate"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E04_primary_artifact_gate.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_primary_artifact.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_primary_artifact.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E04 verification commands passed: 6/6 tests covering gates on primary_artifact_present=False, empty canonical_urls, empty events, multi-topic clusters. All errors include cluster_id. ruff and mypy --strict clean."
+      E05_evidence_timeline:
+        status: verified
+        title: "Build deterministic evidence timeline"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E05_evidence_timeline.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier_timeline.py"
+          - "tests/unit/test_briefing_dossier_timeline.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_timeline.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E05 verification commands passed: 8/8 tests on build_evidence_timeline. Cluster events come first (dedup by URL) followed by optional TopicMemory entries (obsidian_note or fallback obsidian:// URL). Sorted deterministically by (date, evidence_url). Pure function. ruff and mypy --strict clean."
+      E06_dossier_validation:
+        status: verified
+        title: "Add dossier markdown validator"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E06_dossier_validation.md"
+        owned_files:
+          - "src/research_pipeline/briefing/validate_dossier.py"
+          - "tests/unit/test_briefing_validate_dossier.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate_dossier.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E06 verification commands passed: 8/8 tests covering required-section enforcement, link cap (max_links=30), word cap (max_words=1500), min-word floor, factuality_label substring requirement, and single-topic enforcement. ruff and mypy --strict clean."
+      E07_dossier_archive_linking:
+        status: verified
+        title: "Link dossiers from daily brief and write archive copy"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E07_dossier_archive_linking.md"
+        owned_files:
+          - "src/research_pipeline/briefing/report.py"
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_linking.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_linking.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E07 verification commands passed: 7/7 tests. render_daily_brief gained dossier_links param; '## Linked Dossiers' section emitted only when explicit links are passed. write_dossier_with_archive writes byte-identical archive copy and is idempotent. ruff and mypy --strict clean."
+      E08_dossier_offline_e2e:
+        status: verified
+        title: "Offline e2e tests for manual dossier flow"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E08_dossier_offline_e2e.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_e_dossier_e2e.py"
+          - "tests/fixtures/briefing/e2e/dossier_manual/ranked_clusters.jsonl"
+          - "tests/fixtures/briefing/e2e/dossier_no_primary_artifact/ranked_clusters.jsonl"
+          - "tests/fixtures/briefing/e2e/dossier_long_rejection/ranked_clusters.jsonl"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_e_dossier_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "E08 verification commands passed: 4/4 offline e2e tests covering happy path, no-primary-artifact rejection, long-rejection via validator, and explicit no-network sanity check (socket.create_connection patched). Full Phase E suite 63/63 passes; full unit suite 4189 passed / 1 skipped. ruff and mypy --strict clean."
+  F:
+    name: "Source expansion with governance harness"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-f-gate"
+    tickets:
+      F01_source_evaluation_harness:
+        status: verified
+        title: "Source evaluation harness with registry governance and report comparison"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F01_source_evaluation_harness.md"
+        owned_files:
+          - "src/research_pipeline/briefing/source_evaluation.py"
+          - "src/research_pipeline/briefing/report_comparison.py"
+          - "tests/unit/test_briefing_source_evaluation.py"
+          - "tests/unit/test_briefing_report_comparison.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_source_evaluation.py tests/unit/test_briefing_report_comparison.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F01 harness: evaluate_registry validates governance fields (policy, retention, cadence, rate-limit, disabled-by-default, X_API gate); compare_reports caps item/link growth ratios. 17 tests pass; ruff and mypy clean."
+      F02_paper_events:
+        status: verified
+        title: "Paper events source for arXiv JSONL and Hugging Face daily-papers JSON"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F02_paper_events.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/papers.py"
+          - "tests/unit/test_briefing_paper_events.py"
+          - "tests/fixtures/briefing/papers/"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_paper_events.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F02 PaperEventsSource consumes structured arXiv (.jsonl) and HF daily-papers (.json). Workflow _adapter_for dispatches by suffix to preserve back-compat with Atom adapters. 10 tests pass; ruff and mypy clean."
+      F03_academic_enrichment:
+        status: verified
+        title: "Academic enrichment via Semantic Scholar / OpenAlex / Crossref"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F03_academic_enrichment.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/academic_enrichment.py"
+          - "tests/unit/test_briefing_academic_enrichment.py"
+          - "tests/fixtures/briefing/enrichment/"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_academic_enrichment.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F03 metadata-only enrichment of existing paper events; introduces no new ingest source. 7 tests pass with offline fixtures; ruff and mypy clean."
+      F04_hacker_news_refresh:
+        status: verified
+        title: "Refreshed Hacker News source with discussion-only policy"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F04_hacker_news_refresh.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/hacker_news.py"
+          - "tests/unit/test_briefing_hacker_news.py"
+          - "tests/fixtures/briefing/hacker_news/"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_hacker_news.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F04 DISCUSSION_ONLY / low confidence / speculation_or_watch_item evidence; uses sanctioned Algolia HN API; offline fixtures; disabled by default. 5 tests pass; ruff and mypy clean."
+      F05_reddit:
+        status: verified
+        title: "Reddit source via official API with discussion-only policy"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F05_reddit.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/reddit.py"
+          - "tests/unit/test_briefing_reddit.py"
+          - "tests/fixtures/briefing/reddit/listing.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_reddit.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F05 RedditSource requires AccessMethod.REDDIT_API (sanctioned). DISCUSSION_ONLY / low confidence / speculation_or_watch_item. Offline fixture; disabled-by-default. 3 tests pass."
+      F06_bluesky:
+        status: verified
+        title: "Bluesky source via AT-Protocol with discussion-only policy"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F06_bluesky.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/bluesky.py"
+          - "tests/unit/test_briefing_bluesky.py"
+          - "tests/fixtures/briefing/bluesky/feed.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_bluesky.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F06 BlueskySource requires AccessMethod.BLUESKY_API (official AT-Protocol). DISCUSSION_ONLY / low confidence; bounded title/excerpt; offline fixture; disabled-by-default. 3 tests pass."
+      F07_x_api_policy_stub:
+        status: verified
+        title: "X API policy stub with deny-by-default gates"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F07_x_api_policy_stub.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/x_api.py"
+          - "tests/unit/test_briefing_x_api.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_x_api.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F07 XApiSource is a deny-by-default policy stub. poll() raises XApiPolicyError unless all four gates pass: enabled, auth_required, last_reviewed_at set, policy_gate_passed tag present. When gates pass, returns []; live polling is deliberately deferred. 6 tests pass."
+      F08_video_audio:
+        status: verified
+        title: "Video / audio source for YouTube Atom and podcast RSS"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F08_video_audio.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/video_audio.py"
+          - "tests/unit/test_briefing_video_audio.py"
+          - "tests/fixtures/briefing/video_audio/youtube_feed.xml"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_video_audio.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F08 VideoAudioSource parses public YouTube Atom (yt:videoId namespace) and podcast RSS only; no transcript scraping, no auto-download, no browser automation. PUBLIC_OFFICIAL / medium confidence / speculation_or_watch_item. Offline fixture; disabled-by-default. 3 tests pass."
+      F09_source_expansion_offline_e2e:
+        status: verified
+        title: "Offline e2e test for source expansion with governance harness"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F09_source_expansion_offline_e2e.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_f_source_expansion_e2e.py"
+          - "tests/fixtures/briefing/e2e/source_expansion/feed.xml"
+          - "tests/fixtures/briefing/e2e/source_expansion/bluesky.json"
+          - "tests/fixtures/briefing/e2e/source_expansion/registry_baseline.toml"
+          - "tests/fixtures/briefing/e2e/source_expansion/registry_candidate.toml"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_f_source_expansion_e2e.py -xvs"
+          - "uv run pytest tests/unit/ tests/integration_offline/ -q"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "F09 e2e: 3 tests pass — baseline runs, candidate (RSS+Bluesky) runs and grows coverage with noise_increase=False, candidate registry passes evaluate_registry governance. Full regression 4301 passed / 1 skipped in 39.28s; ruff and mypy --strict clean on briefing package (51 source files)."
+  G:
+    name: "Harness hardening and agent workflows"
+    status: complete
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-g-gate"
+    tickets:
+      G01_workflow_state_model:
+        status: verified
+        title: "Add briefing workflow state model"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G01_workflow_state_model.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G01_workflow_state_model.md"
+        owned_files:
+          - "src/research_pipeline/briefing/workflow_state.py"
+          - "tests/unit/test_briefing_workflow_state.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_workflow_state.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/research_pipeline/briefing/workflow_state.py"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G01 9/9 tests pass; ruff clean; mypy clean. Frozen Pydantic state model with literal stage validation; JSON round-trip; last_error preserved for diagnosis."
+      G02_stage_verifiers:
+        status: verified
+        title: "Add stage verifier registry"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G02_stage_verifiers.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G02_stage_verifiers.md"
+        owned_files:
+          - "src/research_pipeline/briefing/workflow_verification.py"
+          - "tests/unit/test_briefing_workflow_verification.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_workflow_verification.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/research_pipeline/briefing/workflow_verification.py"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G02 19/19 tests pass; ruff clean; mypy clean. Six stage verifiers registered (planned, polled, ranked, generated, validated, archived) with sorted issues tuple."
+      G03_mcp_schemas:
+        status: verified
+        title: "Add namespaced brief_* MCP schemas"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G03_mcp_schemas.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G03_mcp_schemas.md"
+        owned_files:
+          - "src/research_pipeline/mcp_server/schemas.py"
+          - "tests/unit/test_mcp_briefing_schemas.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_mcp_briefing_schemas.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G03 12/12 tests pass; ruff clean; mypy clean. Ten Brief* input schemas all inheriting BriefCommonInput; required fields raise ValidationError when missing."
+      G04_mcp_tools:
+        status: verified
+        title: "Add namespaced brief_* MCP tools"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G04_mcp_tools.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G04_mcp_tools.md"
+        owned_files:
+          - "src/research_pipeline/mcp_server/tools.py"
+          - "tests/unit/test_mcp_briefing_tools.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_mcp_briefing_tools.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G04 8/8 tests pass; ruff clean; mypy clean. All brief_*_tool functions namespaced; first param annotation is Brief*Input (PEP 563 forward-ref strings handled); ToolResult envelope on failure."
+      G05_mcp_resources:
+        status: verified
+        title: "Add MCP resources for briefing artifacts"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G05_mcp_resources.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G05_mcp_resources.md"
+        owned_files:
+          - "src/research_pipeline/mcp_server/resources.py"
+          - "tests/unit/test_mcp_briefing_resources.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_mcp_briefing_resources.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G05 10/10 tests pass; ruff clean; mypy clean. Read-only briefing resources with happy-path and missing-path coverage."
+      G06_daily_intelligence_skill:
+        status: verified
+        title: "Add bundled daily-ai-intelligence skill"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G06_daily_intelligence_skill.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G06_daily_intelligence_skill.md"
+        owned_files:
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/SKILL.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/config.toml"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/command-reference.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/source-policy.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/report-templates.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/feedback-loop.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/troubleshooting.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/agent-evaluation.md"
+          - "tests/unit/test_skill_daily_ai_intelligence.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_skill_daily_ai_intelligence.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G06 10/10 tests pass; ruff clean; mypy clean. SKILL.md frontmatter, trigger/non-trigger rules, raw/cloud prohibition, brief_* preference, all references parse."
+      G07_tool_scope_governance:
+        status: verified
+        title: "Add MCP and skill tool-scope governance"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G07_tool_scope_governance.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G07_tool_scope_governance.md"
+        owned_files:
+          - "src/research_pipeline/briefing/tool_governance.py"
+          - "tests/unit/test_briefing_tool_governance.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_tool_governance.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/research_pipeline/briefing/tool_governance.py"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G07 11/11 tests pass; ruff clean; mypy clean. ToolPolicy frozen model; 9 brief_* policies; poll/run network+allowlisted; rank/validate/generate/dossier/weekly local+deterministic; export+feedback local writes only."
+      G08_held_out_agent_evals:
+        status: verified
+        title: "Add held-out agent evaluation tasks"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G08_held_out_agent_evals.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G08_held_out_agent_evals.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_g_agent_evals.py"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_g_agent_evals.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G08 9/9 tests pass; ruff clean; mypy clean. Held-out scenarios: run_daily_brief, validate_malformed_report, record_feedback, export_obsidian, refuse_unsupported_source, generate_dossier, paper_request_handoff, namespace separation, governance coverage."
+      G09_replay_diagnosis_and_final_gate:
+        status: verified
+        title: "Add replay diagnosis docs and final all-phase gate"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G09_replay_diagnosis_and_final_gate.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G09_replay_diagnosis_and_final_gate.md"
+        owned_files:
+          - "docs/daily-ai-intelligence/replay-diagnosis.md"
+          - "docs/daily-ai-intelligence/final-acceptance-gate.md"
+          - "tests/integration_offline/test_briefing_phase_g_replay_diagnosis.py"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_g_replay_diagnosis.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: "19c27936f87a482d2ae885bc6779a5588f39911f"
+        audit_status: audit_pass
+        audit_reason: "G09 5/5 tests pass; ruff clean; mypy clean. Replay procedure documented; final gate doc lists required commands/docs/completion. Drift detection verified by deleting an artifact post-run."

@@ -1,0 +1,1 @@
+Audit whether Phase F may start. Verify A01-A12, B01-B08, C01-C08, D01-D08, and E01-E08 are audit_pass; A/B/C/D/E proof packs and acceptance contracts exist; A/B/C/D/E gates are runnable; phases A/B/C/D/E are complete; phase F is in_progress. If any condition fails, do not start Phase F.

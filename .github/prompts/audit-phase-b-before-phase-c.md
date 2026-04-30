@@ -1,0 +1,1 @@
+Audit whether Phase C may start. Verify A01-A12 and B01-B08 are audit_pass, A/B proof packs and acceptance contracts exist, A/B gates are runnable, phases A and B are complete, and phase C is in_progress. If any condition fails, do not start Phase C.

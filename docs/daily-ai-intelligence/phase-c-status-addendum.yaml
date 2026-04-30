@@ -1,0 +1,147 @@
+# Merge into phase-status.yaml without deleting A/B records.
+
+current_phase: C
+current_ticket: C01_obsidian_config_and_path_allowlist
+
+phases:
+  A:
+    status: complete
+  B:
+    status: complete
+  C:
+    name: "Obsidian archive"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-c-gate"
+    tickets:
+      C01_obsidian_config_and_path_allowlist:
+        status: pending
+        title: "Add Obsidian config and path allowlist"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C01_obsidian_config_and_path_allowlist.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C01_obsidian_config_and_path_allowlist.md"
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian.py"
+          - "tests/unit/test_briefing_obsidian_paths.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_paths.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C02_obsidian_note_models_and_frontmatter:
+        status: pending
+        title: "Add Obsidian note models and YAML frontmatter"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C02_obsidian_note_models_and_frontmatter.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C02_obsidian_note_models_and_frontmatter.md"
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_notes.py"
+          - "tests/unit/test_briefing_obsidian_notes.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_notes.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C03_daily_note_export:
+        status: pending
+        title: "Add daily note export"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C03_daily_note_export.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C03_daily_note_export.md"
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_daily.py"
+          - "tests/unit/test_briefing_obsidian_daily.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_daily.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C04_topic_and_source_note_export:
+        status: pending
+        title: "Add topic and source note export"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C04_topic_and_source_note_export.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C04_topic_and_source_note_export.md"
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_topics.py"
+          - "src/research_pipeline/briefing/obsidian_sources.py"
+          - "tests/unit/test_briefing_obsidian_topics.py"
+          - "tests/unit/test_briefing_obsidian_sources.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_topics.py tests/unit/test_briefing_obsidian_sources.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C05_wikilink_backlink_and_idempotent_update:
+        status: pending
+        title: "Add wiki-link, backlink, and idempotent update handling"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C05_wikilink_backlink_and_idempotent_update.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C05_wikilink_backlink_and_idempotent_update.md"
+        owned_files:
+          - "src/research_pipeline/briefing/obsidian_links.py"
+          - "tests/unit/test_briefing_obsidian_links.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_obsidian_links.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C06_obsidian_export_validation:
+        status: pending
+        title: "Add Obsidian export validation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C06_obsidian_export_validation.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C06_obsidian_export_validation.md"
+        owned_files:
+          - "src/research_pipeline/briefing/validate_obsidian.py"
+          - "tests/unit/test_briefing_validate_obsidian.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate_obsidian.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C07_cli_export_obsidian:
+        status: pending
+        title: "Add CLI command brief export-obsidian"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C07_cli_export_obsidian.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C07_cli_export_obsidian.md"
+        owned_files:
+          - "src/research_pipeline/cli/cmd_brief.py"
+          - "src/research_pipeline/briefing/obsidian.py"
+          - "tests/unit/test_briefing_cli_export_obsidian.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_cli_export_obsidian.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      C08_obsidian_offline_e2e:
+        status: pending
+        title: "Add offline Obsidian export e2e tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/C08_obsidian_offline_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/C08_obsidian_offline_e2e.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_c_obsidian_e2e.py"
+          - "tests/fixtures/briefing/e2e/obsidian_export/"
+          - "tests/fixtures/briefing/e2e/obsidian_existing_notes/"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_c_obsidian_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+  D:
+    status: blocked_until_C_done
+  E:
+    status: blocked_until_D_done
+  F:
+    status: blocked_until_E_done
+  G:
+    status: blocked_until_F_done

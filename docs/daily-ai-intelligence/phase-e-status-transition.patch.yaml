@@ -1,0 +1,16 @@
+# Apply without deleting A/B/C/D ticket records.
+
+current_phase: E
+current_ticket: E01_dossier_models
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D: {status: complete}
+  E:
+    name: "Hot-topic dossiers"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-e-gate"
+    tickets: "<copy E01-E08 from phase-e-status-addendum.yaml>"
+  F: {status: blocked_until_E_done}
