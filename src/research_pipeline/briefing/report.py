@@ -61,8 +61,10 @@ def render_daily_brief(
     item_count = len(clusters)
     link_count = sum(len(cluster.canonical_urls[:1]) for cluster in clusters)
     source_mix = _source_mix(clusters)
-    full_detail = clusters[:full_detail_limit]
-    compact = clusters[full_detail_limit:]
+    rich_clusters = [c for c in clusters if _has_meaningful_summary(c)]
+    thin_clusters = [c for c in clusters if not _has_meaningful_summary(c)]
+    full_detail = rich_clusters[:full_detail_limit]
+    compact = [*rich_clusters[full_detail_limit:], *thin_clusters]
     full_detail_anchors = {
         cluster.cluster_id: _heading_anchor(_top_item_heading(index, cluster))
         for index, cluster in enumerate(full_detail, start=1)
@@ -96,24 +98,29 @@ def render_daily_brief(
     lines.append("")
 
     lines.extend(["## 🔥 Executive Signal", ""])
-    if clusters:
-        for cluster in clusters[:3]:
+    if full_detail:
+        for cluster in full_detail[:3]:
             lines.append(_render_executive_bullet(cluster, full_detail_anchors))
     else:
         lines.append("- No primary artifact passed the daily inclusion threshold.")
     lines.append("")
 
     lines.extend(["## ⭐ Top Items", ""])
-    if clusters:
+    if full_detail:
         for index, cluster in enumerate(full_detail, start=1):
             lines.extend(
                 _render_cluster_item(index, cluster, topic_memory=topic_memory)
             )
         if compact:
             lines.extend(["### Also tracked", ""])
-            for offset, cluster in enumerate(compact, start=full_detail_limit + 1):
+            for offset, cluster in enumerate(compact, start=len(full_detail) + 1):
                 lines.append(_render_compact_bullet(offset, cluster))
             lines.append("")
+    elif compact:
+        lines.extend(["### Also tracked", ""])
+        for offset, cluster in enumerate(compact, start=1):
+            lines.append(_render_compact_bullet(offset, cluster))
+        lines.append("")
     else:
         lines.append("No ranked items passed the inclusion threshold today.")
         lines.append("")
@@ -189,7 +196,7 @@ def _render_executive_bullet(
     icon = _EVIDENCE_ICONS.get(cluster.evidence_type, "•")
     action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
     summary = _summary_text(_primary_event(cluster), cluster)
-    snippet = _shorten(summary, 200, fallback=cluster.title)
+    snippet = _shorten(_flatten_summary(summary), 200, fallback=cluster.title)
     anchor = full_detail_anchors.get(cluster.cluster_id)
     title_link = f"[{cluster.title}](#{anchor})" if anchor else cluster.title
     return f"- {icon} **{title_link}** — {action} · {snippet}"
@@ -198,11 +205,12 @@ def _render_executive_bullet(
 def _render_compact_bullet(offset: int, cluster: BriefingCluster) -> str:
     action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
     url = cluster.canonical_urls[0] if cluster.canonical_urls else ""
-    if url:
-        return (
-            f"- {offset}. {action} · [{cluster.title}]({url}) (`{cluster.cluster_id}`)"
-        )
-    return f"- {offset}. {action} · {cluster.title} (`{cluster.cluster_id}`)"
+    title_md = f"[{cluster.title}]({url})" if url else cluster.title
+    snippet = ""
+    summary = _summary_text(_primary_event(cluster), cluster)
+    if summary and summary != cluster.title:
+        snippet = f" — {_shorten(_flatten_summary(summary), 140, fallback='')}"
+    return f"{offset}. {action} · {title_md}{snippet} (`{cluster.cluster_id}`)"
 
 
 def _render_class_section(
@@ -219,13 +227,16 @@ def _render_class_section(
     lines = [f"## {heading}", ""]
     for cluster in selected:
         action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
-        if cluster.canonical_urls:
-            url = cluster.canonical_urls[0]
+        url = cluster.canonical_urls[0] if cluster.canonical_urls else ""
+        title_md = f"[{cluster.title}]({url})" if url else cluster.title
+        summary = _summary_text(_primary_event(cluster), cluster)
+        if summary and summary != cluster.title:
+            snippet = _shorten(_flatten_summary(summary), 220, fallback="")
             lines.append(
-                f"- {action} · [{cluster.title}]({url}) (`{cluster.cluster_id}`)"
+                f"- {action} · **{title_md}** — {snippet} (`{cluster.cluster_id}`)"
             )
         else:
-            lines.append(f"- {action} · {cluster.title} (`{cluster.cluster_id}`)")
+            lines.append(f"- {action} · **{title_md}** (`{cluster.cluster_id}`)")
     lines.append("")
     return lines
 
@@ -268,6 +279,26 @@ def _shorten(text: str, limit: int, *, fallback: str = "") -> str:
         return text
     truncated = text[: limit - 1].rstrip()
     return f"{truncated}…"
+
+
+def _flatten_summary(text: str) -> str:
+    """Collapse multi-line markdown / HTML release notes into a single
+    readable line suitable for inline use in a list item.
+
+    Strips HTML tags, drops markdown heading hashes, removes link/image
+    syntax (keeping the visible text), and squashes whitespace so the
+    output never breaks list rendering.
+    """
+    if not text:
+        return ""
+    flat = re.sub(r"<[^>]+>", " ", text)
+    flat = re.sub(r"!\[([^\]]*)\]\([^)]*\)", r"\1", flat)
+    flat = re.sub(r"\[([^\]]+)\]\([^)]+\)", r"\1", flat)
+    flat = re.sub(r"^\s*#+\s*", "", flat, flags=re.MULTILINE)
+    flat = re.sub(r"^\s*[-*]\s+", "", flat, flags=re.MULTILINE)
+    flat = flat.replace("`", "")
+    flat = re.sub(r"\s+", " ", flat).strip()
+    return flat
 
 
 def render_weekly_synthesis(
@@ -452,6 +483,23 @@ def _summary_text(primary: IntelligenceEvent, cluster: BriefingCluster) -> str:
         if summary and "duplicate" not in summary.lower():
             return summary
     return cluster.title
+
+
+def _has_meaningful_summary(cluster: BriefingCluster) -> bool:
+    """A cluster has a meaningful summary when its excerpt actually
+    describes the item rather than just echoing a category label or the title.
+
+    A category label like ``"Data Mining & Modeling"`` is title-cased and
+    word-only, while real prose contains at least one lowercase token after
+    the first word (articles, verbs, prepositions).
+    """
+    summary = _summary_text(_primary_event(cluster), cluster).strip()
+    if not summary or summary == cluster.title:
+        return False
+    if any(c in summary for c in ".!?"):
+        return True
+    tokens = summary.split()
+    return any(token[:1].islower() for token in tokens[1:])
 
 
 def _evidence_label(evidence_type: str) -> str:
