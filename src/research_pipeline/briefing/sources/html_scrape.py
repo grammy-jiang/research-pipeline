@@ -88,7 +88,7 @@ class HtmlScrapeSource:
             if not self._is_leaf_path(canonical, prefix):
                 continue
             seen.add(canonical)
-            anchor_text = " ".join(anchor.text_content().split())
+            anchor_text = self._extract_spaced_text(anchor)
             event = self._build_event(canonical, anchor_text)
             if event is not None:
                 events.append(event)
@@ -192,6 +192,21 @@ class HtmlScrapeSource:
             artifact_links=(canonical_url,),
             confidence="medium",
         )
+
+    @staticmethod
+    def _extract_spaced_text(element: lxml_html.HtmlElement) -> str:
+        """Return text from *element* with whitespace between text fragments.
+
+        ``lxml``'s ``text_content()`` concatenates text from descendant
+        elements without inserting separators, which can glue tokens together
+        across sibling block elements (e.g. ``<div>Interpretability</div>``
+        followed by ``<div>Apr 2, 2026</div>`` becomes
+        ``InterpretabilityApr 2, 2026``). ``itertext()`` yields each text
+        and tail node separately; joining them with a single space and then
+        collapsing whitespace preserves natural word boundaries.
+        """
+        parts = [segment.strip() for segment in element.itertext()]
+        return " ".join(part for part in parts if part)
 
     @staticmethod
     def _slug_from_url(canonical_url: str) -> str:

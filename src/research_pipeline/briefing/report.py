@@ -317,7 +317,11 @@ def _section_for_class(
     if not selected:
         lines.append("No items in this category passed the daily budget.")
     for cluster in selected:
-        lines.append(f"- `{cluster.cluster_id}` — {cluster.title}")
+        if cluster.canonical_urls:
+            url = cluster.canonical_urls[0]
+            lines.append(f"- `{cluster.cluster_id}` — [{cluster.title}]({url})")
+        else:
+            lines.append(f"- `{cluster.cluster_id}` — {cluster.title}")
     lines.append("")
     return lines
 

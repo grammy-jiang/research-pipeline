@@ -82,6 +82,28 @@ def test_html_scrape_caps_events() -> None:
     assert len(events) == 1
 
 
+def test_html_scrape_inserts_spaces_between_block_elements() -> None:
+    """Anchor text from sibling/nested block elements must remain space-separated.
+
+    Regression: ``element.text_content()`` concatenated text fragments without
+    a separator, gluing tokens together (e.g. ``InterpretabilityApr 2, 2026``
+    or ``modelAll modern``). The adapter now joins ``itertext()`` fragments
+    with spaces so the excerpt remains readable.
+    """
+    source = _source(fixture_path="html_scrape/listing_block_elements.html")
+    adapter = HtmlScrapeSource(source, fixture_base_dir=FIXTURE_BASE)
+
+    events = adapter.poll()
+
+    assert len(events) == 1
+    summary = events[0].summary_hint or ""
+    assert "InterpretabilityApr" not in summary
+    assert "modelAll" not in summary
+    assert "Interpretability" in summary
+    assert "Apr 2, 2026" in summary
+    assert "model All modern" in summary
+
+
 def test_html_scrape_requires_link_path_prefix() -> None:
     with pytest.raises(ValueError, match="link_path_prefix"):
         BriefingSourceConfig(

@@ -87,7 +87,19 @@ class GitHubReleasesSource:
         )
 
     def _event_from_release(self, item: dict[str, Any]) -> IntelligenceEvent:
-        title = str(item.get("name") or item.get("tag_name") or "GitHub release")
+        release_label = str(
+            item.get("name") or item.get("tag_name") or "GitHub release"
+        )
+        repo_label = (
+            f"{self.source.repo_owner}/{self.source.repo_name}"
+            if self.source.repo_owner and self.source.repo_name
+            else self.source.source_name
+        )
+        title = (
+            f"{repo_label} {release_label}"
+            if release_label and repo_label not in release_label
+            else release_label or repo_label
+        )
         tag = str(item.get("tag_name") or "")
         html_url = str(
             item.get("html_url") or item.get("url") or self.source.official_url
@@ -126,7 +138,7 @@ class GitHubReleasesSource:
             identifiers=identifiers,
             summary_hint=body[:500],
             excerpt=body[:500],
-            topics=(topic_id_for_title(title),),
+            topics=(topic_id_for_title(release_label or title),),
             artifact_links=(canonical_url,),
             confidence="high",
             raw_metadata={

@@ -44,6 +44,17 @@ def test_github_releases_normal_fixture_maps_to_events() -> None:
     assert first.source_native_id == "1001"
 
 
+def test_github_releases_title_includes_repo_label() -> None:
+    """Release titles must include the repo so downstream renderers can identify
+    the source repository (e.g. ``example/repo v1.2.3`` instead of ``v1.2.3``)."""
+    source = _source("releases_normal.json")
+    adapter = GitHubReleasesSource(source, fixture_base_dir=FIXTURE_BASE)
+
+    events = adapter.poll()
+
+    assert all(event.title.startswith("example/repo") for event in events)
+
+
 def test_github_releases_empty_fixture_returns_no_events() -> None:
     source = _source("releases_empty.json")
     adapter = GitHubReleasesSource(source, fixture_base_dir=FIXTURE_BASE)
