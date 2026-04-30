@@ -69,6 +69,7 @@ def assert_phase_a_source_boundary(source: BriefingSourceConfig) -> None:
     phase_a = {
         AccessMethod.GITHUB_RELEASES,
         AccessMethod.RSS_ATOM,
+        AccessMethod.HTML_SCRAPE,
         AccessMethod.MANUAL,
     }
     if (

@@ -25,6 +25,7 @@ _PHASE_A_OR_B_ACCESS_METHODS: frozenset[AccessMethod] = frozenset(
     {
         AccessMethod.GITHUB_RELEASES,
         AccessMethod.RSS_ATOM,
+        AccessMethod.HTML_SCRAPE,
         AccessMethod.MANUAL,
     }
 )

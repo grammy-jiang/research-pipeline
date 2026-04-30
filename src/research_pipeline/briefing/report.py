@@ -21,12 +21,20 @@ def render_daily_brief(
     quiet_sources: list[str] | None = None,
     topic_memory: TopicMemoryStore | None = None,
     dossier_links: list[tuple[str, str]] | None = None,
+    full_detail_limit: int = 5,
 ) -> str:
     """Render an extractive daily Markdown brief.
 
     ``dossier_links`` is an optional ordered list of ``(title, path_or_url)``
     tuples for any manually generated Phase E dossiers. When supplied a
     ``## Linked Dossiers`` section is rendered just below ``## Top Items``.
+
+    ``full_detail_limit`` caps how many top-ranked clusters get verbose
+    treatment in ``## Top Items``. Remaining ranked clusters are listed as
+    compact bullets under ``### Also tracked`` (no extra evidence link beyond
+    those already captured in ``ranked_clusters.jsonl``). This keeps the daily
+    brief within the governance link/word budget while still surfacing every
+    ranked item to human readers.
     """
     quiet_sources = quiet_sources or []
     item_count = len(clusters)
@@ -61,7 +69,7 @@ def render_daily_brief(
         "",
     ]
     if clusters:
-        for cluster in clusters[:5]:
+        for cluster in clusters[:3]:
             primary = _primary_event(cluster)
             label = _evidence_label(cluster.evidence_type)
             action = cluster.suggested_action
@@ -74,7 +82,9 @@ def render_daily_brief(
         lines.append("- No primary artifact passed the daily inclusion threshold.")
     lines.extend(["", "## Top Items", ""])
     if clusters:
-        for index, cluster in enumerate(clusters, start=1):
+        full_detail = clusters[:full_detail_limit]
+        compact = clusters[full_detail_limit:]
+        for index, cluster in enumerate(full_detail, start=1):
             lines.extend(
                 _render_cluster_item(
                     index,
@@ -82,6 +92,27 @@ def render_daily_brief(
                     topic_memory=topic_memory,
                 )
             )
+        if compact:
+            lines.extend(
+                [
+                    "### Also tracked",
+                    "",
+                    (
+                        f"{len(compact)} additional ranked clusters are summarised "
+                        "below; full evidence URLs and metadata are in "
+                        "`ranked_clusters.jsonl`."
+                    ),
+                    "",
+                ]
+            )
+            for offset, cluster in enumerate(compact, start=full_detail_limit + 1):
+                action = cluster.suggested_action
+                url = cluster.canonical_urls[0]
+                lines.append(
+                    f"- {offset}. [{cluster.title}]({url}) "
+                    f"(`{cluster.cluster_id}`) — action: {action}"
+                )
+            lines.append("")
     else:
         lines.append("No ranked items passed the inclusion threshold today.")
         lines.append("")
@@ -108,9 +139,11 @@ def render_daily_brief(
     )
     lines.extend(["## Follow-up Queue", ""])
     if clusters:
-        for cluster in clusters[:5]:
-            url = cluster.canonical_urls[0]
-            lines.append(f"- Open [{cluster.title}]({url}) and decide feedback.")
+        for cluster in clusters[:3]:
+            lines.append(
+                f"- Review `{cluster.cluster_id}` ({cluster.title}) "
+                "and decide feedback."
+            )
     else:
         lines.append("- Re-run after the next scheduled source cadence.")
     if dossier_links:
@@ -140,7 +173,7 @@ def render_daily_brief(
         lines.append("No quiet-source summary was provided for this run.")
     lines.extend(["", "## Feedback Targets", ""])
     lines.extend(["| Target | ID | Suggested feedback command |", "|---|---|---|"])
-    for cluster in clusters:
+    for cluster in clusters[:5]:
         lines.append(
             "| "
             f"{cluster.title} | `{cluster.cluster_id}` | "
@@ -284,9 +317,7 @@ def _section_for_class(
     if not selected:
         lines.append("No items in this category passed the daily budget.")
     for cluster in selected:
-        lines.append(
-            f"- [{cluster.title}]({cluster.canonical_urls[0]}) (`{cluster.cluster_id}`)"
-        )
+        lines.append(f"- `{cluster.cluster_id}` — {cluster.title}")
     lines.append("")
     return lines
 
@@ -347,7 +378,7 @@ def _why_it_matters(cluster: BriefingCluster) -> str:
         action = "It is likely fatigue-heavy or hype-heavy unless new evidence appears."
     else:
         action = "It has primary evidence worth reading."
-    return f"{action} Ranking trace: {cluster.ranking_explanation}."
+    return action
 
 
 def _source_trace(cluster: BriefingCluster) -> str:

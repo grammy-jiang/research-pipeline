@@ -27,6 +27,7 @@ from research_pipeline.briefing.sources.base import BriefingSource
 from research_pipeline.briefing.sources.bluesky import BlueskySource
 from research_pipeline.briefing.sources.github_releases import GitHubReleasesSource
 from research_pipeline.briefing.sources.hacker_news import HackerNewsSource
+from research_pipeline.briefing.sources.html_scrape import HtmlScrapeSource
 from research_pipeline.briefing.sources.huggingface_papers import (
     HuggingFacePapersSource,
 )
@@ -263,6 +264,8 @@ def _adapter_for(
         )
     if source.access_method == AccessMethod.RSS_ATOM:
         return RssAtomSource(source, state=state, fixture_base_dir=fixture_base_dir)
+    if source.access_method == AccessMethod.HTML_SCRAPE:
+        return HtmlScrapeSource(source, state=state, fixture_base_dir=fixture_base_dir)
     if source.access_method == AccessMethod.MANUAL:
         return ManualSource(source)
     if source.access_method == AccessMethod.HACKER_NEWS:

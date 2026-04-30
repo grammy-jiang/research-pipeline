@@ -26,17 +26,18 @@ max_sources_per_run = 30
 
 [[briefing.sources]]
 source_id = "anthropic-news"
-source_name = "Anthropic News"
+source_name = "Anthropic Research"
 source_class = "primary_artifact"
-access_method = "rss_atom"
-official_url = "https://www.anthropic.com/news"
-feed_url = "https://www.anthropic.com/news/rss.xml"
+access_method = "html_scrape"
+official_url = "https://www.anthropic.com/research"
+feed_url = "https://www.anthropic.com/research"
+link_path_prefix = "/research/"
 cadence = "daily"
 retention_policy = "metadata_only"
 allowed_raw_storage = true
 trust_weight = 1.5
 noise_weight = 0.0
-max_events_per_run = 2
+max_events_per_run = 3
 tags = ["vendor", "frontier-lab"]
 
 [[briefing.sources]]
@@ -67,7 +68,7 @@ allowed_raw_storage = true
 trust_weight = 1.3
 noise_weight = 0.1
 max_events_per_run = 2
-enabled = false
+enabled = true
 tags = ["vendor", "research"]
 
 [[briefing.sources]]
@@ -83,7 +84,7 @@ allowed_raw_storage = true
 trust_weight = 1.2
 noise_weight = 0.1
 max_events_per_run = 2
-enabled = false
+enabled = true
 tags = ["vendor", "open-source"]
 
 [[briefing.sources]]
@@ -116,7 +117,7 @@ allowed_raw_storage = true
 trust_weight = 1.1
 noise_weight = 0.2
 max_events_per_run = 1
-enabled = false
+enabled = true
 tags = ["serving", "inference"]
 
 [[briefing.sources]]
@@ -133,7 +134,7 @@ allowed_raw_storage = true
 trust_weight = 1.3
 noise_weight = 0.1
 max_events_per_run = 1
-enabled = false
+enabled = true
 tags = ["protocol", "mcp"]
 
 [[briefing.sources]]

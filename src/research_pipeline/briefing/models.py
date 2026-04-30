@@ -33,6 +33,7 @@ class AccessMethod(StrEnum):
 
     GITHUB_RELEASES = "github_releases"
     RSS_ATOM = "rss_atom"
+    HTML_SCRAPE = "html_scrape"
     MANUAL = "manual"
     ARXIV = "arxiv"
     HACKER_NEWS = "hacker_news"
@@ -80,6 +81,7 @@ class BriefingSourceConfig(BaseModel):
     api_url: AnyUrl | None = None
     fixture_path: str | None = None
     query: str | None = None
+    link_path_prefix: str | None = None
     manual_items: tuple[ManualBriefingItem, ...] = ()
 
     @model_validator(mode="after")
@@ -97,6 +99,11 @@ class BriefingSourceConfig(BaseModel):
             and self.fixture_path is None
         ):
             raise ValueError("rss_atom sources require feed_url or fixture_path")
+        if self.access_method == AccessMethod.HTML_SCRAPE:
+            if self.feed_url is None and self.fixture_path is None:
+                raise ValueError("html_scrape sources require feed_url or fixture_path")
+            if self.link_path_prefix is None:
+                raise ValueError("html_scrape sources require link_path_prefix")
         if self.access_method == AccessMethod.MANUAL and not self.manual_items:
             raise ValueError("manual sources require at least one manual item")
         if (
