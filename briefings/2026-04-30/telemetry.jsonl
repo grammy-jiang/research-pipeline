@@ -10,3 +10,15 @@
 {"cluster_count": 13, "event_type": "rank_completed", "ranked_count": 10, "timestamp": "2026-04-30T11:53:01Z"}
 {"event_type": "daily_generated", "item_count": 10, "path": "workspace/briefings/2026-04-30/reports/daily.md", "timestamp": "2026-04-30T11:53:01Z"}
 {"error_count": 0, "event_type": "daily_validated", "passed": true, "timestamp": "2026-04-30T11:53:01Z", "warning_count": 0}
+{"event_count": 3, "event_type": "source_polled", "source_id": "anthropic-news", "status": "ok", "timestamp": "2026-04-30T22:22:14Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "deepmind-blog", "status": "ok", "timestamp": "2026-04-30T22:22:15Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "google-research-blog", "status": "ok", "timestamp": "2026-04-30T22:22:16Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "huggingface-blog", "status": "ok", "timestamp": "2026-04-30T22:22:17Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "gh-transformers", "status": "ok", "timestamp": "2026-04-30T22:22:17Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-vllm", "status": "ok", "timestamp": "2026-04-30T22:22:18Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "gh-mcp-spec", "status": "ok", "timestamp": "2026-04-30T22:22:18Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "gh-anthropic-sdk-python", "status": "ok", "timestamp": "2026-04-30T22:22:18Z"}
+{"duration_seconds": 7.047, "event_count": 8, "event_type": "poll_completed", "timestamp": "2026-04-30T22:22:18Z"}
+{"cluster_count": 8, "event_type": "rank_completed", "ranked_count": 8, "timestamp": "2026-04-30T22:22:18Z"}
+{"event_type": "daily_generated", "item_count": 8, "path": "workspace/briefings/2026-04-30/reports/daily.md", "timestamp": "2026-04-30T22:22:18Z"}
+{"error_count": 0, "event_type": "daily_validated", "passed": true, "timestamp": "2026-04-30T22:22:18Z", "warning_count": 0}
