@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import re
 from collections import Counter
 
 from research_pipeline.briefing.memory_lookup import lookup_recent_topic_context
@@ -11,6 +12,28 @@ from research_pipeline.briefing.models import (
     SourceClass,
 )
 from research_pipeline.briefing.topic_memory_store import TopicMemoryStore
+
+_ACTION_ICONS = {
+    "read": "📥 read",
+    "try": "🛠️ try",
+    "watch": "👁️ watch",
+    "ignore": "🚫 ignore",
+}
+_CONFIDENCE_ICONS = {
+    "high": "🟢 high",
+    "medium": "🟡 medium",
+    "low": "🔴 low",
+}
+_EVIDENCE_ICONS = {
+    "supported_fact": "✨",
+    "inference": "🧠",
+    "speculation_or_watch_item": "👀",
+}
+_CLASS_HEADINGS = (
+    ("📦 Repos & Releases", SourceClass.IMPLEMENTATION_SOURCE, 5),
+    ("📄 Papers", SourceClass.ACADEMIC_SOURCE, 5),
+    ("💬 Discussions", SourceClass.TECHNICAL_DISCUSSION, 5),
+)
 
 
 def render_daily_brief(
@@ -22,27 +45,29 @@ def render_daily_brief(
     topic_memory: TopicMemoryStore | None = None,
     dossier_links: list[tuple[str, str]] | None = None,
     full_detail_limit: int = 5,
+    previous_brief_link: str | None = None,
 ) -> str:
-    """Render an extractive daily Markdown brief.
+    """Render a focused daily Markdown brief with icons and internal anchors.
 
-    ``dossier_links`` is an optional ordered list of ``(title, path_or_url)``
-    tuples for any manually generated Phase E dossiers. When supplied a
-    ``## Linked Dossiers`` section is rendered just below ``## Top Items``.
-
-    ``full_detail_limit`` caps how many top-ranked clusters get verbose
-    treatment in ``## Top Items``. Remaining ranked clusters are listed as
-    compact bullets under ``### Also tracked`` (no extra evidence link beyond
-    those already captured in ``ranked_clusters.jsonl``). This keeps the daily
-    brief within the governance link/word budget while still surfacing every
-    ranked item to human readers.
+    Compared to earlier versions this layout removes static boilerplate
+    (Agent Read Map, Follow-up Queue, Suppressed/Not Reported, No Material
+    Updates, Watchlist Quiet) and replaces verbose per-item field tables with
+    a single badge line. A ``📑 Contents`` section provides intra-document
+    navigation, Executive Signal items deep-link to their detailed Top Items
+    entry, and ``previous_brief_link`` (when supplied) renders a 🔗 cross-link
+    to the previous day's brief.
     """
     quiet_sources = quiet_sources or []
     item_count = len(clusters)
     link_count = sum(len(cluster.canonical_urls[:1]) for cluster in clusters)
     source_mix = _source_mix(clusters)
-    material_updates = [
-        cluster for cluster in clusters if cluster.primary_artifact_present
-    ]
+    full_detail = clusters[:full_detail_limit]
+    compact = clusters[full_detail_limit:]
+    full_detail_anchors = {
+        cluster.cluster_id: _heading_anchor(_top_item_heading(index, cluster))
+        for index, cluster in enumerate(full_detail, start=1)
+    }
+
     lines: list[str] = [
         "---",
         "type: daily-brief",
@@ -55,135 +80,194 @@ def render_daily_brief(
         *[f"  {key}: {source_mix[key]}" for key in sorted(source_mix)],
         "---",
         "",
-        f"# Daily AI Intelligence Brief - {run_date}",
-        "",
-        "## Agent Read Map",
-        "",
-        "| Field | Value |",
-        "|---|---|",
-        "| Primary purpose | 20-minute daily technical brief |",
-        "| Best sections for action | Executive Signal, Top Items, Follow-up Queue |",
-        "| Machine targets | cluster IDs, topic IDs, evidence URLs, feedback IDs |",
-        "",
-        "## Executive Signal",
+        f"# 🧠 Daily AI Intelligence Brief — {run_date}",
         "",
     ]
+    header_facts = _header_summary(item_count, source_mix)
+    if previous_brief_link:
+        lines.append(f"🔗 [← Previous brief]({previous_brief_link})")
+        lines.append("")
+    if header_facts:
+        lines.append(header_facts)
+        lines.append("")
+
+    extra_sections = _present_class_sections(clusters)
+    lines.extend(_render_contents(extra_sections, has_also_tracked=bool(compact)))
+    lines.append("")
+
+    lines.extend(["## 🔥 Executive Signal", ""])
     if clusters:
         for cluster in clusters[:3]:
-            primary = _primary_event(cluster)
-            label = _evidence_label(cluster.evidence_type)
-            action = cluster.suggested_action
-            lines.append(
-                f"- {label} {cluster.title} (`{cluster.cluster_id}`): "
-                f"{_summary_text(primary, cluster)[:180]} "
-                f"Action: **{action}**."
-            )
+            lines.append(_render_executive_bullet(cluster, full_detail_anchors))
     else:
         lines.append("- No primary artifact passed the daily inclusion threshold.")
-    lines.extend(["", "## Top Items", ""])
+    lines.append("")
+
+    lines.extend(["## ⭐ Top Items", ""])
     if clusters:
-        full_detail = clusters[:full_detail_limit]
-        compact = clusters[full_detail_limit:]
         for index, cluster in enumerate(full_detail, start=1):
             lines.extend(
-                _render_cluster_item(
-                    index,
-                    cluster,
-                    topic_memory=topic_memory,
-                )
+                _render_cluster_item(index, cluster, topic_memory=topic_memory)
             )
         if compact:
-            lines.extend(
-                [
-                    "### Also tracked",
-                    "",
-                    (
-                        f"{len(compact)} additional ranked clusters are summarised "
-                        "below; full evidence URLs and metadata are in "
-                        "`ranked_clusters.jsonl`."
-                    ),
-                    "",
-                ]
-            )
+            lines.extend(["### Also tracked", ""])
             for offset, cluster in enumerate(compact, start=full_detail_limit + 1):
-                action = cluster.suggested_action
-                url = cluster.canonical_urls[0]
-                lines.append(
-                    f"- {offset}. [{cluster.title}]({url}) "
-                    f"(`{cluster.cluster_id}`) — action: {action}"
-                )
+                lines.append(_render_compact_bullet(offset, cluster))
             lines.append("")
     else:
         lines.append("No ranked items passed the inclusion threshold today.")
         lines.append("")
-    lines.extend(
-        _section_for_class(
-            "Papers Worth Scanning", clusters, SourceClass.ACADEMIC_SOURCE, 3
-        )
-    )
-    lines.extend(
-        _section_for_class(
-            "Repos / Releases Worth Opening",
-            clusters,
-            SourceClass.IMPLEMENTATION_SOURCE,
-            3,
-        )
-    )
-    lines.extend(
-        _section_for_class(
-            "Discussions Worth Watching",
-            clusters,
-            SourceClass.TECHNICAL_DISCUSSION,
-            2,
-        )
-    )
-    lines.extend(["## Follow-up Queue", ""])
-    if clusters:
-        for cluster in clusters[:3]:
-            lines.append(
-                f"- Review `{cluster.cluster_id}` ({cluster.title}) "
-                "and decide feedback."
-            )
-    else:
-        lines.append("- Re-run after the next scheduled source cadence.")
+
+    for heading, source_class, limit in _CLASS_HEADINGS:
+        section_lines = _render_class_section(heading, clusters, source_class, limit)
+        if section_lines:
+            lines.extend(section_lines)
+
     if dossier_links:
-        lines.extend(["", "## Linked Dossiers", ""])
+        lines.extend(["## 📚 Linked Dossiers", ""])
         for title, link in dossier_links:
             lines.append(f"- [{title}]({link})")
-    lines.extend(["", "## Suppressed / Not Reported", ""])
-    lines.append("Repeated, low-novelty, or hype-heavy topics are suppressed.")
-    lines.extend(["", "## No Material Updates", ""])
-    if material_updates:
-        if len(material_updates) < 6:
-            lines.append(
-                "Low-signal day: fewer than six high-quality primary items passed "
-                "the inclusion threshold, so the brief is intentionally short."
-            )
-        else:
-            lines.append(
-                "Not applicable; primary artifacts passed the inclusion threshold."
-            )
-    else:
-        lines.append("No primary artifact passed the daily inclusion threshold.")
-    lines.extend(["", "## Watchlist Quiet", ""])
+        lines.append("")
+
+    if item_count and item_count < 6:
+        lines.extend(
+            [
+                "> ℹ️ Low-signal day: fewer than six high-quality primary items "
+                "passed the inclusion threshold, so the brief is intentionally short.",
+                "",
+            ]
+        )
+
     if quiet_sources:
+        lines.extend(["## 🔇 Quiet sources", ""])
         for source in quiet_sources:
             lines.append(f"- {source}")
+        lines.append("")
+
+    lines.extend(["## 🗒️ Feedback Targets", ""])
+    if clusters:
+        lines.extend(["| Cluster | Quick command |", "|---|---|"])
+        for cluster in clusters[:5]:
+            lines.append(
+                f"| {cluster.title} | "
+                f"`research-pipeline brief feedback "
+                f"--cluster {cluster.cluster_id} --signal keep` |"
+            )
     else:
-        lines.append("No quiet-source summary was provided for this run.")
-    lines.extend(["", "## Feedback Targets", ""])
-    lines.extend(["| Target | ID | Suggested feedback command |", "|---|---|---|"])
-    for cluster in clusters[:5]:
-        lines.append(
-            "| "
-            f"{cluster.title} | `{cluster.cluster_id}` | "
-            "`research-pipeline brief feedback "
-            f"--cluster {cluster.cluster_id} --signal keep` |"
-        )
-    if not clusters:
-        lines.append("| No material updates | `none` | Re-run later |")
+        lines.append("Re-run after the next scheduled source cadence.")
     lines.append("")
     return "\n".join(lines)
+
+
+def _render_contents(
+    extra_section_titles: list[str],
+    *,
+    has_also_tracked: bool,
+) -> list[str]:
+    """Build the ``## 📑 Contents`` block.
+
+    ``extra_section_titles`` lists the optional class-scoped sections that
+    will actually be rendered (Repos & Releases, Papers, Discussions). The
+    Also-tracked sub-section is exposed as a sub-bullet under Top Items when
+    present.
+    """
+    lines = ["## 📑 Contents", ""]
+    lines.append("- [🔥 Executive Signal](#executive-signal)")
+    lines.append("- [⭐ Top Items](#top-items)")
+    if has_also_tracked:
+        lines.append("  - [Also tracked](#also-tracked)")
+    for heading in extra_section_titles:
+        lines.append(f"- [{heading}](#{_heading_anchor(heading)})")
+    lines.append("- [🗒️ Feedback Targets](#feedback-targets)")
+    return lines
+
+
+def _render_executive_bullet(
+    cluster: BriefingCluster,
+    full_detail_anchors: dict[str, str],
+) -> str:
+    icon = _EVIDENCE_ICONS.get(cluster.evidence_type, "•")
+    action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
+    summary = _summary_text(_primary_event(cluster), cluster)
+    snippet = _shorten(summary, 200, fallback=cluster.title)
+    anchor = full_detail_anchors.get(cluster.cluster_id)
+    title_link = f"[{cluster.title}](#{anchor})" if anchor else cluster.title
+    return f"- {icon} **{title_link}** — {action} · {snippet}"
+
+
+def _render_compact_bullet(offset: int, cluster: BriefingCluster) -> str:
+    action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
+    url = cluster.canonical_urls[0] if cluster.canonical_urls else ""
+    if url:
+        return (
+            f"- {offset}. {action} · [{cluster.title}]({url}) (`{cluster.cluster_id}`)"
+        )
+    return f"- {offset}. {action} · {cluster.title} (`{cluster.cluster_id}`)"
+
+
+def _render_class_section(
+    heading: str,
+    clusters: list[BriefingCluster],
+    source_class: SourceClass,
+    limit: int,
+) -> list[str]:
+    selected = [
+        cluster for cluster in clusters if source_class in cluster.source_classes
+    ][:limit]
+    if not selected:
+        return []
+    lines = [f"## {heading}", ""]
+    for cluster in selected:
+        action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
+        if cluster.canonical_urls:
+            url = cluster.canonical_urls[0]
+            lines.append(
+                f"- {action} · [{cluster.title}]({url}) (`{cluster.cluster_id}`)"
+            )
+        else:
+            lines.append(f"- {action} · {cluster.title} (`{cluster.cluster_id}`)")
+    lines.append("")
+    return lines
+
+
+def _present_class_sections(clusters: list[BriefingCluster]) -> list[str]:
+    return [
+        heading
+        for heading, source_class, _ in _CLASS_HEADINGS
+        if any(source_class in cluster.source_classes for cluster in clusters)
+    ]
+
+
+def _header_summary(item_count: int, source_mix: Counter[str]) -> str:
+    if item_count == 0:
+        return ""
+    parts: list[str] = [f"📊 **{item_count} items**"]
+    pretty = {
+        "primary_artifact": "primary",
+        "implementation_source": "impl",
+        "academic_source": "papers",
+        "technical_discussion": "discussion",
+        "media_news": "news",
+        "newsletter": "newsletter",
+        "social_signal": "social",
+        "video_audio": "media",
+    }
+    mix_parts = [
+        f"{count} {pretty.get(key, key)}" for key, count in source_mix.items() if count
+    ]
+    if mix_parts:
+        parts.append(" · ".join(mix_parts))
+    return " · ".join(parts)
+
+
+def _shorten(text: str, limit: int, *, fallback: str = "") -> str:
+    text = (text or "").strip()
+    if not text:
+        return fallback
+    if len(text) <= limit:
+        return text
+    truncated = text[: limit - 1].rstrip()
+    return f"{truncated}…"
 
 
 def render_weekly_synthesis(
@@ -242,43 +326,71 @@ def _render_cluster_item(
     *,
     topic_memory: TopicMemoryStore | None = None,
 ) -> list[str]:
+    """Render a focused Top Items entry as a heading + badge line + summary."""
     topic = cluster.topic_ids[0] if cluster.topic_ids else "topic_general"
     source_class = (
         cluster.source_classes[0].value if cluster.source_classes else "unknown"
     )
     evidence_url = cluster.canonical_urls[0]
     primary = _primary_event(cluster)
-    summary = _summary_text(primary, cluster)
+    summary = _summary_text(primary, cluster) or cluster.title
     label = _evidence_label(cluster.evidence_type)
-    prior_context = _prior_context_text(cluster, topic_memory)
+    icon = _EVIDENCE_ICONS.get(cluster.evidence_type, "")
+    action = _ACTION_ICONS.get(cluster.suggested_action, cluster.suggested_action)
+    confidence = _CONFIDENCE_ICONS.get(cluster.confidence, cluster.confidence)
+    novelty = f"🆕 {cluster.novelty_type}" if cluster.novelty_type else ""
+    badges = " · ".join(
+        part
+        for part in (
+            f"`{action}`",
+            f"`{confidence}`",
+            f"`📍 {source_class}`",
+            f"`{novelty}`" if novelty else "",
+            f"`🏷️ {topic}`",
+        )
+        if part
+    )
+    heading = _top_item_heading(index, cluster)
     lines = [
-        f"### {index}. {cluster.title} `{cluster.cluster_id}`",
+        f"### {heading}",
         "",
-        "| Field | Value |",
-        "|---|---|",
-        f"| Topic | `{topic}` / [[{topic.removeprefix('topic_')}]] |",
-        f"| Source class | {source_class} |",
-        f"| Novelty | {cluster.novelty_type} |",
-        f"| Confidence | {cluster.confidence} |",
-        f"| Suggested action | {cluster.suggested_action} |",
+        badges,
         "",
-        f"**What changed:** {label} {summary[:300] or cluster.title}",
+        f"{icon} {label} {_shorten(summary, 400, fallback=cluster.title)}".strip(),
         "",
-        f"**Why it matters:** {_why_it_matters(cluster)}",
+        f"🔗 [{_primary_event_label(primary, cluster)}]({evidence_url})",
         "",
-        f"**Evidence:** [{cluster.title}]({evidence_url})",
-        "",
-        f"**Source trace:** {_source_trace(cluster)}",
-        "",
-        "**Agent note:** "
-        f"cluster_id={cluster.cluster_id}; topic_id={topic}; "
-        f"evidence_type={cluster.evidence_type}.",
+        f"<sub>`{cluster.cluster_id}`</sub>",
         "",
     ]
+    prior_context = _prior_context_text(cluster, topic_memory)
     if prior_context:
-        lines.insert(-2, f"**Prior context:** {prior_context}")
-        lines.insert(-2, "")
+        lines.insert(4, f"_Prior context: {prior_context}_")
+        lines.insert(5, "")
     return lines
+
+
+def _top_item_heading(index: int, cluster: BriefingCluster) -> str:
+    return f"{index}. {cluster.title}"
+
+
+def _heading_anchor(heading: str) -> str:
+    """Slugify a Markdown heading the way GitHub Flavored Markdown does.
+
+    GFM lowercases, replaces spaces with hyphens, drops punctuation, and keeps
+    unicode letters and emojis intact. Browsers URL-encode the resulting
+    fragment automatically.
+    """
+    slug = heading.strip().lower()
+    slug = re.sub(r"[^\w\- ]+", "", slug, flags=re.UNICODE)
+    slug = slug.replace(" ", "-")
+    slug = re.sub(r"-+", "-", slug).strip("-")
+    return slug
+
+
+def _primary_event_label(primary: IntelligenceEvent, cluster: BriefingCluster) -> str:
+    name = (primary.source_name or "").strip()
+    return name or cluster.title
 
 
 def _prior_context_text(
@@ -302,28 +414,6 @@ def _prior_context_text(
             f"fatigue={memory.fatigue_score:.2f}."
         )
     return None
-
-
-def _section_for_class(
-    heading: str,
-    clusters: list[BriefingCluster],
-    source_class: SourceClass,
-    limit: int,
-) -> list[str]:
-    lines = [f"## {heading}", ""]
-    selected = [
-        cluster for cluster in clusters if source_class in cluster.source_classes
-    ][:limit]
-    if not selected:
-        lines.append("No items in this category passed the daily budget.")
-    for cluster in selected:
-        if cluster.canonical_urls:
-            url = cluster.canonical_urls[0]
-            lines.append(f"- `{cluster.cluster_id}` — [{cluster.title}]({url})")
-        else:
-            lines.append(f"- `{cluster.cluster_id}` — {cluster.title}")
-    lines.append("")
-    return lines
 
 
 def _source_mix(clusters: list[BriefingCluster]) -> Counter[str]:
@@ -373,27 +463,5 @@ def _evidence_label(evidence_type: str) -> str:
     return labels.get(evidence_type, "[EVIDENCE]")
 
 
-def _why_it_matters(cluster: BriefingCluster) -> str:
-    if cluster.suggested_action == "try":
-        action = "It has implementation evidence worth testing locally."
-    elif cluster.suggested_action == "watch":
-        action = "It is discussion-level signal; watch for primary corroboration."
-    elif cluster.suggested_action == "ignore":
-        action = "It is likely fatigue-heavy or hype-heavy unless new evidence appears."
-    else:
-        action = "It has primary evidence worth reading."
-    return action
-
-
-def _source_trace(cluster: BriefingCluster) -> str:
-    parts = [
-        f"{event.source_name}/{event.collection_method.value}/{event.confidence}"
-        for event in cluster.events
-    ]
-    return "; ".join(parts)
-
-
 def _markdown_links(markdown: str) -> list[str]:
-    import re
-
     return re.findall(r"\[[^\]]+\]\([^)]+\)", markdown)

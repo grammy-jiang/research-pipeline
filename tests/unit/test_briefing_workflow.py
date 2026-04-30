@@ -48,7 +48,7 @@ def test_offline_briefing_run_writes_valid_artifacts(tmp_path: Path) -> None:
     assert paths.validation_path.exists()
     clusters = read_jsonl(paths.ranked_clusters_path, BriefingCluster)
     assert len(clusters) >= 2
-    assert "## Agent Read Map" in paths.daily_report_path.read_text(encoding="utf-8")
+    assert "## ⭐ Top Items" in paths.daily_report_path.read_text(encoding="utf-8")
 
 
 def test_daily_report_uses_best_evidence_and_quality_labels(tmp_path: Path) -> None:
@@ -64,8 +64,8 @@ def test_daily_report_uses_best_evidence_and_quality_labels(tmp_path: Path) -> N
 
     assert validation["passed"] is True
     assert "[FACT]" in markdown
-    assert "| Confidence | high |" in markdown
-    assert "| Suggested action | try |" in markdown
+    assert "🟢 high" in markdown
+    assert "🛠️ try" in markdown
     assert "Adds MCP workflow improvements" in markdown
     assert "Duplicate release mention" not in markdown
     assert "Previous release." not in markdown
@@ -90,7 +90,7 @@ def test_repeated_topic_is_not_reported_as_new_on_second_run(tmp_path: Path) -> 
 
     assert validation["passed"] is True
     markdown = paths.daily_report_path.read_text(encoding="utf-8")
-    assert "| Novelty | active |" in markdown
+    assert "🆕 active" in markdown
 
 
 def test_no_news_day_is_valid_low_signal_output(tmp_path: Path) -> None:
@@ -330,6 +330,8 @@ def test_briefing_mcp_resources_read_artifacts(
     monkeypatch.setattr(resources, "DEFAULT_WORKSPACE", str(tmp_path))
 
     assert "2026-04-27" in resources.list_briefings()
-    assert "# Daily AI Intelligence Brief" in resources.get_briefing_daily("2026-04-27")
+    assert "# 🧠 Daily AI Intelligence Brief" in resources.get_briefing_daily(
+        "2026-04-27"
+    )
     assert "rank_score" in resources.get_briefing_ranked("2026-04-27")
     assert "workflow_state" not in resources.get_briefing_workflow_state("missing")

@@ -106,8 +106,14 @@ class ObsidianNote(BaseModel):
                     f"frontmatter key {reserved!r} is reserved and managed by "
                     "ObsidianNote"
                 )
-        if "## Agent Read Map" not in self.body:
-            raise ValueError("note body must contain '## Agent Read Map' section")
+        # Daily briefs use the new icon-prefixed sections; topic/source notes
+        # still emit the legacy "Agent Read Map" map. Either marker satisfies
+        # the structural requirement.
+        if "## Agent Read Map" not in self.body and "## ⭐ Top Items" not in self.body:
+            raise ValueError(
+                "note body must contain '## Agent Read Map' or '## ⭐ Top Items' "
+                "section"
+            )
         if "\n---\n" in self.body:
             raise ValueError("note body must not contain a YAML separator ('---') line")
         return self

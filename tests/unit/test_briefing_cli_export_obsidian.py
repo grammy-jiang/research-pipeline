@@ -139,4 +139,4 @@ def test_export_obsidian_validation_emits_error_on_corrupt_note(
     )
     second = _invoke(runner, vault=vault, workspace=briefing_workspace)
     assert second.exit_code == 0, second.stdout
-    assert "## Agent Read Map" in daily_path.read_text(encoding="utf-8")
+    assert "## ⭐ Top Items" in daily_path.read_text(encoding="utf-8")

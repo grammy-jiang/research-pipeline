@@ -26,7 +26,7 @@ from research_pipeline.briefing.obsidian_notes import (
 from research_pipeline.briefing.validate import ValidationResult
 
 REQUIRED_HEADINGS_BY_TYPE: dict[str, tuple[str, ...]] = {
-    "briefing-daily": ("## Agent Read Map",),
+    "briefing-daily": ("## ⭐ Top Items",),
     "briefing-topic": ("## Agent Read Map",),
     "briefing-source": ("## Agent Read Map",),
 }

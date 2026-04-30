@@ -86,7 +86,7 @@ def test_report_without_matching_memory_omits_prior_context() -> None:
 
     markdown = render_daily_brief([cluster], run_date="2026-04-29")
 
-    assert "**Prior context:**" not in markdown
+    assert "_Prior context:" not in markdown
     assert "## Prior Context" not in markdown
 
 
@@ -113,7 +113,7 @@ def test_resurfaced_topic_renders_concise_prior_context(tmp_path: Path) -> None:
             topic_memory=store,
         )
 
-        assert "**Prior context:** resurfaced topic" in markdown
+        assert "_Prior context: resurfaced topic" in markdown
         assert "2026-04-20" in markdown
         assert "## Prior Context" not in markdown
     finally:
@@ -146,7 +146,7 @@ def test_cooling_topic_renders_concise_prior_context_with_fatigue(
             topic_memory=store,
         )
 
-        assert "**Prior context:** repeated topic" in markdown
+        assert "_Prior context: repeated topic" in markdown
         assert "fatigue=" in markdown
         assert "## Prior Context" not in markdown
     finally:

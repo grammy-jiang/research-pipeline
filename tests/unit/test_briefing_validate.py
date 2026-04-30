@@ -72,26 +72,16 @@ def test_validate_daily_report_passes_valid_report() -> None:
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Daily Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "| Brief | Active day with six items |\n"
-        "## Executive Signal\n"
+        "## 🔥 Executive Signal\n"
         + " ".join(f"[FACT] Signal {i}: " for i in range(3))
         + "https://example.com/c0:e1 item.\n"
-        "## Top Items\n"
+        "## ⭐ Top Items\n"
         + "\n".join(
             f"### {i + 1}. {cluster.title}\n"
             f"Evidence: [{cluster.title}]({cluster.canonical_urls[0]})\n"
             for i, cluster in enumerate(clusters)
         )
-        + "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\n"
-        + "\n".join(
-            f"- [{cluster.title}]({cluster.canonical_urls[0]})"
-            for cluster in clusters[:3]
-        )
-        + "\n"
-        "## Feedback Targets\n"
+        + "## 🗒️ Feedback Targets\n"
         "| target | id | cmd |\n|---|---|---|\n"
         + " ".join(
             f"| {cluster.title} | {cluster.cluster_id} | cmd |" for cluster in clusters
@@ -107,7 +97,7 @@ def test_validate_daily_report_passes_valid_report() -> None:
 
 def test_validate_daily_report_fails_missing_required_sections() -> None:
     cluster = _cluster("c1", SourceClass.PRIMARY_ARTIFACT)
-    markdown = "# Daily Brief\n## Top Items\nNo content.\n"
+    markdown = "# Daily Brief\n## ⭐ Top Items\nNo content.\n"
 
     result = validate_daily_report(markdown, [cluster])
 
@@ -122,7 +112,7 @@ def test_validate_daily_report_enforces_link_budget() -> None:
         "# Daily Brief\n"
         + "\n".join(f"## Section {i}\n" for i in range(6))
         + "\n"
-        + " ".join(f"[{i}](https://example.com/{i})" for i in range(20))
+        + " ".join(f"[{i}](https://example.com/{i})" for i in range(40))
         + "\n"
         + ("word " * 300)
     )
@@ -138,13 +128,9 @@ def test_validate_daily_report_enforces_word_count_on_active_days() -> None:
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\nSignal.\n"
-        "## Top Items\nItems.\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n"
+        "## 🔥 Executive Signal\nSignal.\n"
+        "## ⭐ Top Items\nItems.\n"
+        "## 🗒️ Feedback Targets\n"
         "| target | id | cmd |\n|---|---|---|\n"
     )
 
@@ -162,15 +148,12 @@ def test_validate_daily_report_detects_duplicate_cluster_titles() -> None:
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\nSignal.\n"
-        "## Top Items\n"
+        "## 🔥 Executive Signal\nSignal.\n"
+        "## ⭐ Top Items\n"
         f"[{cluster1.title}](https://example.com/c1:e1)\n"
         f"[{cluster2_dup.title}](https://example.com/c2:e1)\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n" + ("word " * 300)
+        "## 🗒️ Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
+        + ("word " * 300)
     )
 
     result = validate_daily_report(markdown, [cluster1, cluster2_dup])
@@ -184,13 +167,10 @@ def test_validate_daily_report_verifies_evidence_urls_in_markdown() -> None:
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\nSignal.\n"
-        "## Top Items\nNo URL here.\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n" + ("word " * 300)
+        "## 🔥 Executive Signal\nSignal.\n"
+        "## ⭐ Top Items\nNo URL here.\n"
+        "## 🗒️ Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
+        + ("word " * 300)
     )
 
     result = validate_daily_report(markdown, [cluster])
@@ -204,13 +184,9 @@ def test_validate_daily_report_checks_evidence_type_labels() -> None:
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\n[FACT] Signal https://example.com/c1:e1.\n"
-        "## Top Items\nContent https://example.com/c1:e1.\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
+        "## 🔥 Executive Signal\n[FACT] Signal https://example.com/c1:e1.\n"
+        "## ⭐ Top Items\nContent https://example.com/c1:e1.\n"
+        "## 🗒️ Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
         "| Cluster c1 | c1 | cmd |\n" + ("word " * 300)
     )
 
@@ -220,40 +196,15 @@ def test_validate_daily_report_checks_evidence_type_labels() -> None:
     assert any("[INFERENCE]" in err for err in result.errors)
 
 
-def test_validate_daily_report_flags_low_signal_day_without_no_material_updates() -> (
-    None
-):
-    clusters = [_cluster(f"c{i}", SourceClass.PRIMARY_ARTIFACT) for i in range(3)]
-    markdown = (
-        "---\ntype: daily-brief\n---\n"
-        "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\nSignal.\n"
-        "## Top Items\nItems.\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
-    )
-
-    result = validate_daily_report(markdown, clusters)
-
-    assert not result.passed
-    assert any("No Material Updates" in err for err in result.errors)
-
-
 def test_validate_daily_report_rejects_boilerplate_content() -> None:
     clusters = [_cluster(f"c{i}", SourceClass.PRIMARY_ARTIFACT) for i in range(6)]
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\nDuplicate release mention here.\n"
-        "## Top Items\nItems.\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n" + ("word " * 300)
+        "## 🔥 Executive Signal\nDuplicate release mention here.\n"
+        "## ⭐ Top Items\nItems.\n"
+        "## 🗒️ Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
+        + ("word " * 300)
     )
 
     result = validate_daily_report(markdown, clusters)
@@ -318,13 +269,10 @@ def test_validation_result_serializes_to_json() -> None:
     markdown = (
         "---\ntype: daily-brief\n---\n"
         "# Brief\n"
-        "## Agent Read Map\n"
-        "| Field | Value |\n|---|---|\n"
-        "## Executive Signal\n[FACT] Signal https://example.com/c1:e1.\n"
-        "## Top Items\nContent.\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nQueue.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n" + ("word " * 300)
+        "## 🔥 Executive Signal\n[FACT] Signal https://example.com/c1:e1.\n"
+        "## ⭐ Top Items\nContent.\n"
+        "## 🗒️ Feedback Targets\n| target | id | cmd |\n|---|---|---|\n"
+        + ("word " * 300)
     )
 
     result = validate_daily_report(markdown, [cluster])

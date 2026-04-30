@@ -23,9 +23,7 @@ def _write(path: Path, content: str) -> Path:
 
 
 def _daily_body() -> str:
-    return (
-        "## Agent Read Map\n\nthis is the agent read map\n\n## Executive Signal\nsig\n"
-    )
+    return "## Agent Read Map\n\nthis is the agent read map\n\n## ⭐ Top Items\nsig\n"
 
 
 def _topic_body() -> str:

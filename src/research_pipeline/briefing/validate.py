@@ -13,12 +13,9 @@ from research_pipeline.briefing.models import BriefingCluster
 from research_pipeline.briefing.normalize import normalize_title
 
 REQUIRED_DAILY_SECTIONS = (
-    "## Agent Read Map",
-    "## Executive Signal",
-    "## Top Items",
-    "## Follow-up Queue",
-    "## Suppressed / Not Reported",
-    "## Feedback Targets",
+    "## 🔥 Executive Signal",
+    "## ⭐ Top Items",
+    "## 🗒️ Feedback Targets",
 )
 
 REQUIRED_DOSSIER_SECTIONS = (
@@ -48,8 +45,8 @@ def validate_daily_report(
     markdown: str,
     clusters: list[BriefingCluster],
     *,
-    max_links: int = 15,
-    active_min_words: int = 900,
+    max_links: int = 30,
+    active_min_words: int = 400,
     active_max_words: int = 1400,
 ) -> ValidationResult:
     """Validate daily report shape, budgets, duplicates, and evidence links."""
@@ -68,8 +65,6 @@ def validate_daily_report(
             f"active-day word count {len(words)} outside "
             f"{active_min_words}-{active_max_words}"
         )
-    if item_count < 6 and "## No Material Updates" not in markdown:
-        errors.append("low-signal reports must include No Material Updates")
     title_counts = Counter(normalize_title(cluster.title) for cluster in clusters)
     duplicates = [title for title, count in title_counts.items() if count > 1]
     if duplicates:

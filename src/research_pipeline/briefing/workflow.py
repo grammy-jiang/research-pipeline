@@ -162,10 +162,12 @@ def generate_daily(paths: BriefingPaths, *, run_date: str | None = None) -> str:
         load_registry_snapshot(paths) if paths.source_snapshot_path.exists() else None
     )
     quiet_sources = _quiet_sources(list(clusters), registry) if registry else []
+    previous_brief_link = _previous_brief_link(paths)
     markdown = render_daily_brief(
         list(clusters),
         run_date=run_date or paths.root.name,
         quiet_sources=quiet_sources,
+        previous_brief_link=previous_brief_link,
     )
     paths.daily_report_path.write_text(markdown, encoding="utf-8")
     advance_workflow_state(
@@ -313,6 +315,33 @@ def _write_http_state(
     path.write_text(
         json.dumps(state, indent=2, sort_keys=True) + "\n", encoding="utf-8"
     )
+
+
+def _previous_brief_link(paths: BriefingPaths) -> str | None:
+    """Return a relative-path link to the previous day's daily brief, if any.
+
+    Looks at sibling directories of ``paths.root`` whose name sorts before the
+    current run-date directory and points at an existing ``reports/daily.md``
+    file. Returns ``None`` when none can be located.
+    """
+    parent = paths.root.parent
+    if not parent.is_dir():
+        return None
+    current = paths.root.name
+    candidates = sorted(
+        (
+            entry
+            for entry in parent.iterdir()
+            if entry.is_dir() and entry.name < current
+        ),
+        key=lambda entry: entry.name,
+        reverse=True,
+    )
+    for prior in candidates:
+        prior_report = prior / "reports" / "daily.md"
+        if prior_report.is_file():
+            return f"../../{prior.name}/reports/daily.md"
+    return None
 
 
 def _quiet_sources(

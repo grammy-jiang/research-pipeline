@@ -17,7 +17,7 @@ from tests.unit._dossier_fixtures import make_cluster
 def test_daily_brief_with_no_dossiers_has_no_section() -> None:
     cluster = make_cluster()
     md = render_daily_brief([cluster], run_date="2026-04-29")
-    assert "## Linked Dossiers" not in md
+    assert "## 📚 Linked Dossiers" not in md
 
 
 def test_daily_brief_renders_linked_dossiers_section() -> None:
@@ -27,7 +27,7 @@ def test_daily_brief_renders_linked_dossiers_section() -> None:
         run_date="2026-04-29",
         dossier_links=[("Acme v1.0 dossier", "reports/dossiers/acme.md")],
     )
-    assert "## Linked Dossiers" in md
+    assert "## 📚 Linked Dossiers" in md
     assert "[Acme v1.0 dossier](reports/dossiers/acme.md)" in md
 
 

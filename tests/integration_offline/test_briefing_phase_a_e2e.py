@@ -108,9 +108,9 @@ class TestNormalDay:
         )
         content = paths.daily_report_path.read_text(encoding="utf-8")
         for section in (
-            "## Agent Read Map",
-            "## Executive Signal",
-            "## Top Items",
+            "## 🔥 Executive Signal",
+            "## ⭐ Top Items",
+            "## 🗒️ Feedback Targets",
         ):
             assert section in content, f"missing section: {section}"
 
@@ -294,9 +294,9 @@ class TestNoNewsDay:
         )
         content = paths.daily_report_path.read_text(encoding="utf-8")
         for section in (
-            "## Agent Read Map",
-            "## Executive Signal",
-            "## Top Items",
+            "## 🔥 Executive Signal",
+            "## ⭐ Top Items",
+            "## 🗒️ Feedback Targets",
         ):
             assert section in content, f"missing section on no-news day: {section}"
 

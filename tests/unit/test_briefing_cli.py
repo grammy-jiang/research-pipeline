@@ -276,12 +276,9 @@ def test_brief_validate_outputs_validation_json(tmp_path: Path) -> None:
     report = (
         "---\ntype: daily-brief\n---\n"
         "# Daily Brief\n"
-        "## Agent Read Map\n| Field | Value |\n|---|---|\n"
-        "## Executive Signal\n[FACT] Test.\n"
-        "## Top Items\n" + "\n".join(f"- {c.title}" for c in clusters) + "\n"
-        "## Suppressed / Not Reported\nNone.\n"
-        "## Follow-up Queue\nNone.\n"
-        "## Feedback Targets\n| target | id | cmd |\n|---|---|---|\n" + words
+        "## 🔥 Executive Signal\n[FACT] Test.\n"
+        "## ⭐ Top Items\n" + "\n".join(f"- {c.title}" for c in clusters) + "\n"
+        "## 🗒️ Feedback Targets\n| target | id | cmd |\n|---|---|---|\n" + words
     )
     paths.daily_report_path.parent.mkdir(parents=True, exist_ok=True)
     paths.daily_report_path.write_text(report)

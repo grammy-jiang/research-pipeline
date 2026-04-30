@@ -75,13 +75,39 @@ def test_render_daily_brief_contains_required_sections_and_items() -> None:
 
     markdown = render_daily_brief([cluster], run_date="2026-06-12")
 
-    assert "# Daily AI Intelligence Brief - 2026-06-12" in markdown
-    assert "## Executive Signal" in markdown
-    assert "## Top Items" in markdown
-    assert "## Follow-up Queue" in markdown
-    assert "## Feedback Targets" in markdown
+    assert "# 🧠 Daily AI Intelligence Brief — 2026-06-12" in markdown
+    assert "## 📑 Contents" in markdown
+    assert "## 🔥 Executive Signal" in markdown
+    assert "## ⭐ Top Items" in markdown
+    assert "## 🗒️ Feedback Targets" in markdown
     assert "Cluster c1" in markdown
     assert "research-pipeline brief feedback --cluster c1 --signal keep" in markdown
+    # Old boilerplate should be gone.
+    assert "## Agent Read Map" not in markdown
+    assert "## Follow-up Queue" not in markdown
+    assert "## Suppressed / Not Reported" not in markdown
+
+
+def test_render_daily_brief_links_executive_signal_to_top_items() -> None:
+    cluster = _cluster("c1", SourceClass.PRIMARY_ARTIFACT, suggested_action="read")
+
+    markdown = render_daily_brief([cluster], run_date="2026-06-12")
+
+    # The executive-signal bullet should anchor-link into the Top Items entry.
+    assert "[Cluster c1](#1-cluster-c1)" in markdown
+
+
+def test_render_daily_brief_includes_previous_brief_link_when_provided() -> None:
+    cluster = _cluster("c1", SourceClass.PRIMARY_ARTIFACT)
+
+    markdown = render_daily_brief(
+        [cluster],
+        run_date="2026-06-12",
+        previous_brief_link="../../2026-06-11/reports/daily.md",
+    )
+
+    assert "← Previous brief" in markdown
+    assert "../../2026-06-11/reports/daily.md" in markdown
 
 
 def test_render_daily_brief_low_signal_day_message_when_under_six_items() -> None:
@@ -91,9 +117,7 @@ def test_render_daily_brief_low_signal_day_message_when_under_six_items() -> Non
 
     markdown = render_daily_brief(clusters, run_date="2026-06-12")
 
-    assert (
-        "Low-signal day: fewer than six high-quality primary items passed" in markdown
-    )
+    assert "Low-signal day" in markdown
 
 
 def test_render_daily_brief_no_news_variant_for_empty_clusters() -> None:
@@ -101,8 +125,8 @@ def test_render_daily_brief_no_news_variant_for_empty_clusters() -> None:
 
     assert "No ranked items passed the inclusion threshold today." in markdown
     assert "No primary artifact passed the daily inclusion threshold." in markdown
-    assert "No material updates" in markdown
-    assert "Re-run later" in markdown
+    assert "Re-run after the next scheduled source cadence." in markdown
+    assert "🔇 Quiet sources" in markdown
 
 
 def test_render_weekly_synthesis_includes_links_and_applies_cap() -> None:
