@@ -169,6 +169,7 @@ def generate_daily(paths: BriefingPaths, *, run_date: str | None = None) -> str:
         run_date=run_date or paths.root.name,
         quiet_sources=quiet_sources,
         previous_brief_link=previous_brief_link,
+        full_detail_limit=15,
     )
     paths.daily_report_path.write_text(markdown, encoding="utf-8")
     advance_workflow_state(

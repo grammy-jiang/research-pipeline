@@ -203,7 +203,7 @@ def _render_compact_bullet(offset: int, cluster: BriefingCluster) -> str:
     snippet = ""
     summary = _summary_text(_primary_event(cluster), cluster)
     if summary and summary != cluster.title:
-        snippet = f" — {_shorten(_flatten_summary(summary), 280, fallback='')}"
+        snippet = f" — {_shorten(_flatten_summary(summary), 500, fallback='')}"
     return f"{offset}. {action} · {title_md}{snippet} (`{cluster.cluster_id}`)"
 
 
@@ -360,7 +360,7 @@ def _render_cluster_item(
         )
         if part
     )
-    flat_summary = _shorten(_flatten_summary(summary), 400, fallback=cluster.title)
+    flat_summary = _shorten(_flatten_summary(summary), 800, fallback=cluster.title)
     heading = _top_item_heading(index, cluster)
     lines = [
         f"### {heading}",
