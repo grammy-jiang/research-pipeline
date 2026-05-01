@@ -45,9 +45,9 @@ def validate_daily_report(
     markdown: str,
     clusters: list[BriefingCluster],
     *,
-    max_links: int = 80,
+    max_links: int = 150,
     active_min_words: int = 400,
-    active_max_words: int = 6000,
+    active_max_words: int = 10000,
 ) -> ValidationResult:
     """Validate daily report shape, budgets, duplicates, and evidence links."""
     errors: list[str] = []

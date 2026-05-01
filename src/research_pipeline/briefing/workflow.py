@@ -131,7 +131,7 @@ def rank_events(
                 watchlist_terms=registry.watchlist_terms,
                 feedback_weights=feedback_weights,
                 topic_memory=memory_store,
-                max_items=30,
+                max_items=50,
             ),
         )
         if memory_store is not None:

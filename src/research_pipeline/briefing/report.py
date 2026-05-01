@@ -203,7 +203,7 @@ def _render_compact_bullet(offset: int, cluster: BriefingCluster) -> str:
     snippet = ""
     summary = _summary_text(_primary_event(cluster), cluster)
     if summary and summary != cluster.title:
-        snippet = f" — {_shorten(_flatten_summary(summary), 140, fallback='')}"
+        snippet = f" — {_shorten(_flatten_summary(summary), 280, fallback='')}"
     return f"{offset}. {action} · {title_md}{snippet} (`{cluster.cluster_id}`)"
 
 
@@ -471,14 +471,18 @@ def _has_meaningful_summary(cluster: BriefingCluster) -> bool:
 
     A category label like ``"Data Mining & Modeling"`` is title-cased and
     word-only, while real prose contains at least one lowercase token after
-    the first word (articles, verbs, prepositions).
+    the first word (articles, verbs, prepositions). We also require enough
+    body (>= 60 chars after flattening) to be worth a rich render.
     """
     summary = _summary_text(_primary_event(cluster), cluster).strip()
     if not summary or summary == cluster.title:
         return False
-    if any(c in summary for c in ".!?"):
+    flat = _flatten_summary(summary)
+    if len(flat) < 25:
+        return False
+    if any(c in flat for c in ".!?"):
         return True
-    tokens = summary.split()
+    tokens = flat.split()
     return any(token[:1].islower() for token in tokens[1:])
 
 

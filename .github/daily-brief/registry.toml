@@ -23,7 +23,7 @@ watchlist_terms = [
   "Copilot",
   "Claude Code"
 ]
-max_sources_per_run = 60
+max_sources_per_run = 100
 
 [[briefing.sources]]
 source_id = "anthropic-news"
@@ -477,3 +477,442 @@ trust_weight = 1.0
 noise_weight = 0.3
 max_events_per_run = 1
 tags = ["framework", "agents"]
+
+[[briefing.sources]]
+source_id = "import-ai"
+source_name = "Import AI (Jack Clark)"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://importai.substack.com"
+feed_url = "https://importai.substack.com/feed"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["independent", "newsletter", "policy"]
+
+[[briefing.sources]]
+source_id = "the-batch"
+source_name = "The Batch (DeepLearning.AI)"
+source_class = "primary_artifact"
+access_method = "html_scrape"
+official_url = "https://www.deeplearning.ai/the-batch/"
+feed_url = "https://www.deeplearning.ai/the-batch/"
+link_path_prefix = "/the-batch/"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["newsletter", "weekly"]
+
+[[briefing.sources]]
+source_id = "last-week-in-ai"
+source_name = "Last Week in AI"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://lastweekin.ai"
+feed_url = "https://lastweekin.ai/feed"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 1
+tags = ["newsletter", "weekly"]
+
+[[briefing.sources]]
+source_id = "ai-snake-oil"
+source_name = "AI Snake Oil"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.aisnakeoil.com"
+feed_url = "https://www.aisnakeoil.com/feed"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["independent", "analysis"]
+
+[[briefing.sources]]
+source_id = "interconnects"
+source_name = "Interconnects (Nathan Lambert)"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.interconnects.ai"
+feed_url = "https://www.interconnects.ai/feed"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["independent", "researcher"]
+
+[[briefing.sources]]
+source_id = "chip-huyen"
+source_name = "Chip Huyen"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://huyenchip.com/blog/"
+feed_url = "https://huyenchip.com/feed.xml"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["independent", "ml-systems"]
+
+[[briefing.sources]]
+source_id = "the-gradient"
+source_name = "The Gradient"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://thegradient.pub"
+feed_url = "https://thegradient.pub/rss/"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 1
+tags = ["academic", "long-form"]
+
+[[briefing.sources]]
+source_id = "latent-space"
+source_name = "Latent Space"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.latent.space"
+feed_url = "https://www.latent.space/feed"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.2
+max_events_per_run = 1
+tags = ["independent", "newsletter", "engineering"]
+
+[[briefing.sources]]
+source_id = "stratechery"
+source_name = "Stratechery (Ben Thompson)"
+source_class = "media_news"
+access_method = "rss_atom"
+official_url = "https://stratechery.com"
+feed_url = "https://stratechery.com/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["industry", "strategy"]
+
+[[briefing.sources]]
+source_id = "techcrunch-ai"
+source_name = "TechCrunch AI"
+source_class = "media_news"
+access_method = "rss_atom"
+official_url = "https://techcrunch.com/category/artificial-intelligence/"
+feed_url = "https://techcrunch.com/category/artificial-intelligence/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 0.9
+noise_weight = 0.5
+max_events_per_run = 2
+tags = ["media", "industry"]
+
+[[briefing.sources]]
+source_id = "venturebeat-ai"
+source_name = "VentureBeat AI"
+source_class = "media_news"
+access_method = "rss_atom"
+official_url = "https://venturebeat.com/category/ai/"
+feed_url = "https://venturebeat.com/category/ai/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 0.9
+noise_weight = 0.5
+max_events_per_run = 2
+tags = ["media", "enterprise"]
+
+[[briefing.sources]]
+source_id = "the-verge-ai"
+source_name = "The Verge AI"
+source_class = "media_news"
+access_method = "rss_atom"
+official_url = "https://www.theverge.com/ai-artificial-intelligence"
+feed_url = "https://www.theverge.com/rss/ai-artificial-intelligence/index.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.4
+max_events_per_run = 2
+tags = ["media", "consumer"]
+
+[[briefing.sources]]
+source_id = "mit-tech-review-ai"
+source_name = "MIT Technology Review (AI)"
+source_class = "media_news"
+access_method = "rss_atom"
+official_url = "https://www.technologyreview.com/topic/artificial-intelligence/"
+feed_url = "https://www.technologyreview.com/topic/artificial-intelligence/feed"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.2
+noise_weight = 0.3
+max_events_per_run = 2
+tags = ["media", "long-form"]
+
+[[briefing.sources]]
+source_id = "ars-technica-tech"
+source_name = "Ars Technica Technology Lab"
+source_class = "media_news"
+access_method = "rss_atom"
+official_url = "https://arstechnica.com/ai/"
+feed_url = "https://feeds.arstechnica.com/arstechnica/technology-lab"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.4
+max_events_per_run = 1
+tags = ["media", "technical"]
+
+[[briefing.sources]]
+source_id = "mistral-news"
+source_name = "Mistral AI News"
+source_class = "primary_artifact"
+access_method = "html_scrape"
+official_url = "https://mistral.ai/news"
+feed_url = "https://mistral.ai/news"
+link_path_prefix = "/news/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["vendor", "frontier-lab"]
+
+[[briefing.sources]]
+source_id = "xai-news"
+source_name = "xAI News"
+source_class = "primary_artifact"
+access_method = "html_scrape"
+official_url = "https://x.ai/news"
+feed_url = "https://x.ai/news"
+link_path_prefix = "/news/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.2
+max_events_per_run = 2
+tags = ["vendor", "frontier-lab"]
+
+[[briefing.sources]]
+source_id = "stability-news"
+source_name = "Stability AI News"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://stability.ai/news-updates"
+feed_url = "https://stability.ai/news-updates?format=rss"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "open-weights", "media"]
+
+[[briefing.sources]]
+source_id = "ai21-blog"
+source_name = "AI21 Labs Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.ai21.com/blog"
+feed_url = "https://www.ai21.com/blog/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.1
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "frontier-lab"]
+
+[[briefing.sources]]
+source_id = "microsoft-research"
+source_name = "Microsoft Research"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.microsoft.com/en-us/research/blog/"
+feed_url = "https://www.microsoft.com/en-us/research/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.2
+max_events_per_run = 2
+tags = ["vendor", "research"]
+
+[[briefing.sources]]
+source_id = "aws-ml-blog"
+source_name = "AWS Machine Learning Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://aws.amazon.com/blogs/machine-learning/"
+feed_url = "https://aws.amazon.com/blogs/machine-learning/feed/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.4
+max_events_per_run = 1
+tags = ["vendor", "infrastructure"]
+
+[[briefing.sources]]
+source_id = "replicate-blog"
+source_name = "Replicate Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://replicate.com/blog"
+feed_url = "https://replicate.com/blog/rss"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "open-weights"]
+
+[[briefing.sources]]
+source_id = "modal-blog"
+source_name = "Modal Labs Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://modal.com/blog"
+feed_url = "https://modal.com/blog/atom.xml"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "infrastructure"]
+
+[[briefing.sources]]
+source_id = "anyscale-blog"
+source_name = "Anyscale Blog"
+source_class = "primary_artifact"
+access_method = "rss_atom"
+official_url = "https://www.anyscale.com/blog"
+feed_url = "https://www.anyscale.com/blog/rss.xml"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.3
+max_events_per_run = 1
+tags = ["vendor", "infrastructure"]
+
+[[briefing.sources]]
+source_id = "stanford-hai"
+source_name = "Stanford HAI News"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://hai.stanford.edu/news"
+feed_url = "https://hai.stanford.edu/news/rss.xml"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["academic", "policy"]
+
+[[briefing.sources]]
+source_id = "cset-georgetown"
+source_name = "CSET Georgetown"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://cset.georgetown.edu/publications/"
+feed_url = "https://cset.georgetown.edu/feed/"
+cadence = "weekly"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.3
+noise_weight = 0.1
+max_events_per_run = 1
+tags = ["academic", "policy", "security"]
+
+[[briefing.sources]]
+source_id = "epoch-ai"
+source_name = "Epoch AI"
+source_class = "academic_source"
+access_method = "html_scrape"
+official_url = "https://epoch.ai/blog"
+feed_url = "https://epoch.ai/blog"
+link_path_prefix = "/blog/"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.4
+noise_weight = 0.1
+max_events_per_run = 2
+tags = ["academic", "research"]
+
+[[briefing.sources]]
+source_id = "arxiv-cs-cl"
+source_name = "arXiv cs.CL"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://arxiv.org/list/cs.CL/recent"
+feed_url = "http://export.arxiv.org/rss/cs.CL"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.5
+max_events_per_run = 2
+tags = ["academic", "preprint"]
+
+[[briefing.sources]]
+source_id = "arxiv-cs-ai"
+source_name = "arXiv cs.AI"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://arxiv.org/list/cs.AI/recent"
+feed_url = "http://export.arxiv.org/rss/cs.AI"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.5
+max_events_per_run = 2
+tags = ["academic", "preprint"]
+
+[[briefing.sources]]
+source_id = "arxiv-cs-lg"
+source_name = "arXiv cs.LG"
+source_class = "academic_source"
+access_method = "rss_atom"
+official_url = "https://arxiv.org/list/cs.LG/recent"
+feed_url = "http://export.arxiv.org/rss/cs.LG"
+cadence = "daily"
+retention_policy = "metadata_only"
+allowed_raw_storage = true
+trust_weight = 1.0
+noise_weight = 0.5
+max_events_per_run = 2
+tags = ["academic", "preprint"]
