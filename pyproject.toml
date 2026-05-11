@@ -4,8 +4,19 @@ build-backend = "uv_build"
 
 [dependency-groups]
 dev = [
+  "bandit>=1.8",
   "detect-secrets>=1.5.0",
-  "pip>=26.1"
+  "hypothesis>=6.100",
+  "mypy>=1.10",
+  "pip>=26.1",
+  "pip-audit>=2.7",
+  "pre-commit>=4.0",
+  "pytest>=8.0",
+  "pytest-anyio>=0.0.0",
+  "pytest-cov>=5.0",
+  "ruff>=0.4",
+  "types-requests>=2.33.0.20260402",
+  "vcrpy>=6.0"
 ]
 
 [project]
@@ -50,6 +61,7 @@ dependencies = [
   "rank-bm25>=0.2,<1",
   "mcp[cli]>=1.0",
   "lxml>=6.1.0",
+  "jinja2>=3.1",
   "python-multipart>=0.0.27"
 ]
 

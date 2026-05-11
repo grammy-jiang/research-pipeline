@@ -105,11 +105,17 @@ class TestMinerUFingerprint:
         assert b1.fingerprint() != b2.fingerprint()
 
     def test_version_fallback_unknown(self) -> None:
+        from importlib.metadata import PackageNotFoundError
+
         from research_pipeline.conversion.mineru_backend import MinerUBackend
 
         b = MinerUBackend()
-        # magic-pdf is not installed, so version should fall back to "unknown"
-        assert b.version == "unknown"
+        with patch(
+            "importlib.metadata.version",
+            side_effect=PackageNotFoundError("magic-pdf"),
+        ):
+            b._version = None  # reset cached value
+            assert b.version == "unknown"
 
 
 # ---------------------------------------------------------------------------
