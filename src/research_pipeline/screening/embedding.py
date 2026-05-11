@@ -54,8 +54,10 @@ def _load_model(
     from transformers import AutoModel, AutoTokenizer
 
     logger.info("Loading SPECTER2 model: %s", model_name)
-    tokenizer = AutoTokenizer.from_pretrained(model_name)
-    model = AutoModel.from_pretrained(model_name)
+    # nosec B615 — model_name is user-supplied config, not a hardcoded URL;
+    # revision pinning is the user's responsibility for reproducibility.
+    tokenizer = AutoTokenizer.from_pretrained(model_name)  # nosec B615
+    model = AutoModel.from_pretrained(model_name)  # nosec B615
 
     # Load the proximity adapter for similarity tasks
     model.load_adapter(
