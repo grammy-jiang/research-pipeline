@@ -1,5 +1,8 @@
 @AGENTS.md
 
+<!-- HC1-HC6 hard constraints defined in AGENTS.md govern all agent sessions.
+     Overlays may specialize but must never relax those constraints. -->
+
 ## Claude Code
 
 - Use plan mode for changes touching `src/research_pipeline/pipeline/` or

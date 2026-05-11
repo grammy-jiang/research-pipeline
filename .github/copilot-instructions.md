@@ -253,6 +253,18 @@ can be re-run independently.
 6. Add optional dependency in `pyproject.toml` extras
 7. Write unit tests
 
+## Hard Constraints (HC1–HC6)
+
+The authoritative hard constraints are defined in `AGENTS.md`. This overlay
+must not relax them. Key rules:
+
+- **HC1** — No plaintext secrets in repo files, prompts, or logs. detect-secrets required.
+- **HC2** — Agent writes limited to the allowlist in AGENTS.md.
+- **HC3** — Destructive commands require human approval.
+- **HC4** — Schema/DB drops must be authored but never executed autonomously.
+- **HC5** — Network egress limited to academic sources + pypi/github (see AGENTS.md).
+- **HC6** — API keys and red-class data stay in `config.toml` / env vars only.
+
 ## What not to do
 
 - Do not track files in `runs/` or `workspace/` — they are gitignored outputs

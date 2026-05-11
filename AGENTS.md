@@ -347,6 +347,21 @@ findings validated by `research-pipeline validate`).
 - The `config.toml` file is gitignored (may contain API keys); use
   `config.example.toml` as the template
 
+## Hard Constraints
+
+These constraints apply to every agent session in this repository. They must
+never be relaxed by runtime overlays (`CLAUDE.md`, `.github/copilot-instructions.md`,
+`.codex/INSTRUCTIONS.md`).
+
+| ID | Rule |
+|----|------|
+| **HC1** | No plaintext secrets in repository files, prompts, logs, or commits. `detect-secrets` pre-commit hook and `.secrets.baseline` are required. |
+| **HC2** | No agent-authored writes outside the path allowlist (`src/`, `tests/`, `docs/`, `pyproject.toml`, `.pre-commit-config.yaml`, `Makefile`, `AGENTS.md`, `CLAUDE.md`, `.github/`). Out-of-scope writes must be denied and reverted. |
+| **HC3** | Destructive commands (`rm -rf`, `git push --force`, `git reset --hard`, `DROP TABLE`) require explicit human approval before execution. |
+| **HC4** | Database schema changes (migrations, drops) must be authored but never executed autonomously. |
+| **HC5** | Network egress from agent-executed code is limited to: `arxiv.org`, `export.arxiv.org`, `api.semanticscholar.org`, `api.openalex.org`, `dblp.org`, `serpapi.com`, `pypi.org`, `files.pythonhosted.org`, `github.com`. All other destinations require explicit human approval. |
+| **HC6** | Red-class data (secrets, PII, credentials, API keys, session tokens) must never enter prompts, tool arguments, trace logs, plan files, or stored artefacts. API keys belong in `config.toml` (gitignored) or environment variables only. |
+
 ## Commit and PR guidelines
 
 - Commit message format: `<type>: <short description>` (e.g., `feat: add DOI
