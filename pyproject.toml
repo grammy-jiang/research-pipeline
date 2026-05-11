@@ -21,7 +21,7 @@ dev = [
 
 [project]
 name = "research-pipeline"
-version = "0.17.2"
+version = "0.17.3"
 description = "A multi-source pipeline for searching, screening, downloading, converting, and summarizing academic papers from arXiv, Google Scholar, and more."
 readme = "README.md"
 license = "MIT"
@@ -62,7 +62,8 @@ dependencies = [
   "mcp[cli]>=1.0",
   "lxml>=6.1.0",
   "jinja2>=3.1",
-  "python-multipart>=0.0.27"
+  "python-multipart>=0.0.27",
+  "urllib3>=2.7.0"
 ]
 
 [project.optional-dependencies]
