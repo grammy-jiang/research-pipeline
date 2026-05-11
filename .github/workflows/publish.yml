@@ -44,7 +44,7 @@ jobs:
       id-token: write
     steps:
       - name: Download distribution artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: dist
           path: dist/
@@ -70,13 +70,13 @@ jobs:
         run: uv python install 3.12
 
       - name: Download distribution artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: dist
           path: dist/
 
       - name: Install twine
-        run: uv pip install twine
+        run: uv pip install --system twine
 
       - name: Publish to GitHub Packages
         env:
