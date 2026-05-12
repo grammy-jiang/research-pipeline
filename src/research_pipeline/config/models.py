@@ -261,6 +261,85 @@ class GateConfig(BaseModel):
     auto_approve: bool = True
 
 
+class AgentDiversityConfig(BaseModel):
+    """Enforce model family diversity across the sub-agent pool.
+
+    Implements Recommendation 4 of the research report (Social Dynamics,
+    Flowr): mixing ≥2 model families prevents correlated failures from a
+    single model family's blind spots or conformity bias.
+    """
+
+    min_model_families: int = 2
+    """Minimum distinct model families required across the pool."""
+
+    family_assignment: dict[str, str] = Field(
+        default_factory=lambda: {
+            "paper-analyzer": "claude",
+            "paper-synthesizer": "gpt",
+            "paper-screener": "claude",
+            "report-generator": "claude",
+        }
+    )
+    """Sub-agent role → model family mapping.  Users configure; system validates
+    that at least ``min_model_families`` distinct families are present.
+    """
+
+    enforce_diversity: bool = True
+    """Emit a warning (not an error) when diversity requirement is not met."""
+
+    def validate_diversity(self) -> list[str]:
+        """Return warning messages if diversity requirement is not satisfied."""
+        families = set(self.family_assignment.values())
+        if self.enforce_diversity and len(families) < self.min_model_families:
+            return [
+                f"Sub-agent pool uses only {len(families)} model "
+                f"{'family' if len(families) == 1 else 'families'} "
+                f"({', '.join(sorted(families))}); "
+                f"min_model_families={self.min_model_families}. "
+                "Conformity bias risk is elevated."
+            ]
+        return []
+
+
+class SubAgentBudget(BaseModel):
+    """Per-sub-agent response length constraints.
+
+    Implements the length-normalisation measure from Recommendation 4 of
+    the research report: without a token budget, longer responses (which
+    may contain more rhetoric but not more evidence) dominate synthesis.
+    """
+
+    max_tokens: int
+    """Hard limit.  Responses exceeding this are truncated with a warning."""
+
+    target_tokens: int
+    """Soft target included in the sub-agent prompt instruction."""
+
+    penalty_above_target: float = 0.1
+    """Score penalty per excess token over *target_tokens* (for weighting)."""
+
+
+#: Default token budgets per sub-agent role.
+SUB_AGENT_BUDGETS: dict[str, SubAgentBudget] = {
+    "paper-analyzer": SubAgentBudget(max_tokens=2000, target_tokens=1500),
+    "paper-synthesizer": SubAgentBudget(max_tokens=4000, target_tokens=3000),
+    "paper-screener": SubAgentBudget(max_tokens=500, target_tokens=300),
+    "report-generator": SubAgentBudget(max_tokens=10000, target_tokens=8000),
+}
+
+
+class AgentsConfig(BaseModel):
+    """Configuration for multi-agent sub-agent dispatch."""
+
+    diversity: AgentDiversityConfig = Field(default_factory=AgentDiversityConfig)
+    """Model-family diversity enforcement settings."""
+
+    budgets: dict[str, SubAgentBudget] = Field(
+        default_factory=lambda: dict(SUB_AGENT_BUDGETS)
+    )
+    """Per-role token budgets.  Falls back to ``SUB_AGENT_BUDGETS`` defaults."""
+
+
 class PipelineConfig(BaseModel):
     """Top-level pipeline configuration."""
 
@@ -276,6 +355,7 @@ class PipelineConfig(BaseModel):
     quality: QualityConfig = Field(default_factory=QualityConfig)
     incremental: IncrementalConfig = Field(default_factory=IncrementalConfig)
     gates: GateConfig = Field(default_factory=GateConfig)
+    agents: AgentsConfig = Field(default_factory=AgentsConfig)
     workspace: str = "runs"
     contact_email: str = ""
     profile: str = "standard"

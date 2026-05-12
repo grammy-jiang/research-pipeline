@@ -14,6 +14,7 @@ from research_pipeline.models.summary import (
     ContradictionRecord,
     CrossPaperSynthesisRecord,
     ExtractedStatement,
+    MinorityFinding,
     PaperExtractionRecord,
     PaperSummary,
     ReusableMechanism,
@@ -321,6 +322,42 @@ def _build_template_synthesis(
             len(summaries),
         )
 
+    # Build structured minority findings from detected disagreements.
+    # For template mode (no LLM) we can only identify potential minorities
+    # heuristically — quality is left as "medium" pending LLM evaluation.
+    minority_findings: list[MinorityFinding] = []
+    for dis in disagreements:
+        positions = dis.positions
+        if len(positions) < 2:
+            continue
+        # The paper with the fewest shared-topic support is the "minority"
+        for minority_id, minority_pos in positions.items():
+            majority_ids = [pid for pid in positions if pid != minority_id]
+            minority_findings.append(
+                MinorityFinding(
+                    finding=minority_pos,
+                    supporting_sources=[minority_id],
+                    contradicting_sources=majority_ids,
+                    evidence_quality="medium",
+                    evaluation=(
+                        f"Minority position on '{dis.topic}' detected by "
+                        "heuristic opposition analysis. Requires LLM review to "
+                        "assess evidence quality and suppression risk."
+                    ),
+                    suppression_risk=(
+                        "Ignoring this position may introduce conformity bias "
+                        "if the minority source has higher evidence quality."
+                    ),
+                )
+            )
+
+    # Consensus confidence: 1.0 when no disagreements, decreases with more
+    n_findings = sum(len(s.findings) for s in summaries)
+    if n_findings > 0:
+        consensus_confidence = max(0.0, 1.0 - len(disagreements) / max(n_findings, 1))
+    else:
+        consensus_confidence = 1.0
+
     all_limitations: list[str] = []
     for s in summaries:
         for lim in s.limitations:
@@ -342,6 +379,8 @@ def _build_template_synthesis(
         agreements=agreements,
         disagreements=disagreements,
         open_questions=open_questions,
+        minority_findings=minority_findings,
+        consensus_confidence=round(consensus_confidence, 4),
         paper_summaries=summaries,
     )
 

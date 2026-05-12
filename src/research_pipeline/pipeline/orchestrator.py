@@ -647,7 +647,7 @@ def run_pipeline(
 
     # --- Stage: plan ---
     if memory:
-        memory.transition_stage("plan")
+        memory.between_stages("plan")
     if not (resume and _is_stage_complete(manifest, "plan")):
         started = utc_now()
         logger.info("Stage: plan")
@@ -701,7 +701,7 @@ def run_pipeline(
 
     # --- Stage: search ---
     if memory:
-        memory.transition_stage("search")
+        memory.between_stages("search")
     if not (resume and _is_stage_complete(manifest, "search")):
         started = utc_now()
         logger.info("Stage: search")
@@ -904,7 +904,7 @@ def run_pipeline(
 
     # --- Stage: screen ---
     if memory:
-        memory.transition_stage("screen")
+        memory.between_stages("screen")
     if not (resume and _is_stage_complete(manifest, "screen")):
         started = utc_now()
         logger.info("Stage: screen")
@@ -1128,7 +1128,7 @@ def run_pipeline(
 
     # --- Stage: download ---
     if memory:
-        memory.transition_stage("download")
+        memory.between_stages("download")
     if should_run_stage(profile, "download"):
         if not (resume and _is_stage_complete(manifest, "download")):
             started = utc_now()
@@ -1235,7 +1235,7 @@ def run_pipeline(
 
     # --- Stage: convert ---
     if memory:
-        memory.transition_stage("convert")
+        memory.between_stages("convert")
     if should_run_stage(profile, "convert"):
         if not (resume and _is_stage_complete(manifest, "convert")):
             started = utc_now()
@@ -1372,7 +1372,7 @@ def run_pipeline(
 
     # --- Stage: extract ---
     if memory:
-        memory.transition_stage("extract")
+        memory.between_stages("extract")
     if should_run_stage(profile, "extract"):
         if not (resume and _is_stage_complete(manifest, "extract")):
             started = utc_now()
@@ -1425,7 +1425,7 @@ def run_pipeline(
 
     # --- Stage: summarize ---
     if memory:
-        memory.transition_stage("summarize")
+        memory.between_stages("summarize")
     if not (resume and _is_stage_complete(manifest, "summarize")):
         started = utc_now()
         logger.info("Stage: summarize")

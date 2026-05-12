@@ -63,6 +63,30 @@ class ProtocolState(StrEnum):
     RECONCILED = "reconciled"  # final result computed
 
 
+class PreCommitmentPolicy(StrEnum):
+    """How sub-agents are dispatched relative to each other.
+
+    Implements the pre-commitment measure from Recommendation 4 of the
+    research report.  The default (PARALLEL) is the strongest protection
+    against conformity bias — agents never see each other's output.
+
+    SEQUENTIAL_BLIND is an intermediate option: agents run one-at-a-time
+    but each receives only the original source material, not prior analyses.
+    SEQUENTIAL_INFORMED explicitly opts in to cross-agent information flow
+    and should be used only when feedback loops are intentional (documented
+    risk: later agents may be primed by earlier outputs).
+    """
+
+    PARALLEL = "parallel"
+    """Agents run fully independently (default, strongest protection)."""
+
+    SEQUENTIAL_BLIND = "blind"
+    """Sequential but each agent sees only the source material."""
+
+    SEQUENTIAL_INFORMED = "informed"
+    """Sequential; agents may see prior analyses (explicit opt-in)."""
+
+
 # ---------------------------------------------------------------------------
 # Data models
 # ---------------------------------------------------------------------------

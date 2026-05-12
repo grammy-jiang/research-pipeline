@@ -47,6 +47,75 @@ class MemoryManager:
         )
         return cleared
 
+    def consolidate(self) -> int:
+        """Promote episodic memories to semantic store when at capacity.
+
+        Implements the ``consolidate()`` lifecycle operation from the
+        memory integration plan: compresses episodes, promotes recurring
+        patterns to semantic rules, and prunes stale entries.
+
+        Returns the number of episodes consolidated.
+        """
+        try:
+            from research_pipeline.pipeline.consolidation import (
+                EpisodeStore,
+                consolidate,
+            )
+
+            # Bridge: use a shared episodic DB path so consolidation can
+            # read the same episodes that EpisodicMemory recorded.
+            store = EpisodeStore(db_path=self.episodic.db_path)
+            result = consolidate(store)
+            count: int = result.episodes_before - result.episodes_after
+            if count:
+                logger.info(
+                    "Memory consolidation: consolidated %d episode(s) "
+                    "(%d rules created, %d rules updated, %d pruned)",
+                    count,
+                    result.rules_created,
+                    result.rules_updated,
+                    result.entries_pruned,
+                )
+            return max(0, count)
+        except Exception as exc:
+            logger.warning("Memory consolidation skipped: %s", exc)
+            return 0
+
+    def between_stages(
+        self,
+        new_stage: str,
+        *,
+        consolidation_threshold: int = 20,
+    ) -> list[MemoryItem]:
+        """Lifecycle hook called at every pipeline stage boundary.
+
+        Implements the ``between_stages()`` hook from the memory integration
+        plan (§4.1): resets working memory for the new stage and triggers
+        episodic→semantic consolidation when the episodic store exceeds
+        ``consolidation_threshold``.
+
+        Args:
+            new_stage: Name of the stage that is about to begin.
+            consolidation_threshold: Episodic episode count above which
+                ``consolidate()`` is called automatically.
+
+        Returns:
+            List of working-memory items that were cleared.
+        """
+        cleared = self.transition_stage(new_stage)
+        try:
+            ep_count = self.episodic.count()
+            if ep_count >= consolidation_threshold:
+                logger.debug(
+                    "between_stages: episodic count %d ≥ threshold %d → consolidating",
+                    ep_count,
+                    consolidation_threshold,
+                )
+                self.consolidate()
+        except Exception as exc:
+            logger.debug("between_stages consolidation check skipped: %s", exc)
+        return cleared
+
     def record_run(self, episode: Episode) -> None:
         """Record a completed run in episodic memory."""
         self.episodic.record_episode(episode)

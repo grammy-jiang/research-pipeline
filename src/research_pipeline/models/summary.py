@@ -240,6 +240,42 @@ class SynthesisDisagreement(BaseModel):
     evidence: list[SummaryEvidence] = Field(default_factory=list)
 
 
+class MinorityFinding(BaseModel):
+    """A finding that contradicts the majority but has evidence support.
+
+    Implements dissent preservation from Recommendation 4 of the research
+    report: a finding supported by one high-quality source that contradicts
+    five medium-quality sources is a *significant* signal, not noise to be
+    averaged away.
+    """
+
+    finding: str = Field(description="The minority position.")
+    supporting_sources: list[str] = Field(
+        default_factory=list,
+        description="arXiv IDs that support the minority finding.",
+    )
+    contradicting_sources: list[str] = Field(
+        default_factory=list,
+        description="arXiv IDs that disagree with the minority finding.",
+    )
+    evidence_quality: str = Field(
+        default="medium",
+        description=(
+            "Assessed quality of minority evidence: 'high', 'medium', or 'low'."
+        ),
+    )
+    evaluation: str = Field(
+        default="",
+        description=(
+            "Why this minority finding matters despite being a minority position."
+        ),
+    )
+    suppression_risk: str = Field(
+        default="",
+        description="What would be lost by ignoring this minority finding.",
+    )
+
+
 class SynthesisReport(BaseModel):
     """Cross-paper synthesis report."""
 
@@ -250,6 +286,22 @@ class SynthesisReport(BaseModel):
     open_questions: list[str] = Field(
         default_factory=list,
         description="Unresolved questions identified across papers.",
+    )
+    minority_findings: list[MinorityFinding] = Field(
+        default_factory=list,
+        description=(
+            "Findings that contradict the majority but have evidence support. "
+            "Required by the dissent-preservation measure (Rec 4)."
+        ),
+    )
+    consensus_confidence: float = Field(
+        default=0.0,
+        ge=0.0,
+        le=1.0,
+        description=(
+            "0–1 confidence in the overall consensus.  "
+            "Lower values indicate more substantive disagreement."
+        ),
     )
     paper_summaries: list[PaperSummary] = Field(
         default_factory=list,
