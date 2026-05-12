@@ -2,6 +2,21 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.12] — 2026-05-13
+
+### Added
+- **deep profile orchestration**: Wire `expand`, `quality`, `analyze_claims`, and
+  `score_claims` stages into the `run` orchestrator pipeline for the deep profile.
+  Previously these stages were no-ops (log-only TODO stubs) even when selected by
+  `--profile deep`.
+  - `expand`: auto-expands citation graph from shortlisted paper IDs via Semantic Scholar
+  - `quality`: computes composite quality scores (citation impact, venue reputation, recency)
+  - `analyze_claims`: decomposes paper summaries into atomic claims with evidence classification
+  - `score_claims`: scores confidence for decomposed claims using multi-signal aggregation
+- Stage verifiers for all 4 new deep-profile stages (`_verify_expand`, `_verify_quality`,
+  `_verify_analyze_claims`, `_verify_score_claims`) added to `STAGE_VERIFIERS`
+- Full resume support for all 4 new stages
+
 ## [v0.17.10] — 2026-05-13
 
 ### Added
