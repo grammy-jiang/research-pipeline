@@ -2,6 +2,20 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.8] — 2026-05-12
+
+### Fixed
+
+- Corrected stale environment variable name in `docs/architecture.md`:
+  `ARXIV_PAPER_PIPELINE_CONFIG` → `RESEARCH_PIPELINE_CONFIG` (the
+  implementation has used `RESEARCH_PIPELINE_CONFIG` since v0.3.0; the
+  documentation lagged behind).
+
+### Changed
+
+- Updated `astral-sh/setup-uv` from `@v7` to `@v8` in all GitHub Actions
+  workflows (`ci.yml`, `docs.yml`, `daily-brief.yml`, `publish.yml`).
+
 ## [v0.17.0] — 2026-04-28
 
 ### Added

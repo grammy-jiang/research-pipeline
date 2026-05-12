@@ -274,7 +274,7 @@ Configuration is loaded from multiple sources with this precedence
 
 | Priority | Source | Example |
 |----------|--------|---------|
-| 1 | Environment variables | `ARXIV_PAPER_PIPELINE_CONFIG` |
+| 1 | Environment variables | `RESEARCH_PIPELINE_CONFIG` |
 | 2 | TOML config file | `config.toml` |
 | 3 | Built-in defaults | `src/research_pipeline/config/defaults.py` |
 
