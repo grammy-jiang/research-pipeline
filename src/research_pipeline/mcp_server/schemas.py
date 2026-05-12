@@ -198,6 +198,30 @@ class ConvertFineInput(CommonParams):
     )
 
 
+class GetVenueTierInput(BaseModel):
+    """Input for the get_venue_tier tool."""
+
+    venue_name: str = Field(description="Venue name to look up (case-insensitive).")
+    data_path: str = Field(
+        default="",
+        description="Path to custom venue data JSON. Empty uses bundled CORE data.",
+    )
+
+
+class ComputeSemanticScoresInput(CommonParams):
+    """Input for the compute_semantic_scores tool."""
+
+    topic: str = Field(description="Research topic or query string to score against.")
+    model_name: str = Field(
+        default="allenai/specter2",
+        description="HuggingFace model identifier for embeddings.",
+    )
+    batch_size: int = Field(
+        default=32,
+        description="Batch size for embedding inference.",
+    )
+
+
 class ManageIndexInput(BaseModel):
     """Input for the manage_index tool."""
 

@@ -102,8 +102,9 @@ class TestReproducibilityScore:
 
 class TestCompositeWithReproducibility:
     def test_default_weights_include_reproducibility(self) -> None:
+        # reproducibility_weight is present but 0.0 per spec §5 — marked as "future"
         assert "reproducibility_weight" in DEFAULT_WEIGHTS
-        assert DEFAULT_WEIGHTS["reproducibility_weight"] > 0
+        assert DEFAULT_WEIGHTS["reproducibility_weight"] >= 0
 
     def test_weights_sum_to_one(self) -> None:
         total = sum(DEFAULT_WEIGHTS.values())

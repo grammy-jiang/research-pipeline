@@ -29,6 +29,7 @@ from research_pipeline.mcp_server.schemas import (
     CiteContextInput,
     ClusterInput,
     CompareRunsInput,
+    ComputeSemanticScoresInput,
     ConvertFileInput,
     ConvertFineInput,
     ConvertPdfsInput,
@@ -45,6 +46,7 @@ from research_pipeline.mcp_server.schemas import (
     ExtractContentInput,
     FeedbackInput,
     GetRunManifestInput,
+    GetVenueTierInput,
     HorizonMetricInput,
     KGIngestInput,
     KGQueryInput,
@@ -87,6 +89,7 @@ from research_pipeline.mcp_server.tools import (
     cluster_tool,
     coherence_tool,
     compare_runs,
+    compute_semantic_scores,
     confidence_layers_tool,
     consolidation_tool,
     convert_file,
@@ -104,6 +107,7 @@ from research_pipeline.mcp_server.tools import (
     extract_content,
     gate_info_tool,
     get_run_manifest,
+    get_venue_tier,
     horizon_metric_tool,
     kg_ingest_tool,
     kg_quality_tool,
@@ -488,6 +492,65 @@ def tool_evaluate_quality(
     """
     result = evaluate_quality(
         EvaluateQualityInput(workspace=workspace, run_id=run_id), ctx=ctx
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_get_venue_tier(
+    venue_name: str,
+    ctx: Context,
+    data_path: str = "",
+) -> dict:
+    """Look up CORE venue tier and quality score for a venue.
+
+    Returns the tier label (A*, A, B, C) and numeric score for the given
+    venue name. Uses the bundled CORE 2023 rankings data.
+    """
+    result = get_venue_tier(
+        GetVenueTierInput(venue_name=venue_name, data_path=data_path), ctx=ctx
+    )
+    return result.model_dump()
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_compute_semantic_scores(
+    topic: str,
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+    model_name: str = "allenai/specter2",
+    batch_size: int = 32,
+) -> dict:
+    """Compute SPECTER2 semantic similarity scores for all candidate papers.
+
+    Embeds the topic query and each candidate paper using SPECTER2, then
+    returns per-candidate cosine similarity scores in [0, 1] (min-max
+    normalised). Requires a completed search or screen stage.
+    """
+    result = compute_semantic_scores(
+        ComputeSemanticScoresInput(
+            topic=topic,
+            workspace=workspace,
+            run_id=run_id,
+            model_name=model_name,
+            batch_size=batch_size,
+        ),
+        ctx=ctx,
     )
     return result.model_dump()
 

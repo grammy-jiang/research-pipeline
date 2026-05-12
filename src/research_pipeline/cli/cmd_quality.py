@@ -42,6 +42,7 @@ def run_quality(
         "venue_weight": qc.venue_weight,
         "author_weight": qc.author_weight,
         "recency_weight": qc.recency_weight,
+        "reproducibility_weight": qc.reproducibility_weight,
     }
 
     _run_id, run_root = init_run(ws, run_id)

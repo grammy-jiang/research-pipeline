@@ -2,6 +2,20 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.9] — 2026-05-13
+
+### Fixed
+- **GAP-002**: Align composite quality DEFAULT_WEIGHTS with spec §5
+  (citation: 0.35, venue: 0.25, author: 0.25, recency: 0.15, reproducibility: 0.0)
+- Add `reproducibility_weight` to `QualityConfig` and propagate to all callers
+  (`cmd_quality.py`, `mcp_server/tools.py`)
+
+### Added
+- **GAP-003**: New MCP tool `get_venue_tier` — look up CORE venue tier and score
+- **GAP-004**: New MCP tool `compute_semantic_scores` — SPECTER2 semantic similarity
+  scores for screened candidates (spec §3.5)
+- New `GetVenueTierInput` and `ComputeSemanticScoresInput` schemas in `mcp_server/schemas.py`
+
 ## [v0.17.8] — 2026-05-12
 
 ### Fixed

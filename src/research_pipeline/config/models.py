@@ -237,6 +237,7 @@ class QualityConfig(BaseModel):
     venue_weight: float = 0.25
     author_weight: float = 0.25
     recency_weight: float = 0.15
+    reproducibility_weight: float = 0.0
     venue_data_path: str = ""
     author_cache_ttl_hours: float = 168.0
     min_quality_score: float = 0.0

@@ -9,13 +9,17 @@ logger = logging.getLogger(__name__)
 
 
 def mcp_server_config() -> dict[str, dict[str, dict[str, object]]]:
-    """Return a generic MCP client config for the packaged server."""
+    """Return a generic MCP client config for the packaged server.
+
+    Uses ``"type": "stdio"`` as recommended by GitHub Copilot CLI docs for
+    cross-client compatibility (VS Code, Copilot cloud agent, Copilot CLI).
+    """
     return {
         "mcpServers": {
             "research-pipeline": {
+                "type": "stdio",
                 "command": "research-pipeline",
                 "args": ["mcp", "serve"],
-                "description": "Run the packaged research-pipeline MCP server.",
             }
         }
     }

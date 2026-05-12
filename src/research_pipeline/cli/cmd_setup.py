@@ -14,11 +14,17 @@ logger = logging.getLogger(__name__)
 # Default install targets
 DEFAULT_CLAUDE_SKILL_DIR = Path.home() / ".claude" / "skills" / "research-pipeline"
 DEFAULT_CODEX_SKILL_DIR = Path.home() / ".codex" / "skills" / "research-pipeline"
+DEFAULT_COPILOT_SKILL_DIR = Path.home() / ".copilot" / "skills" / "research-pipeline"
 DEFAULT_SKILL_DIR = DEFAULT_CLAUDE_SKILL_DIR
-DEFAULT_SKILL_TARGETS = (DEFAULT_CLAUDE_SKILL_DIR, DEFAULT_CODEX_SKILL_DIR)
+DEFAULT_SKILL_TARGETS = (
+    DEFAULT_CLAUDE_SKILL_DIR,
+    DEFAULT_CODEX_SKILL_DIR,
+    DEFAULT_COPILOT_SKILL_DIR,
+)
 DEFAULT_AGENTS_DIR = Path.home() / ".claude" / "agents"
 DEFAULT_MCP_CONFIG_DIR = Path.home() / ".config" / "research-pipeline"
 DEFAULT_MCP_CONFIG_FILE = DEFAULT_MCP_CONFIG_DIR / "mcp.json"
+DEFAULT_COPILOT_MCP_CONFIG = Path.home() / ".copilot" / "mcp-config.json"
 
 
 def _find_source(
@@ -245,6 +251,37 @@ def _install_mcp_config(target: Path, force: bool) -> bool:
     return True
 
 
+def _update_copilot_mcp_config(target: Path, force: bool) -> bool:
+    """Merge the research-pipeline MCP server entry into Copilot CLI mcp-config.json.
+
+    Unlike ``_install_mcp_config`` which writes a standalone snippet file, this
+    function reads the existing Copilot config (preserving other server entries)
+    and upserts only the ``research-pipeline`` key.
+    """
+    entry = _mcp_server_config()["mcpServers"]["research-pipeline"]
+
+    existing: dict[str, object] = {}
+    if target.exists():
+        try:
+            existing = json.loads(target.read_text())
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Could not parse %s: %s — starting fresh.", target, exc)
+
+    servers: dict[str, object] = existing.setdefault("mcpServers", {})  # type: ignore[assignment]
+    if "research-pipeline" in servers and not force:
+        logger.warning(
+            "research-pipeline already present in %s. Use --force to overwrite.",
+            target,
+        )
+        return False
+
+    servers["research-pipeline"] = entry
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(existing, indent=2) + "\n")
+    logger.info("Copilot MCP config updated at %s", target)
+    return True
+
+
 def run_setup(
     skill_target: Path | None = None,
     skill_targets: Sequence[Path] | None = None,
@@ -260,7 +297,8 @@ def run_setup(
 
     Args:
         skill_target: Explicit single destination for the skill directory.
-            When omitted, installs to Claude/GitHub Copilot and Codex paths.
+            When omitted, installs to Claude Code, Codex CLI, and GitHub Copilot CLI
+            paths.
         skill_targets: Explicit multiple destinations for the skill directory.
             Takes precedence over ``skill_target`` when set.
         agents_target: Destination directory for agent files.
@@ -268,7 +306,8 @@ def run_setup(
         force: If True, overwrite existing files/directories.
         skip_skill: If True, skip skill installation.
         skip_agents: If True, skip agent installation.
-        skip_mcp: If True, skip MCP config snippet installation.
+        skip_mcp: If True, skip MCP config snippet installation (both the
+            standalone snippet and the Copilot CLI ``mcp-config.json`` merge).
     """
     if skip_skill and skip_agents and skip_mcp:
         logger.warning("All setup components skipped; nothing to do.")
@@ -329,6 +368,7 @@ def run_setup(
     # --- MCP server config ---
     if not skip_mcp:
         _install_mcp_config(mcp_config_target, force=force)
+        _update_copilot_mcp_config(DEFAULT_COPILOT_MCP_CONFIG, force=force)
 
     logger.info("Done.")
 

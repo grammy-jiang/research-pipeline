@@ -17,11 +17,11 @@ from research_pipeline.quality.venue_scoring import venue_score
 logger = logging.getLogger(__name__)
 
 DEFAULT_WEIGHTS = {
-    "citation_weight": 0.30,
-    "venue_weight": 0.20,
-    "author_weight": 0.20,
+    "citation_weight": 0.35,
+    "venue_weight": 0.25,
+    "author_weight": 0.25,
     "recency_weight": 0.15,
-    "reproducibility_weight": 0.15,
+    "reproducibility_weight": 0.0,
 }
 
 

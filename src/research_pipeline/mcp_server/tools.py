@@ -35,6 +35,7 @@ from research_pipeline.mcp_server.schemas import (
     ClusterInput,
     CoherenceInput,
     CompareRunsInput,
+    ComputeSemanticScoresInput,
     ConfidenceLayersInput,
     ConsolidationInput,
     ConvertFileInput,
@@ -55,6 +56,7 @@ from research_pipeline.mcp_server.schemas import (
     FeedbackInput,
     GateInfoInput,
     GetRunManifestInput,
+    GetVenueTierInput,
     HorizonMetricInput,
     KGIngestInput,
     KGQualityInput,
@@ -1049,6 +1051,7 @@ def evaluate_quality(
             "venue_weight": qc.venue_weight,
             "author_weight": qc.author_weight,
             "recency_weight": qc.recency_weight,
+            "reproducibility_weight": qc.reproducibility_weight,
         }
 
         # Try screen shortlist first, then search candidates
@@ -1100,6 +1103,98 @@ def evaluate_quality(
         )
     except Exception as exc:
         logger.error("evaluate_quality failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def get_venue_tier(params: GetVenueTierInput, ctx: Context | None = None) -> ToolResult:
+    """Look up CORE venue tier and quality score for a venue name.
+
+    Returns the tier ("A*", "A", "B", "C") and numeric score from the
+    bundled CORE rankings, or score=0.1 (unknown) if not found.
+    """
+    try:
+        from research_pipeline.quality.venue_scoring import (
+            get_venue_tier as _get_tier,
+        )
+        from research_pipeline.quality.venue_scoring import (
+            venue_score as _venue_score,
+        )
+
+        tier = _get_tier(params.venue_name, params.data_path)
+        score = _venue_score(params.venue_name, params.data_path)
+        return ToolResult(
+            success=True,
+            message=f"Venue '{params.venue_name}': tier={tier}, score={score}",
+            artifacts={"venue": params.venue_name, "tier": tier, "score": score},
+        )
+    except Exception as exc:
+        logger.error("get_venue_tier failed: %s", exc)
+        return ToolResult(success=False, message=f"Failed: {exc}")
+
+
+def compute_semantic_scores(
+    params: ComputeSemanticScoresInput, ctx: Context | None = None
+) -> ToolResult:
+    """Compute SPECTER2 semantic similarity scores for all screened candidates.
+
+    Embeds the topic query and each candidate's title+abstract using
+    SPECTER2, then returns per-candidate cosine similarity scores.
+    The agent uses these scores to decide which papers to prioritise.
+    Scores are in [0, 1] (min-max normalised across the batch).
+    """
+    try:
+        from research_pipeline.models.candidate import CandidateRecord
+        from research_pipeline.screening.embedding import score_semantic
+        from research_pipeline.storage.manifests import read_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
+
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_run_id(params.run_id)
+        _rid, run_root = init_run(ws, rid)
+
+        screen_dir = get_stage_dir(run_root, "screen")
+        search_dir = get_stage_dir(run_root, "search")
+
+        candidates_path = screen_dir / "shortlist.jsonl"
+        if not candidates_path.exists():
+            candidates_path = search_dir / "candidates.jsonl"
+
+        if not candidates_path.exists():
+            return ToolResult(
+                success=False,
+                message="No candidates found. Run search or screen first.",
+            )
+
+        raw_records = read_jsonl(candidates_path)
+        candidates = [CandidateRecord(**r) for r in raw_records]
+
+        _log_info(ctx, f"Computing SPECTER2 scores for {len(candidates)} candidates")
+
+        scores = score_semantic(
+            params.topic,
+            candidates,
+            model_name=params.model_name,
+            batch_size=params.batch_size,
+        )
+
+        results = [
+            {"arxiv_id": c.arxiv_id, "semantic_score": s}
+            for c, s in zip(candidates, scores, strict=True)
+        ]
+
+        logger.info("Semantic scoring complete: %d scores", len(results))
+        return ToolResult(
+            success=True,
+            message=f"Semantic scores computed for {len(results)} candidates.",
+            artifacts={
+                "scores": results,
+                "run_id": _rid,
+                "count": len(results),
+                "model": params.model_name,
+            },
+        )
+    except Exception as exc:
+        logger.error("compute_semantic_scores failed: %s", exc)
         return ToolResult(success=False, message=f"Failed: {exc}")
 
 
