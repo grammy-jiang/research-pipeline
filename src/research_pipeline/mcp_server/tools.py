@@ -498,70 +498,81 @@ def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> Tool
 
 
 def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolResult:
-    """Convert downloaded PDFs to Markdown."""
+    """Convert downloaded PDFs to Markdown using FallbackConverter."""
     try:
+        from research_pipeline.cli.cmd_convert import _create_converter
         from research_pipeline.config.loader import load_config
-        from research_pipeline.conversion.registry import (
-            _ensure_builtins_registered,
-            get_backend,
-        )
         from research_pipeline.models.download import DownloadManifestEntry
-        from research_pipeline.storage.workspace import get_stage_dir
+        from research_pipeline.storage.manifests import read_jsonl, write_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir, init_run
 
-        _ensure_builtins_registered()
+        config = load_config()
+        if params.backend:
+            config.conversion.backend = params.backend
 
         ws = _resolve_workspace(params.workspace)
         rid = _resolve_run_id(params.run_id)
-        run_root = _get_run_root(ws, rid)
-        config = load_config()
+        _rid, run_root = init_run(ws, rid)
 
-        download_dir = get_stage_dir(run_root, "download")
-        manifest_path = download_dir / "download_manifest.jsonl"
-        if not manifest_path.exists():
+        dl_manifest_path = (
+            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+        )
+        if not dl_manifest_path.exists():
             return ToolResult(
                 success=False,
                 message="No download manifest found. Run download_pdfs first.",
             )
 
+        raw = read_jsonl(dl_manifest_path)
+        entries = [DownloadManifestEntry.model_validate(d) for d in raw]
+
+        converter = _create_converter(config)
         convert_dir = get_stage_dir(run_root, "convert")
         convert_dir.mkdir(parents=True, exist_ok=True)
 
-        backend_name = params.backend or config.conversion.backend
-        kwargs = _backend_kwargs(backend_name, config)
-        backend = get_backend(backend_name, **kwargs)
-
-        entries = []
-        for line in manifest_path.read_text().strip().split("\n"):
-            if line:
-                entries.append(DownloadManifestEntry.model_validate_json(line))
+        eligible = [e for e in entries if e.status in ("downloaded", "skipped_exists")]
+        _log_info(ctx, f"Starting conversion of {len(eligible)} PDFs")
 
         results = []
-        for entry in entries:
-            if entry.status != "downloaded":
-                continue
+        total = len(eligible)
+        for i, entry in enumerate(eligible):
             pdf_path = Path(entry.local_path)
-            if pdf_path.exists():
-                result = backend.convert(pdf_path, convert_dir, force=params.force)
-                results.append(result)
+            if not pdf_path.exists():
+                logger.warning("PDF not found: %s", pdf_path)
+                continue
+            _report_progress(ctx, i, total, f"Converting {pdf_path.name}")
+            result = converter.convert(pdf_path, convert_dir, force=params.force)
+            results.append(result)
+        _report_progress(ctx, total, total, "Conversion complete")
 
-        conv_manifest = convert_dir / "convert_manifest.jsonl"
-        with conv_manifest.open("w") as fh:
-            for r in results:
-                fh.write(r.model_dump_json() + "\n")
+        conv_manifest = (
+            get_stage_dir(run_root, "convert_root") / "convert_manifest.jsonl"
+        )
+        write_jsonl(conv_manifest, [r.model_dump(mode="json") for r in results])
 
-        success_count = sum(1 for r in results if r.status == "converted")
-        logger.info("Converted %d/%d PDFs", success_count, len(results))
+        converted = sum(1 for r in results if r.status == "converted")
+        skipped = sum(1 for r in results if r.status == "skipped_exists")
+        failed = sum(1 for r in results if r.status == "failed")
+        logger.info(
+            "Convert stage: %d converted, %d skipped, %d failed",
+            converted,
+            skipped,
+            failed,
+        )
         return ToolResult(
             success=True,
             message=(
-                f"Converted {success_count}/{len(results)} PDFs to Markdown "
-                f"(backend={backend_name})."
+                f"Converted {converted}/{len(results)} PDFs to Markdown, "
+                f"{skipped} skipped, {failed} failed "
+                f"(backend={config.conversion.backend})."
             ),
             artifacts={
                 "manifest": str(conv_manifest),
                 "convert_dir": str(convert_dir),
-                "converted": success_count,
-                "backend": backend_name,
+                "converted": converted,
+                "skipped": skipped,
+                "failed": failed,
+                "backend": config.conversion.backend,
             },
         )
     except ImportError as exc:

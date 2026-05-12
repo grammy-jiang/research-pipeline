@@ -6,6 +6,7 @@ from pathlib import Path
 from research_pipeline.mcp_server.schemas import (
     ConvertFileInput,
     ConvertFineInput,
+    ConvertPdfsInput,
     ConvertRoughInput,
     EvaluateQualityInput,
     ExpandCitationsInput,
@@ -20,6 +21,7 @@ from research_pipeline.mcp_server.tools import (
     _resolve_workspace,
     convert_file,
     convert_fine,
+    convert_pdfs,
     convert_rough,
     evaluate_quality,
     expand_citations,
@@ -208,3 +210,56 @@ class TestManageIndex:
         )
         assert result.success is True
         assert result.artifacts.get("count") == 0
+
+
+class TestConvertPdfs:
+    def test_no_download_manifest(self, tmp_path: Path) -> None:
+        result = convert_pdfs(
+            ConvertPdfsInput(
+                workspace=str(tmp_path),
+                run_id="test-convert",
+            )
+        )
+        assert result.success is False
+        assert "download" in result.message.lower()
+
+    def test_uses_fallback_converter(self, tmp_path: Path) -> None:
+        """convert_pdfs delegates to _create_converter, enabling FallbackConverter."""
+        from unittest.mock import MagicMock, patch
+
+        run_root = tmp_path / "test-convert"
+        dl_root = run_root / "download"
+        dl_root.mkdir(parents=True)
+        manifest_path = dl_root / "download_manifest.jsonl"
+        manifest_path.write_text(
+            '{"arxiv_id": "2401.00001", "version": "v1",'
+            ' "pdf_url": "http://example.com/2401.00001.pdf",'
+            ' "local_path": "/fake/2401.00001.pdf",'
+            ' "sha256": "abc123", "size_bytes": 1000,'
+            ' "downloaded_at": "2024-01-01T00:00:00Z",'
+            ' "status": "downloaded"}\n',
+            encoding="utf-8",
+        )
+
+        with (
+            patch("research_pipeline.cli.cmd_convert._create_converter") as mock_create,
+            patch("research_pipeline.config.loader.load_config") as mock_cfg,
+        ):
+            mock_cfg.return_value = MagicMock(
+                workspace=str(tmp_path),
+                conversion=MagicMock(backend="pymupdf4llm", fallback_backends=[]),
+            )
+            mock_converter = MagicMock()
+            mock_create.return_value = mock_converter
+            mock_converter.convert.return_value = MagicMock(
+                status="converted", model_dump=lambda mode=None: {"status": "converted"}
+            )
+
+            convert_pdfs(
+                ConvertPdfsInput(
+                    workspace=str(tmp_path),
+                    run_id="test-convert",
+                )
+            )
+
+        mock_create.assert_called_once()
