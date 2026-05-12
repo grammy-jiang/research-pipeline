@@ -1,0 +1,9 @@
+{
+  "servers": {
+    "research-pipeline": {
+      "type": "stdio",
+      "command": "research-pipeline",
+      "args": ["mcp", "serve"]
+    }
+  }
+}

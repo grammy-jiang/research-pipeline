@@ -448,6 +448,7 @@ package
 ### VisualStudioCode ###
 .vscode/*
 !.vscode/settings.json
+!.vscode/mcp.json
 
 ### Research Pipeline ###
 # Pipeline run outputs (intermediate/temporary data)
