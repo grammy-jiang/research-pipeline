@@ -480,3 +480,10 @@ CLAUDE.local.md
 ### Project ###
 # Pipeline run artifacts
 runs/
+
+# LLM-SCA tooling analysis cache (local MCP server snapshots)
+.llm-sca/
+
+# Codex agent workspace
+.codex
+.codex/
