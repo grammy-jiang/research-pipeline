@@ -2,6 +2,28 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.13] — 2026-05-12
+
+### Added
+- **Multi-agent reliability structs** (Research Report Rec. 4):
+  - `AgentDiversityConfig` — enforces ≥N model families across sub-agent pool
+    with `validate_diversity()` returning warnings on insufficient diversity
+  - `SubAgentBudget` — per-role token limits (max + target) with `SUB_AGENT_BUDGETS`
+    defaults for paper-analyzer, synthesizer, screener, and report-generator
+  - `AgentsConfig` — wrapper for diversity + budgets, exposed via `PipelineConfig.agents`
+  - `PreCommitmentPolicy` enum (PARALLEL / SEQUENTIAL_BLIND / SEQUENTIAL_INFORMED)
+    for controlling sub-agent dispatch isolation
+- **Minority finding tracking** in synthesis:
+  - `MinorityFinding` model with `finding`, `supporting_sources`, `contradicting_sources`,
+    `evidence_quality`, `evaluation`, and `suppression_risk` fields
+  - `SynthesisReport.minority_findings` and `SynthesisReport.consensus_confidence`
+    populated by `_build_template_synthesis()` from `_detect_dissent()` output
+- **Memory lifecycle hooks** on `MemoryManager`:
+  - `consolidate()` — promotes episodic memories to semantic store via `EpisodeStore`
+  - `between_stages(new_stage, consolidation_threshold=20)` — resets working memory
+    and auto-triggers consolidation when episodic count exceeds threshold
+  - Orchestrator now calls `memory.between_stages()` at all 7 stage boundaries
+
 ## [v0.17.12] — 2026-05-13
 
 ### Added
