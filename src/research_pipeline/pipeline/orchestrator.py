@@ -16,10 +16,14 @@ from research_pipeline.arxiv.client import ArxivClient
 from research_pipeline.arxiv.dedup import dedup_across_queries
 from research_pipeline.arxiv.query_builder import build_query_from_plan
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
+from research_pipeline.cli.cmd_analyze_claims import run_analyze_claims
+from research_pipeline.cli.cmd_expand import run_expand
 from research_pipeline.cli.cmd_plan import (
     _generate_query_variants,
     _split_topic_terms,
 )
+from research_pipeline.cli.cmd_quality import run_quality
+from research_pipeline.cli.cmd_score_claims import run_score_claims
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
 from research_pipeline.conversion.base import ConverterBackend
@@ -240,6 +244,48 @@ def _verify_summarize(run_root: Path) -> list[str]:
     return errors
 
 
+def _verify_expand(run_root: Path) -> list[str]:
+    """Verify expand stage output."""
+    errors = []
+    expand_dir = get_stage_dir(run_root, "expand")
+    output = expand_dir / "expanded_candidates.jsonl"
+    if not output.exists():
+        errors.append("No expanded candidates found (expanded_candidates.jsonl)")
+    return errors
+
+
+def _verify_quality(run_root: Path) -> list[str]:
+    """Verify quality stage output."""
+    errors = []
+    quality_dir = get_stage_dir(run_root, "quality")
+    output = quality_dir / "quality_scores.jsonl"
+    if not output.exists():
+        errors.append("No quality scores found (quality_scores.jsonl)")
+    return errors
+
+
+def _verify_analyze_claims(run_root: Path) -> list[str]:
+    """Verify analyze_claims stage output."""
+    errors = []
+    claims_dir = get_stage_dir(run_root, "summarize") / "claims"
+    output = claims_dir / "claim_decomposition.jsonl"
+    if not output.exists():
+        errors.append(
+            "No claim decompositions found (summarize/claims/claim_decomposition.jsonl)"
+        )
+    return errors
+
+
+def _verify_score_claims(run_root: Path) -> list[str]:
+    """Verify score_claims stage output."""
+    errors = []
+    claims_dir = get_stage_dir(run_root, "summarize") / "claims"
+    output = claims_dir / "scored_claims.jsonl"
+    if not output.exists():
+        errors.append("No scored claims found (summarize/claims/scored_claims.jsonl)")
+    return errors
+
+
 STAGE_VERIFIERS: dict[str, object] = {
     "plan": _verify_plan,
     "search": _verify_search,
@@ -248,6 +294,10 @@ STAGE_VERIFIERS: dict[str, object] = {
     "convert": _verify_convert,
     "extract": _verify_extract,
     "summarize": _verify_summarize,
+    "expand": _verify_expand,
+    "quality": _verify_quality,
+    "analyze_claims": _verify_analyze_claims,
+    "score_claims": _verify_score_claims,
 }
 
 
@@ -1768,22 +1818,107 @@ def run_pipeline(
     # --- Deep profile: extra stages ---
     if should_run_stage(profile, "expand"):
         logger.info("Deep profile: citation expansion stage (expand)")
-        # TODO: Wire expand stage into orchestrator
-        logger.info("Expand stage not yet wired into orchestrator — run manually")
+        if not (resume and _is_stage_complete(manifest, "expand")):
+            started = utc_now()
+            audit.emit(EventType.STAGE_STARTED, stage="expand", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="expand")
+            paper_ids = [d.paper.arxiv_id for d in shortlist if d.paper.arxiv_id]
+            expand_dir = get_stage_dir(run_root, "expand")
+            if paper_ids:
+                run_expand(
+                    paper_ids=paper_ids,
+                    workspace=ws,
+                    run_id=run_id,
+                )
+                manifest = _record_stage(
+                    manifest,
+                    "expand",
+                    "completed",
+                    started,
+                    output_paths=[str(expand_dir)],
+                    audit=audit,
+                    run_root=run_root,
+                )
+            else:
+                logger.warning("No paper IDs available for expand stage; skipping")
+                manifest = _record_stage(
+                    manifest,
+                    "expand",
+                    "skipped",
+                    started,
+                    audit=audit,
+                    run_root=run_root,
+                )
+            save_manifest(run_root, manifest)
+        else:
+            logger.info("Skipping expand stage (already complete)")
+
     if should_run_stage(profile, "quality"):
         logger.info("Deep profile: quality scoring stage")
-        # TODO: Wire quality stage into orchestrator
-        logger.info("Quality stage not yet wired into orchestrator — run manually")
+        if not (resume and _is_stage_complete(manifest, "quality")):
+            started = utc_now()
+            audit.emit(EventType.STAGE_STARTED, stage="quality", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="quality")
+            quality_dir = get_stage_dir(run_root, "quality")
+            run_quality(workspace=ws, run_id=run_id)
+            manifest = _record_stage(
+                manifest,
+                "quality",
+                "completed",
+                started,
+                output_paths=[str(quality_dir)],
+                audit=audit,
+                run_root=run_root,
+            )
+            save_manifest(run_root, manifest)
+        else:
+            logger.info("Skipping quality stage (already complete)")
+
     if should_run_stage(profile, "analyze_claims"):
         logger.info("Deep profile: claim analysis stage")
-        # TODO: Wire analyze_claims stage into orchestrator
-        logger.info(
-            "Analyze-claims stage not yet wired into orchestrator — run manually"
-        )
+        if not (resume and _is_stage_complete(manifest, "analyze_claims")):
+            started = utc_now()
+            audit.emit(EventType.STAGE_STARTED, stage="analyze_claims", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="analyze_claims")
+            claims_dir = get_stage_dir(run_root, "summarize") / "claims"
+            run_analyze_claims(workspace=ws, run_id=run_id)
+            manifest = _record_stage(
+                manifest,
+                "analyze_claims",
+                "completed",
+                started,
+                output_paths=[str(claims_dir)],
+                audit=audit,
+                run_root=run_root,
+            )
+            save_manifest(run_root, manifest)
+        else:
+            logger.info("Skipping analyze_claims stage (already complete)")
+
     if should_run_stage(profile, "score_claims"):
         logger.info("Deep profile: confidence scoring stage")
-        # TODO: Wire score_claims stage into orchestrator
-        logger.info("Score-claims stage not yet wired into orchestrator — run manually")
+        if not (resume and _is_stage_complete(manifest, "score_claims")):
+            started = utc_now()
+            audit.emit(EventType.STAGE_STARTED, stage="score_claims", run_id=run_id)
+            if eval_log is not None:
+                eval_log.trace("stage_started", stage="score_claims")
+            scored_claims_dir = get_stage_dir(run_root, "summarize") / "claims"
+            run_score_claims(workspace=ws, run_id=run_id)
+            manifest = _record_stage(
+                manifest,
+                "score_claims",
+                "completed",
+                started,
+                output_paths=[str(scored_claims_dir)],
+                audit=audit,
+                run_root=run_root,
+            )
+            save_manifest(run_root, manifest)
+        else:
+            logger.info("Skipping score_claims stage (already complete)")
 
     # Log security gate stats
     if security_gate is not None:
