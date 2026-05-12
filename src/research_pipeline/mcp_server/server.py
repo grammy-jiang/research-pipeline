@@ -270,7 +270,8 @@ def tool_convert_pdfs(
 ) -> dict:
     """Convert downloaded PDFs to Markdown.
 
-    Supports multiple backends: docling, marker, pymupdf4llm.
+    Supports multiple backends: docling, marker, pymupdf4llm (local) and
+    mathpix, datalab, llamaparse, mistral_ocr, openai_vision (cloud/online).
     Use backend='' to use the config default.
     Requires the corresponding extra to be installed.
     """
@@ -399,7 +400,8 @@ def tool_convert_file(
 ) -> dict:
     """Convert a single PDF file to Markdown (standalone, no pipeline workspace needed).
 
-    Supports multiple backends: docling, marker, pymupdf4llm.
+    Supports multiple backends: docling, marker, pymupdf4llm (local) and
+    mathpix, datalab, llamaparse, mistral_ocr, openai_vision (cloud/online).
     Use backend='' to use the config default. Useful for ad-hoc
     document conversion without running the full pipeline.
     """
@@ -421,7 +423,9 @@ def tool_convert_file(
 def tool_list_backends(ctx: Context) -> dict:
     """List available PDF-to-Markdown converter backends.
 
-    Returns the names of all registered backends (docling, marker, pymupdf4llm).
+    Returns the names of all registered backends: docling, marker,
+    pymupdf4llm (local) and mathpix, datalab, llamaparse, mistral_ocr,
+    openai_vision (cloud/online).
     Each backend requires its corresponding extra to be installed.
     """
     result = list_backends(ListBackendsInput(), ctx=ctx)
