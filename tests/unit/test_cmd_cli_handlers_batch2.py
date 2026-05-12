@@ -629,8 +629,112 @@ class TestCmdDownload:
         mock_batch.assert_called_once()
         mock_write.assert_called_once()
 
+    @patch("research_pipeline.cli.cmd_download.write_jsonl")
+    @patch("research_pipeline.cli.cmd_download.download_batch")
+    @patch("research_pipeline.cli.cmd_download.create_session")
+    @patch("research_pipeline.cli.cmd_download.ArxivRateLimiter")
+    @patch("research_pipeline.cli.cmd_download.read_jsonl")
+    @patch("research_pipeline.cli.cmd_download.init_run")
+    @patch("research_pipeline.cli.cmd_download.load_config")
+    def test_retry_failed_only_retries_failed_entries(
+        self,
+        mock_cfg,
+        mock_init,
+        mock_read,
+        mock_limiter,
+        mock_session,
+        mock_batch,
+        mock_write,
+        tmp_path,
+    ):
+        """--retry-failed should re-attempt failed downloads only."""
+        from research_pipeline.cli.cmd_download import run_download
 
-# ── 6. cmd_enrich ────────────────────────────────────────────────────────
+        mock_cfg.return_value = _make_config(tmp_path)
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+
+        # Set up existing manifest with one success and one failure
+        dl_dir = run_dir / "download"
+        dl_dir.mkdir(parents=True)
+        manifest_dir = run_dir / "download"
+        manifest_dir.mkdir(parents=True, exist_ok=True)
+
+        success_entry = {
+            "arxiv_id": "2301.00001",
+            "version": "v1",
+            "pdf_url": "http://x/1",
+            "local_path": str(dl_dir / "2301.00001v1.pdf"),
+            "sha256": "abc",
+            "size_bytes": 1000,
+            "downloaded_at": "2024-01-01T00:00:00+00:00",
+            "status": "downloaded",
+            "error": None,
+            "retry_count": 0,
+            "last_error": None,
+        }
+        failed_entry = {
+            "arxiv_id": "2301.00002",
+            "version": "v1",
+            "pdf_url": "http://x/2",
+            "local_path": str(dl_dir / "2301.00002v1.pdf"),
+            "sha256": "",
+            "size_bytes": 0,
+            "downloaded_at": "2024-01-01T00:00:00+00:00",
+            "status": "failed",
+            "error": "timeout",
+            "retry_count": 1,
+            "last_error": "timeout",
+        }
+        mock_read.return_value = [success_entry, failed_entry]
+
+        retry_entry = MagicMock()
+        retry_entry.status = "downloaded"
+        retry_entry.model_dump.return_value = {"status": "downloaded"}
+        mock_batch.return_value = [retry_entry]
+
+        # Create the manifest path so exists() returns True
+        manifest_path = run_dir / "download" / "download_manifest.jsonl"
+        manifest_path.write_text("")
+
+        run_download(
+            force=False,
+            config_path=None,
+            workspace=tmp_path,
+            run_id="run1",
+            retry_failed=True,
+        )
+
+        # Only the failed paper should have been passed to download_batch
+        call_papers = mock_batch.call_args[0][0]
+        assert len(call_papers) == 1
+        assert call_papers[0]["arxiv_id"] == "2301.00002"
+
+        # write_jsonl should be called with both old success + new retry result
+        written = mock_write.call_args[0][1]
+        assert len(written) == 2
+
+    @patch("research_pipeline.cli.cmd_download.init_run")
+    @patch("research_pipeline.cli.cmd_download.load_config")
+    def test_retry_failed_no_manifest_exits(self, mock_cfg, mock_init, tmp_path):
+        """--retry-failed should exit if no manifest exists yet."""
+        from research_pipeline.cli.cmd_download import run_download
+
+        mock_cfg.return_value = _make_config(tmp_path)
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        (run_dir / "download").mkdir(parents=True)
+
+        with pytest.raises(click.exceptions.Exit):
+            run_download(
+                force=False,
+                config_path=None,
+                workspace=tmp_path,
+                run_id="run1",
+                retry_failed=True,
+            )
+
+
 class TestCmdEnrich:
     """Tests for cmd_enrich."""
 

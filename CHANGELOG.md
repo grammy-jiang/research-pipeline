@@ -2,6 +2,13 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.10] — 2026-05-13
+
+### Added
+- **GAP-005**: `--retry-failed` flag on `download` command (spec §6.2 dead-letter tracking)
+  Reads existing `download_manifest.jsonl`, filters entries with `status='failed'`,
+  re-attempts only those, and merges results back with successful entries.
+
 ## [v0.17.9] — 2026-05-13
 
 ### Fixed

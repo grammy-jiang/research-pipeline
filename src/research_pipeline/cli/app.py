@@ -220,18 +220,24 @@ def download(
     workspace: Path | None = typer.Option(None, "--workspace", "-w"),
     run_id: str = typer.Option(..., "--run-id", help="Run ID with screened shortlist."),
     force: bool = typer.Option(False, "--force"),
+    retry_failed: bool = typer.Option(
+        False,
+        "--retry-failed",
+        help="Re-attempt only previously failed downloads (reads existing manifest).",
+    ),
 ) -> None:
     """Download PDFs for shortlisted candidates.
 
     Downloads from arXiv with rate limiting. Use --force to
-    re-download existing files. Requires a completed screen stage.
+    re-download existing files. Use --retry-failed to re-attempt only
+    downloads that previously failed. Requires a completed screen stage.
 
     Example: research-pipeline download --run-id <RUN_ID>
     """
     from research_pipeline.cli.cmd_download import run_download
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_download(force=force, **opts)
+    run_download(force=force, retry_failed=retry_failed, **opts)
 
 
 @app.command()
