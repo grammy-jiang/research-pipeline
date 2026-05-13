@@ -1,0 +1,74 @@
+# rank_reviewer subagent contract
+# Task: review-ranked (rank_reviewer)
+# Executor kind: llm_reviewer
+
+role: rank_reviewer
+task_id: review-ranked
+
+description: |
+  Independently review the ranked intelligence events produced by the
+  brief_rank_events stage. Check for ranking quality, deduplication, and
+  cluster coherence before the daily brief is generated.
+
+inputs:
+  - path: "{workspace}/{date}/ranking/ranked_events.json"
+    description: "Ranked and deduplicated events"
+  - path: "{skill_dir}/schemas/ranked_clusters.schema.json"
+    description: "Schema the ranked events must conform to"
+  - path: "{skill_dir}/schemas/reviewer_result.schema.json"
+    description: "Schema for the verdict file to produce"
+
+outputs:
+  - path: "{workspace}/{date}/review/rank_reviewer_verdict.json"
+    description: "Verdict file"
+    schema: "../../schemas/reviewer_result.schema.json"
+
+allowed_tools:
+  - view       # read-only
+  - grep
+  - glob
+
+forbidden_actions:
+  - Do NOT edit ranked_events.json
+  - Do NOT call any MCP tool that modifies briefing state
+  - Do NOT mark the task accepted yourself — only write verdict.json
+
+review_dimensions:
+  deduplication:
+    description: "No two events in the top 10 are near-duplicates of the same story"
+  cluster_coherence:
+    description: "Events within a cluster share a coherent theme"
+  ranking_plausibility:
+    description: "Top-ranked events are genuinely significant AI intelligence items"
+  source_diversity:
+    description: "Top 10 events span at least 2 different sources"
+
+verdict_schema:
+  reviewer_id: "rank_reviewer"
+  task_id:     "review-ranked"
+  verdict:     "accept | reject"
+  scores:
+    deduplication:         float  # 0–1
+    cluster_coherence:     float  # 0–1
+    ranking_plausibility:  float  # 0–1
+    source_diversity:      float  # 0–1
+  findings:       list[str]
+  required_fixes: list[str]   # if verdict = reject
+  confidence:     float
+
+pass_threshold:
+  deduplication:         0.80
+  cluster_coherence:     0.70
+  ranking_plausibility:  0.70
+  source_diversity:      0.60
+
+completion_criteria:
+  - "rank_reviewer_verdict.json exists"
+  - "verdict is 'accept' or 'reject'"
+  - "All score fields present"
+
+self_reporting_forbidden: true
+note: |
+  This is an optional reviewer task. If skipped, the orchestrator proceeds
+  directly to brief generation. Only run when review quality matters more
+  than speed.

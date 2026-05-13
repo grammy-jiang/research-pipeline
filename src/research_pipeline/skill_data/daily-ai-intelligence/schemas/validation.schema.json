@@ -1,0 +1,47 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "BriefValidation",
+  "description": "Schema for the daily brief validation result.",
+  "type": "object",
+  "required": ["date", "passed"],
+  "properties": {
+    "date":   {"type": "string", "format": "date"},
+    "passed": {"type": "boolean"},
+    "checks": {
+      "type": "object",
+      "properties": {
+        "sections_present":       {"type": "boolean"},
+        "budget_ok":              {"type": "boolean"},
+        "no_duplicate_titles":    {"type": "boolean"},
+        "evidence_links_valid":   {"type": "boolean"},
+        "source_ids_in_registry": {"type": "boolean"}
+      }
+    },
+    "failures": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["check", "reason"],
+        "properties": {
+          "check":  {"type": "string"},
+          "reason": {"type": "string"}
+        }
+      }
+    },
+    "warnings": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "stats": {
+      "type": "object",
+      "properties": {
+        "sources_polled":    {"type": "integer"},
+        "events_normalized": {"type": "integer"},
+        "clusters_ranked":   {"type": "integer"},
+        "items_surfaced":    {"type": "integer"},
+        "items_suppressed":  {"type": "integer"},
+        "watchlist_quiet":   {"type": "boolean"}
+      }
+    }
+  }
+}

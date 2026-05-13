@@ -1,0 +1,394 @@
+{
+  "workflow_id": "research-pipeline",
+  "version": "2.0.0",
+  "description": "Academic paper research: plan → search → screen → download → convert → extract → summarize → report, with iterative gap-closure (up to 4 rounds).",
+  "profiles": {
+    "quick":    ["resume-check", "plan", "verify-plan", "search", "screen", "download", "convert-rough", "extract", "summarize", "report", "validate-report", "check-completion"],
+    "standard": ["resume-check", "plan", "verify-plan", "search", "screen", "expand", "download", "convert-rough", "convert-fine", "extract", "summarize", "analyze-claims", "score-claims", "report", "validate-report", "check-completion", "classify-gaps"],
+    "deep":     ["resume-check", "plan", "verify-plan", "search", "paper-screener", "screen", "expand", "quality", "enrich", "download", "convert-rough", "convert-fine", "extract", "summarize", "paper-analyzer", "paper-synthesizer", "analyze-claims", "score-claims", "report", "review-synthesis", "validate-report", "check-completion", "classify-gaps"]
+  },
+  "mandatory_gates": [
+    "resume-check",
+    "plan",
+    "verify-plan",
+    "validate-report",
+    "check-completion"
+  ],
+  "tasks": [
+    {
+      "id": "resume-check",
+      "label": "Resume / fresh-start gate",
+      "type": "gate",
+      "phase": "init",
+      "executor": {
+        "kind": "deterministic_script",
+        "command": "bash {skill_dir}/scripts/resume-check.sh {topic_slug} {cwd}"
+      },
+      "output": {
+        "path": "{cwd}/resume_context.json"
+      },
+      "validation": ["artifact_exists", "exit_code_zero"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "plan",
+      "label": "Plan and improve queries",
+      "type": "pipeline_stage",
+      "phase": "plan",
+      "depends_on": ["resume-check"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_plan_topic",
+        "cli": "research-pipeline plan \"{topic}\" --config {config}"
+      },
+      "output": {
+        "path": "runs/{run_id}/plan/query_plan.json",
+        "schema": "schemas/query_plan.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "verify-plan",
+      "label": "Structural verification of plan stage",
+      "type": "verification",
+      "phase": "plan",
+      "depends_on": ["plan"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_verify_stage",
+        "cli": "research-pipeline verify --run-id {run_id} --stage plan --config {config}"
+      },
+      "validation": ["exit_code_zero"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "search",
+      "label": "Search all configured sources",
+      "type": "pipeline_stage",
+      "phase": "search",
+      "depends_on": ["verify-plan"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_search",
+        "cli": "research-pipeline search --run-id {run_id} --source all --config {config}"
+      },
+      "output": {
+        "path": "runs/{run_id}/search/candidates.jsonl"
+      },
+      "validation": ["artifact_exists", "non_empty"],
+      "failure_policy": {"on_failure": "block", "retries": 1}
+    },
+    {
+      "id": "paper-screener",
+      "label": "LLM paper screener (optional — noisy topics)",
+      "type": "llm_worker_task",
+      "phase": "search",
+      "optional": true,
+      "depends_on": ["search"],
+      "executor": {
+        "kind": "llm_worker",
+        "name": "paper-screener",
+        "contract": "runners/subagent_contracts/paper_screener.yaml"
+      },
+      "trigger_condition": "BM25 screening results are noisy or topic is broad",
+      "validation": ["artifact_exists", "schema_valid", "evidence_present"],
+      "failure_policy": {"on_failure": "skip", "fallback": "screen"}
+    },
+    {
+      "id": "screen",
+      "label": "BM25 heuristic screening with diversity",
+      "type": "pipeline_stage",
+      "phase": "screen",
+      "depends_on": ["search"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_screen_candidates",
+        "cli": "research-pipeline screen --run-id {run_id} --diversity --config {config}"
+      },
+      "output": {
+        "path": "runs/{run_id}/screen/screened.jsonl"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "expand",
+      "label": "Citation graph expansion (optional)",
+      "type": "pipeline_stage",
+      "phase": "screen",
+      "optional": true,
+      "depends_on": ["screen"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_expand_citations",
+        "cli": "research-pipeline expand --run-id {run_id} --paper-ids \"{prior_paper_ids}\" --direction both --config {config}"
+      },
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "quality",
+      "label": "Quality evaluation — citation/venue/author scoring (optional)",
+      "type": "pipeline_stage",
+      "phase": "screen",
+      "optional": true,
+      "depends_on": ["screen"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_evaluate_quality",
+        "cli": "research-pipeline quality --run-id {run_id} --config {config}"
+      },
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "enrich",
+      "label": "Metadata enrichment from Semantic Scholar (optional)",
+      "type": "pipeline_stage",
+      "phase": "screen",
+      "optional": true,
+      "depends_on": ["screen"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_enrich",
+        "cli": "research-pipeline enrich --run-id {run_id} --config {config}"
+      },
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "download",
+      "label": "Download shortlisted PDFs",
+      "type": "pipeline_stage",
+      "phase": "download",
+      "depends_on": ["screen"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_download_pdfs",
+        "cli": "research-pipeline download --run-id {run_id} --config {config}"
+      },
+      "output": {
+        "path": "runs/{run_id}/download"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block", "retries": 2}
+    },
+    {
+      "id": "convert-rough",
+      "label": "Fast Tier-2 conversion of all PDFs (pymupdf4llm)",
+      "type": "pipeline_stage",
+      "phase": "convert",
+      "depends_on": ["download"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_convert_rough",
+        "cli": "research-pipeline convert-rough --run-id {run_id} --config {config}"
+      },
+      "output": {
+        "path": "runs/{run_id}/convert"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "convert-fine",
+      "label": "High-quality Tier-3 conversion of selected papers (optional)",
+      "type": "pipeline_stage",
+      "phase": "convert",
+      "optional": true,
+      "depends_on": ["convert-rough"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_convert_fine",
+        "cli": "research-pipeline convert-fine --run-id {run_id} --paper-ids \"{fine_paper_ids}\" --config {config}"
+      },
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "extract",
+      "label": "Extract content chunks from converted Markdown",
+      "type": "pipeline_stage",
+      "phase": "extract",
+      "depends_on": ["convert-rough"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_extract_content",
+        "cli": "research-pipeline extract --run-id {run_id} --config {config}"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "summarize",
+      "label": "Per-paper summaries and cross-paper synthesis",
+      "type": "pipeline_stage",
+      "phase": "summarize",
+      "depends_on": ["extract"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_summarize_papers",
+        "cli": "research-pipeline summarize --run-id {run_id} --config {config}"
+      },
+      "output": {
+        "path": "runs/{run_id}/summarize/synthesis_report.json",
+        "schema": "schemas/synthesis_report.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "paper-analyzer",
+      "label": "Deep per-paper analysis (optional — deep profile)",
+      "type": "llm_worker_task",
+      "phase": "summarize",
+      "optional": true,
+      "depends_on": ["convert-rough"],
+      "executor": {
+        "kind": "llm_worker",
+        "name": "paper-analyzer",
+        "contract": "runners/subagent_contracts/paper_analyzer.yaml",
+        "parallelizable": true
+      },
+      "output": {
+        "path": "runs/{run_id}/analysis/{paper_id}.analysis.json",
+        "schema": "schemas/paper_analysis.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid", "evidence_present"],
+      "failure_policy": {"on_failure": "skip", "note": "per-paper; skip individual failures"}
+    },
+    {
+      "id": "paper-synthesizer",
+      "label": "Cross-paper synthesis sub-agent (optional — deep profile)",
+      "type": "llm_worker_task",
+      "phase": "summarize",
+      "optional": true,
+      "depends_on": ["paper-analyzer"],
+      "executor": {
+        "kind": "llm_worker",
+        "name": "paper-synthesizer",
+        "contract": "runners/subagent_contracts/paper_synthesizer.yaml"
+      },
+      "output": {
+        "path": "runs/{run_id}/analysis/synthesis.json",
+        "schema": "schemas/synthesis_report.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid", "evidence_present"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "analyze-claims",
+      "label": "Decompose summaries into atomic claims",
+      "type": "pipeline_stage",
+      "phase": "summarize",
+      "depends_on": ["summarize"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_analyze_claims",
+        "cli": "research-pipeline analyze-claims --run-id {run_id}"
+      },
+      "failure_policy": {"on_failure": "skip", "note": "non-blocking; enrichment only"}
+    },
+    {
+      "id": "score-claims",
+      "label": "Score confidence for decomposed claims",
+      "type": "pipeline_stage",
+      "phase": "summarize",
+      "depends_on": ["analyze-claims"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_score_claims",
+        "cli": "research-pipeline score-claims --run-id {run_id}"
+      },
+      "failure_policy": {"on_failure": "skip", "note": "non-blocking; enrichment only"}
+    },
+    {
+      "id": "report",
+      "label": "Render synthesis report using structured_synthesis template",
+      "type": "pipeline_stage",
+      "phase": "report",
+      "depends_on": ["summarize"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_report",
+        "cli": "research-pipeline report --run-id {run_id} --template structured_synthesis --config {config}"
+      },
+      "output": {
+        "path": "{cwd}/{topic_slug}-research-report.md",
+        "schema": "schemas/final_report.schema.json"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "review-synthesis",
+      "label": "Reviewer gate — verify synthesis reasoning quality",
+      "type": "llm_reviewer_task",
+      "phase": "report",
+      "optional": true,
+      "depends_on": ["report"],
+      "executor": {
+        "kind": "llm_reviewer",
+        "name": "synthesis-reviewer",
+        "contract": "runners/subagent_contracts/synthesis_reviewer.yaml"
+      },
+      "output": {
+        "path": "runs/{run_id}/review/synthesis_review.json",
+        "schema": "schemas/reviewer_result.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid"],
+      "failure_policy": {"on_failure": "retry_once_then_block"}
+    },
+    {
+      "id": "validate-report",
+      "label": "Validate final report completeness (14-section check)",
+      "type": "verification",
+      "phase": "report",
+      "depends_on": ["report"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_validate_report",
+        "cli": "research-pipeline validate --report \"{cwd}/{topic_slug}-research-report.md\" --config {config}"
+      },
+      "validation": ["exit_code_zero"],
+      "failure_policy": {"on_failure": "block", "note": "fix report sections before delivering"}
+    },
+    {
+      "id": "check-completion",
+      "label": "Completion gate — verify all required artifacts exist",
+      "type": "gate",
+      "phase": "report",
+      "depends_on": ["validate-report"],
+      "executor": {
+        "kind": "deterministic_script",
+        "command": "python {skill_dir}/scripts/check_completion.py --run-id {run_id} --slug {topic_slug}"
+      },
+      "validation": ["exit_code_zero"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "classify-gaps",
+      "label": "Classify open gaps as ACADEMIC or ENGINEERING",
+      "type": "llm_worker_task",
+      "phase": "gap-closure",
+      "depends_on": ["check-completion"],
+      "executor": {
+        "kind": "llm_worker",
+        "name": "gap-classifier",
+        "contract": "runners/subagent_contracts/gap_classifier.yaml"
+      },
+      "output": {
+        "path": "{cwd}/gaps.json",
+        "schema": "schemas/gap_classification.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid"],
+      "failure_policy": {"on_failure": "block"}
+    }
+  ],
+  "failure_policy_defaults": {
+    "deterministic_failure": "block",
+    "missing_artifact": "block",
+    "schema_invalid": "retry_once_then_block",
+    "unsupported_claims": "reject_and_retry",
+    "low_confidence": "require_reviewer",
+    "conflicting_worker_outputs": "require_reconciliation",
+    "final_report_before_validation": "block"
+  }
+}

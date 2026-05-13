@@ -1,0 +1,153 @@
+# Gap Classification Contract
+# ─────────────────────────────────────────────────────────────────────────────
+# This contract governs the gap-classification LLM step that runs after each
+# research report is written. It enforces a typed output with per-gap evidence
+# and explicit ACADEMIC / ENGINEERING classification.
+#
+# The LLM MUST follow this contract exactly. Do not invent gaps, conflate
+# multiple gaps into one, or leave evidence fields empty.
+#
+# Usage: Read the most recent <topic-slug>-research-report.md, then produce
+# gaps.json according to the output schema below.
+# ─────────────────────────────────────────────────────────────────────────────
+
+step_id: gap-classification
+
+purpose: >
+  Extract every open gap from the most recent research report and classify
+  each as ACADEMIC (requires new literature) or ENGINEERING (can be filled
+  from implementation knowledge). Output must be a schema-valid gaps.json
+  that the iteration controller reads to decide whether to continue.
+
+# ── Inputs ───────────────────────────────────────────────────────────────────
+required_inputs:
+  - path: "<topic-slug>-research-report.md"
+    description: >
+      The most recently validated research report. Must be read in full
+      before classification begins. Gap sections to inspect:
+        ## Research Gaps
+        ## Unresolved Questions
+        ## Assumption Map
+        ## Risk Register
+
+# ── Allowed tool surface ──────────────────────────────────────────────────────
+allowed_tools:
+  - Read   # reading the report and prior artifacts
+  - Grep   # locating gap sections
+  - Glob   # finding artifact files
+
+# ── Forbidden actions ─────────────────────────────────────────────────────────
+forbidden_actions:
+  - run_any_cli_commands       # no new searches, no pipeline invocations
+  - write_any_files            # write only gaps.json (the required output)
+  - invent_gaps_not_in_report  # only classify gaps present in the report
+  - merge_distinct_gaps        # each gap must remain a separate record
+
+# ── Output schema ─────────────────────────────────────────────────────────────
+output_file: gaps.json
+
+output_schema:
+  type: object
+  required: [run_id, report_path, date, gaps, convergence]
+  properties:
+    run_id:
+      type: string
+      description: The pipeline run ID whose report was analyzed.
+    report_path:
+      type: string
+      description: Absolute or relative path to the analyzed report.
+    date:
+      type: string
+      format: date
+      description: Classification date (YYYY-MM-DD, UTC).
+    gaps:
+      type: array
+      items:
+        type: object
+        required: [id, text, classification, rationale, section, priority, out_of_scope]
+        properties:
+          id:
+            type: string
+            description: Short stable identifier, e.g. "G1", "G2".
+          text:
+            type: string
+            description: The gap statement, copied verbatim from the report.
+          classification:
+            type: string
+            enum: [ACADEMIC, ENGINEERING, OUT_OF_SCOPE]
+            description: >
+              ACADEMIC — requires new papers to address.
+              ENGINEERING — fillable from implementation knowledge / best
+                            practices without new searches.
+              OUT_OF_SCOPE — explicitly deferred or irrelevant to current goal.
+          rationale:
+            type: string
+            description: >
+              One or two sentences explaining WHY this classification was
+              chosen. Must cite evidence from the report (section name or
+              finding ID) — do not write generic justifications.
+          section:
+            type: string
+            description: >
+              Report section where this gap appears (e.g.
+              "Research Gaps", "Unresolved Questions").
+          priority:
+            type: string
+            enum: [HIGH, MEDIUM, LOW]
+            description: >
+              Based on how prominently the gap was marked in the report.
+              HIGH = explicitly flagged as blocking or high-confidence missing.
+              LOW = minor or speculative.
+          out_of_scope:
+            type: boolean
+            description: true if the user has previously de-prioritized this gap.
+          suggested_search_query:
+            type: string
+            description: >
+              For ACADEMIC gaps only: a narrower search question derived from
+              this gap to seed a new pipeline run. Required if
+              classification == ACADEMIC.
+    convergence:
+      type: object
+      required: [open_academic, open_engineering, should_continue, stop_reason]
+      properties:
+        open_academic:
+          type: integer
+          description: Number of ACADEMIC gaps remaining.
+        open_engineering:
+          type: integer
+          description: Number of ENGINEERING gaps remaining.
+        should_continue:
+          type: boolean
+          description: >
+            true if there are open non-out-of-scope gaps AND the 4-round
+            cap has not been reached. The iteration controller reads this.
+        stop_reason:
+          type: string
+          enum:
+            - converged_no_gaps
+            - cap_reached
+            - no_new_papers
+            - user_out_of_scope
+            - continue
+          description: Reason for stopping or continuing.
+
+# ── Evidence requirements ─────────────────────────────────────────────────────
+evidence_requirements:
+  - Every gap record must cite the exact section it was found in.
+  - Rationale must reference at least one finding, paper ID, or section
+    from the report — no generic statements like "this is a common gap".
+  - suggested_search_query is required for every ACADEMIC gap.
+
+# ── Completion criteria ───────────────────────────────────────────────────────
+completion_criteria:
+  - gaps.json validates against the schema above.
+  - Every gap in the report's gap sections appears in the gaps array.
+  - convergence.should_continue correctly reflects the open gap count
+    and the current round number relative to the 4-round cap.
+
+# ── Failure policy ────────────────────────────────────────────────────────────
+failure_policy:
+  retries: 1
+  on_retry: Re-read the report's gap sections and produce gaps.json again.
+  then: block — do not proceed to the next round without a valid gaps.json.

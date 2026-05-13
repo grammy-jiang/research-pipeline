@@ -1,0 +1,73 @@
+# paper_screener subagent contract
+# Task: screen-candidates (paper_screener)
+# Executor kind: llm_worker
+
+role: paper_screener
+task_id: screen-candidates
+
+description: |
+  Screen the search candidates returned by the search stage.
+  Score each candidate for topical relevance, methodology quality,
+  and recency. Produce a shortlist of papers to download and analyze.
+
+inputs:
+  - path: "{cwd}/candidates.jsonl"
+    description: "Raw search candidates from the search stage"
+  - path: "{skill_dir}/schemas/query_plan.schema.json"
+    description: "Validated query plan for topic context"
+
+outputs:
+  - path: "{cwd}/screened.jsonl"
+    description: "Shortlisted candidates with relevance scores"
+
+allowed_tools:
+  - tool_screen_candidates
+  - tool_evaluate_quality
+  - tool_enrich
+  - tool_compute_semantic_scores
+  # Read-only file tools
+  - view
+  - grep
+  - glob
+
+forbidden_actions:
+  - Do NOT edit or delete any input files
+  - Do NOT call tool_download_pdfs or any download/conversion tools
+  - Do NOT write to paths outside the run workspace
+  - Do NOT make network calls except through the allowed MCP tools
+
+screening_criteria:
+  relevance:
+    description: "Does the paper directly address the research topic?"
+    weight: 0.5
+    threshold: 0.6
+  methodology:
+    description: "Does the paper describe a replicable method or empirical study?"
+    weight: 0.25
+    threshold: 0.4
+  recency:
+    description: "Is the paper from the last 5 years (or foundational)?"
+    weight: 0.25
+    threshold: 0.0
+
+evidence_requirements:
+  - Every accepted paper must have a non-empty abstract
+  - Every accepted paper must have a relevance score comment
+  - Rejection reasons must be explicit (irrelevant / out_of_scope / low_quality / duplicate)
+
+completion_criteria:
+  - "{cwd}/screened.jsonl exists"
+  - "Shortlist contains 5–30 papers"
+  - "All accepted papers have relevance_score ≥ 0.6"
+  - "All rejected papers have rejection_reason"
+
+validation_gate:
+  command: "uv run research-pipeline verify-stage screen --run-id {run_id}"
+  must_pass: true
+
+self_reporting_forbidden: true
+status_update: |
+  After completing screening:
+  1. Verify screened.jsonl exists and has ≥ 5 entries
+  2. Do NOT mark the task accepted yourself
+  3. Re-run runner.py — it will validate and accept the task

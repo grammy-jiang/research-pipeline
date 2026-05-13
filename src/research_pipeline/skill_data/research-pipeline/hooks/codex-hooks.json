@@ -1,0 +1,33 @@
+{
+  "_comment": "Codex CLI PROJECT-LOCAL hook config for the research-pipeline skill.",
+  "_comment_scope": "Deploy to .codex/hooks.json in your RESEARCH PROJECT (the repo where you run research), NOT to ~/.codex/hooks.json. Project-local scope ensures the Stop hook only fires when you are working in that project, not in unrelated sessions.",
+  "_comment_stop": "Stop fires when Codex finishes a turn. Exit 2 sends stderr as a continuation prompt, preventing Codex from stopping.",
+  "_comment_prompt": "UserPromptSubmit fires before each user prompt. The resume-inject hook is safe to use globally (it exits silently when no round_state.json is present).",
+  "_comment_features": "Also add 'codex_hooks = true' under [features] in .codex/config.toml (project-local) or ~/.codex/config.toml (user-global for the UserPromptSubmit hook).",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.agents/skills/research-pipeline/hooks/stop-check.sh",
+            "timeout": 30,
+            "statusMessage": "Checking research completion..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.agents/skills/research-pipeline/hooks/resume-inject.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for prior research session..."
+          }
+        ]
+      }
+    ]
+  }
+}

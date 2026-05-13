@@ -1,0 +1,19 @@
+{
+  "_comment": "Claude Code user-level hook configuration for the daily-ai-intelligence skill.",
+  "_comment_usage": "Merge the 'hooks' block below into ~/.claude/settings.json (user) or .claude/settings.json (project). The skill frontmatter already embeds these hooks automatically when Claude Code loads the skill, so this file is only needed if you want the hook active without skill activation.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/skills/daily-ai-intelligence/hooks/stop-check.sh",
+            "args": [],
+            "timeout": 30,
+            "statusMessage": "Checking brief completion..."
+          }
+        ]
+      }
+    ]
+  }
+}

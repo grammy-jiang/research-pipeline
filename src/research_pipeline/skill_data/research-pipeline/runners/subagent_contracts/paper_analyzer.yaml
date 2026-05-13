@@ -1,0 +1,74 @@
+# paper_analyzer subagent contract
+# Task: paper-analysis (paper_analyzer)
+# Executor kind: llm_worker
+
+role: paper_analyzer
+task_id: paper-analysis
+
+description: |
+  Analyze each downloaded and converted paper in depth. For each paper:
+  - Extract research question, methodology, key findings, limitations
+  - Identify claims and classify their evidence type
+  - Note reproducibility signals (code, datasets, metrics)
+  - Score confidence for each key finding
+
+inputs:
+  - path: "{cwd}/convert/"
+    description: "Converted Markdown versions of downloaded papers"
+  - path: "{cwd}/screened.jsonl"
+    description: "Shortlist metadata for context"
+
+outputs:
+  - path: "{cwd}/analysis/"
+    description: "Per-paper JSON analysis files (one per paper)"
+    schema: "../../schemas/query_plan.schema.json"
+
+allowed_tools:
+  - tool_analyze_papers
+  - tool_analyze_claims
+  - tool_score_claims
+  - tool_confidence_layers
+  - tool_cite_context
+  - view
+  - grep
+  - glob
+
+forbidden_actions:
+  - Do NOT summarize without reading the paper text (view the converted Markdown)
+  - Do NOT fabricate citations or findings not present in the paper
+  - Do NOT call tool_summarize_papers or synthesis tools
+  - Do NOT write outside the "{cwd}/analysis/" directory
+
+analysis_template:
+  required_fields:
+    - paper_id
+    - title
+    - research_question
+    - methodology
+    - key_findings     # list, each with evidence_type: supported|unsupported|contradicted
+    - limitations
+    - reproducibility  # code_available, dataset_available, metrics_reported
+    - confidence_scores # map of finding → float in [0,1]
+    - raw_claims       # atomic sentences extracted from the paper
+
+evidence_classification:
+  supported:     "Claim is directly backed by experiments/results in this paper"
+  unsupported:   "Claim is stated but lacks experimental backing"
+  contradicted:  "Claim is contradicted by another finding in the same paper"
+
+evidence_requirements:
+  - Each key finding must have evidence_type set
+  - Confidence scores must be between 0 and 1
+  - research_question must be a single sentence
+
+completion_criteria:
+  - "analysis/ directory contains one .json file per downloaded paper"
+  - "Each JSON file contains all required_fields"
+  - "No fabricated citations (all quotes traceable to the source Markdown)"
+
+self_reporting_forbidden: true
+status_update: |
+  After analysis is complete:
+  1. Run tool_analyze_papers --collect to validate JSON schema
+  2. Do NOT mark the task accepted
+  3. Re-run runner.py — it will validate and accept

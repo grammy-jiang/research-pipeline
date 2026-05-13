@@ -1,0 +1,84 @@
+# synthesis_reviewer subagent contract
+# Task: review-synthesis (synthesis_reviewer)
+# Executor kind: llm_reviewer
+
+role: synthesis_reviewer
+task_id: review-synthesis
+
+description: |
+  Independently review the synthesis report produced by the paper_synthesizer.
+  The reviewer must evaluate faithfulness, coherence, and gap completeness.
+  The reviewer has NO write access to the synthesis files.
+
+inputs:
+  - path: "{cwd}/synthesis_report.json"
+    description: "Synthesis report to review"
+  - path: "{cwd}/synthesis.md"
+    description: "Human-readable synthesis narrative"
+  - path: "{cwd}/analysis/"
+    description: "Per-paper analysis files — ground truth for faithfulness checks"
+  - path: "{skill_dir}/schemas/reviewer_result.schema.json"
+    description: "Schema for the verdict file to produce"
+
+outputs:
+  - path: "{cwd}/review/synthesis_reviewer_verdict.json"
+    description: "Verdict file"
+    schema: "../../schemas/reviewer_result.schema.json"
+
+allowed_tools:
+  - view       # read-only access to synthesis and analysis files
+  - grep
+  - glob
+
+forbidden_actions:
+  - Do NOT edit synthesis_report.json or synthesis.md
+  - Do NOT edit any analysis file
+  - Do NOT accept or reject the task yourself — only write the verdict file
+  - Do NOT call any MCP tool that modifies pipeline state
+
+review_dimensions:
+  faithfulness:
+    description: "Every claim in the synthesis is traceable to at least one analysis file"
+    verdict_field: "faithfulness_score"  # float 0–1
+  coherence:
+    description: "The synthesis narrative is internally consistent; no contradiction is overlooked"
+    verdict_field: "coherence_score"     # float 0–1
+  gap_completeness:
+    description: "All open gaps are classified and no obvious gap is missing"
+    verdict_field: "gap_completeness_score"  # float 0–1
+  citation_integrity:
+    description: "All paper_id references in the synthesis match papers in screened.jsonl"
+    verdict_field: "citation_integrity_ok"   # bool
+
+verdict_schema:
+  reviewer_id: "synthesis_reviewer"
+  task_id:     "review-synthesis"
+  verdict:     "accept | reject"
+  scores:
+    faithfulness:       float  # 0–1
+    coherence:          float  # 0–1
+    gap_completeness:   float  # 0–1
+    citation_integrity: bool
+  findings:            list[str]   # specific issues found
+  required_fixes:      list[str]   # if verdict = reject
+  confidence:          float  # reviewer confidence in verdict
+
+pass_threshold:
+  faithfulness:     0.75
+  coherence:        0.70
+  gap_completeness: 0.60
+
+rejection_triggers:
+  - "faithfulness_score < 0.75"
+  - "citation_integrity_ok = false"
+  - "Any required synthesis section is empty"
+
+completion_criteria:
+  - "synthesis_reviewer_verdict.json exists"
+  - "verdict is 'accept' or 'reject'"
+  - "All score fields present"
+
+self_reporting_forbidden: true
+note: |
+  The reviewer ONLY writes verdict.json. The orchestrator (runner.py) reads
+  the verdict and decides whether to accept or request a retry.

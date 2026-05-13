@@ -1,0 +1,34 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "FinalReport",
+  "description": "Structural validation schema for the final Markdown research report.",
+  "type": "object",
+  "required": ["sections", "validation"],
+  "properties": {
+    "path":   {"type": "string"},
+    "run_id": {"type": "string"},
+    "sections": {
+      "type": "object",
+      "description": "Presence of required report sections.",
+      "required": [
+        "contents", "round_history", "executive_summary", "background",
+        "methodology", "key_findings", "evidence_table", "comparative_analysis",
+        "research_gaps", "assumption_map", "risk_register", "recommendations",
+        "conclusion", "references"
+      ],
+      "additionalProperties": {"type": "boolean"}
+    },
+    "validation": {
+      "type": "object",
+      "required": ["passed"],
+      "properties": {
+        "passed":                {"type": "boolean"},
+        "has_mermaid":           {"type": "boolean"},
+        "has_confidence_labels": {"type": "boolean"},
+        "has_gap_labels":        {"type": "boolean"},
+        "has_evidence_citations":{"type": "boolean"},
+        "issues":                {"type": "array", "items": {"type": "string"}}
+      }
+    }
+  }
+}

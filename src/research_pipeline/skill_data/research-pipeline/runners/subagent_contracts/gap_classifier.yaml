@@ -1,0 +1,65 @@
+# gap_classifier subagent contract
+# Task: classify-gaps (gap_classifier)
+# Executor kind: llm_worker
+
+role: gap_classifier
+task_id: classify-gaps
+
+description: |
+  Classify the open gaps from the synthesis report as ENGINEERING or ACADEMIC.
+  For ACADEMIC gaps, propose concrete arXiv search queries to close them.
+  For ENGINEERING gaps, identify documentation or code sources to consult.
+
+inputs:
+  - path: "{cwd}/synthesis_report.json"
+    description: "Synthesis report containing open_gaps list"
+  - path: "{skill_dir}/schemas/gap_classification.schema.json"
+    description: "Output schema"
+
+outputs:
+  - path: "{cwd}/gap_classifications.json"
+    description: "Classified gaps with search queries"
+    schema: "../../schemas/gap_classification.schema.json"
+
+allowed_tools:
+  - view
+  - grep
+
+forbidden_actions:
+  - Do NOT re-synthesize or summarize papers
+  - Do NOT call search tools (only classify; searches run in next round)
+  - Do NOT write outside the run workspace
+
+classification_criteria:
+  ENGINEERING: |
+    The gap can be resolved by:
+    - Reading project documentation or API references
+    - Reviewing benchmark code or datasets
+    - Checking GitHub repos of cited papers
+  ACADEMIC: |
+    The gap requires additional academic literature:
+    - No existing papers in the current synthesis address it
+    - Needs new papers from arXiv/S2/OpenAlex to resolve
+
+output_schema:
+  gaps:
+    - gap_id:       str
+      description:  str
+      gap_type:     ENGINEERING | ACADEMIC
+      rationale:    str  # why this classification
+      search_queries:    list[str]   # ACADEMIC only — proposed arXiv queries
+      engineering_refs:  list[str]   # ENGINEERING only — URLs or repos
+      priority:     high | medium | low
+
+completion_criteria:
+  - "gap_classifications.json exists and validates against schema"
+  - "Every gap in synthesis_report.json open_gaps has a classification entry"
+  - "ACADEMIC gaps have at least 1 search_query"
+  - "ENGINEERING gaps have at least 1 engineering_ref"
+
+self_reporting_forbidden: true
+status_update: |
+  After classification:
+  1. Verify gap_classifications.json exists and all gaps are classified
+  2. Do NOT mark task accepted
+  3. Re-run runner.py — it will validate and accept

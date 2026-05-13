@@ -1,0 +1,32 @@
+{
+  "workflow_id": "daily-ai-intelligence",
+  "run_id": "",
+  "date": "",
+  "status": "pending",
+  "started_at": null,
+  "completed_at": null,
+  "tasks": {
+    "validate-registry": {"status": "pending"},
+    "poll":              {"status": "pending"},
+    "rank":              {"status": "pending"},
+    "review-ranked":     {"status": "pending"},
+    "generate-daily":    {"status": "pending"},
+    "validate-brief":    {"status": "pending"},
+    "check-completion":  {"status": "pending"},
+    "dossier":           {"status": "pending"},
+    "feedback":          {"status": "pending"},
+    "preferences":       {"status": "pending"},
+    "export-obsidian":   {"status": "pending"},
+    "weekly-synthesis":  {"status": "pending"}
+  },
+  "context": {
+    "registry": "",
+    "workspace": "",
+    "skill_dir": "",
+    "cluster_id": null,
+    "vault": null,
+    "week": null
+  },
+  "final_brief_path": null,
+  "validation_path": null
+}

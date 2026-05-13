@@ -140,7 +140,7 @@ def _install_claude_hooks(
         for matcher in matchers:
             if not isinstance(matcher, dict):
                 continue
-            for hook in matcher.get("hooks", []):  # type: ignore[union-attr]
+            for hook in matcher.get("hooks", []):
                 if isinstance(hook, dict) and "command" in hook:
                     cmds.add(str(hook["command"]))
         return cmds
@@ -159,7 +159,7 @@ def _install_claude_hooks(
     )
     changed = False
     for event_name, new_matchers in new_hooks.items():
-        our_cmds = _extract_commands(new_matchers)  # type: ignore[arg-type]
+        our_cmds = _extract_commands(new_matchers)
         existing_matchers: list[object] = existing_hooks.get(event_name, [])
         already_present = bool(our_cmds & _extract_commands(existing_matchers))
 
@@ -172,9 +172,7 @@ def _install_claude_hooks(
 
         if force and already_present:
             existing_hooks[event_name] = [
-                m
-                for m in existing_matchers
-                if not (_extract_commands([m]) & our_cmds)  # type: ignore[list-item]
+                m for m in existing_matchers if not (_extract_commands([m]) & our_cmds)
             ] + list(new_matchers)
         else:
             existing_hooks[event_name] = list(existing_matchers) + list(new_matchers)

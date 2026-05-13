@@ -1,0 +1,124 @@
+# Final Report Contract
+# ─────────────────────────────────────────────────────────────────────────────
+# This contract governs the final-report-writing LLM step. The LLM synthesizes
+# all pipeline artifacts into a single <topic-slug>-research-report.md.
+#
+# This is a READ-ONLY synthesis step — the LLM must not run CLI commands,
+# invoke sub-agents, or modify any pipeline artifact during this step.
+# ─────────────────────────────────────────────────────────────────────────────
+
+step_id: final-report
+
+purpose: >
+  Synthesize all pipeline artifacts into a final, validated Markdown research
+  report. The output must conform to the 14-section output template, pass
+  `research-pipeline validate`, and be self-contained (all citations backed
+  by downloaded and analyzed papers).
+
+# ── Inputs ────────────────────────────────────────────────────────────────────
+required_inputs:
+  - path: "runs/<run_id>/summarize/synthesis_report.json"
+    description: >
+      Primary synthesis artifact produced by `research-pipeline summarize`.
+      Required. If missing, the report step must not proceed — invoke the
+      summarize stage first.
+    fallback: "runs/<run_id>/summarize/synthesis.json"
+
+  - path: "runs/<run_id>/summarize/paper_summaries/*.json"
+    description: Per-paper summary files. Read for supporting evidence.
+
+  - path: "runs/<run_id>/screen/shortlist.json"
+    description: Screened shortlist with relevance scores and paper metadata.
+
+  - path: "runs/<run_id>/plan/query_plan.json"
+    description: Original query plan — used to set the report's topic framing.
+
+  - path: "round_state.json"
+    description: >
+      Round tracking state (see references/iterative-synthesis.md). Read to
+      populate the Round History section. If absent on round 1, treat as
+      round: 1, run_ids_all: [<current_run_id>].
+
+  - path: "gaps.json"
+    description: >
+      Gap classification output from the gap-classification step. Read to
+      populate the Research Gaps and Assumption Map sections.
+    required: false  # not required on round 1 before gap classification
+
+# ── Allowed tool surface ──────────────────────────────────────────────────────
+allowed_tools:
+  - Read   # reading all artifacts listed above
+  - Grep   # locating evidence within Markdown / JSON artifacts
+  - Glob   # finding artifact files
+
+# ── Forbidden actions ─────────────────────────────────────────────────────────
+forbidden_actions:
+  - run_any_cli_commands    # no `research-pipeline`, bash, or shell calls
+  - invoke_sub_agents       # sub-agents must already have run in the analyze step
+  - edit_pipeline_artifacts # must not modify synthesis_report.json or paper_summaries
+  - fabricate_citations     # every claim must be backed by a paper in shortlist.json
+  - declare_done_without_validate  # must run `research-pipeline validate` after writing
+
+# ── Output ────────────────────────────────────────────────────────────────────
+output_file: "<topic-slug>-research-report.md"
+
+# Required 14 sections (must all be present, in any order):
+required_sections:
+  - "## Contents"
+  - "## Executive Summary"
+  - "## Background"
+  - "## Methodology"
+  - "## Key Findings"
+  - "## Evidence Table"        # table format required
+  - "## Comparative Analysis"
+  - "## Research Gaps"
+  - "## Assumption Map"
+  - "## Risk Register"
+  - "## Recommendations"
+  - "## Conclusion"
+  - "## References"
+  - "## Round History"         # populated from round_state.json
+
+required_formatting:
+  - Confidence annotations on all major findings:
+      examples: ["[HIGH]", "[MEDIUM]", "[LOW]"]
+  - Evidence citations inline:
+      format: "[Paper Title (ID)]"
+  - At least one Mermaid diagram (architecture, flow, or comparison):
+      fenced_code_block: "```mermaid"
+  - At least one LaTeX formula for mathematical content:
+      inline_or_block: "$formula$"
+  - Gap classification labels in Research Gaps:
+      format: '"[ACADEMIC]" or "[ENGINEERING]"'
+
+# ── Evidence requirements ─────────────────────────────────────────────────────
+evidence_requirements:
+  - Every claim in Key Findings must cite at least one paper from shortlist.json.
+  - The Evidence Table must list every paper used in Key Findings.
+  - Confidence levels must be justified, not assigned arbitrarily.
+  - Research Gaps section must reproduce all gaps from gaps.json
+    (if present) rather than inventing new ones.
+
+# ── Post-write gate ───────────────────────────────────────────────────────────
+post_write_gate:
+  - command: "research-pipeline validate --report <topic-slug>-research-report.md"
+  - must_pass: true
+  - on_failure: >
+      Read the validation errors. Fix only the failing sections; do not
+      rewrite sections that already pass. Re-run validate. Retry up to 2 times
+      before surfacing the issue to the user.
+
+# ── Completion criteria ───────────────────────────────────────────────────────
+completion_criteria:
+  - File <topic-slug>-research-report.md exists in the CWD.
+  - All 14 required sections are present.
+  - '"research-pipeline validate" exits 0.'
+  - Confidence annotations are present on all major findings.
+  - round_state.json has been updated with the current round's convergence data.
+
+# ── Failure policy ────────────────────────────────────────────────────────────
+failure_policy:
+  max_retries: 2
+  on_failure: >
+    Surface specific failing sections to the user and ask whether to
+    auto-fix or hand off. Do not silently deliver an unvalidated report.

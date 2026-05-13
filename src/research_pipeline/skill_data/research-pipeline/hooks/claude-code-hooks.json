@@ -1,0 +1,33 @@
+{
+  "_comment": "Claude Code user-level hook configuration for the research-pipeline skill.",
+  "_comment_usage": "Merge the 'hooks' block below into ~/.claude/settings.json (user) or .claude/settings.json (project). The skill frontmatter already embeds these hooks automatically when Claude Code loads the skill, so this file is only needed if you want the hooks active without skill activation.",
+  "_comment_scope": "The UserPromptSubmit hook is safe to register globally: it exits silently when no round_state.json is in CWD.",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/skills/research-pipeline/hooks/stop-check.sh",
+            "args": [],
+            "timeout": 30,
+            "statusMessage": "Checking research completion..."
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/skills/research-pipeline/hooks/resume-inject.sh",
+            "args": [],
+            "timeout": 10,
+            "statusMessage": "Checking for prior research session..."
+          }
+        ]
+      }
+    ]
+  }
+}

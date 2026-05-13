@@ -21,7 +21,7 @@ dev = [
 
 [project]
 name = "research-pipeline"
-version = "0.17.16"
+version = "0.17.17"
 description = "A multi-source pipeline for searching, screening, downloading, converting, and summarizing academic papers from arXiv, Google Scholar, and more."
 readme = "README.md"
 license = "MIT"
@@ -125,13 +125,14 @@ Issues = "https://github.com/grammy-jiang/research-pipeline/issues"
 Repository = "https://github.com/grammy-jiang/research-pipeline"
 
 [tool.bandit]
-exclude_dirs = ["tests"]
+exclude_dirs = ["tests", "src/research_pipeline/skill_data"]
 
 [tool.mypy]
 python_version = "3.12"
 strict = true
 warn_return_any = true
 warn_unused_configs = true
+exclude = ["src/research_pipeline/skill_data/"]
 
 [[tool.mypy.overrides]]
 module = ["research_pipeline.mcp_server.*"]

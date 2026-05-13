@@ -1,0 +1,213 @@
+{
+  "workflow_id": "daily-ai-intelligence",
+  "version": "1.0.0",
+  "description": "Daily AI technical-intelligence briefing: validate-registry → poll → rank → generate-daily → validate-brief → optional extras.",
+  "mandatory_gates": [
+    "validate-registry",
+    "validate-brief",
+    "check-completion"
+  ],
+  "tasks": [
+    {
+      "id": "validate-registry",
+      "label": "Registry validation gate — at least one live source must be enabled",
+      "type": "gate",
+      "phase": "init",
+      "executor": {
+        "kind": "deterministic_script",
+        "command": "bash {skill_dir}/scripts/validate-registry.sh {registry}"
+      },
+      "validation": ["exit_code_zero"],
+      "failure_policy": {
+        "on_failure": "block",
+        "message": "No enabled sources found. Edit the registry config and enable at least one source before running."
+      }
+    },
+    {
+      "id": "poll",
+      "label": "Poll configured registry sources for new events",
+      "type": "pipeline_stage",
+      "phase": "ingest",
+      "depends_on": ["validate-registry"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_poll_sources",
+        "cli": "research-pipeline brief poll --registry {registry} --workspace {workspace} --date {date}"
+      },
+      "output": {
+        "path": "{workspace}/{date}/raw"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block", "retries": 1}
+    },
+    {
+      "id": "rank",
+      "label": "Deduplicate and rank normalized events",
+      "type": "pipeline_stage",
+      "phase": "rank",
+      "depends_on": ["poll"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_rank_events",
+        "cli": "research-pipeline brief rank --workspace {workspace} --date {date}"
+      },
+      "output": {
+        "path": "{workspace}/{date}/clusters/ranked.jsonl",
+        "schema": "schemas/ranked_clusters.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "review-ranked",
+      "label": "Reviewer gate — verify ranked output quality",
+      "type": "llm_reviewer_task",
+      "phase": "rank",
+      "optional": true,
+      "depends_on": ["rank"],
+      "executor": {
+        "kind": "llm_reviewer",
+        "name": "rank-reviewer",
+        "contract": "runners/subagent_contracts/rank_reviewer.yaml"
+      },
+      "output": {
+        "path": "{workspace}/{date}/review/rank_review.json",
+        "schema": "schemas/reviewer_result.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid"],
+      "failure_policy": {"on_failure": "skip", "note": "non-blocking for daily runs; recommended for production"}
+    },
+    {
+      "id": "generate-daily",
+      "label": "Generate daily Markdown brief",
+      "type": "pipeline_stage",
+      "phase": "generate",
+      "depends_on": ["rank"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_generate_daily",
+        "cli": "research-pipeline brief generate-daily --workspace {workspace} --date {date}"
+      },
+      "output": {
+        "path": "{workspace}/{date}/reports/daily.md"
+      },
+      "validation": ["artifact_exists"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "validate-brief",
+      "label": "Validate daily brief sections, budgets, duplicate titles, and evidence links",
+      "type": "verification",
+      "phase": "generate",
+      "depends_on": ["generate-daily"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_validate_report",
+        "cli": "research-pipeline brief validate --workspace {workspace} --date {date}"
+      },
+      "output": {
+        "path": "{workspace}/{date}/validation/validation.json",
+        "schema": "schemas/validation.schema.json"
+      },
+      "validation": ["artifact_exists", "schema_valid", "passed"],
+      "failure_policy": {
+        "on_failure": "block",
+        "message": "Do not surface the brief until validation passes. Low-signal / no-news days are valid outputs — do not pad."
+      }
+    },
+    {
+      "id": "check-completion",
+      "label": "Completion gate — verify all required artifacts exist",
+      "type": "gate",
+      "phase": "generate",
+      "depends_on": ["validate-brief"],
+      "executor": {
+        "kind": "deterministic_script",
+        "command": "bash {skill_dir}/scripts/check_completion.sh --workspace {workspace} --date {date}"
+      },
+      "validation": ["exit_code_zero"],
+      "failure_policy": {"on_failure": "block"}
+    },
+    {
+      "id": "dossier",
+      "label": "Generate hot-topic dossier for a ranked cluster (optional)",
+      "type": "llm_worker_task",
+      "phase": "extras",
+      "optional": true,
+      "depends_on": ["check-completion"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_generate_dossier",
+        "cli": "research-pipeline brief dossier --workspace {workspace} --date {date} --cluster {cluster_id}"
+      },
+      "trigger_condition": "User explicitly requests a dossier for a specific cluster",
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "feedback",
+      "label": "Record explicit feedback signals (optional)",
+      "type": "pipeline_stage",
+      "phase": "extras",
+      "optional": true,
+      "depends_on": ["check-completion"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_record_feedback",
+        "cli": "research-pipeline brief feedback --workspace {workspace} --date {date} --{target_type} {target_id} --signal {signal}"
+      },
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "preferences",
+      "label": "Apply reversible preference adjustments from recorded feedback (optional)",
+      "type": "pipeline_stage",
+      "phase": "extras",
+      "optional": true,
+      "depends_on": ["feedback"],
+      "executor": {
+        "kind": "deterministic_script",
+        "cli": "research-pipeline brief preferences --workspace {workspace}"
+      },
+      "failure_policy": {"on_failure": "skip"}
+    },
+    {
+      "id": "export-obsidian",
+      "label": "Export brief to Obsidian vault (opt-in, allowlisted)",
+      "type": "pipeline_stage",
+      "phase": "extras",
+      "optional": true,
+      "depends_on": ["check-completion"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_export_obsidian",
+        "cli": "research-pipeline brief export-obsidian --vault {vault} --registry {registry} --workspace {workspace} --date {date}"
+      },
+      "trigger_condition": "User supplies --vault path and it is in the registry allowlist",
+      "failure_policy": {
+        "on_failure": "block",
+        "message": "Never overwrite a note that lacks generator-owned frontmatter."
+      }
+    },
+    {
+      "id": "weekly-synthesis",
+      "label": "Generate weekly trend memo (optional, not per-run)",
+      "type": "pipeline_stage",
+      "phase": "extras",
+      "optional": true,
+      "depends_on": ["check-completion"],
+      "executor": {
+        "kind": "deterministic_mcp_tool",
+        "tool": "tool_brief_weekly_synthesis",
+        "cli": "research-pipeline brief weekly-synthesis --workspace {workspace} --week {week}"
+      },
+      "trigger_condition": "User explicitly requests a weekly synthesis",
+      "failure_policy": {"on_failure": "skip"}
+    }
+  ],
+  "failure_policy_defaults": {
+    "deterministic_failure": "block",
+    "missing_artifact": "block",
+    "schema_invalid": "retry_once_then_block",
+    "final_brief_before_validation": "block"
+  }
+}

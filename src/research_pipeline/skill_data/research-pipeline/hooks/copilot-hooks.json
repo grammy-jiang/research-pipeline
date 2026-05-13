@@ -1,0 +1,33 @@
+{
+  "_comment": "GitHub Copilot CLI PROJECT-LOCAL hook config for the research-pipeline skill.",
+  "_comment_scope": "Deploy to .github/hooks/research-pipeline.json in your RESEARCH PROJECT (the repo where you run research), NOT to ~/.copilot/hooks/. Project-local scope ensures the Stop hook only fires when you are working in that project, not in unrelated sessions.",
+  "_comment_stop": "agentStop fires when the main agent finishes a turn. Exit 2 from the hook prevents the agent from stopping and feeds stderr as continuation context.",
+  "_comment_prompt": "userPromptSubmitted fires before each user prompt is processed. The resume-inject hook is safe to use globally (it exits silently when no round_state.json is present).",
+  "version": 1,
+  "hooks": {
+    "agentStop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.copilot/skills/research-pipeline/hooks/stop-check.sh",
+            "timeout": 30,
+            "statusMessage": "Checking research completion..."
+          }
+        ]
+      }
+    ],
+    "userPromptSubmitted": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.copilot/skills/research-pipeline/hooks/resume-inject.sh",
+            "timeout": 10,
+            "statusMessage": "Checking for prior research session..."
+          }
+        ]
+      }
+    ]
+  }
+}

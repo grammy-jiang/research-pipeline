@@ -1,0 +1,20 @@
+{
+  "_comment": "Codex CLI PROJECT-LOCAL hook config for the daily-ai-intelligence skill.",
+  "_comment_scope": "Deploy to .codex/hooks.json in your BRIEFING PROJECT (the repo where you run daily briefs), NOT to ~/.codex/hooks.json. Project-local scope ensures the Stop hook only fires when you are working in that project, not in unrelated sessions.",
+  "_comment_stop": "Stop fires when Codex finishes a turn. Exit 2 sends stderr as a continuation prompt, preventing Codex from stopping.",
+  "_comment_features": "Also add 'codex_hooks = true' under [features] in .codex/config.toml (project-local).",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.agents/skills/daily-ai-intelligence/hooks/stop-check.sh",
+            "timeout": 30,
+            "statusMessage": "Checking brief completion..."
+          }
+        ]
+      }
+    ]
+  }
+}

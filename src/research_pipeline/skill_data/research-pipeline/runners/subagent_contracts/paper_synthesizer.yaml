@@ -1,0 +1,76 @@
+# paper_synthesizer subagent contract
+# Task: synthesis (paper_synthesizer)
+# Executor kind: llm_worker
+
+role: paper_synthesizer
+task_id: synthesis
+
+description: |
+  Synthesize the per-paper analysis files into a cross-paper synthesis report.
+  Identify themes, contradictions, open gaps, and actionable insights.
+  For system-building mode: classify gaps as ENGINEERING or ACADEMIC.
+
+inputs:
+  - path: "{cwd}/analysis/"
+    description: "Per-paper JSON analysis files"
+  - path: "{cwd}/screened.jsonl"
+    description: "Paper metadata and quality scores"
+  - path: "{skill_dir}/schemas/synthesis_report.schema.json"
+    description: "Output schema to conform to"
+
+outputs:
+  - path: "{cwd}/synthesis_report.json"
+    description: "Machine-readable synthesis report"
+    schema: "../../schemas/synthesis_report.schema.json"
+  - path: "{cwd}/synthesis.md"
+    description: "Human-readable synthesis narrative"
+
+allowed_tools:
+  - tool_summarize_papers
+  - tool_aggregate_evidence
+  - tool_kg_ingest
+  - tool_memory_search
+  - view
+  - grep
+
+forbidden_actions:
+  - Do NOT fabricate claims not present in the analysis files
+  - Do NOT include citation counts or h-indexes you have not verified
+  - Do NOT call tool_analyze_papers or tool_analyze_claims (already done)
+  - Do NOT write outside the run workspace directory
+
+synthesis_structure:
+  required_sections:
+    - executive_summary      # 100–150 words
+    - themes                 # list of recurring cross-paper themes
+    - contradictions         # papers with conflicting findings
+    - open_gaps              # classified as ENGINEERING or ACADEMIC
+    - actionable_insights    # concrete take-aways
+    - confidence_summary     # overall confidence with calibration note
+    - limitations            # synthesis limitations and coverage gaps
+  optional_sections:
+    - system_building_readiness  # filled only in system-building mode
+    - suggested_queries          # for ACADEMIC gaps, proposed follow-up searches
+
+gap_classification:
+  ENGINEERING: "Gap fillable by reviewing documentation, code, or benchmarks"
+  ACADEMIC:    "Gap requiring additional paper searches to close"
+
+evidence_requirements:
+  - Every claim in the synthesis must cite at least one paper by paper_id
+  - Open gaps must each have a gap_type (ENGINEERING or ACADEMIC)
+  - Contradictions must name the papers on both sides
+
+completion_criteria:
+  - "synthesis_report.json exists and validates against synthesis_report.schema.json"
+  - "synthesis.md exists and has all required sections"
+  - "No section is empty"
+  - "open_gaps list present (may be empty if no gaps found)"
+
+self_reporting_forbidden: true
+status_update: |
+  After synthesis:
+  1. Verify synthesis_report.json validates against the schema
+  2. Verify synthesis.md has all required sections
+  3. Do NOT mark the task accepted
+  4. Re-run runner.py — it will validate and accept
