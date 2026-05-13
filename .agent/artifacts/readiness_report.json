@@ -1,0 +1,16 @@
+{
+  "report": {
+    "report_id": "readiness-audit:1A0GN5ObdJYfBd-Ne2_bzMCF",
+    "repo": "/home/grammy-jiang/projects/research-pipeline",
+    "ai_readiness_score": 22,
+    "harness_stage": "S3",
+    "drift_findings": [],
+    "missing_gates": [],
+    "weak_docs_spec_links": [],
+    "unprotected_risky_paths": [],
+    "absent_scanners": [],
+    "recommended_readiness_tasks": [],
+    "ai_readiness_report_ref": "ai-ready:eval:readiness-audit",
+    "created_ts": "2026-05-12T23:56:49.663311+00:00"
+  }
+}

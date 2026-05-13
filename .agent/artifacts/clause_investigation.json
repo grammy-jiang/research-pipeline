@@ -1,0 +1,8 @@
+{
+  "unknown_clauses": [
+    "clause:b99602e54b10"
+  ],
+  "investigation": {},
+  "confidence": 0.7,
+  "note": "graph was built and get_relevant_files called per protocol"
+}

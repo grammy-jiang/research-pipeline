@@ -2,6 +2,22 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.14] — 2026-05-13
+
+### Added
+- **Final Daily AI Intelligence completeness audit** (Phases A–G):
+  - All 63 tickets (Phases A–G) confirmed `audit_pass` via MCP `run_implementation_check`
+    against `daily-ai-intelligence-implementation-plan.md` (260 satisfied, 0 violated)
+  - `docs/daily-ai-intelligence/final-traceability-matrix.md` — 63-row feature-to-implementation map
+  - `docs/daily-ai-intelligence/final-gap-register.md` — empty gap register (no gaps found)
+  - `docs/daily-ai-intelligence/final-completeness-audit-report.md` — complete audit report
+  - `phase-status.yaml` updated: `final_audit.status: complete`, `verdict: no_gaps_found`
+- **Architecture compliance artifacts** in `.agent/artifacts/`:
+  - `compliance_report.md` — overall partially_compliant (101 satisfied, 0 violated, 1 unknown)
+  - `impl_check_daily_ai.json` — 260 satisfied, 0 violated from daily-AI-intelligence plan
+  - `impl_check_implplan.json` — implementation-plan.md fully compliant (118 satisfied, 0 violated)
+
+
 ## [v0.17.13] — 2026-05-12
 
 ### Added

@@ -1,0 +1,39 @@
+{
+  "clause_id": "clause:b99602e54b10",
+  "method": "capture_trace",
+  "result": {
+    "result": {
+      "trace_run_id": "trace:f7077aee",
+      "contract_id": "contract:trace:f7077aee",
+      "language": "python",
+      "adapter_id": "python",
+      "status": "completed",
+      "raw_artefact_ref": "trace:fc648ba8",
+      "compressed_trace_ref": "compressed:trace:f7077aee",
+      "state_diffs": [],
+      "divergence_points": [],
+      "non_reproducing": false,
+      "harness_condition_id": "hcs:trace:f7077aee",
+      "run_id": "trace:f7077aee",
+      "wall_ms": 0,
+      "diagnostics": []
+    },
+    "compressed_trace": {
+      "trace_run_id": "trace:f7077aee",
+      "raw_artefact_id": "trace:fc648ba8",
+      "executed_path_summary": "null-mode: 0 raw events compressed to 0",
+      "relevant_events": [],
+      "state_diffs": [],
+      "divergence_points": [],
+      "exception_events": [],
+      "compressed_token_estimate": 0,
+      "compression_ratio": 0.0,
+      "scope_coverage": 0.0,
+      "uncertainty_notes": [
+        "null_summarizer: no LLM inference applied"
+      ],
+      "summarizer_model": "null",
+      "confidence": "unknown"
+    }
+  }
+}
