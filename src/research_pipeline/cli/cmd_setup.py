@@ -305,8 +305,9 @@ def _install_agent_files(
 def _install_claude_mcp(force: bool) -> bool:
     """Register the research-pipeline MCP server with Claude Code via CLI.
 
-    Runs ``claude mcp add --transport stdio research-pipeline -- research-pipeline
-    mcp serve``.  When *force* is True, any existing registration is removed first.
+    Runs ``claude mcp add --transport stdio --scope user research-pipeline --
+    research-pipeline mcp serve``.  When *force* is True, any existing
+    registration is removed first.
 
     Returns:
         True on success, False when skipped or the command fails.
@@ -337,6 +338,8 @@ def _install_claude_mcp(force: bool) -> bool:
                 "add",
                 "--transport",
                 "stdio",
+                "--scope",
+                "user",
                 "research-pipeline",
                 "--",
                 "research-pipeline",
