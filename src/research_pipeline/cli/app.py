@@ -765,14 +765,20 @@ def setup(
     Example: research-pipeline setup --skip-agents
     Example: research-pipeline setup --skip-hooks
     """
+    import shutil
+
     from research_pipeline.cli.cmd_setup import (
         DEFAULT_AGENTS_DIR,
+        DEFAULT_CLAUDE_SETTINGS_FILE,
         DEFAULT_COPILOT_AGENTS_DIR,
+        DEFAULT_COPILOT_MCP_CONFIG,
         DEFAULT_MCP_CONFIG_FILE,
+        DEFAULT_VSCODE_MCP_CONFIG,
         _detect_claude,
         _detect_codex,
         _detect_copilot,
         _find_agent_source,
+        _find_skill_sources,
         _install_agent_files,
         _install_claude_mcp,
         _install_codex_mcp,
@@ -802,30 +808,35 @@ def setup(
         skip_hooks=skip_hooks,
     )
 
+    # Track per-agent operation results for the summary.
+    claude_mcp_ok = False
+    codex_mcp_ok = False
+    copilot_agents_count = 0
+
     if default_mode:
         # Claude Code MCP registration via ``claude mcp add``
         if not skip_mcp and _detect_claude():
-            _install_claude_mcp(force)
+            claude_mcp_ok = _install_claude_mcp(force)
 
         # Codex CLI MCP registration via ``codex mcp add``
         if not skip_mcp and _detect_codex():
-            _install_codex_mcp(force)
+            codex_mcp_ok = _install_codex_mcp(force)
 
         # GitHub Copilot CLI agents with ``.agent.md`` extension
         if not skip_agents and _detect_copilot():
             agent_source = _find_agent_source()
             if agent_source is not None:
-                count = _install_agent_files(
+                copilot_agents_count = _install_agent_files(
                     agent_source,
                     DEFAULT_COPILOT_AGENTS_DIR,
                     symlink,
                     force,
                     target_suffix=".agent.md",
                 )
-                if count:
+                if copilot_agents_count:
                     logger.info(
                         "Installed %d agent(s) to %s (Copilot .agent.md)",
-                        count,
+                        copilot_agents_count,
                         DEFAULT_COPILOT_AGENTS_DIR,
                     )
 
@@ -835,6 +846,101 @@ def setup(
                 "Hooks for GitHub Copilot CLI and Codex CLI require project-local "
                 "setup. See the skill's hooks/SETUP.md for instructions."
             )
+
+    # ── Setup Summary ──────────────────────────────────────────────────────────
+    skill_names = [s.name for s in _find_skill_sources()]
+
+    def _skill_line(base_dir: Path, agent_label: str) -> str:
+        """Return a formatted skill summary line for one agent."""
+        if skip_skill:
+            return "  skills   skipped (--skip-skill)"
+        installed = [n for n in skill_names if (base_dir / n).exists()]
+        if installed:
+            return f"  skills → {base_dir}/ ({', '.join(installed)})"
+        return "  skills   not installed"
+
+    def _agents_line(agents_dir: Path, suffix: str = ".md") -> str:
+        """Return a formatted agents summary line for one agent."""
+        if skip_agents:
+            return "  agents   skipped (--skip-agents)"
+        files = sorted(agents_dir.glob(f"*{suffix}")) if agents_dir.exists() else []
+        if files:
+            names = ", ".join(f.stem.removesuffix(".agent") for f in files)
+            return f"  agents → {agents_dir}/ ({len(files)} file(s): {names})"
+        return "  agents   not installed"
+
+    def _check(ok: bool) -> str:
+        return "✓" if ok else "–"
+
+    sep = "─" * 64
+    typer.echo(f"\n{sep}")
+    typer.echo("  Setup Summary")
+    typer.echo(sep)
+
+    # Claude Code
+    claude_detected = _detect_claude()
+    typer.echo(f"\n  Claude Code        {_check(claude_detected)} detected")
+    if claude_detected:
+        typer.echo(_skill_line(Path.home() / ".claude" / "skills", "Claude"))
+        typer.echo(_agents_line(DEFAULT_AGENTS_DIR))
+        if skip_mcp:
+            typer.echo("  mcp      skipped (--skip-mcp)")
+        else:
+            mcp_status = (
+                "→ registered via `claude mcp add`"
+                if claude_mcp_ok
+                else "– already registered or unavailable"
+            )
+            typer.echo(f"  mcp    {mcp_status}")
+        if skip_hooks:
+            typer.echo("  hooks    skipped (--skip-hooks)")
+        else:
+            hooks_ok = DEFAULT_CLAUDE_SETTINGS_FILE.exists()
+            typer.echo(
+                f"  hooks  {'→' if hooks_ok else '–'} {DEFAULT_CLAUDE_SETTINGS_FILE}"
+            )
+
+    # GitHub Copilot CLI
+    copilot_detected = _detect_copilot()
+    typer.echo(f"\n  GitHub Copilot CLI {_check(copilot_detected)} detected")
+    if copilot_detected:
+        typer.echo(_skill_line(Path.home() / ".copilot" / "skills", "Copilot"))
+        if default_mode:
+            typer.echo(_agents_line(DEFAULT_COPILOT_AGENTS_DIR, suffix=".agent.md"))
+        if skip_mcp:
+            typer.echo("  mcp      skipped (--skip-mcp)")
+        else:
+            mcp_ok = DEFAULT_COPILOT_MCP_CONFIG.exists()
+            typer.echo(
+                f"  mcp    {'→' if mcp_ok else '–'} {DEFAULT_COPILOT_MCP_CONFIG}"
+            )
+
+    # Codex CLI
+    codex_detected = _detect_codex()
+    typer.echo(f"\n  Codex CLI          {_check(codex_detected)} detected")
+    if codex_detected:
+        typer.echo(_skill_line(Path.home() / ".agents" / "skills", "Codex"))
+        if skip_mcp:
+            typer.echo("  mcp      skipped (--skip-mcp)")
+        else:
+            mcp_status = (
+                "→ registered via `codex mcp add`"
+                if codex_mcp_ok
+                else "– already registered or unavailable"
+            )
+            typer.echo(f"  mcp    {mcp_status}")
+
+    # MCP config snippet + VS Code
+    typer.echo("\n  MCP config snippet")
+    if skip_mcp:
+        typer.echo("  mcp      skipped (--skip-mcp)")
+    else:
+        typer.echo(f"  {'→' if mcp_config_path.exists() else '–'} {mcp_config_path}")
+        if shutil.which("code") is not None:
+            vscode_arrow = "→" if DEFAULT_VSCODE_MCP_CONFIG.exists() else "–"
+            typer.echo(f"  {vscode_arrow} {DEFAULT_VSCODE_MCP_CONFIG} (VS Code)")
+
+    typer.echo(f"\n{sep}\n")
 
 
 @app.command(name="install-skill", hidden=True)
