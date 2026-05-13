@@ -25,6 +25,7 @@ DEFAULT_AGENTS_DIR = Path.home() / ".claude" / "agents"
 DEFAULT_MCP_CONFIG_DIR = Path.home() / ".config" / "research-pipeline"
 DEFAULT_MCP_CONFIG_FILE = DEFAULT_MCP_CONFIG_DIR / "mcp.json"
 DEFAULT_COPILOT_MCP_CONFIG = Path.home() / ".copilot" / "mcp-config.json"
+DEFAULT_VSCODE_MCP_CONFIG = Path.home() / ".config" / "Code" / "User" / "mcp.json"
 
 
 def _find_source(
@@ -282,6 +283,37 @@ def _update_copilot_mcp_config(target: Path, force: bool) -> bool:
     return True
 
 
+def _update_vscode_mcp_config(target: Path, force: bool) -> bool:
+    """Merge the research-pipeline MCP server entry into VS Code's global mcp.json.
+
+    VS Code uses a ``"servers"`` key (not ``"mcpServers"``). This function reads
+    the existing config (preserving other server entries) and upserts only the
+    ``research-pipeline`` key.
+    """
+    entry = _mcp_server_config()["mcpServers"]["research-pipeline"]
+
+    existing: dict[str, object] = {}
+    if target.exists():
+        try:
+            existing = json.loads(target.read_text())
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning("Could not parse %s: %s — starting fresh.", target, exc)
+
+    servers: dict[str, object] = existing.setdefault("servers", {})  # type: ignore[assignment]
+    if "research-pipeline" in servers and not force:
+        logger.warning(
+            "research-pipeline already present in %s. Use --force to overwrite.",
+            target,
+        )
+        return False
+
+    servers["research-pipeline"] = entry
+    target.parent.mkdir(parents=True, exist_ok=True)
+    target.write_text(json.dumps(existing, indent=2) + "\n")
+    logger.info("VS Code MCP config updated at %s", target)
+    return True
+
+
 def run_setup(
     skill_target: Path | None = None,
     skill_targets: Sequence[Path] | None = None,
@@ -369,6 +401,7 @@ def run_setup(
     if not skip_mcp:
         _install_mcp_config(mcp_config_target, force=force)
         _update_copilot_mcp_config(DEFAULT_COPILOT_MCP_CONFIG, force=force)
+        _update_vscode_mcp_config(DEFAULT_VSCODE_MCP_CONFIG, force=force)
 
     logger.info("Done.")
 

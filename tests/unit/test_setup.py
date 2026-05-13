@@ -12,11 +12,13 @@ from research_pipeline.cli.cmd_setup import (
     DEFAULT_COPILOT_MCP_CONFIG,
     DEFAULT_COPILOT_SKILL_DIR,
     DEFAULT_MCP_CONFIG_FILE,
+    DEFAULT_VSCODE_MCP_CONFIG,
     _find_agent_source,
     _find_skill_source,
     _install_agent_files,
     _install_mcp_config,
     _update_copilot_mcp_config,
+    _update_vscode_mcp_config,
     run_setup,
 )
 
@@ -418,3 +420,101 @@ class TestUpdateCopilotMcpConfig:
         assert DEFAULT_COPILOT_SKILL_DIR.name == "research-pipeline"
         assert ".copilot" in str(DEFAULT_COPILOT_SKILL_DIR)
         assert "skills" in str(DEFAULT_COPILOT_SKILL_DIR)
+
+
+class TestUpdateVscodeMcpConfig:
+    """Test merging the research-pipeline entry into ~/.config/Code/User/mcp.json."""
+
+    def test_creates_file_when_missing(self, tmp_path: Path) -> None:
+        target = tmp_path / "Code" / "User" / "mcp.json"
+
+        updated = _update_vscode_mcp_config(target, force=False)
+
+        assert updated is True
+        data = json.loads(target.read_text())
+        server = data["servers"]["research-pipeline"]
+        assert server["type"] == "stdio"
+        assert server["command"] == "research-pipeline"
+        assert server["args"] == ["mcp", "serve"]
+
+    def test_merges_into_existing_config_preserving_other_servers(
+        self, tmp_path: Path
+    ) -> None:
+        target = tmp_path / "mcp.json"
+        target.write_text(
+            json.dumps(
+                {
+                    "servers": {
+                        "other-server": {
+                            "type": "stdio",
+                            "command": "other-cmd",
+                            "args": [],
+                        }
+                    }
+                }
+            )
+            + "\n"
+        )
+
+        updated = _update_vscode_mcp_config(target, force=False)
+
+        assert updated is True
+        data = json.loads(target.read_text())
+        assert "other-server" in data["servers"], "existing entries must be preserved"
+        assert "research-pipeline" in data["servers"]
+
+    def test_skips_when_entry_exists_without_force(self, tmp_path: Path) -> None:
+        target = tmp_path / "mcp.json"
+        original = {
+            "servers": {"research-pipeline": {"type": "stdio", "command": "old"}}
+        }
+        target.write_text(json.dumps(original) + "\n")
+
+        updated = _update_vscode_mcp_config(target, force=False)
+
+        assert updated is False
+        data = json.loads(target.read_text())
+        assert data["servers"]["research-pipeline"]["command"] == "old"
+
+    def test_overwrites_entry_with_force(self, tmp_path: Path) -> None:
+        target = tmp_path / "mcp.json"
+        original = {
+            "servers": {"research-pipeline": {"type": "stdio", "command": "old"}}
+        }
+        target.write_text(json.dumps(original) + "\n")
+
+        updated = _update_vscode_mcp_config(target, force=True)
+
+        assert updated is True
+        data = json.loads(target.read_text())
+        assert data["servers"]["research-pipeline"]["command"] == "research-pipeline"
+
+    def test_recovers_from_corrupt_json(self, tmp_path: Path) -> None:
+        target = tmp_path / "mcp.json"
+        target.write_text("not valid json")
+
+        updated = _update_vscode_mcp_config(target, force=False)
+
+        assert updated is True
+        data = json.loads(target.read_text())
+        assert "research-pipeline" in data["servers"]
+
+    def test_preserves_inputs_key(self, tmp_path: Path) -> None:
+        target = tmp_path / "mcp.json"
+        original = {
+            "inputs": [{"id": "MY_KEY", "type": "promptString"}],
+            "servers": {},
+        }
+        target.write_text(json.dumps(original) + "\n")
+
+        _update_vscode_mcp_config(target, force=False)
+
+        data = json.loads(target.read_text())
+        assert data["inputs"] == [{"id": "MY_KEY", "type": "promptString"}], (
+            "non-servers keys must be preserved"
+        )
+
+    def test_default_vscode_mcp_config_path(self) -> None:
+        assert DEFAULT_VSCODE_MCP_CONFIG.name == "mcp.json"
+        assert "Code" in str(DEFAULT_VSCODE_MCP_CONFIG)
+        assert "User" in str(DEFAULT_VSCODE_MCP_CONFIG)
