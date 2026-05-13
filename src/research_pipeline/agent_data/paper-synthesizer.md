@@ -62,11 +62,12 @@ You are launched via `runSubagent` with a prompt that provides:
 ## Core Workflow
 
 1. Read `{workspace}/runs/{run_id}/plan/query_plan.json` for research context
-2. Read `{workspace}/runs/{run_id}/screen/screening_report.md` for screening context
+2. Read `{workspace}/runs/{run_id}/screen/screened.jsonl` for screening context and paper metadata
 3. List and read all analysis files from `{workspace}/runs/{run_id}/analysis/`
 4. Perform multi-phase synthesis using the framework below
-5. Write `{workspace}/runs/{run_id}/synthesis/synthesis_report.md`
-6. Return a comprehensive summary in your final message
+5. Write `{workspace}/runs/{run_id}/analysis/synthesis.json` — machine-readable synthesis report
+6. Write `{workspace}/runs/{run_id}/analysis/synthesis.md` — human-readable synthesis narrative
+7. Return a comprehensive summary in your final message
 
 ## Synthesis Framework
 
@@ -135,12 +136,12 @@ For **ACADEMIC** gaps, provide:
 
 Analysis reports from paper-analyzer:
 ```
-{workspace}/runs/{run_id}/analysis/*_analysis.md
+{workspace}/runs/{run_id}/analysis/*.analysis.md
 ```
 
-Screening report (optional context):
+Screened candidates (paper metadata and quality scores):
 ```
-{workspace}/runs/{run_id}/screen/screening_report.md
+{workspace}/runs/{run_id}/screen/screened.jsonl
 ```
 
 Query plan (for research context):
@@ -148,7 +149,10 @@ Query plan (for research context):
 {workspace}/runs/{run_id}/plan/query_plan.json
 ```
 
-## Output: synthesis_report.md
+## Output: synthesis.md
+
+Write the human-readable synthesis narrative to
+`{workspace}/runs/{run_id}/analysis/synthesis.md`.
 
 ```markdown
 # Research Synthesis: [Topic]
@@ -257,8 +261,8 @@ What's the overall coverage level?]
 ## Structured Output: synthesis_results.json
 
 In **addition** to the Markdown report above, write a machine-readable JSON file
-with the structured synthesis results. This enables automated iteration decisions,
-gap-driven search queries, and downstream pipeline integration.
+to `{workspace}/runs/{run_id}/analysis/synthesis.json`.
+The runner validates this file exists before accepting the task.
 
 ```json
 {
@@ -428,4 +432,6 @@ Your final message back to the parent agent must include:
 6. If `HAS_GAPS`:
    - List of engineering gaps (with severity)
    - List of academic gaps (with suggested search queries)
-7. Path to the synthesis report file
+7. Path to the synthesis report files:
+   - `{workspace}/runs/{run_id}/analysis/synthesis.json`
+   - `{workspace}/runs/{run_id}/analysis/synthesis.md`

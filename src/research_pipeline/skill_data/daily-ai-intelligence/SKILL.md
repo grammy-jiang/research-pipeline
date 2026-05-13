@@ -26,7 +26,7 @@ compatibility: >
   and a reviewed source registry (TOML/JSON/YAML). Network access is
   needed only for enabled live sources; fixtures-only runs work
   fully offline. Works in Claude Code, Claude.ai, GitHub Copilot
-  CLI, Codex, and any MCP client that can invoke the `tool_brief_*`
+  CLI, Codex, and any MCP client that can invoke the `brief_*`
   family.
 metadata:
   author: grammy-jiang

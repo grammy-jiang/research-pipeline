@@ -11,7 +11,7 @@ description: |
   cluster coherence before the daily brief is generated.
 
 inputs:
-  - path: "{workspace}/{date}/ranking/ranked_events.json"
+  - path: "{workspace}/{date}/clusters/ranked.jsonl"
     description: "Ranked and deduplicated events"
   - path: "{skill_dir}/schemas/ranked_clusters.schema.json"
     description: "Schema the ranked events must conform to"
@@ -19,7 +19,7 @@ inputs:
     description: "Schema for the verdict file to produce"
 
 outputs:
-  - path: "{workspace}/{date}/review/rank_reviewer_verdict.json"
+  - path: "{workspace}/{date}/review/rank_review.json"
     description: "Verdict file"
     schema: "../../schemas/reviewer_result.schema.json"
 
@@ -63,7 +63,7 @@ pass_threshold:
   source_diversity:      0.60
 
 completion_criteria:
-  - "rank_reviewer_verdict.json exists"
+  - "rank_review.json exists"
   - "verdict is 'accept' or 'reject'"
   - "All score fields present"
 

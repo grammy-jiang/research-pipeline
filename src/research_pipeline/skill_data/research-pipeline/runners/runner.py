@@ -110,8 +110,13 @@ def run_deterministic(task: dict[str, Any], ctx: dict[str, str]) -> tuple[bool, 
 
 def print_llm_delegation(task: dict[str, Any]) -> None:
     """Print the sub-agent contract for the delegated LLM task."""
-    contract_name = task["id"].replace("-", "_") + ".yaml"
-    contract_path = CONTRACTS_DIR / contract_name
+    # Prefer the manifest-declared contract path; fall back to derived name.
+    manifest_contract = task.get("executor", {}).get("contract", "")
+    if manifest_contract:
+        contract_path = SKILL_DIR / manifest_contract
+    else:
+        contract_name = task["id"].replace("-", "_") + ".yaml"
+        contract_path = CONTRACTS_DIR / contract_name
     print(f"\n{'=' * 60}")
     print(f"DELEGATE TO SUB-AGENT: {task['id']}")
     print(f"  label   : {task.get('label', '')}")

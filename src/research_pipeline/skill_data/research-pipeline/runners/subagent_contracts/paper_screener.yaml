@@ -3,7 +3,7 @@
 # Executor kind: llm_worker
 
 role: paper_screener
-task_id: screen-candidates
+task_id: paper-screener
 
 description: |
   Screen the search candidates returned by the search stage.
@@ -62,7 +62,7 @@ completion_criteria:
   - "All rejected papers have rejection_reason"
 
 validation_gate:
-  command: "uv run research-pipeline verify-stage screen --run-id {run_id}"
+  command: "uv run research-pipeline verify --run-id {run_id} --stage screen"
   must_pass: true
 
 self_reporting_forbidden: true

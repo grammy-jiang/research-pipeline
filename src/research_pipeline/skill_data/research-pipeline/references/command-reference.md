@@ -54,9 +54,9 @@ research-pipeline search --run-id <RUN_ID> --source all --config CFG
 
 | Profile | Stages |
 |---|---|
-| `quick` | plan, search, screen, summarize |
-| `standard` | full 7-stage pipeline |
-| `deep` | standard plus quality, expand, claim analysis, TER gap filling |
+| `quick` | 12 tasks: resume-check, plan, verify-plan, search, screen, download, convert-rough, extract, summarize, report, validate-report, check-completion |
+| `standard` | 17 tasks: quick + paper-screener, expand, enrich, analyze-claims, score-claims |
+| `deep` | 23 tasks: standard + quality, convert-fine, paper-analyzer, paper-synthesizer, review-synthesis, classify-gaps |
 | `auto` | selected by query complexity |
 
 ## Conversion
@@ -141,10 +141,11 @@ research-pipeline cite-context --run-id <RUN_ID> --window 1
 | Inspection | `tool_get_run_manifest`, `tool_list_backends`, `tool_model_routing_info`, `tool_gate_info` |
 | Conversion | `tool_convert_file`, `tool_convert_rough`, `tool_convert_fine` |
 | Expansion and quality | `tool_expand_citations`, `tool_evaluate_quality`, `tool_cluster`, `tool_enrich` |
-| Analysis and reports | `tool_analyze_papers`, `tool_validate_report`, `tool_compare_runs`, `tool_verify_stage`, `tool_aggregate_evidence`, `tool_export_html`, `tool_export_bibtex`, `tool_report` |
+| Analysis and reports | `tool_analyze_papers`, `tool_analyze_claims`, `tool_score_claims`, `tool_validate_report`, `tool_compare_runs`, `tool_verify_stage`, `tool_aggregate_evidence`, `tool_export_html`, `tool_export_bibtex`, `tool_report`, `tool_evaluate`, `tool_horizon_metric`, `tool_rrp_diagnostic` |
 | Feedback and logs | `tool_record_feedback`, `tool_query_eval_log` |
-| Memory and reliability | `tool_coherence`, `tool_consolidation`, `tool_blinding_audit`, `tool_dual_metrics`, `tool_cbr_lookup`, `tool_cbr_retain` |
-| KG and confidence | `tool_kg_quality`, `tool_adaptive_stopping`, `tool_confidence_layers`, `tool_cite_context`, `tool_watch` |
+| Memory and reliability | `tool_coherence`, `tool_consolidation`, `tool_blinding_audit`, `tool_dual_metrics`, `tool_cbr_lookup`, `tool_cbr_retain`, `tool_memory_stats`, `tool_memory_episodes`, `tool_memory_search` |
+| KG and confidence | `tool_kg_quality`, `tool_kg_stats`, `tool_kg_query`, `tool_kg_ingest`, `tool_adaptive_stopping`, `tool_confidence_layers`, `tool_cite_context`, `tool_watch` |
+| Daily intelligence | `brief_poll_sources`, `brief_rank_events`, `brief_generate_daily`, `brief_validate_report`, `brief_generate_dossier`, `brief_record_feedback`, `brief_export_obsidian`, `brief_weekly_synthesis` |
 | Server orchestration | `tool_research_workflow` |
 
 Prefer `tool_research_workflow` when the MCP server should orchestrate a whole

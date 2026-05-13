@@ -55,7 +55,7 @@ Review `runs/<run_id>/plan/query_plan.json`:
 - Add synonym-rich `query_variants`.
 - Consult `references/query-optimization.md` when recall matters.
 
-## Tasks `[search]` + `[screen-candidates]` — Search and screen
+## Tasks `[search]` + `[paper-screener]` — Search and screen
 
 ```bash
 research-pipeline search --run-id <RUN_ID> --source all --config "$CFG"
@@ -63,7 +63,7 @@ research-pipeline screen --run-id <RUN_ID> --diversity --config "$CFG"
 ```
 
 `--source all` searches arXiv, Scholar, Semantic Scholar, OpenAlex, DBLP, and
-HuggingFace daily papers. The runner delegates `[screen-candidates]` to the
+HuggingFace daily papers. The runner delegates `[paper-screener]` to the
 `paper-screener` sub-agent when BM25 results are noisy or the topic is broad.
 See `references/sub-agents.md` for delegation conditions.
 
@@ -104,13 +104,13 @@ research-pipeline score-claims --run-id <RUN_ID>
 - `summarize/synthesis_report.json` — structured cross-paper synthesis
 - `summarize/synthesis_traceability.json` — evidence lineage
 
-## Tasks `[paper-analysis]` + `[synthesis]` + `[review-synthesis]` — Sub-agent analysis (deep profile)
+## Tasks `[paper-analyzer]` + `[paper-synthesizer]` + `[review-synthesis]` — Sub-agent analysis (deep profile)
 
 The runner delegates these tasks to sub-agents with formal contracts:
 
-1. `[paper-analysis]` → `paper_analyzer` sub-agent (one per paper, parallel)
-2. `[synthesis]` → `paper_synthesizer` sub-agent
-3. `[review-synthesis]` → `synthesis_reviewer` sub-agent (llm_reviewer gate)
+1. `[paper-analyzer]` → `paper_analyzer` sub-agent (one per paper, parallel)
+2. `[paper-synthesizer]` → `paper_synthesizer` sub-agent
+3. `[review-synthesis]` → `synthesis-reviewer` sub-agent (llm_reviewer gate)
 
 See `runners/subagent_contracts/` for the full contracts.
 All sub-agents **MUST** use `model: "claude-opus-4.6"`.

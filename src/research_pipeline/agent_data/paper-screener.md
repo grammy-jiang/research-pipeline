@@ -53,9 +53,12 @@ You are launched via `runSubagent` with a prompt that provides:
 2. Read `{workspace}/runs/{run_id}/search/candidates.jsonl` — each line is a JSON record
 3. Evaluate each candidate's abstract against multi-criteria scoring
 4. Rank candidates and partition into shortlist / borderline / excluded
-5. Write `{workspace}/runs/{run_id}/screen/screening_report.md`
-6. Write `{workspace}/runs/{run_id}/screen/shortlist.jsonl` with selected candidates
-7. Return a summary of findings in your final message
+5. Create `{workspace}/runs/{run_id}/screen/` directory if it doesn't exist
+6. Write `{workspace}/runs/{run_id}/screen/screened.jsonl` — **primary pipeline output**,
+   shortlisted candidates in the same schema as `candidates.jsonl` (one JSON record per line)
+7. Write `{workspace}/runs/{run_id}/screen/screening_report.md` — human-readable report
+8. Write `{workspace}/runs/{run_id}/screen/shortlist.jsonl` — shortlisted candidates (alias of screened.jsonl, same content)
+9. Return a summary of findings in your final message
 
 ## Evaluation Criteria
 
@@ -183,10 +186,12 @@ automated validation and downstream pipeline integration.
 - `candidates[].final_score` MUST equal the weighted formula: $0.4R + 0.2M + 0.2I + 0.2P$.
 - `coverage_gaps[].severity` MUST be one of: `"high"`, `"medium"`, `"low"`.
 
-## Output: shortlist.jsonl
+## Output: screened.jsonl (Primary Pipeline Output)
 
-Write the shortlisted candidates as JSONL (same schema as input) so downstream
-pipeline stages can consume them.
+Write shortlisted candidates as JSONL to `{workspace}/runs/{run_id}/screen/screened.jsonl`
+(same schema as input `candidates.jsonl`, one JSON record per line). This is the
+**canonical pipeline artifact** consumed by all downstream stages (download, convert,
+extract, synthesize). The runner validates this file exists before accepting the task.
 
 ## Guidelines
 

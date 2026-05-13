@@ -3,7 +3,7 @@
 # Executor kind: llm_worker
 
 role: paper_analyzer
-task_id: paper-analysis
+task_id: paper-analyzer
 
 description: |
   Analyze each downloaded and converted paper in depth. For each paper:
@@ -13,7 +13,7 @@ description: |
   - Score confidence for each key finding
 
 inputs:
-  - path: "{cwd}/convert/"
+  - path: "{cwd}/convert/markdown/"
     description: "Converted Markdown versions of downloaded papers"
   - path: "{cwd}/screened.jsonl"
     description: "Shortlist metadata for context"
@@ -21,7 +21,7 @@ inputs:
 outputs:
   - path: "{cwd}/analysis/"
     description: "Per-paper JSON analysis files (one per paper)"
-    schema: "../../schemas/query_plan.schema.json"
+    schema: "../../schemas/paper_analysis.schema.json"
 
 allowed_tools:
   - tool_analyze_papers

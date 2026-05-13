@@ -52,11 +52,12 @@ You are launched via `runSubagent` with a prompt that provides:
 ## Core Workflow
 
 1. Read `{workspace}/runs/{run_id}/plan/query_plan.json` for research context
-2. List converted papers in `{workspace}/runs/{run_id}/convert/`
+2. List converted papers in `{workspace}/runs/{run_id}/convert/markdown/`
 3. For each paper (or specified subset):
-   a. Read the full Markdown file
+   a. Read the full Markdown file from `{workspace}/runs/{run_id}/convert/markdown/{arxiv_id}.md`
    b. Perform structured analysis using the framework below
-   c. Write analysis to `{workspace}/runs/{run_id}/analysis/{arxiv_id}_analysis.md`
+   c. Write analysis to `{workspace}/runs/{run_id}/analysis/{arxiv_id}.analysis.md`
+   d. Write structured JSON to `{workspace}/runs/{run_id}/analysis/{arxiv_id}.analysis.json`
 4. Return a summary of all analyses in your final message
 
 ## Analysis Framework
@@ -105,7 +106,7 @@ You are launched via `runSubagent` with a prompt that provides:
 
 Converted Markdown papers at:
 ```
-{workspace}/runs/{run_id}/convert/{arxiv_id}.md
+{workspace}/runs/{run_id}/convert/markdown/{arxiv_id}.md
 ```
 
 Extracted content (if available) at:
@@ -113,7 +114,7 @@ Extracted content (if available) at:
 {workspace}/runs/{run_id}/extract/{arxiv_id}{version}.extract.json  (e.g., 2301.12345v1.extract.json)
 ```
 
-## Output: {arxiv_id}_analysis.md
+## Output: {arxiv_id}.analysis.md
 
 ```markdown
 # Analysis: [Paper Title]
@@ -159,7 +160,7 @@ Extracted content (if available) at:
 - Overall: [1-5 stars]
 ```
 
-## Structured Output: {arxiv_id}_analysis.json
+## Structured Output: {arxiv_id}.analysis.json
 
 In **addition** to the Markdown file above, write a machine-readable JSON file
 with the structured analysis results. This enables automated synthesis and

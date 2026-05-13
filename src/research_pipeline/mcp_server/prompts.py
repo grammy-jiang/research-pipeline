@@ -19,8 +19,9 @@ def research_topic_prompt(topic: str) -> list[dict[str, str]]:
             "content": (
                 "You are an academic research assistant. Guide the user through "
                 "a systematic literature review using the research-pipeline tools. "
-                "The pipeline stages are: plan → search → screen → download → "
-                "convert → extract → summarize. At each stage, explain what is "
+                "The pipeline stages are: plan → verify-plan → search → screen → "
+                "download → convert → extract → summarize → validate-report → "
+                "check-completion. At each stage, explain what is "
                 "happening and suggest next steps."
             ),
         },
@@ -115,7 +116,7 @@ def refine_search_prompt(run_id: str) -> list[dict[str, str]]:
             "content": (
                 f"Review the search results for run **{run_id}**.\n\n"
                 f"Read the candidates from `runs://{run_id}/candidates` and "
-                f"the shortlist from `runs://{run_id}/shortlist`, then:\n\n"
+                f"the candidates from `runs://{run_id}/candidates`, then:\n\n"
                 "1. **Coverage Assessment**: Are key subtopics well-covered?\n"
                 "2. **Missing Areas**: What relevant topics are underrepresented?\n"
                 "3. **Query Suggestions**: New search terms or query variants\n"

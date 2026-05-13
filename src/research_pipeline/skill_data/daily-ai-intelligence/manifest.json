@@ -1,6 +1,6 @@
 {
   "workflow_id": "daily-ai-intelligence",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Daily AI technical-intelligence briefing: validate-registry → poll → rank → generate-daily → validate-brief → optional extras.",
   "mandatory_gates": [
     "validate-registry",
@@ -31,7 +31,7 @@
       "depends_on": ["validate-registry"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_poll_sources",
+        "tool": "brief_poll_sources",
         "cli": "research-pipeline brief poll --registry {registry} --workspace {workspace} --date {date}"
       },
       "output": {
@@ -48,7 +48,7 @@
       "depends_on": ["poll"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_rank_events",
+        "tool": "brief_rank_events",
         "cli": "research-pipeline brief rank --workspace {workspace} --date {date}"
       },
       "output": {
@@ -85,7 +85,7 @@
       "depends_on": ["rank"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_generate_daily",
+        "tool": "brief_generate_daily",
         "cli": "research-pipeline brief generate-daily --workspace {workspace} --date {date}"
       },
       "output": {
@@ -102,7 +102,7 @@
       "depends_on": ["generate-daily"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_validate_report",
+        "tool": "brief_validate_report",
         "cli": "research-pipeline brief validate --workspace {workspace} --date {date}"
       },
       "output": {
@@ -137,7 +137,7 @@
       "depends_on": ["check-completion"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_generate_dossier",
+        "tool": "brief_generate_dossier",
         "cli": "research-pipeline brief dossier --workspace {workspace} --date {date} --cluster {cluster_id}"
       },
       "trigger_condition": "User explicitly requests a dossier for a specific cluster",
@@ -152,7 +152,7 @@
       "depends_on": ["check-completion"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_record_feedback",
+        "tool": "brief_record_feedback",
         "cli": "research-pipeline brief feedback --workspace {workspace} --date {date} --{target_type} {target_id} --signal {signal}"
       },
       "failure_policy": {"on_failure": "skip"}
@@ -166,7 +166,7 @@
       "depends_on": ["feedback"],
       "executor": {
         "kind": "deterministic_script",
-        "cli": "research-pipeline brief preferences --workspace {workspace}"
+        "command": "research-pipeline brief preferences --workspace {workspace}"
       },
       "failure_policy": {"on_failure": "skip"}
     },
@@ -179,7 +179,7 @@
       "depends_on": ["check-completion"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_export_obsidian",
+        "tool": "brief_export_obsidian",
         "cli": "research-pipeline brief export-obsidian --vault {vault} --registry {registry} --workspace {workspace} --date {date}"
       },
       "trigger_condition": "User supplies --vault path and it is in the registry allowlist",
@@ -197,7 +197,7 @@
       "depends_on": ["check-completion"],
       "executor": {
         "kind": "deterministic_mcp_tool",
-        "tool": "tool_brief_weekly_synthesis",
+        "tool": "brief_weekly_synthesis",
         "cli": "research-pipeline brief weekly-synthesis --workspace {workspace} --week {week}"
       },
       "trigger_condition": "User explicitly requests a weekly synthesis",

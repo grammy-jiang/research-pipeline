@@ -11,13 +11,13 @@ description: |
   For ENGINEERING gaps, identify documentation or code sources to consult.
 
 inputs:
-  - path: "{cwd}/synthesis_report.json"
+  - path: "{cwd}/analysis/synthesis.json"
     description: "Synthesis report containing open_gaps list"
   - path: "{skill_dir}/schemas/gap_classification.schema.json"
     description: "Output schema"
 
 outputs:
-  - path: "{cwd}/gap_classifications.json"
+  - path: "{cwd}/gaps.json"
     description: "Classified gaps with search queries"
     schema: "../../schemas/gap_classification.schema.json"
 
@@ -52,8 +52,8 @@ output_schema:
       priority:     high | medium | low
 
 completion_criteria:
-  - "gap_classifications.json exists and validates against schema"
-  - "Every gap in synthesis_report.json open_gaps has a classification entry"
+  - "gaps.json exists and validates against schema"
+  - "Every gap in analysis/synthesis.json open_gaps has a classification entry"
   - "ACADEMIC gaps have at least 1 search_query"
   - "ENGINEERING gaps have at least 1 engineering_ref"
 

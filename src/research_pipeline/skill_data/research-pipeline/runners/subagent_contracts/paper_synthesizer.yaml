@@ -3,7 +3,7 @@
 # Executor kind: llm_worker
 
 role: paper_synthesizer
-task_id: synthesis
+task_id: paper-synthesizer
 
 description: |
   Synthesize the per-paper analysis files into a cross-paper synthesis report.
@@ -19,10 +19,10 @@ inputs:
     description: "Output schema to conform to"
 
 outputs:
-  - path: "{cwd}/synthesis_report.json"
+  - path: "{cwd}/analysis/synthesis.json"
     description: "Machine-readable synthesis report"
     schema: "../../schemas/synthesis_report.schema.json"
-  - path: "{cwd}/synthesis.md"
+  - path: "{cwd}/analysis/synthesis.md"
     description: "Human-readable synthesis narrative"
 
 allowed_tools:
@@ -62,8 +62,8 @@ evidence_requirements:
   - Contradictions must name the papers on both sides
 
 completion_criteria:
-  - "synthesis_report.json exists and validates against synthesis_report.schema.json"
-  - "synthesis.md exists and has all required sections"
+  - "analysis/synthesis.json exists and validates against synthesis_report.schema.json"
+  - "analysis/synthesis.md exists and has all required sections"
   - "No section is empty"
   - "open_gaps list present (may be empty if no gaps found)"
 

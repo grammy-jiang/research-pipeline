@@ -11,9 +11,9 @@ description: |
   The reviewer has NO write access to the synthesis files.
 
 inputs:
-  - path: "{cwd}/synthesis_report.json"
+  - path: "{cwd}/analysis/synthesis.json"
     description: "Synthesis report to review"
-  - path: "{cwd}/synthesis.md"
+  - path: "{cwd}/analysis/synthesis.md"
     description: "Human-readable synthesis narrative"
   - path: "{cwd}/analysis/"
     description: "Per-paper analysis files — ground truth for faithfulness checks"
@@ -21,7 +21,7 @@ inputs:
     description: "Schema for the verdict file to produce"
 
 outputs:
-  - path: "{cwd}/review/synthesis_reviewer_verdict.json"
+  - path: "{cwd}/review/synthesis_review.json"
     description: "Verdict file"
     schema: "../../schemas/reviewer_result.schema.json"
 
@@ -74,7 +74,7 @@ rejection_triggers:
   - "Any required synthesis section is empty"
 
 completion_criteria:
-  - "synthesis_reviewer_verdict.json exists"
+  - "synthesis_review.json exists"
   - "verdict is 'accept' or 'reject'"
   - "All score fields present"
 
