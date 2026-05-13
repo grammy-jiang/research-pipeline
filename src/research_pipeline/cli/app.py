@@ -768,6 +768,7 @@ def setup(
         _install_codex_mcp,
         run_setup,
     )
+    from research_pipeline.infra.logging import setup_logging
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
