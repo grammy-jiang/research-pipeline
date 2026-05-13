@@ -29,6 +29,7 @@ DEFAULT_MCP_CONFIG_DIR = Path.home() / ".config" / "research-pipeline"
 DEFAULT_MCP_CONFIG_FILE = DEFAULT_MCP_CONFIG_DIR / "mcp.json"
 DEFAULT_COPILOT_MCP_CONFIG = Path.home() / ".copilot" / "mcp-config.json"
 DEFAULT_VSCODE_MCP_CONFIG = Path.home() / ".config" / "Code" / "User" / "mcp.json"
+DEFAULT_CLAUDE_SETTINGS_FILE = Path.home() / ".claude" / "settings.json"
 
 
 def _find_source(
@@ -86,6 +87,106 @@ def _find_skill_sources() -> list[Path]:
 def _find_agent_source() -> Path | None:
     """Locate the bundled agents directory."""
     return _find_source("agent_data")
+
+
+def _find_claude_hooks_source() -> Path | None:
+    """Locate the bundled Claude Code hooks config for the primary skill."""
+    source = _find_skill_source()
+    if source is None:
+        return None
+    candidate = source / "hooks" / "claude-code-hooks.json"
+    return candidate if candidate.is_file() else None
+
+
+def _install_claude_hooks(
+    settings_file: Path,
+    hooks_source: Path,
+    force: bool,
+) -> bool:
+    """Merge research-pipeline lifecycle hooks into a Claude Code settings.json.
+
+    Reads ``hooks_source`` (a claude-code-hooks.json file) and merges the
+    ``hooks`` block into ``settings_file`` without overwriting unrelated keys.
+    Deduplicates by command string: if any of our commands are already
+    registered for the same event, the function skips that event (unless
+    ``force`` is True, in which case it replaces the existing entries).
+
+    Args:
+        settings_file: Path to ``~/.claude/settings.json`` or a project-local
+            ``.claude/settings.json``.
+        hooks_source: Path to the bundled ``claude-code-hooks.json`` config.
+        force: If True, replace existing entries that match our commands.
+
+    Returns:
+        True if the settings file was written (new or updated), False otherwise.
+    """
+    if not hooks_source.is_file():
+        logger.warning("Claude hooks source not found: %s", hooks_source)
+        return False
+
+    try:
+        new_hooks: dict[str, list[object]] = json.loads(hooks_source.read_text()).get(
+            "hooks", {}
+        )
+    except (json.JSONDecodeError, OSError) as exc:
+        logger.warning("Could not parse hooks source %s: %s", hooks_source, exc)
+        return False
+
+    if not new_hooks:
+        return False
+
+    def _extract_commands(matchers: list[object]) -> set[str]:
+        cmds: set[str] = set()
+        for matcher in matchers:
+            if not isinstance(matcher, dict):
+                continue
+            for hook in matcher.get("hooks", []):  # type: ignore[union-attr]
+                if isinstance(hook, dict) and "command" in hook:
+                    cmds.add(str(hook["command"]))
+        return cmds
+
+    existing: dict[str, object] = {}
+    if settings_file.is_file():
+        try:
+            existing = json.loads(settings_file.read_text())
+        except (json.JSONDecodeError, OSError) as exc:
+            logger.warning(
+                "Could not parse %s: %s — starting fresh.", settings_file, exc
+            )
+
+    existing_hooks: dict[str, list[object]] = existing.setdefault(  # type: ignore[assignment]
+        "hooks", {}
+    )
+    changed = False
+    for event_name, new_matchers in new_hooks.items():
+        our_cmds = _extract_commands(new_matchers)  # type: ignore[arg-type]
+        existing_matchers: list[object] = existing_hooks.get(event_name, [])
+        already_present = bool(our_cmds & _extract_commands(existing_matchers))
+
+        if already_present and not force:
+            logger.info(
+                "Hook '%s' already registered; skipping (use --force to replace).",
+                event_name,
+            )
+            continue
+
+        if force and already_present:
+            existing_hooks[event_name] = [
+                m
+                for m in existing_matchers
+                if not (_extract_commands([m]) & our_cmds)  # type: ignore[list-item]
+            ] + list(new_matchers)
+        else:
+            existing_hooks[event_name] = list(existing_matchers) + list(new_matchers)
+        changed = True
+
+    if not changed:
+        return False
+
+    settings_file.parent.mkdir(parents=True, exist_ok=True)
+    settings_file.write_text(json.dumps(existing, indent=2) + "\n")
+    logger.info("Claude Code hooks updated in %s", settings_file)
+    return True
 
 
 def _dedupe_paths(paths: Iterable[Path]) -> list[Path]:
@@ -520,6 +621,7 @@ def run_setup(
     skip_skill: bool = False,
     skip_agents: bool = False,
     skip_mcp: bool = False,
+    skip_hooks: bool = False,
 ) -> None:
     """Install skills and agents to assistant config directories.
 
@@ -538,8 +640,9 @@ def run_setup(
         skip_agents: If True, skip agent installation.
         skip_mcp: If True, skip MCP config snippet installation (both the
             standalone snippet and the Copilot CLI ``mcp-config.json`` merge).
+        skip_hooks: If True, skip Claude Code lifecycle hook registration.
     """
-    if skip_skill and skip_agents and skip_mcp:
+    if skip_skill and skip_agents and skip_mcp and skip_hooks:
         logger.warning("All setup components skipped; nothing to do.")
         return
 
@@ -636,6 +739,16 @@ def run_setup(
                 "VS Code not detected; skipping %s",
                 DEFAULT_VSCODE_MCP_CONFIG,
             )
+
+    # --- Claude Code lifecycle hooks ---
+    if not skip_hooks and default_multi_target and _detect_claude():
+        hooks_source = _find_claude_hooks_source()
+        if hooks_source is not None:
+            _install_claude_hooks(
+                DEFAULT_CLAUDE_SETTINGS_FILE, hooks_source, force=force
+            )
+        else:
+            logger.info("Bundled Claude Code hooks config not found; skipping.")
 
     logger.info("Done.")
 

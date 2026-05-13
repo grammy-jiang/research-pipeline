@@ -736,6 +736,11 @@ def setup(
         "--skip-mcp",
         help="Skip MCP config snippet installation.",
     ),
+    skip_hooks: bool = typer.Option(
+        False,
+        "--skip-hooks",
+        help="Skip Claude Code lifecycle hook registration.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Install skills, agents, and MCP config for AI assistant discovery.
@@ -745,15 +750,20 @@ def setup(
     limited to agents detected on PATH:
 
     * Claude Code  — skill to ~/.claude/skills/, agents to ~/.claude/agents/,
-      MCP registered via ``claude mcp add``.
+      MCP registered via ``claude mcp add``, lifecycle hooks merged into
+      ~/.claude/settings.json.
     * Codex CLI    — skill to ~/.agents/skills/, MCP via ``codex mcp add``.
     * GitHub Copilot CLI — skill to ~/.copilot/skills/, agents (with
       ``.agent.md`` extension) to ~/.copilot/agents/, MCP via
       ~/.copilot/mcp-config.json.
 
+    For Copilot CLI and Codex CLI lifecycle hooks, see the project-local
+    setup guide in the skill's hooks/SETUP.md file.
+
     Example: research-pipeline setup
     Example: research-pipeline setup --symlink --force
     Example: research-pipeline setup --skip-agents
+    Example: research-pipeline setup --skip-hooks
     """
     from research_pipeline.cli.cmd_setup import (
         DEFAULT_AGENTS_DIR,
@@ -789,6 +799,7 @@ def setup(
         skip_skill=skip_skill,
         skip_agents=skip_agents,
         skip_mcp=skip_mcp,
+        skip_hooks=skip_hooks,
     )
 
     if default_mode:
@@ -817,6 +828,13 @@ def setup(
                         count,
                         DEFAULT_COPILOT_AGENTS_DIR,
                     )
+
+        # Post-install notice: Copilot CLI and Codex require project-local hook setup
+        if not skip_hooks and (_detect_copilot() or _detect_codex()):
+            logger.info(
+                "Hooks for GitHub Copilot CLI and Codex CLI require project-local "
+                "setup. See the skill's hooks/SETUP.md for instructions."
+            )
 
 
 @app.command(name="install-skill", hidden=True)

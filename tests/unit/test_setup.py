@@ -1122,3 +1122,324 @@ class TestMcpDetectionGating:
             )
 
         mock_copilot.assert_called_once()
+
+
+# ---------------------------------------------------------------------------
+# Tests: _find_claude_hooks_source, _install_claude_hooks, skip_hooks
+# ---------------------------------------------------------------------------
+
+
+class TestFindClaudeHooksSource:
+    """Tests for _find_claude_hooks_source."""
+
+    def test_returns_none_or_existing_path(self) -> None:
+        from research_pipeline.cli.cmd_setup import _find_claude_hooks_source
+
+        result = _find_claude_hooks_source()
+        if result is not None:
+            assert result.is_file()
+            assert result.name == "claude-code-hooks.json"
+            assert "hooks" in str(result)
+
+    def test_returns_none_when_skill_source_missing(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _find_claude_hooks_source
+
+        with patch(
+            "research_pipeline.cli.cmd_setup._find_skill_source", return_value=None
+        ):
+            assert _find_claude_hooks_source() is None
+
+    def test_returns_none_when_hooks_file_absent(self, tmp_path: Path) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _find_claude_hooks_source
+
+        fake_skill = tmp_path / "research-pipeline"
+        fake_skill.mkdir()
+        (fake_skill / "SKILL.md").write_text("# skill")
+
+        with patch(
+            "research_pipeline.cli.cmd_setup._find_skill_source",
+            return_value=fake_skill,
+        ):
+            assert _find_claude_hooks_source() is None
+
+
+class TestInstallClaudeHooks:
+    """Tests for _install_claude_hooks."""
+
+    _STOP_CMD = "~/.claude/skills/research-pipeline/hooks/stop-check.sh"
+    _RESUME_CMD = "~/.claude/skills/research-pipeline/hooks/resume-inject.sh"
+
+    @property
+    def _HOOKS_PAYLOAD(self) -> dict:  # type: ignore[type-arg]
+        return {
+            "hooks": {
+                "Stop": [{"hooks": [{"type": "command", "command": self._STOP_CMD}]}],
+                "UserPromptSubmit": [
+                    {"hooks": [{"type": "command", "command": self._RESUME_CMD}]}
+                ],
+            }
+        }
+
+    def _make_hooks_source(self, tmp_path: Path) -> Path:
+        f = tmp_path / "claude-code-hooks.json"
+        f.write_text(json.dumps(self._HOOKS_PAYLOAD))
+        return f
+
+    def test_creates_settings_file_with_both_events(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_claude_hooks
+
+        settings = tmp_path / ".claude" / "settings.json"
+        hooks_src = self._make_hooks_source(tmp_path)
+
+        result = _install_claude_hooks(settings, hooks_src, force=False)
+
+        assert result is True
+        data = json.loads(settings.read_text())
+        assert "Stop" in data["hooks"]
+        assert "UserPromptSubmit" in data["hooks"]
+        assert len(data["hooks"]["Stop"]) == 1
+        assert len(data["hooks"]["UserPromptSubmit"]) == 1
+
+    def test_merges_preserving_unrelated_hooks(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_claude_hooks
+
+        settings = tmp_path / "settings.json"
+        settings.write_text(
+            json.dumps(
+                {
+                    "hooks": {
+                        "PreToolUse": [
+                            {"hooks": [{"type": "command", "command": "other-cmd"}]}
+                        ]
+                    }
+                }
+            )
+        )
+        hooks_src = self._make_hooks_source(tmp_path)
+
+        result = _install_claude_hooks(settings, hooks_src, force=False)
+
+        assert result is True
+        data = json.loads(settings.read_text())
+        assert "PreToolUse" in data["hooks"], "unrelated hooks must be preserved"
+        assert "Stop" in data["hooks"]
+        assert "UserPromptSubmit" in data["hooks"]
+
+    def test_skips_when_already_registered(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_claude_hooks
+
+        settings = tmp_path / "settings.json"
+        settings.write_text(
+            json.dumps(
+                {
+                    "hooks": {
+                        "Stop": [
+                            {"hooks": [{"type": "command", "command": self._STOP_CMD}]}
+                        ],
+                        "UserPromptSubmit": [
+                            {
+                                "hooks": [
+                                    {"type": "command", "command": self._RESUME_CMD}
+                                ]
+                            }
+                        ],
+                    }
+                }
+            )
+        )
+        hooks_src = self._make_hooks_source(tmp_path)
+        mtime_before = settings.stat().st_mtime
+
+        result = _install_claude_hooks(settings, hooks_src, force=False)
+
+        assert result is False
+        assert settings.stat().st_mtime == mtime_before, "file must not be rewritten"
+        data = json.loads(settings.read_text())
+        assert len(data["hooks"]["Stop"]) == 1
+        assert len(data["hooks"]["UserPromptSubmit"]) == 1
+
+    def test_replaces_with_force(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_claude_hooks
+
+        settings = tmp_path / "settings.json"
+        settings.write_text(
+            json.dumps(
+                {
+                    "hooks": {
+                        "Stop": [
+                            {"hooks": [{"type": "command", "command": self._STOP_CMD}]}
+                        ]
+                    }
+                }
+            )
+        )
+        hooks_src = self._make_hooks_source(tmp_path)
+
+        result = _install_claude_hooks(settings, hooks_src, force=True)
+
+        assert result is True
+        data = json.loads(settings.read_text())
+        assert len(data["hooks"]["Stop"]) == 1
+
+    def test_returns_false_for_missing_hooks_source(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_claude_hooks
+
+        settings = tmp_path / "settings.json"
+        missing = tmp_path / "nonexistent.json"
+
+        result = _install_claude_hooks(settings, missing, force=False)
+
+        assert result is False
+        assert not settings.exists()
+
+    def test_recovers_from_corrupt_settings_file(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_claude_hooks
+
+        settings = tmp_path / "settings.json"
+        settings.write_text("not valid json {{")
+        hooks_src = self._make_hooks_source(tmp_path)
+
+        result = _install_claude_hooks(settings, hooks_src, force=False)
+
+        assert result is True
+        data = json.loads(settings.read_text())
+        assert "Stop" in data["hooks"]
+        assert "UserPromptSubmit" in data["hooks"]
+
+
+class TestRunSetupHooks:
+    """Tests for skip_hooks parameter and default-mode hook installation."""
+
+    def _make_sources(self, tmp_path: Path) -> tuple[Path, Path]:
+        skill_src = tmp_path / "skill_src"
+        skill_src.mkdir()
+        (skill_src / "SKILL.md").write_text("# Skill")
+        agent_src = tmp_path / "agent_src"
+        agent_src.mkdir()
+        (agent_src / "paper-analyzer.md").write_text("# Analyzer")
+        return skill_src, agent_src
+
+    def test_skip_hooks_prevents_hook_install_in_default_mode(
+        self, tmp_path: Path
+    ) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        claude_target = tmp_path / "claude" / "skills" / "research-pipeline"
+        mock_install_hooks = MagicMock()
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (claude_target,),
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._install_claude_hooks",
+                mock_install_hooks,
+            ),
+            patch("research_pipeline.cli.cmd_setup._update_copilot_mcp_config"),
+            patch("research_pipeline.cli.cmd_setup._update_vscode_mcp_config"),
+        ):
+            run_setup(
+                mcp_config_target=tmp_path / "mcp.json",
+                skip_hooks=True,
+            )
+
+        mock_install_hooks.assert_not_called()
+
+    def test_default_mode_installs_hooks_when_claude_detected(
+        self, tmp_path: Path
+    ) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        hooks_src = tmp_path / "claude-code-hooks.json"
+        hooks_src.write_text(json.dumps({"hooks": {"Stop": []}}))
+        claude_target = tmp_path / "claude" / "skills" / "research-pipeline"
+        mock_install_hooks = MagicMock(return_value=True)
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (claude_target,),
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_claude_hooks_source",
+                return_value=hooks_src,
+            ),
+            patch("research_pipeline.cli.cmd_setup._detect_claude", return_value=True),
+            patch(
+                "research_pipeline.cli.cmd_setup._install_claude_hooks",
+                mock_install_hooks,
+            ),
+            patch("research_pipeline.cli.cmd_setup._update_copilot_mcp_config"),
+            patch("research_pipeline.cli.cmd_setup._update_vscode_mcp_config"),
+        ):
+            run_setup(
+                mcp_config_target=tmp_path / "mcp.json",
+                skip_hooks=False,
+            )
+
+        mock_install_hooks.assert_called_once()
+
+    def test_explicit_skill_target_skips_hooks(self, tmp_path: Path) -> None:
+        """Hooks are only installed in default mode, not explicit-target mode."""
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        mock_install_hooks = MagicMock()
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._install_claude_hooks",
+                mock_install_hooks,
+            ),
+        ):
+            run_setup(
+                skill_target=tmp_path / "skill",
+                agents_target=tmp_path / "agents",
+                mcp_config_target=tmp_path / "mcp.json",
+                skip_hooks=False,
+            )
+
+        mock_install_hooks.assert_not_called()
+
+    def test_default_claude_settings_file_path(self) -> None:
+        from research_pipeline.cli.cmd_setup import DEFAULT_CLAUDE_SETTINGS_FILE
+
+        assert DEFAULT_CLAUDE_SETTINGS_FILE.name == "settings.json"
+        assert ".claude" in str(DEFAULT_CLAUDE_SETTINGS_FILE)
