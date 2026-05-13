@@ -825,3 +825,300 @@ class TestInstallAgentFilesWithSuffix:
         )
         assert count == 1
         assert existing.read_text() == "# Agent v2"
+
+
+class TestAgentDetectionGating:
+    """Agents under known home prefixes are skipped when the agent is absent."""
+
+    def _make_sources(self, tmp_path: Path) -> tuple[Path, Path]:
+        skill_src = tmp_path / "skill_src"
+        skill_src.mkdir()
+        (skill_src / "SKILL.md").write_text("# Skill")
+        agent_src = tmp_path / "agent_src"
+        agent_src.mkdir()
+        (agent_src / "paper-analyzer.md").write_text("# Agent")
+        return skill_src, agent_src
+
+    def test_skips_claude_agents_when_claude_not_detected(self, tmp_path: Path) -> None:
+        """When run in default mode with a real ~/.claude path and no claude
+        binary, _install_agent_files should not be called."""
+        from pathlib import Path as _Path
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        home = _Path.home()
+        agents_target = home / ".claude" / "agents"
+        mcp_target = tmp_path / "mcp.json"
+        mock_install = MagicMock(return_value=0)
+        # Patch the dict directly — it holds captured function references so
+        # patching _detect_claude alone would not update the in-dict callable.
+        fake_prefixes = {
+            str(home / ".claude"): lambda: False,
+            str(home / ".agents"): lambda: True,
+            str(home / ".copilot"): lambda: True,
+        }
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (tmp_path / "skill_target",),
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._AGENT_PATH_PREFIXES",
+                fake_prefixes,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._install_agent_files",
+                mock_install,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_copilot_mcp_config",
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_vscode_mcp_config",
+            ),
+        ):
+            run_setup(
+                agents_target=agents_target,
+                mcp_config_target=mcp_target,
+                force=True,
+            )
+
+        mock_install.assert_not_called()
+
+    def test_installs_claude_agents_when_claude_detected(self, tmp_path: Path) -> None:
+        from pathlib import Path as _Path
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        home = _Path.home()
+        agents_target = home / ".claude" / "agents"
+        mcp_target = tmp_path / "mcp.json"
+        mock_install = MagicMock(return_value=1)
+        fake_prefixes = {
+            str(home / ".claude"): lambda: True,
+            str(home / ".agents"): lambda: True,
+            str(home / ".copilot"): lambda: True,
+        }
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (tmp_path / "skill_target",),
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._AGENT_PATH_PREFIXES",
+                fake_prefixes,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._install_agent_files",
+                mock_install,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_copilot_mcp_config",
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_vscode_mcp_config",
+            ),
+        ):
+            run_setup(
+                agents_target=agents_target,
+                mcp_config_target=mcp_target,
+                force=True,
+            )
+
+        mock_install.assert_called_once()
+
+    def test_explicit_path_always_installs_regardless_of_detection(
+        self, tmp_path: Path
+    ) -> None:
+        """An explicit (non-default) agents_target bypasses detection gating."""
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        agents_target = tmp_path / "custom_agents"
+        mcp_target = tmp_path / "mcp.json"
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_copilot_mcp_config",
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_vscode_mcp_config",
+            ),
+        ):
+            # Pass explicit skill_target to avoid default-multi-target mode
+            run_setup(
+                skill_target=tmp_path / "skill_target",
+                agents_target=agents_target,
+                mcp_config_target=mcp_target,
+                force=True,
+            )
+
+        assert (agents_target / "paper-analyzer.md").exists()
+
+
+class TestMcpDetectionGating:
+    """Copilot and VS Code MCP configs respect detection in default mode."""
+
+    def _make_sources(self, tmp_path: Path) -> tuple[Path, Path]:
+        skill_src = tmp_path / "skill_src"
+        skill_src.mkdir()
+        (skill_src / "SKILL.md").write_text("# Skill")
+        agent_src = tmp_path / "agent_src"
+        agent_src.mkdir()
+        (agent_src / "paper-analyzer.md").write_text("# Agent")
+        return skill_src, agent_src
+
+    def test_copilot_mcp_skipped_when_not_detected(self, tmp_path: Path) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        mock_copilot = MagicMock()
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (tmp_path / "skill_target",),
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._detect_copilot",
+                return_value=False,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_copilot_mcp_config",
+                mock_copilot,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_vscode_mcp_config",
+            ),
+            patch("shutil.which", return_value=None),
+        ):
+            run_setup(
+                agents_target=tmp_path / "agents",
+                mcp_config_target=tmp_path / "mcp.json",
+                force=True,
+            )
+
+        mock_copilot.assert_not_called()
+
+    def test_copilot_mcp_installed_when_detected(self, tmp_path: Path) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        mock_copilot = MagicMock()
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup.DEFAULT_SKILL_TARGETS",
+                (tmp_path / "skill_target",),
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._detect_copilot",
+                return_value=True,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_copilot_mcp_config",
+                mock_copilot,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_vscode_mcp_config",
+            ),
+        ):
+            run_setup(
+                agents_target=tmp_path / "agents",
+                mcp_config_target=tmp_path / "mcp.json",
+                force=True,
+            )
+
+        mock_copilot.assert_called_once()
+
+    def test_copilot_mcp_always_installed_when_explicit_target(
+        self, tmp_path: Path
+    ) -> None:
+        """Explicit skill_target disables default mode.
+
+        Copilot MCP runs unconditionally in explicit mode.
+        """
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import run_setup
+
+        skill_src, agent_src = self._make_sources(tmp_path)
+        mock_copilot = MagicMock()
+
+        with (
+            patch(
+                "research_pipeline.cli.cmd_setup._find_skill_source",
+                return_value=skill_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._find_agent_source",
+                return_value=agent_src,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_copilot_mcp_config",
+                mock_copilot,
+            ),
+            patch(
+                "research_pipeline.cli.cmd_setup._update_vscode_mcp_config",
+            ),
+        ):
+            run_setup(
+                skill_target=tmp_path / "skill_target",
+                agents_target=tmp_path / "agents",
+                mcp_config_target=tmp_path / "mcp.json",
+                force=True,
+            )
+
+        mock_copilot.assert_called_once()

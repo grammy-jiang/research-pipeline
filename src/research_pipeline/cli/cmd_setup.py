@@ -595,14 +595,47 @@ def run_setup(
                 "includes agent data."
             )
             raise SystemExit(1)
-        count = _install_agent_files(source, agents_target, symlink, force)
-        logger.info("Installed %d agent(s) to %s", count, agents_target)
+        # In default multi-target mode, gate the Claude agents install using
+        # the same path-prefix detection logic as skills.  Explicit or custom
+        # paths (e.g. tests using tmp_path) do not match any known prefix and
+        # are therefore always installed unconditionally.
+        install_agents = True
+        if default_multi_target:
+            agents_str = str(agents_target)
+            for prefix, detector in _AGENT_PATH_PREFIXES.items():
+                if agents_str.startswith(prefix + "/") or agents_str == prefix:
+                    install_agents = detector()
+                    if not install_agents:
+                        logger.info(
+                            "Agent not detected (prefix %s); "
+                            "skipping agent install to %s",
+                            prefix,
+                            agents_target,
+                        )
+                    break
+        if install_agents:
+            count = _install_agent_files(source, agents_target, symlink, force)
+            logger.info("Installed %d agent(s) to %s", count, agents_target)
 
     # --- MCP server config ---
     if not skip_mcp:
         _install_mcp_config(mcp_config_target, force=force)
-        _update_copilot_mcp_config(DEFAULT_COPILOT_MCP_CONFIG, force=force)
-        _update_vscode_mcp_config(DEFAULT_VSCODE_MCP_CONFIG, force=force)
+        # In default mode, only write Copilot / VS Code config files when
+        # those tools are actually present on PATH.
+        if not default_multi_target or _detect_copilot():
+            _update_copilot_mcp_config(DEFAULT_COPILOT_MCP_CONFIG, force=force)
+        else:
+            logger.info(
+                "GitHub Copilot CLI not detected; skipping %s",
+                DEFAULT_COPILOT_MCP_CONFIG,
+            )
+        if not default_multi_target or shutil.which("code") is not None:
+            _update_vscode_mcp_config(DEFAULT_VSCODE_MCP_CONFIG, force=force)
+        else:
+            logger.info(
+                "VS Code not detected; skipping %s",
+                DEFAULT_VSCODE_MCP_CONFIG,
+            )
 
     logger.info("Done.")
 

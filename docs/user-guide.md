@@ -922,16 +922,20 @@ research-pipeline setup --skip-skill
 research-pipeline setup --skip-mcp
 ```
 
-This installs:
-- **Claude/GitHub Copilot skill** → `~/.claude/skills/research-pipeline/`
-- **Codex skill** → `~/.codex/skills/research-pipeline/`
-- **Sub-agents** → `~/.claude/agents/` — paper-analyzer.md, paper-screener.md,
-  paper-synthesizer.md for deep paper analysis, screening, and synthesis
-- **MCP config snippet** → `~/.config/research-pipeline/mcp.json`
+In default mode, setup auto-detects which agents are installed and only writes
+to paths for agents found on PATH:
 
-Once installed, Claude Code, GitHub Copilot, and Codex can discover the skill
-when you ask about academic paper research. Claude Code can also discover the
-agent definitions.
+| Agent | Skill path | Agents path | MCP registration |
+|-------|-----------|-------------|-----------------|
+| Claude Code | `~/.claude/skills/research-pipeline/` | `~/.claude/agents/*.md` | `claude mcp add` (user scope) |
+| Codex CLI | `~/.agents/skills/research-pipeline/` | — (skills only) | `codex mcp add` |
+| GitHub Copilot CLI | `~/.copilot/skills/research-pipeline/` | `~/.copilot/agents/*.agent.md` | `~/.copilot/mcp-config.json` |
+
+A reusable MCP config snippet is also written to `~/.config/research-pipeline/mcp.json`.
+
+Once installed, each agent can discover the skill when you ask about academic
+paper research. Claude Code and GitHub Copilot also get specialist sub-agent
+definitions (paper-analyzer, paper-screener, paper-synthesizer).
 
 > **Note:** The deprecated `install-skill` command still works as a hidden alias
 > for `setup` but may be removed in a future release.

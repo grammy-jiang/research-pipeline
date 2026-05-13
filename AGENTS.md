@@ -295,11 +295,16 @@ research-pipeline setup --skip-skill   # Agents only
 research-pipeline setup --skip-mcp     # Do not write MCP config snippet
 ```
 
-Installs:
-- Skill → `~/.claude/skills/research-pipeline/`
-- Skill → `~/.codex/skills/research-pipeline/`
-- Sub-agents → `~/.claude/agents/` (paper-analyzer, paper-screener, paper-synthesizer)
-- MCP config snippet → `~/.config/research-pipeline/mcp.json`
+Setup auto-detects which agents are installed and only writes to paths for
+agents found on PATH:
+
+| Agent | Skill path | Agents path | MCP registration |
+|-------|-----------|-------------|-----------------|
+| Claude Code | `~/.claude/skills/research-pipeline/` | `~/.claude/agents/*.md` | `claude mcp add` (user scope) |
+| Codex CLI | `~/.agents/skills/research-pipeline/` | — (skills only) | `codex mcp add` |
+| GitHub Copilot CLI | `~/.copilot/skills/research-pipeline/` | `~/.copilot/agents/*.agent.md` | `~/.copilot/mcp-config.json` |
+
+MCP config snippet → `~/.config/research-pipeline/mcp.json`
 
 The skill is structured per Anthropic's Skill-Building Guide (explicit
 trigger phrases, `license`/`compatibility` frontmatter, Examples section,
