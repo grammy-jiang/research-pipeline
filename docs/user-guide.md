@@ -245,14 +245,21 @@ reuse_artifacts = true          # Symlink existing PDFs/markdown
 
 ### Environment variables
 
-Environment variables override config file settings:
+Environment variables override config file settings. The prefix is
+`RESEARCH_PIPELINE_`:
 
 | Variable | Purpose |
 |---|---|
-| `ARXIV_PAPER_PIPELINE_CONFIG` | Path to config file |
-| `ARXIV_PAPER_PIPELINE_CACHE_DIR` | Cache directory override |
-| `ARXIV_PAPER_PIPELINE_WORKSPACE` | Workspace root override |
-| `ARXIV_PAPER_PIPELINE_DISABLE_LLM` | Disable LLM features |
+| `RESEARCH_PIPELINE_CONFIG` | Path to config file |
+| `RESEARCH_PIPELINE_CACHE_DIR` | Cache directory override |
+| `RESEARCH_PIPELINE_WORKSPACE` | Workspace root override |
+| `RESEARCH_PIPELINE_DISABLE_LLM` | Disable LLM features |
+| `RESEARCH_PIPELINE_ALLOW_LIVE` | Enable live arXiv access |
+| `RESEARCH_PIPELINE_LLM_PROFILE` | LLM model selection |
+
+Section-level keys can also be overridden with
+`RESEARCH_PIPELINE_<SECTION>_<KEY>` (uppercase, underscore-separated).
+For example, `RESEARCH_PIPELINE_SCREEN_CHEAP_TOP_K=100`.
 
 ## Usage
 
@@ -1077,36 +1084,36 @@ app_key = "account-2-key"
 
 # Multiple Datalab accounts
 [[conversion.datalab.accounts]]
-api_key = "datalab-key-1"
+api_key = "datalab-key-1"  # pragma: allowlist secret
 mode = "fast"
 
 [[conversion.datalab.accounts]]
-api_key = "datalab-key-2"
+api_key = "datalab-key-2"  # pragma: allowlist secret
 mode = "accurate"
 
 # LlamaParse
 [[conversion.llamaparse.accounts]]
-api_key = "llama-key-1"
+api_key = "llama-key-1"  # pragma: allowlist secret
 tier = "agentic"                # per-account tier override
 
 [[conversion.llamaparse.accounts]]
-api_key = "llama-key-2"
+api_key = "llama-key-2"  # pragma: allowlist secret
 tier = "cost-effective"
 
 # Mistral OCR
 [[conversion.mistral_ocr.accounts]]
-api_key = "mistral-key-1"
+api_key = "mistral-key-1"  # pragma: allowlist secret
 
 [[conversion.mistral_ocr.accounts]]
-api_key = "mistral-key-2"
+api_key = "mistral-key-2"  # pragma: allowlist secret
 model = "mistral-ocr-latest"
 
 # OpenAI Vision
 [[conversion.openai_vision.accounts]]
-api_key = "openai-key-1"
+api_key = "openai-key-1"  # pragma: allowlist secret
 
 [[conversion.openai_vision.accounts]]
-api_key = "openai-key-2"
+api_key = "openai-key-2"  # pragma: allowlist secret
 model = "gpt-4o-mini"
 ```
 

@@ -2,7 +2,8 @@ site_name: research-pipeline
 site_url: https://grammy-jiang.github.io/research-pipeline/
 site_description: >-
   A deterministic, stage-based Python pipeline for searching, screening,
-  downloading, converting, and summarizing academic papers.
+  downloading, converting, and summarizing academic papers — plus a daily
+  AI intelligence briefing system.
 repo_url: https://github.com/grammy-jiang/research-pipeline
 repo_name: grammy-jiang/research-pipeline
 
@@ -34,10 +35,31 @@ theme:
 
 nav:
   - Home: index.md
-  - User Guide: user-guide.md
-  - Architecture: architecture.md
-  - Python Development: python development.md
-  - Implementation Plan: implementation-plan.md
+  - Getting Started:
+    - User Manual: user-manual.md
+    - User Guide: user-guide.md
+  - Reference:
+    - API Reference: api-reference.md
+    - Data Model: data-model.md
+    - Configuration: user-guide.md
+  - Architecture:
+    - System Design: system-design.md
+    - Architecture (legacy): architecture.md
+    - Security Model: security-model.md
+    - ADRs:
+      - Overview: adr/README.md
+      - ADR-001 uv build tool: adr/ADR-001-uv-build-tool.md
+      - ADR-002 Pydantic models: adr/ADR-002-pydantic-domain-models.md
+      - ADR-003 Stage-based pipeline: adr/ADR-003-stage-based-pipeline.md
+      - ADR-004 Conversion registry: adr/ADR-004-conversion-backend-registry.md
+      - ADR-005 SQLite state: adr/ADR-005-sqlite-persistent-state.md
+      - ADR-006 FastMCP server: adr/ADR-006-fastmcp-server.md
+      - ADR-007 Multi-tier memory: adr/ADR-007-multi-tier-memory.md
+      - ADR-008 Dual pipelines: adr/ADR-008-briefing-vs-academic-pipeline.md
+  - Development:
+    - Developer Guide: developer-guide.md
+    - Testing Strategy: testing-strategy.md
+    - Operations Runbook: operations-runbook.md
   - Changelog: changelog.md
 
 plugins:
