@@ -518,3 +518,310 @@ class TestUpdateVscodeMcpConfig:
         assert DEFAULT_VSCODE_MCP_CONFIG.name == "mcp.json"
         assert "Code" in str(DEFAULT_VSCODE_MCP_CONFIG)
         assert "User" in str(DEFAULT_VSCODE_MCP_CONFIG)
+
+
+# ---------------------------------------------------------------------------
+# New tests: detection helpers, MCP CLI installs, path constants, suffix param
+# ---------------------------------------------------------------------------
+
+
+class TestDetection:
+    """Tests for _detect_claude / _detect_codex / _detect_copilot."""
+
+    def test_detect_claude_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _detect_claude
+
+        with patch("shutil.which", return_value="/usr/bin/claude"):
+            assert _detect_claude() is True
+
+    def test_detect_claude_not_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _detect_claude
+
+        with patch("shutil.which", return_value=None):
+            assert _detect_claude() is False
+
+    def test_detect_codex_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _detect_codex
+
+        with patch("shutil.which", return_value="/usr/bin/codex"):
+            assert _detect_codex() is True
+
+    def test_detect_codex_not_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _detect_codex
+
+        with patch("shutil.which", return_value=None):
+            assert _detect_codex() is False
+
+    def test_detect_copilot_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _detect_copilot
+
+        with patch("shutil.which", return_value="/usr/bin/copilot"):
+            assert _detect_copilot() is True
+
+    def test_detect_copilot_not_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _detect_copilot
+
+        with patch("shutil.which", return_value=None):
+            assert _detect_copilot() is False
+
+
+class TestFilterTargetsByDetection:
+    """Tests for _filter_targets_by_detection."""
+
+    def test_keeps_targets_for_detected_agents(self) -> None:
+        from pathlib import Path
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import (
+            _AGENT_PATH_PREFIXES,
+            _filter_targets_by_detection,
+        )
+
+        prefixes = list(_AGENT_PATH_PREFIXES.keys())
+        assert len(prefixes) >= 3
+
+        targets = [
+            Path(prefixes[0]) / "skills" / "research-pipeline",
+            Path(prefixes[1]) / "skills" / "research-pipeline",
+            Path(prefixes[2]) / "skills" / "research-pipeline",
+        ]
+        with patch.dict(
+            "research_pipeline.cli.cmd_setup._AGENT_PATH_PREFIXES",
+            {
+                prefixes[0]: lambda: True,
+                prefixes[1]: lambda: False,
+                prefixes[2]: lambda: True,
+            },
+        ):
+            result = _filter_targets_by_detection(targets)
+        assert targets[0] in result
+        assert targets[1] not in result
+        assert targets[2] in result
+
+    def test_keeps_unknown_prefix_targets(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _filter_targets_by_detection
+
+        custom = tmp_path / "custom" / "skills" / "research-pipeline"
+        result = _filter_targets_by_detection([custom])
+        assert custom in result
+
+
+class TestClaudeMcp:
+    """Tests for _install_claude_mcp."""
+
+    def test_skips_when_already_registered(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_claude_mcp
+
+        mock_check = MagicMock()
+        mock_check.returncode = 0
+        with patch("subprocess.run", return_value=mock_check) as mock_run:
+            result = _install_claude_mcp(force=False)
+        assert result is False
+        # Only one call: the 'get' check
+        assert mock_run.call_count == 1
+
+    def test_adds_when_not_registered(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_claude_mcp
+
+        not_found = MagicMock()
+        not_found.returncode = 1
+        added = MagicMock()
+        added.returncode = 0
+        added.stderr = ""
+        with patch("subprocess.run", side_effect=[not_found, added]) as mock_run:
+            result = _install_claude_mcp(force=False)
+        assert result is True
+        assert mock_run.call_count == 2
+
+    def test_force_removes_then_adds(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_claude_mcp
+
+        removed = MagicMock()
+        removed.returncode = 0
+        added = MagicMock()
+        added.returncode = 0
+        added.stderr = ""
+        with patch("subprocess.run", side_effect=[removed, added]) as mock_run:
+            result = _install_claude_mcp(force=True)
+        assert result is True
+        first_call_args = mock_run.call_args_list[0][0][0]
+        assert "remove" in first_call_args
+
+    def test_returns_false_on_command_failure(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_claude_mcp
+
+        not_found = MagicMock()
+        not_found.returncode = 1
+        failed = MagicMock()
+        failed.returncode = 1
+        failed.stderr = "error"
+        with patch("subprocess.run", side_effect=[not_found, failed]):
+            result = _install_claude_mcp(force=False)
+        assert result is False
+
+    def test_returns_false_on_file_not_found(self) -> None:
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _install_claude_mcp
+
+        with patch("subprocess.run", side_effect=FileNotFoundError):
+            result = _install_claude_mcp(force=False)
+        assert result is False
+
+
+class TestCodexMcp:
+    """Tests for _install_codex_mcp."""
+
+    def test_skips_when_already_registered(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_codex_mcp
+
+        mock_check = MagicMock()
+        mock_check.returncode = 0
+        with patch("subprocess.run", return_value=mock_check) as mock_run:
+            result = _install_codex_mcp(force=False)
+        assert result is False
+        assert mock_run.call_count == 1
+
+    def test_adds_when_not_registered(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_codex_mcp
+
+        not_found = MagicMock()
+        not_found.returncode = 1
+        added = MagicMock()
+        added.returncode = 0
+        added.stderr = ""
+        with patch("subprocess.run", side_effect=[not_found, added]) as mock_run:
+            result = _install_codex_mcp(force=False)
+        assert result is True
+        assert mock_run.call_count == 2
+
+    def test_force_removes_then_adds(self) -> None:
+        from unittest.mock import MagicMock, patch
+
+        from research_pipeline.cli.cmd_setup import _install_codex_mcp
+
+        removed = MagicMock()
+        removed.returncode = 0
+        added = MagicMock()
+        added.returncode = 0
+        added.stderr = ""
+        with patch("subprocess.run", side_effect=[removed, added]) as mock_run:
+            result = _install_codex_mcp(force=True)
+        assert result is True
+        first_call_args = mock_run.call_args_list[0][0][0]
+        assert "remove" in first_call_args
+
+    def test_returns_false_on_timeout(self) -> None:
+        import subprocess
+        from unittest.mock import patch
+
+        from research_pipeline.cli.cmd_setup import _install_codex_mcp
+
+        with patch(
+            "subprocess.run", side_effect=subprocess.TimeoutExpired("codex", 30)
+        ):
+            result = _install_codex_mcp(force=False)
+        assert result is False
+
+
+class TestDefaultCodexSkillDir:
+    """DEFAULT_CODEX_SKILL_DIR must point to ~/.agents, not ~/.codex."""
+
+    def test_path_uses_dot_agents(self) -> None:
+        from research_pipeline.cli.cmd_setup import DEFAULT_CODEX_SKILL_DIR
+
+        assert ".agents" in str(DEFAULT_CODEX_SKILL_DIR), (
+            "Codex CLI skill path must be under ~/.agents (official user scope path)"
+        )
+
+    def test_path_includes_skills(self) -> None:
+        from research_pipeline.cli.cmd_setup import DEFAULT_CODEX_SKILL_DIR
+
+        assert "skills" in str(DEFAULT_CODEX_SKILL_DIR)
+
+
+class TestCopilotAgentsDir:
+    """DEFAULT_COPILOT_AGENTS_DIR must point to ~/.copilot/agents."""
+
+    def test_path_uses_dot_copilot(self) -> None:
+        from research_pipeline.cli.cmd_setup import DEFAULT_COPILOT_AGENTS_DIR
+
+        assert ".copilot" in str(DEFAULT_COPILOT_AGENTS_DIR)
+
+    def test_path_includes_agents(self) -> None:
+        from research_pipeline.cli.cmd_setup import DEFAULT_COPILOT_AGENTS_DIR
+
+        assert "agents" in str(DEFAULT_COPILOT_AGENTS_DIR)
+
+
+class TestInstallAgentFilesWithSuffix:
+    """_install_agent_files respects target_suffix kwarg."""
+
+    def test_default_suffix_md(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_agent_files
+
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "paper-analyzer.md").write_text("# Agent")
+
+        dest = tmp_path / "dest"
+        count = _install_agent_files(src, dest, symlink=False, force=False)
+        assert count == 1
+        assert (dest / "paper-analyzer.md").exists()
+
+    def test_agent_md_suffix_for_copilot(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_agent_files
+
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "paper-analyzer.md").write_text("# Agent")
+
+        dest = tmp_path / "dest"
+        count = _install_agent_files(
+            src, dest, symlink=False, force=False, target_suffix=".agent.md"
+        )
+        assert count == 1
+        assert (dest / "paper-analyzer.agent.md").exists()
+        assert not (dest / "paper-analyzer.md").exists()
+
+    def test_force_overwrites_with_new_suffix(self, tmp_path: Path) -> None:
+        from research_pipeline.cli.cmd_setup import _install_agent_files
+
+        src = tmp_path / "src"
+        src.mkdir()
+        (src / "paper-analyzer.md").write_text("# Agent v2")
+
+        dest = tmp_path / "dest"
+        dest.mkdir()
+        existing = dest / "paper-analyzer.agent.md"
+        existing.write_text("old")
+
+        count = _install_agent_files(
+            src, dest, symlink=False, force=True, target_suffix=".agent.md"
+        )
+        assert count == 1
+        assert existing.read_text() == "# Agent v2"

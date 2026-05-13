@@ -6,14 +6,16 @@ import contextlib
 import json
 import logging
 import shutil
-from collections.abc import Iterable, Sequence
+import subprocess  # nosec B404
+from collections.abc import Callable, Iterable, Sequence
 from pathlib import Path
 
 logger = logging.getLogger(__name__)
 
 # Default install targets
 DEFAULT_CLAUDE_SKILL_DIR = Path.home() / ".claude" / "skills" / "research-pipeline"
-DEFAULT_CODEX_SKILL_DIR = Path.home() / ".codex" / "skills" / "research-pipeline"
+# Official Codex CLI skill path: ~/.agents/skills/<name>  (not ~/.codex/skills/)
+DEFAULT_CODEX_SKILL_DIR = Path.home() / ".agents" / "skills" / "research-pipeline"
 DEFAULT_COPILOT_SKILL_DIR = Path.home() / ".copilot" / "skills" / "research-pipeline"
 DEFAULT_SKILL_DIR = DEFAULT_CLAUDE_SKILL_DIR
 DEFAULT_SKILL_TARGETS = (
@@ -22,6 +24,7 @@ DEFAULT_SKILL_TARGETS = (
     DEFAULT_COPILOT_SKILL_DIR,
 )
 DEFAULT_AGENTS_DIR = Path.home() / ".claude" / "agents"
+DEFAULT_COPILOT_AGENTS_DIR = Path.home() / ".copilot" / "agents"
 DEFAULT_MCP_CONFIG_DIR = Path.home() / ".config" / "research-pipeline"
 DEFAULT_MCP_CONFIG_FILE = DEFAULT_MCP_CONFIG_DIR / "mcp.json"
 DEFAULT_COPILOT_MCP_CONFIG = Path.home() / ".copilot" / "mcp-config.json"
@@ -111,6 +114,70 @@ def _resolve_skill_targets(
     return _dedupe_paths(DEFAULT_SKILL_TARGETS)
 
 
+def _detect_claude() -> bool:
+    """Return True if the Claude Code CLI (``claude``) is available on PATH."""
+    return shutil.which("claude") is not None
+
+
+def _detect_codex() -> bool:
+    """Return True if the Codex CLI (``codex``) is available on PATH."""
+    return shutil.which("codex") is not None
+
+
+def _detect_copilot() -> bool:
+    """Return True if the GitHub Copilot CLI (``copilot``) is available on PATH."""
+    return shutil.which("copilot") is not None
+
+
+# Map each agent's home-directory prefix to its detection callable.
+# A skill target whose path starts with a given prefix is only installed when
+# the associated detector returns True.  Targets matching no prefix are kept
+# unconditionally (e.g. explicit, test, or custom paths).
+_AGENT_PATH_PREFIXES: dict[str, Callable[[], bool]] = {
+    str(Path.home() / ".claude"): _detect_claude,
+    str(Path.home() / ".agents"): _detect_codex,
+    str(Path.home() / ".copilot"): _detect_copilot,
+}
+
+
+def _filter_targets_by_detection(targets: list[Path]) -> list[Path]:
+    """Keep only skill targets whose associated agent is detected on PATH.
+
+    Targets under a known agent home prefix are skipped when that agent is not
+    installed.  Targets that match no known prefix are always kept.
+
+    Args:
+        targets: Fully-expanded candidate install paths.
+
+    Returns:
+        Filtered list preserving the original order.
+    """
+    kept: list[Path] = []
+    for target in targets:
+        t_str = str(target)
+        matched = False
+        for prefix, detector in _AGENT_PATH_PREFIXES.items():
+            if t_str.startswith(prefix + "/") or t_str == prefix:
+                matched = True
+                if detector():
+                    kept.append(target)
+                    logger.debug(
+                        "Agent detected (prefix %s); including target: %s",
+                        prefix,
+                        target,
+                    )
+                else:
+                    logger.info(
+                        "Agent not detected (prefix %s); skipping target: %s",
+                        prefix,
+                        target,
+                    )
+                break
+        if not matched:
+            kept.append(target)
+    return kept
+
+
 def _install_directory(
     source: Path,
     target: Path,
@@ -187,11 +254,22 @@ def _install_agent_files(
     target_dir: Path,
     symlink: bool,
     force: bool,
+    *,
+    target_suffix: str = ".md",
 ) -> int:
-    """Install individual agent .md files into the target directory.
+    """Install individual agent files into the target directory.
 
     Unlike skills (which are a directory), agents are individual files
-    that live directly in ``~/.claude/agents/``.
+    that live directly in the agent's agents directory.
+
+    Args:
+        source_dir: Directory containing source ``.md`` agent files.
+        target_dir: Destination directory.
+        symlink: Create a symlink instead of copying.
+        force: Overwrite existing files.
+        target_suffix: Extension suffix for the installed file.  Defaults to
+            ``".md"`` (e.g. ``paper-analyzer.md``).  Pass ``".agent.md"`` for
+            GitHub Copilot CLI targets (e.g. ``paper-analyzer.agent.md``).
 
     Returns:
         Number of agent files installed.
@@ -199,7 +277,7 @@ def _install_agent_files(
     target_dir.mkdir(parents=True, exist_ok=True)
     count = 0
     for agent_file in sorted(source_dir.glob("*.md")):
-        dest = target_dir / agent_file.name
+        dest = target_dir / (agent_file.stem + target_suffix)
         logger.info("Agent file: %s → %s", agent_file.name, dest)
 
         if dest.exists() or dest.is_symlink():
@@ -222,6 +300,121 @@ def _install_agent_files(
             logger.info("Copied agent: %s", dest)
         count += 1
     return count
+
+
+def _install_claude_mcp(force: bool) -> bool:
+    """Register the research-pipeline MCP server with Claude Code via CLI.
+
+    Runs ``claude mcp add --transport stdio research-pipeline -- research-pipeline
+    mcp serve``.  When *force* is True, any existing registration is removed first.
+
+    Returns:
+        True on success, False when skipped or the command fails.
+    """
+    try:
+        if force:
+            subprocess.run(  # nosec B603 B607
+                ["claude", "mcp", "remove", "research-pipeline"],
+                capture_output=True,
+                timeout=30,
+            )
+        else:
+            check = subprocess.run(  # nosec B603 B607
+                ["claude", "mcp", "get", "research-pipeline"],
+                capture_output=True,
+                timeout=30,
+            )
+            if check.returncode == 0:
+                logger.info(
+                    "Claude Code MCP server already registered. "
+                    "Use --force to overwrite."
+                )
+                return False
+        result = subprocess.run(  # nosec B603 B607
+            [
+                "claude",
+                "mcp",
+                "add",
+                "--transport",
+                "stdio",
+                "research-pipeline",
+                "--",
+                "research-pipeline",
+                "mcp",
+                "serve",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode == 0:
+            logger.info("Claude Code MCP server registered via 'claude mcp add'.")
+            return True
+        logger.warning(
+            "'claude mcp add' failed (rc=%d): %s",
+            result.returncode,
+            result.stderr.strip(),
+        )
+        return False
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as exc:
+        logger.warning("Could not register Claude Code MCP server: %s", exc)
+        return False
+
+
+def _install_codex_mcp(force: bool) -> bool:
+    """Register the research-pipeline MCP server with Codex CLI.
+
+    Runs ``codex mcp add research-pipeline -- research-pipeline mcp serve``.
+    When *force* is True, any existing registration is removed first.
+
+    Returns:
+        True on success, False when skipped or the command fails.
+    """
+    try:
+        if force:
+            subprocess.run(  # nosec B603 B607
+                ["codex", "mcp", "remove", "research-pipeline"],
+                capture_output=True,
+                timeout=30,
+            )
+        else:
+            check = subprocess.run(  # nosec B603 B607
+                ["codex", "mcp", "get", "research-pipeline"],
+                capture_output=True,
+                timeout=30,
+            )
+            if check.returncode == 0:
+                logger.info(
+                    "Codex CLI MCP server already registered. Use --force to overwrite."
+                )
+                return False
+        result = subprocess.run(  # nosec B603 B607
+            [
+                "codex",
+                "mcp",
+                "add",
+                "research-pipeline",
+                "--",
+                "research-pipeline",
+                "mcp",
+                "serve",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=30,
+        )
+        if result.returncode == 0:
+            logger.info("Codex CLI MCP server registered via 'codex mcp add'.")
+            return True
+        logger.warning(
+            "'codex mcp add' failed (rc=%d): %s",
+            result.returncode,
+            result.stderr.strip(),
+        )
+        return False
+    except (FileNotFoundError, subprocess.TimeoutExpired, OSError) as exc:
+        logger.warning("Could not register Codex CLI MCP server: %s", exc)
+        return False
 
 
 def _mcp_server_config() -> dict[str, dict[str, dict[str, object]]]:
@@ -329,11 +522,13 @@ def run_setup(
 
     Args:
         skill_target: Explicit single destination for the skill directory.
-            When omitted, installs to Claude Code, Codex CLI, and GitHub Copilot CLI
-            paths.
+            When omitted, installs to Claude Code, Codex CLI, and GitHub Copilot
+            CLI paths for any agents detected on PATH.
         skill_targets: Explicit multiple destinations for the skill directory.
             Takes precedence over ``skill_target`` when set.
-        agents_target: Destination directory for agent files.
+        agents_target: Destination directory for agent files (Claude ``.md``
+            format).
+        mcp_config_target: Destination for the standalone MCP config snippet.
         symlink: If True, create symlinks instead of copying.
         force: If True, overwrite existing files/directories.
         skip_skill: If True, skip skill installation.
@@ -345,10 +540,13 @@ def run_setup(
         logger.warning("All setup components skipped; nothing to do.")
         return
 
+    default_multi_target = skill_target is None and skill_targets is None
+
     # --- Skill ---
     if not skip_skill:
         targets = _resolve_skill_targets(skill_target, skill_targets)
-        default_multi_target = skill_target is None and skill_targets is None
+        if default_multi_target:
+            targets = _filter_targets_by_detection(targets)
         primary_skill_source = _find_skill_source()
         skill_sources = (
             _find_skill_sources()

@@ -9,6 +9,8 @@ from research_pipeline import __version__
 from research_pipeline.cli.cmd_brief import brief_app
 from research_pipeline.infra.logging import setup_logging
 
+logger = logging.getLogger(__name__)
+
 app = typer.Typer(
     name="research-pipeline",
     help=(
@@ -688,8 +690,10 @@ def setup(
         "--skill-target",
         help=(
             "Target directory for skill installation. "
-            "Default: install to ~/.claude/skills/research-pipeline and "
-            "~/.codex/skills/research-pipeline."
+            "Default: install to detected agent skill directories — "
+            "~/.claude/skills/research-pipeline (Claude Code), "
+            "~/.agents/skills/research-pipeline (Codex CLI), and "
+            "~/.copilot/skills/research-pipeline (GitHub Copilot CLI)."
         ),
     ),
     agents_target: str = typer.Option(
@@ -737,9 +741,15 @@ def setup(
     """Install skills, agents, and MCP config for AI assistant discovery.
 
     Copies (or symlinks) the bundled SKILL.md, config.toml, reference docs,
-    agent definitions, and MCP config snippet. By default, the skill is
-    installed for Claude Code / GitHub Copilot and Codex; agents are installed
-    for Claude Code.
+    agent definitions, and MCP config snippet.  In default mode the install is
+    limited to agents detected on PATH:
+
+    * Claude Code  — skill to ~/.claude/skills/, agents to ~/.claude/agents/,
+      MCP registered via ``claude mcp add``.
+    * Codex CLI    — skill to ~/.agents/skills/, MCP via ``codex mcp add``.
+    * GitHub Copilot CLI — skill to ~/.copilot/skills/, agents (with
+      ``.agent.md`` extension) to ~/.copilot/agents/, MCP via
+      ~/.copilot/mcp-config.json.
 
     Example: research-pipeline setup
     Example: research-pipeline setup --symlink --force
@@ -747,10 +757,17 @@ def setup(
     """
     from research_pipeline.cli.cmd_setup import (
         DEFAULT_AGENTS_DIR,
+        DEFAULT_COPILOT_AGENTS_DIR,
         DEFAULT_MCP_CONFIG_FILE,
+        _detect_claude,
+        _detect_codex,
+        _detect_copilot,
+        _find_agent_source,
+        _install_agent_files,
+        _install_claude_mcp,
+        _install_codex_mcp,
         run_setup,
     )
-    from research_pipeline.infra.logging import setup_logging
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
@@ -760,6 +777,8 @@ def setup(
     mcp_config_path = (
         Path(mcp_config_target) if mcp_config_target else DEFAULT_MCP_CONFIG_FILE
     )
+    default_mode = not skill_target
+
     run_setup(
         skill_target=skill_path,
         agents_target=agents_path,
@@ -770,6 +789,33 @@ def setup(
         skip_agents=skip_agents,
         skip_mcp=skip_mcp,
     )
+
+    if default_mode:
+        # Claude Code MCP registration via ``claude mcp add``
+        if not skip_mcp and _detect_claude():
+            _install_claude_mcp(force)
+
+        # Codex CLI MCP registration via ``codex mcp add``
+        if not skip_mcp and _detect_codex():
+            _install_codex_mcp(force)
+
+        # GitHub Copilot CLI agents with ``.agent.md`` extension
+        if not skip_agents and _detect_copilot():
+            agent_source = _find_agent_source()
+            if agent_source is not None:
+                count = _install_agent_files(
+                    agent_source,
+                    DEFAULT_COPILOT_AGENTS_DIR,
+                    symlink,
+                    force,
+                    target_suffix=".agent.md",
+                )
+                if count:
+                    logger.info(
+                        "Installed %d agent(s) to %s (Copilot .agent.md)",
+                        count,
+                        DEFAULT_COPILOT_AGENTS_DIR,
+                    )
 
 
 @app.command(name="install-skill", hidden=True)
