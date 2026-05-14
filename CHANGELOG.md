@@ -2,6 +2,33 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.28] — 2026-05-14
+
+### Fixed
+
+- **Bug 1 (BREAKING — runners/runner.py): `_write_round_state` filtered gaps by wrong field `gap_type` instead of `classification`**
+  `research-pipeline/runners/runner.py` `_write_round_state` built the `open_gaps`
+  list for `round_state.json` using `g.get("gap_type") != "OUT_OF_SCOPE"`.
+  `gap_classification.schema.json` defines the field as `classification` (enum:
+  ACADEMIC, ENGINEERING, OUT_OF_SCOPE) — `gap_type` was the stale field name
+  corrected in the `gap_classifier.yaml` contract by v0.17.25, but the runner itself
+  was never updated. Because `g.get("gap_type")` always returns `None` and
+  `None != "OUT_OF_SCOPE"` is always `True`, every gap including OUT_OF_SCOPE ones
+  was included in `open_gaps`. This caused `round_state.json` to misreport the open
+  gap count, misleading the `resume-inject.sh` context injection into reporting
+  inflated gap counts to the agent on every new prompt. Fixed by changing
+  `g.get("gap_type")` to `g.get("classification")`.
+
+- **Bug 2 (MEDIUM — SKILL.md Rule 4): Rule 4 still referenced stale `verdict: reject` field and value**
+  `research-pipeline/SKILL.md` Rule 4 said "If a reviewer sub-agent returns
+  `verdict: reject`… Do not override a `reject` verdict." `reviewer_result.schema.json`
+  uses `status` (not `verdict`) and the rejection value is `"rejected"` (not `"reject"`).
+  The `synthesis_reviewer.yaml` contract was corrected to use `status: rejected` in
+  v0.17.27, but `SKILL.md` was not updated at the same time. An orchestrating agent
+  reading Rule 4 would look for the wrong field (`verdict`) and wrong value (`reject`),
+  potentially never triggering the rejection handler. Fixed by updating Rule 4 to
+  reference `status: "rejected"` and `rejected` throughout.
+
 ## [v0.17.27] — 2026-05-14
 
 ### Fixed

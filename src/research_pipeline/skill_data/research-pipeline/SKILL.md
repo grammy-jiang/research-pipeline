@@ -68,9 +68,9 @@ proved by artifact existence + schema validation — not by agent claim.
 3. **Sub-agent delegation.** When the runner prints `DELEGATE TO SUB-AGENT`,
    execute the named sub-agent with the printed contract, then update
    `workflow_state.json tasks.<id>.status = "accepted"` and re-run.
-4. **Reviewer gates.** If a reviewer sub-agent returns `verdict: reject`,
+4. **Reviewer gates.** If a reviewer sub-agent returns `status: "rejected"`,
    fix the artifact, reset the task to `pending`, and re-run. Do not
-   override a `reject` verdict.
+   override a `rejected` verdict.
 5. **Final report.** Write `./<topic-slug>-research-report.md` only after
    `validate-report` is `accepted`. Never write it before that gate.
 6. **Evidence-based.** Every finding in the report must cite at least one

@@ -80,7 +80,7 @@ def _write_round_state(state: dict[str, Any]) -> None:
             open_gaps = [
                 g
                 for g in gaps_data.get("gaps", [])
-                if g.get("gap_type") != "OUT_OF_SCOPE"
+                if g.get("classification") != "OUT_OF_SCOPE"
             ]
         except (json.JSONDecodeError, OSError):
             pass
