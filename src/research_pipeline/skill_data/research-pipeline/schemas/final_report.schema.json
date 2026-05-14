@@ -1,7 +1,7 @@
 {
   "$schema": "http://json-schema.org/draft-07/schema#",
   "title": "FinalReport",
-  "description": "Structural validation schema for the final Markdown research report.",
+  "description": "Structural validation schema for the final Markdown research report. Section names match the headings in references/output-templates.md.",
   "type": "object",
   "required": ["sections", "validation"],
   "properties": {
@@ -9,13 +9,43 @@
     "run_id": {"type": "string"},
     "sections": {
       "type": "object",
-      "description": "Presence of required report sections.",
+      "description": "Presence of required report sections (must match output-templates.md headings).",
       "required": [
-        "contents", "round_history", "executive_summary", "background",
-        "methodology", "key_findings", "evidence_table", "comparative_analysis",
-        "research_gaps", "assumption_map", "risk_register", "recommendations",
-        "conclusion", "references"
+        "contents",
+        "round_history",
+        "executive_summary",
+        "research_question",
+        "methodology",
+        "papers_reviewed",
+        "research_landscape",
+        "confidence_graded_findings",
+        "research_gaps",
+        "practical_recommendations",
+        "evidence_map",
+        "references"
       ],
+      "properties": {
+        "contents":                    {"type": "boolean"},
+        "round_history":               {"type": "boolean"},
+        "executive_summary":           {"type": "boolean"},
+        "research_question":           {"type": "boolean"},
+        "methodology":                 {"type": "boolean"},
+        "papers_reviewed":             {"type": "boolean"},
+        "research_landscape":          {"type": "boolean"},
+        "methodology_comparison":      {"type": "boolean"},
+        "confidence_graded_findings":  {"type": "boolean"},
+        "trade_off_analysis":          {"type": "boolean"},
+        "points_of_agreement":         {"type": "boolean"},
+        "points_of_contradiction":     {"type": "boolean"},
+        "research_gaps":               {"type": "boolean"},
+        "reproducibility_notes":       {"type": "boolean"},
+        "practical_recommendations":   {"type": "boolean"},
+        "future_directions":           {"type": "boolean"},
+        "readiness_assessment":        {"type": "boolean"},
+        "evidence_map":                {"type": "boolean"},
+        "references":                  {"type": "boolean"},
+        "appendix_run_metadata":       {"type": "boolean"}
+      },
       "additionalProperties": {"type": "boolean"}
     },
     "validation": {

@@ -38,7 +38,7 @@ try:
         sys.exit(0)
 
     slug        = d.get("topic_slug",     "")
-    round_num   = d.get("current_round",  "?")
+    round_num   = d.get("round",          "?")
     status      = d.get("status",         "unknown")
     gaps        = d.get("open_gaps",      [])
 
@@ -46,7 +46,7 @@ try:
         "=== PRIOR RESEARCH SESSION DETECTED (round_state.json in CWD) ===",
         f"  run_id:         {run_id}",
         f"  topic_slug:     {slug}",
-        f"  current_round:  {round_num}",
+        f"  round:          {round_num}",
         f"  status:         {status}",
     ]
     if gaps:

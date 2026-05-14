@@ -1,5 +1,5 @@
 # paper_screener subagent contract
-# Task: screen-candidates (paper_screener)
+# Task: paper-screener (paper_screener)
 # Executor kind: llm_worker
 
 role: paper_screener

@@ -1,5 +1,5 @@
 # paper_analyzer subagent contract
-# Task: paper-analysis (paper_analyzer)
+# Task: paper-analyzer (paper_analyzer)
 # Executor kind: llm_worker
 
 role: paper_analyzer
@@ -13,13 +13,13 @@ description: |
   - Score confidence for each key finding
 
 inputs:
-  - path: "{cwd}/convert/markdown/"
+  - path: "{run_dir}/convert/markdown/"
     description: "Converted Markdown versions of downloaded papers"
-  - path: "{cwd}/screened.jsonl"
+  - path: "{run_dir}/screen/screened.jsonl"
     description: "Shortlist metadata for context"
 
 outputs:
-  - path: "{cwd}/analysis/"
+  - path: "{run_dir}/analysis/"
     description: "Per-paper JSON analysis files (one per paper)"
     schema: "../../schemas/paper_analysis.schema.json"
 
@@ -37,7 +37,7 @@ forbidden_actions:
   - Do NOT summarize without reading the paper text (view the converted Markdown)
   - Do NOT fabricate citations or findings not present in the paper
   - Do NOT call tool_summarize_papers or synthesis tools
-  - Do NOT write outside the "{cwd}/analysis/" directory
+  - Do NOT write outside the "{run_dir}/analysis/" directory
 
 analysis_template:
   required_fields:
@@ -62,7 +62,7 @@ evidence_requirements:
   - research_question must be a single sentence
 
 completion_criteria:
-  - "analysis/ directory contains one .json file per downloaded paper"
+  - "{run_dir}/analysis/ directory contains one .json file per downloaded paper"
   - "Each JSON file contains all required_fields"
   - "No fabricated citations (all quotes traceable to the source Markdown)"
 

@@ -101,6 +101,9 @@ max_per_run = 20
 enabled = false
 temperature = 0
 profile = "default"
+# Model used by sub-agents (paper-screener, paper-analyzer, paper-synthesizer,
+# gap-classifier, synthesis-reviewer).  Update here when upgrading model versions.
+analysis_model = "claude-opus-4.6"
 
 [screen]
 cheap_top_k = 50
@@ -123,7 +126,10 @@ min_downloads = 5
 
 # Multi-source search
 [sources]
-enabled = ["arxiv"]             # Available: arxiv, scholar, semantic_scholar, openalex, dblp, huggingface
+# arxiv is always included.  Additional free sources (no API key required):
+# semantic_scholar, openalex, dblp, huggingface.
+# Add "scholar" only if scholarly or SerpAPI is installed.
+enabled = ["arxiv", "semantic_scholar", "openalex", "dblp", "huggingface"]
 scholar_backend = "scholarly"   # scholarly or serpapi
 scholar_min_interval = 10.0
 serpapi_key = ""

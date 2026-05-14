@@ -42,7 +42,7 @@ research-pipeline search --run-id <RUN_ID> --source all --config CFG
 |---|---|---|
 | Plan | `research-pipeline plan "topic" --config CFG` | `plan/query_plan.json` |
 | Search | `research-pipeline search --run-id ID --source all --config CFG` | `search/candidates.jsonl` |
-| Screen | `research-pipeline screen --run-id ID --diversity --config CFG` | `screen/shortlist.json` |
+| Screen | `research-pipeline screen --run-id ID --diversity --config CFG` | `screen/screened.jsonl` |
 | Download | `research-pipeline download --run-id ID --config CFG` | `download/pdf/*.pdf` |
 | Convert | `research-pipeline convert --run-id ID --backend docling --config CFG` | `convert/markdown/*.md` |
 | Extract | `research-pipeline extract --run-id ID --config CFG` | `extract/*.extract.json` |
@@ -55,8 +55,8 @@ research-pipeline search --run-id <RUN_ID> --source all --config CFG
 | Profile | Stages |
 |---|---|
 | `quick` | 12 tasks: resume-check, plan, verify-plan, search, screen, download, convert-rough, extract, summarize, report, validate-report, check-completion |
-| `standard` | 17 tasks: quick + paper-screener, expand, enrich, analyze-claims, score-claims |
-| `deep` | 23 tasks: standard + quality, convert-fine, paper-analyzer, paper-synthesizer, review-synthesis, classify-gaps |
+| `standard` | 17 tasks: quick + expand, convert-fine, analyze-claims, score-claims, classify-gaps |
+| `deep` | 23 tasks: standard + paper-screener, quality, enrich, paper-analyzer, paper-synthesizer, review-synthesis |
 | `auto` | selected by query complexity |
 
 ## Conversion

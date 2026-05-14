@@ -2,6 +2,90 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.31] — 2026-05-14
+
+### Fixed
+
+- **Bug 1 (MEDIUM — research-pipeline/runners/subagent_contracts/paper_screener.yaml):
+  Header comment `# Task: screen-candidates` did not match the manifest task ID `paper-screener`**
+  The first two comment lines read `# Task: screen-candidates (paper_screener)`. The actual
+  `task_id` field (line 6) was already `paper-screener` (correct), but the comment contradicted
+  it. A sub-agent reading the contract for self-identification would see a task name
+  (`screen-candidates`) that does not exist anywhere in `workflow_state.json`, causing confusion
+  when interpreting delegation messages. Fixed by correcting the header comment to
+  `# Task: paper-screener (paper_screener)`.
+
+- **Bug 2 (MEDIUM — research-pipeline/runners/subagent_contracts/paper_analyzer.yaml):
+  Header comment `# Task: paper-analysis` did not match the manifest task ID `paper-analyzer`**
+  Same class of bug as Bug 1 above. The comment said `# Task: paper-analysis (paper_analyzer)`,
+  while the `task_id` field was already `paper-analyzer` (correct). Fixed by correcting the
+  header comment to `# Task: paper-analyzer (paper_analyzer)`.
+
+- **Bug 3 (LOW — research-pipeline/runners/subagent_contracts/paper_synthesizer.yaml):
+  Header comment `# Task: synthesis` did not match the manifest task ID `paper-synthesizer`**
+  The comment said `# Task: synthesis (paper_synthesizer)`; the actual `task_id` field was
+  already `paper-synthesizer` (correct). Fixed by updating the header comment to
+  `# Task: paper-synthesizer (paper_synthesizer)`.
+
+- **Bug 4 (MEDIUM — research-pipeline/runners/runner.py + hooks/resume-inject.sh):
+  `_write_round_state()` wrote `current_round` but `round_state_template.json` and the
+  fixed `iterative-synthesis.md` (v0.17.26) both use the field name `round`**
+  `_write_round_state()` in `runners/runner.py` constructed the `round_state.json` dictionary
+  with key `current_round`, but `round_state_template.json` (the authoritative schema) declares
+  the field as `round`, and `iterative-synthesis.md` was corrected to use `round` in v0.17.26.
+  In a multi-round session the LLM (following the fixed guide) writes `round_state.json` with the
+  `round` field; the runner had already written `current_round` in the same file for the prior
+  round. If the LLM replaced the whole file (not just patched it), `resume-inject.sh`'s lookup of
+  `current_round` would find nothing and display `"?"` for the round number, breaking the
+  context-injection hook. This was a latent regression introduced when v0.17.26 fixed
+  `iterative-synthesis.md` but left the runner and hook unchanged.
+  Fixed by:
+  (a) Changing the key in `_write_round_state()` from `"current_round"` to `"round"` so the
+  runner-written `round_state.json` matches the schema and the LLM-written version;
+  (b) Changing `resume-inject.sh` to read `d.get("round", "?")` instead of
+  `d.get("current_round", "?")` and updating the display label from `current_round:` to
+  `round:`.
+
+- **Bug 5 (MEDIUM — research-pipeline/runners/subagent_contracts/paper_analyzer.yaml):
+  Input/output paths used `{cwd}` instead of `{run_dir}`, pointing outside the pipeline run directory**
+  The `paper_analyzer.yaml` contract specified input paths as `{cwd}/convert/markdown/` and
+  `{cwd}/screened.jsonl`, and output as `{cwd}/analysis/`. The runner context provides
+  `run_dir` = `<cwd>/runs/<run_id>`, so all pipeline stage artifacts live under `{run_dir}`,
+  not `{cwd}`. Using `{cwd}` would direct the sub-agent to look one level too high (the skill
+  working directory rather than the specific pipeline run). Fixed by updating all paths to
+  use `{run_dir}`: `{run_dir}/convert/markdown/`, `{run_dir}/screen/screened.jsonl`,
+  `{run_dir}/analysis/`, and the completion criterion reference.
+
+- **Bug 6 (LOW — research-pipeline/references/command-reference.md):
+  Profile membership table and screen stage output filename were stale**
+  The `standard` profile was described as adding `paper-screener, expand, enrich,
+  analyze-claims, score-claims` to `quick`; the actual `standard` set in `manifest.json` is
+  `expand, convert-fine, analyze-claims, score-claims, classify-gaps`. The `deep` profile
+  description likewise listed tasks that belong to `standard`. Additionally the Screen stage
+  output was listed as `screen/shortlist.json` instead of the correct `screen/screened.jsonl`.
+  Fixed profile membership descriptions to match `manifest.json` and corrected the output
+  filename.
+
+- **Bug 7 (MEDIUM — research-pipeline/schemas/final_report.schema.json):
+  Required section keys were stale and did not match `references/output-templates.md` headings**
+  The schema required old section names (`background`, `key_findings`, `evidence_table`,
+  `comparative_analysis`, `assumption_map`, `risk_register`, `conclusion`) that no longer exist
+  in the current report template. The validator would accept reports with those legacy headings
+  while rejecting reports written against the current `output-templates.md`. Fixed by aligning
+  the required section keys with `output-templates.md`: `research_question`, `papers_reviewed`,
+  `research_landscape`, `confidence_graded_findings`, `practical_recommendations`, `evidence_map`
+  are now required; optional sections (`methodology_comparison`, `trade_off_analysis`,
+  `points_of_agreement`, `points_of_contradiction`, `reproducibility_notes`, `future_directions`,
+  `readiness_assessment`, `appendix_run_metadata`) are now listed as known boolean properties.
+
+### Changed
+
+- **research-pipeline/config.toml**: Added `analysis_model = "claude-opus-4.6"` under
+  `[summarization]` so the model used by all LLM worker sub-agents (paper-screener,
+  paper-analyzer, paper-synthesizer, gap-classifier, synthesis-reviewer) is documented and
+  configurable in one place. Also expanded the default `[sources].enabled` list to include
+  `semantic_scholar`, `openalex`, `dblp`, and `huggingface` alongside `arxiv`.
+
 ## [v0.17.30] — 2026-05-14
 
 ### Fixed

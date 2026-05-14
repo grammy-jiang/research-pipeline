@@ -1,5 +1,5 @@
 # paper_synthesizer subagent contract
-# Task: synthesis (paper_synthesizer)
+# Task: paper-synthesizer (paper_synthesizer)
 # Executor kind: llm_worker
 
 role: paper_synthesizer

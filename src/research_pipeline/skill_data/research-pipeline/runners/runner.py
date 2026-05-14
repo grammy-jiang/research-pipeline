@@ -90,7 +90,7 @@ def _write_round_state(state: dict[str, Any]) -> None:
         "run_id": state.get("run_id", ""),
         "topic": state.get("topic", ""),
         "topic_slug": state.get("topic_slug", ""),
-        "current_round": state.get("round", 1),
+        "round": state.get("round", 1),
         "status": state.get("status", "running"),
         "profile": state.get("profile", "standard"),
         "open_gaps": open_gaps,
