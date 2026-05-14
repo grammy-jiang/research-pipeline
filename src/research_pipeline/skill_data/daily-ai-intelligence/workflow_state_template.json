@@ -25,7 +25,8 @@
     "skill_dir": "",
     "cluster_id": null,
     "vault": null,
-    "week": null
+    "week": null,
+    "reviewer_requested": ""
   },
   "final_brief_path": null,
   "validation_path": null

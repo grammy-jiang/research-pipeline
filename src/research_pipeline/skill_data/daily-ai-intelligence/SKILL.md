@@ -67,8 +67,9 @@ python3 $SKILL_DIR/runners/runner.py --registry "$REG" --workspace "$WS"
 The runner reads `manifest.json`, initialises `workflow_state.json` under
 `<WS>/<date>/`, and drives all tasks in dependency order via the
 `research-pipeline brief` CLI/MCP tools. Optional tasks
-(dossier, feedback, export-obsidian, weekly-synthesis) are triggered only
-when the corresponding context key is set. Completion is proved by artifact
+(review-ranked, dossier, feedback, export-obsidian, weekly-synthesis) are
+triggered only when the corresponding context key is set (via `--reviewer`,
+`--cluster-id`, `--vault`, `--week`). Completion is proved by artifact
 existence + schema validation — not by agent claim.
 
 ## Rules

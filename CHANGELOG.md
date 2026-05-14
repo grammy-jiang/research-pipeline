@@ -2,7 +2,45 @@
 
 All notable changes to research-pipeline.
 
-## [v0.17.29] — 2026-05-14
+## [v0.17.30] — 2026-05-14
+
+### Fixed
+
+- **Bug 1 (BREAKING — daily-ai-intelligence/manifest.json + runners/runner.py): `review-ranked`
+  had `optional: true` but no `trigger_condition`, causing it to always delegate as an
+  `llm_reviewer` and block daily brief generation**
+  The DAI runner skips optional tasks only when they have a non-empty `trigger_condition` AND
+  the condition is not met (`if trigger and not _optional_trigger_met(...)`). `review-ranked`
+  had `optional: true` but lacked `trigger_condition` entirely, so the guard was never entered.
+  As an `llm_reviewer` task, the runner always delegated it and returned 0 immediately after
+  `rank` completed — before `generate-daily` ever ran. The `failure_policy.note` correctly
+  described it as "non-blocking for daily runs" but the code made it blocking in practice.
+  Fixed by:
+  (a) Adding `trigger_condition` to `review-ranked` in `manifest.json`;
+  (b) Adding `"review-ranked": ["reviewer_requested"]` to `_optional_trigger_met` in
+  `runners/runner.py`;
+  (c) Adding a `--reviewer` CLI flag that sets `reviewer_requested` in the workflow context;
+  (d) Adding `"reviewer_requested": ""` to `workflow_state_template.json` context;
+  (e) Updating `references/workflow-steps.md` `[review-ranked]` section to document that the
+  task only runs when `--reviewer` is passed, and that it is skipped automatically otherwise;
+  (f) Updating `SKILL.md` Launch section to list `review-ranked` among optional tasks and
+  document the `--reviewer` flag.
+
+- **Bug 2 (MEDIUM — research-pipeline/references/sub-agents.md): Mermaid flowchart node C
+  incorrectly listed `download, convert, extract, summarize` as running before
+  `paper-screener` delegation**
+  Node C read `"Deterministic stages run automatically (plan, search, screen, download,
+  convert, extract, summarize)"`, implying all these stages run before the `paper-screener`
+  LLM delegation. But per `manifest.json`, `download` depends on `paper-screener`, so
+  `download`, `convert-rough`, `convert-fine`, `extract`, and `summarize` all run *after*
+  `paper-screener` is accepted. An agent following the incorrect diagram might misunderstand
+  the pipeline order and attempt to run download/convert before delegating the screener.
+  Fixed by:
+  (a) Changing node C to list only the pre-screener stages: `"(plan, verify-plan, search,
+  screen)"`;
+  (b) Adding new node G2 between G ("re-run runner.py") and H ("delegate paper-analyzer") to
+  show the post-screener deterministic stages: `"Deterministic stages continue (expand,
+  download, convert-rough, extract, summarize)"`.
 
 ### Fixed
 

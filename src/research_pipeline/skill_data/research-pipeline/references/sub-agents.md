@@ -146,11 +146,12 @@ Write both the Markdown synthesis and the structured JSON output to:
 flowchart TD
     A["You: python3 runner.py TOPIC --profile deep"] --> B
     B["runner.py reads manifest.json<br/>builds task DAG"] --> C
-    C["Deterministic stages run automatically<br/>(plan, search, screen, download, convert, extract, summarize)"] --> D
+    C["Deterministic stages run automatically<br/>(plan, verify-plan, search, screen)"] --> D
     D["runner.py detects llm_worker task: paper-screener<br/>Prints contract + pauses"] --> E
     E["You: launch paper-screener sub-agent<br/>(task tool, claude-opus)"] --> F
     F["Sub-agent writes results to {run_dir}/screen/"] --> G
-    G["You: re-run runner.py<br/>(runner validates output and advances DAG)"] --> H
+    G["You: re-run runner.py<br/>(runner validates output and advances DAG)"] --> G2
+    G2["Deterministic stages continue<br/>(expand, download, convert-rough, extract, summarize)"] --> H
     H["runner.py delegates paper-analyzer × N<br/>(parallelizable)"] --> I
     I["Sub-agents write to {run_dir}/analysis/"] --> J
     J["runner.py delegates paper-synthesizer"] --> K

@@ -143,6 +143,7 @@ def run_workflow(
         "cluster_id": state.get("context", {}).get("cluster_id", ""),
         "vault": state.get("context", {}).get("vault", ""),
         "week": state.get("context", {}).get("week", ""),
+        "reviewer_requested": state.get("context", {}).get("reviewer_requested", ""),
     }
 
     changed = True
@@ -292,6 +293,7 @@ def run_workflow(
 def _optional_trigger_met(task_id: str, ctx: dict[str, str]) -> bool:
     """Check whether an optional task's required context is available."""
     requires: dict[str, list[str]] = {
+        "review-ranked": ["reviewer_requested"],
         "dossier": ["cluster_id"],
         "export-obsidian": ["vault"],
         "weekly-synthesis": ["week"],
@@ -321,6 +323,11 @@ def main() -> int:
     parser.add_argument("--cluster-id", default="", help="Cluster ID for dossier task")
     parser.add_argument("--vault", default="", help="Obsidian vault path")
     parser.add_argument("--week", default="", help="ISO week for weekly synthesis")
+    parser.add_argument(
+        "--reviewer",
+        action="store_true",
+        help="Enable optional rank reviewer gate (review-ranked task)",
+    )
     parser.add_argument(
         "--state",
         default="",
@@ -372,6 +379,7 @@ def main() -> int:
                 "cluster_id": args.cluster_id,
                 "vault": args.vault,
                 "week": args.week,
+                "reviewer_requested": "true" if args.reviewer else "",
             },
             "final_brief_path": None,
             "validation_path": None,
@@ -391,6 +399,8 @@ def main() -> int:
             ctx["vault"] = args.vault
         if args.week:
             ctx["week"] = args.week
+        if args.reviewer:
+            ctx["reviewer_requested"] = "true"
 
     if args.dry_run:
         print(f"\nDRY RUN — date: {date}")

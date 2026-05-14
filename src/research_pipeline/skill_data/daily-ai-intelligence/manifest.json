@@ -74,8 +74,9 @@
         "path": "{workspace}/{date}/review/rank_review.json",
         "schema": "schemas/reviewer_result.schema.json"
       },
+      "trigger_condition": "User explicitly requests a rank quality review via --reviewer flag",
       "validation": ["artifact_exists", "schema_valid"],
-      "failure_policy": {"on_failure": "skip", "note": "non-blocking for daily runs; recommended for production"}
+      "failure_policy": {"on_failure": "skip", "note": "non-blocking for daily runs; pass --reviewer to enable"}
     },
     {
       "id": "generate-daily",

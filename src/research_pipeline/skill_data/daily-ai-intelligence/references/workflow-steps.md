@@ -68,12 +68,20 @@ skip stages whose artifacts already exist on disk.
 
 ## Task `[review-ranked]` — Optional reviewer gate (llm_reviewer)
 
-When the runner encounters this task, it delegates to the `rank_reviewer`
-sub-agent (see `runners/subagent_contracts/rank_reviewer.yaml`).
+Only triggered when `--reviewer` is passed to the runner:
 
-The reviewer checks deduplication, cluster coherence, ranking plausibility,
-and source diversity. On `status: "rejected"`, manually reset `[rank]` to
-`pending` in `workflow_state.json` and re-run the runner.
+```bash
+python3 $SKILL_DIR/runners/runner.py --registry "$REG" --workspace "$WS" --reviewer
+```
+
+When active, the runner delegates to the `rank_reviewer` sub-agent (see
+`runners/subagent_contracts/rank_reviewer.yaml`). The reviewer checks
+deduplication, cluster coherence, ranking plausibility, and source diversity.
+On `status: "rejected"`, manually reset `[rank]` to `pending` in
+`workflow_state.json` and re-run the runner.
+
+Without `--reviewer`, this task is skipped automatically and brief generation
+proceeds immediately after ranking.
 
 ## Task `[validate-brief]` ⛔ GATE — Validation gate
 
