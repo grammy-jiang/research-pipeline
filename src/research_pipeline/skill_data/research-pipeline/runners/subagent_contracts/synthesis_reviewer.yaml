@@ -39,29 +39,32 @@ forbidden_actions:
 review_dimensions:
   faithfulness:
     description: "Every claim in the synthesis is traceable to at least one analysis file"
-    verdict_field: "faithfulness_score"  # float 0–1
+    verdict_field: "faithfulness"    # float 0–1; stored in scores.faithfulness
   coherence:
     description: "The synthesis narrative is internally consistent; no contradiction is overlooked"
-    verdict_field: "coherence_score"     # float 0–1
+    verdict_field: "coherence"       # float 0–1; stored in scores.coherence
   gap_completeness:
     description: "All open gaps are classified and no obvious gap is missing"
-    verdict_field: "gap_completeness_score"  # float 0–1
+    verdict_field: "gap_completeness"  # float 0–1; stored in scores.gap_completeness
   citation_integrity:
     description: "All paper_id references in the synthesis match papers in screened.jsonl"
-    verdict_field: "citation_integrity_ok"   # bool
+    verdict_field: "citation_integrity"  # bool; stored in scores.citation_integrity
 
 verdict_schema:
-  reviewer_id: "synthesis_reviewer"
-  task_id:     "review-synthesis"
-  verdict:     "accept | reject"
-  scores:
-    faithfulness:       float  # 0–1
-    coherence:          float  # 0–1
-    gap_completeness:   float  # 0–1
+  # Required fields (must match reviewer_result.schema.json)
+  reviewer_task_id: "review-synthesis"
+  target_artifact:  "{run_dir}/analysis/synthesis.json"
+  status:           "accepted | rejected | accepted_with_issues"
+  # Optional fields (all additional properties are allowed by the schema)
+  issues:           list[str]   # specific issues found (replaces deprecated findings)
+  required_fixes:   list[str]   # if status = rejected
+  confidence:       float       # reviewer confidence in verdict (0–1)
+  notes:            str         # free-text notes
+  scores:                       # additional dimension scores (not in base schema)
+    faithfulness:       float   # 0–1
+    coherence:          float   # 0–1
+    gap_completeness:   float   # 0–1
     citation_integrity: bool
-  findings:            list[str]   # specific issues found
-  required_fixes:      list[str]   # if verdict = reject
-  confidence:          float  # reviewer confidence in verdict
 
 pass_threshold:
   faithfulness:     0.75
@@ -69,16 +72,19 @@ pass_threshold:
   gap_completeness: 0.60
 
 rejection_triggers:
-  - "faithfulness_score < 0.75"
-  - "citation_integrity_ok = false"
+  - "scores.faithfulness < 0.75"
+  - "scores.citation_integrity = false"
   - "Any required synthesis section is empty"
 
 completion_criteria:
   - "{run_dir}/review/synthesis_review.json exists"
-  - "verdict is 'accept' or 'reject'"
+  - "status is 'accepted' or 'rejected'"
   - "All score fields present"
 
 self_reporting_forbidden: true
 note: |
-  The reviewer ONLY writes verdict.json. The orchestrator (runner.py) reads
-  the verdict and decides whether to accept or request a retry.
+  The reviewer ONLY writes synthesis_review.json. After writing the file, do NOT
+  mark the task accepted yourself. Re-run runner.py — it will validate the artifact
+  and accept the task. If status is 'rejected', the orchestrating agent must reset
+  the 'report' and 'review-synthesis' tasks to 'pending' in workflow_state.json
+  before re-running runner.py.

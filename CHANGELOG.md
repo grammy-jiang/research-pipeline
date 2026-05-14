@@ -2,6 +2,51 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.27] — 2026-05-14
+
+### Fixed
+
+- **Bug A (BREAKING — synthesis_reviewer.yaml): `verdict_schema` fields did not match `reviewer_result.schema.json`**
+  The `verdict_schema` section described a JSON structure that failed schema validation:
+  `reviewer_id` (wrong) → `reviewer_task_id` (required by schema); `task_id` (extra, non-normative) removed;
+  `verdict: "accept | reject"` (wrong field name + wrong enum) → `status: "accepted | rejected | accepted_with_issues"`;
+  `findings: list[str]` (wrong field name) → `issues: list[str]`; `target_artifact` (required) was absent.
+  An agent following the old contract would write a file that failed schema validation against
+  `reviewer_result.schema.json`. Also updated `completion_criteria` ("verdict is 'accept' or 'reject'"
+  → "status is 'accepted' or 'rejected'") and the `note` at the bottom, which incorrectly stated
+  "the orchestrator reads the verdict and decides" — in reality the agent must manually update
+  `workflow_state.json` and re-run runner.py.
+  Additionally, `review_dimensions.*.verdict_field` names had a naming inconsistency with the
+  `verdict_schema.scores` keys: suffixes `_score` and `_ok` were removed for uniform naming
+  (`faithfulness_score` → `faithfulness`, `coherence_score` → `coherence`,
+  `gap_completeness_score` → `gap_completeness`, `citation_integrity_ok` → `citation_integrity`),
+  and `rejection_triggers` were updated accordingly to reference `scores.faithfulness` and
+  `scores.citation_integrity`.
+
+- **Bug B (MEDIUM — references/sub-agents.md): paper-analyzer `Writes` line said "returned in agent
+  output; optionally written to `analysis/`"**
+  The `paper_analyzer.yaml` contract requires writing to `{run_dir}/analysis/` (mandatory
+  `completion_criteria` and `status_update` step 1: run `tool_analyze_papers --collect` to validate
+  files on disk). The sub-agents.md entry incorrectly described these writes as optional, potentially
+  misleading an orchestrating agent into thinking the paper-analyzer sub-agent need not write files to
+  disk. Fixed to clearly state the output path and that it is required. (Same class as v0.17.21 fix for
+  paper-synthesizer `Writes` line.)
+
+- **Bug C (MEDIUM — runners/subagent_contracts/paper_synthesizer.yaml): `evidence_requirements` used
+  field name `gap_type` instead of `classification`**
+  `synthesis_report.schema.json` defines gaps with a `classification` field (enum: ACADEMIC,
+  ENGINEERING, OUT_OF_SCOPE). The contract said "Open gaps must each have a `gap_type`" — an agent
+  following the contract would use the wrong field name, leaving `classification` absent. Fixed to
+  reference `classification` with all three valid values.
+
+- **Bug D (LOW — runners/subagent_contracts/paper_synthesizer.yaml): `gap_classification` table
+  missing `OUT_OF_SCOPE` entry**
+  `synthesis_report.schema.json` and `gap_classifier.yaml` (downstream) both support
+  `OUT_OF_SCOPE` as a valid gap classification, but the `paper_synthesizer` contract's
+  `gap_classification` table only listed ENGINEERING and ACADEMIC, preventing the synthesizer
+  from emitting `OUT_OF_SCOPE` gaps. Fixed by adding `OUT_OF_SCOPE` to the table.
+  (Bug C and D fixed together in one edit.)
+
 ## [v0.17.26] — 2026-05-14
 
 ### Fixed

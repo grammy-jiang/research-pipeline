@@ -55,10 +55,11 @@ synthesis_structure:
 gap_classification:
   ENGINEERING: "Gap fillable by reviewing documentation, code, or benchmarks"
   ACADEMIC:    "Gap requiring additional paper searches to close"
+  OUT_OF_SCOPE: "Gap is outside the research topic and does not require new papers or implementation work"
 
 evidence_requirements:
   - Every claim in the synthesis must cite at least one paper by paper_id
-  - Open gaps must each have a gap_type (ENGINEERING or ACADEMIC)
+  - Open gaps must each have a classification field (ACADEMIC, ENGINEERING, or OUT_OF_SCOPE)
   - Contradictions must name the papers on both sides
 
 completion_criteria:

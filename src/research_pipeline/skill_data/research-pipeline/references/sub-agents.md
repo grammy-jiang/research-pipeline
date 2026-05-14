@@ -88,7 +88,7 @@ Write both the Markdown analysis and the structured JSON output.
 ```
 
 **Reads**: Individual Markdown files from `convert/markdown/` or `supplemental/markdown/`
-**Writes**: Analysis returned in agent output; optionally written to `analysis/`
+**Writes**: `{run_dir}/analysis/<paper_id>.analysis.json` (one per paper; required — runner validates on re-run)
 
 ## paper-synthesizer
 
