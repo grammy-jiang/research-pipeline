@@ -11,7 +11,7 @@ step_id: final-report
 
 purpose: >
   Synthesize all pipeline artifacts into a final, validated Markdown research
-  report. The output must conform to the 14-section output template, pass
+  report. The output must conform to the 12-section output template, pass
   `research-pipeline validate`, and be self-contained (all citations backed
   by downloaded and analyzed papers).
 
@@ -37,7 +37,7 @@ required_inputs:
     description: >
       Round tracking state (see references/iterative-synthesis.md). Read to
       populate the Round History section. If absent on round 1, treat as
-      round: 1, run_ids_all: [<current_run_id>].
+      round: 1, open_gaps: [].
 
   - path: "gaps.json"
     description: >
@@ -93,7 +93,7 @@ required_formatting:
 # ── Evidence requirements ─────────────────────────────────────────────────────
 evidence_requirements:
   - Every claim in Confidence-Graded Findings must cite at least one paper from screened.jsonl.
-  - The Evidence Table must list every paper used in Key Findings.
+  - The Evidence Table must list every paper used in Confidence-Graded Findings.
   - Confidence levels must be justified, not assigned arbitrarily.
   - Research Gaps section must reproduce all gaps from gaps.json
     (if present) rather than inventing new ones.

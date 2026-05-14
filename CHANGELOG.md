@@ -2,7 +2,61 @@
 
 All notable changes to research-pipeline.
 
-## [v0.17.32] — 2026-05-15
+## [v0.17.33] — 2026-05-16
+
+### Fixed
+
+- **Bug 1 (BREAKING — daily-ai-intelligence/manifest.json): `generate-daily` did not depend
+  on `review-ranked`, so the reviewer gate had no effect on brief generation**
+  `generate-daily.depends_on` was `["rank"]`. When `review-ranked` was delegated (LLM reviewer
+  working), the runner paused after delegation (returned 0). On the next runner invocation,
+  `review-ranked` status was `"delegated"` — which the loop skips with `continue` — and
+  `generate-daily` found its only listed dependency `rank` already `accepted`, so it was
+  immediately auto-accepted and the brief was generated regardless of the reviewer's verdict.
+  The reviewer gate introduced by v0.17.30 Bug 1 was therefore completely ineffective. Fixed
+  by adding `"review-ranked"` to `generate-daily.depends_on`. Because `skipped_by_policy ∈
+  READY_STATUSES`, runs without `--reviewer` are unaffected (`review-ranked` is
+  `skipped_by_policy` and `generate-daily` proceeds normally). With `--reviewer`, the brief
+  now correctly waits for the reviewer to accept before proceeding.
+
+- **Bug 2 (LOW — research-pipeline/references/final-report-contract.yaml): `purpose` still
+  said "14-section output template" after v0.17.32 Bug 5 reduced the required sections to 12**
+  v0.17.32 Bug 5 updated `required_sections` and `completion_criteria` to use 12 sections, but
+  the `purpose` free-text field on line 14 still read "the 14-section output template". An
+  agent reading the purpose as a header description would see an incorrect section count.
+  Fixed: "14-section" → "12-section".
+
+- **Bug 3 (LOW — research-pipeline/references/final-report-contract.yaml): `evidence_requirements`
+  second bullet referenced "Key Findings" instead of "Confidence-Graded Findings"**
+  v0.17.32 Bug 6 explicitly stated it "updated the `evidence_requirements` reference from
+  'Key Findings' to 'Confidence-Graded Findings'", but the change was not actually applied;
+  line 96 still read "The Evidence Table must list every paper used in Key Findings." The
+  section "Key Findings" does not exist in the current report template — the correct section
+  is "Confidence-Graded Findings" (see `output-templates.md` and `final_report.schema.json`).
+  Fixed: "Key Findings" → "Confidence-Graded Findings" in the evidence requirement.
+
+- **Bug 4 (LOW — research-pipeline/references/final-report-contract.yaml): `round_state.json`
+  fallback description still referenced the stale `run_ids_all` field removed in v0.17.32**
+  v0.17.32 Bug 1 removed `run_ids_all` from `round_state_template.json` because the runner
+  never writes it, and noted that `final-report-contract.yaml` had referenced it. However, the
+  contract's `round_state.json` description still contained "treat as round: 1, run_ids_all:
+  [<current_run_id>]" — instructing a report writer to expect a field that doesn't exist at
+  runtime. Fixed: replaced `run_ids_all: [<current_run_id>]` with `open_gaps: []` to match
+  the actual fields written by `_write_round_state()` (see `round_state_template.json`).
+
+- **Bug 5 (MEDIUM — research-pipeline/references/output-templates.md): Contents section
+  template was missing `Confidence-Graded Findings` and `Evidence Map` entries**
+  Both `confidence_graded_findings` and `evidence_map` are required sections in
+  `final_report.schema.json` and appear in the full report template body of `output-templates.md`,
+  but the `## Contents` list template (the table of contents model at the top) was missing both
+  entries. An agent following the Contents template would produce a table of contents that omits
+  two required sections, causing the report validator to flag a mismatch. Fixed by adding
+  `[Confidence-Graded Findings](#confidence-graded-findings)` and
+  `[Evidence Map](#evidence-map)` to the Contents template list, in the correct position
+  between `Research Landscape` and `Research Gaps`, and between `Practical Recommendations`
+  and `References` respectively.
+
+
 
 ### Fixed
 

@@ -83,7 +83,7 @@
       "label": "Generate daily Markdown brief",
       "type": "pipeline_stage",
       "phase": "generate",
-      "depends_on": ["rank"],
+      "depends_on": ["rank", "review-ranked"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "brief_generate_daily",

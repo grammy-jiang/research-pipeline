@@ -103,8 +103,10 @@ cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
 - [Methodology](#methodology)
 - [Papers Reviewed](#papers-reviewed)
 - [Research Landscape](#research-landscape)
+- [Confidence-Graded Findings](#confidence-graded-findings)
 - [Research Gaps](#research-gaps)
 - [Practical Recommendations](#practical-recommendations)
+- [Evidence Map](#evidence-map)
 - [References](#references)
 - [Appendix: Run Metadata](#appendix-run-metadata)
 
