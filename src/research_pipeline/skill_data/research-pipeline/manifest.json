@@ -324,7 +324,7 @@
       "type": "llm_reviewer_task",
       "phase": "report",
       "optional": true,
-      "depends_on": ["report"],
+      "depends_on": ["paper-synthesizer", "report"],
       "executor": {
         "kind": "llm_reviewer",
         "name": "synthesis-reviewer",

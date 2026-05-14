@@ -2,6 +2,50 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.24] — 2026-05-14
+
+### Fixed
+
+- **Bug (iterative-synthesis.md): `--topic` flag does not exist in runner.py — BREAKING**
+  `research-pipeline/references/iterative-synthesis.md` showed the per-round
+  gap-closure `runner.py` invocation using `--topic "<gap-specific topic>"`.
+  However `runner.py` declares `topic` as a **positional** argument
+  (`parser.add_argument("topic", nargs="?", …)`), so passing `--topic` would cause
+  argparse to raise "unrecognized arguments". Fixed by removing the `--topic` flag
+  and using the bare positional form: `runner.py "<gap-specific topic>" --profile …`.
+  This pattern was already correct everywhere else in the skill documentation.
+
+- **Bug (rank_reviewer.yaml): `forbidden_actions` referenced wrong filename `ranked_events.json`**
+  `daily-ai-intelligence/runners/subagent_contracts/rank_reviewer.yaml` line 32
+  said `Do NOT edit ranked_events.json`. The actual output file written by
+  `brief_rank_events` is `ranked.jsonl` (manifest path:
+  `{workspace}/{date}/clusters/ranked.jsonl`). The same stale name was fixed in
+  `workflow-steps.md` in v0.17.21 but the contract file was overlooked. Fixed to
+  `Do NOT edit ranked.jsonl`.
+
+- **Bug (synthesis_reviewer.yaml): `forbidden_actions` referenced wrong filename `synthesis_report.json`**
+  `research-pipeline/runners/subagent_contracts/synthesis_reviewer.yaml` line 34
+  said `Do NOT edit synthesis_report.json or synthesis.md`. `synthesis_report.json`
+  lives in `{run_dir}/summarize/` and is not one of the reviewer's input files;
+  the reviewer's actual input is `{run_dir}/analysis/synthesis.json` (written by
+  `paper-synthesizer`). The identical class of wrong filename was fixed in
+  `paper_synthesizer.yaml` in v0.17.21 but this contract was missed. Fixed to
+  `Do NOT edit synthesis.json or synthesis.md`.
+
+- **Bug (manifest.json): `review-synthesis` missing `paper-synthesizer` dependency — race condition**
+  `research-pipeline/manifest.json` task `review-synthesis` declared
+  `"depends_on": ["report"]`. The synthesis reviewer reads
+  `{run_dir}/analysis/synthesis.json` which is written by `paper-synthesizer`, not
+  by `report`. Because `report` and `paper-synthesizer` are on parallel paths in
+  the task DAG (both descend from `convert-rough` independently), the runner could
+  delegate `review-synthesis` while `paper-synthesizer` was still in `delegated`
+  state — causing the sub-agent to try to read a file that does not yet exist.
+  Fixed by changing `"depends_on"` to `["paper-synthesizer", "report"]`, so
+  `review-synthesis` only becomes ready after `paper-synthesizer` is accepted.
+  In non-deep profiles (quick, standard) where neither `paper-synthesizer` nor
+  `review-synthesis` is in scope, both receive `skipped_by_policy` immediately, so
+  the extra dependency is safe.
+
 ## [v0.17.23] — 2026-05-14
 
 ### Fixed

@@ -29,7 +29,7 @@ allowed_tools:
   - glob
 
 forbidden_actions:
-  - Do NOT edit ranked_events.json
+  - Do NOT edit ranked.jsonl
   - Do NOT call any MCP tool that modifies briefing state
   - Do NOT mark the task accepted yourself — only write verdict.json
 

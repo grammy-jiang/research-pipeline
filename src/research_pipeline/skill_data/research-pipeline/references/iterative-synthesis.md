@@ -51,7 +51,7 @@ but is never referenced from the new report body.
      sequencing and state persistence:
      ```bash
      python3 {skill_dir}/runners/runner.py \
-       --topic "<gap-specific topic>" \
+       "<gap-specific topic>" \
        --profile standard \
        --state "{cwd}/workflow_state.json" \
        --config CFG

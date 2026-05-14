@@ -11,17 +11,17 @@ description: |
   The reviewer has NO write access to the synthesis files.
 
 inputs:
-  - path: "{cwd}/analysis/synthesis.json"
+  - path: "{run_dir}/analysis/synthesis.json"
     description: "Synthesis report to review"
-  - path: "{cwd}/analysis/synthesis.md"
+  - path: "{run_dir}/analysis/synthesis.md"
     description: "Human-readable synthesis narrative"
-  - path: "{cwd}/analysis/"
+  - path: "{run_dir}/analysis/"
     description: "Per-paper analysis files — ground truth for faithfulness checks"
   - path: "{skill_dir}/schemas/reviewer_result.schema.json"
     description: "Schema for the verdict file to produce"
 
 outputs:
-  - path: "{cwd}/review/synthesis_review.json"
+  - path: "{run_dir}/review/synthesis_review.json"
     description: "Verdict file"
     schema: "../../schemas/reviewer_result.schema.json"
 
@@ -31,7 +31,7 @@ allowed_tools:
   - glob
 
 forbidden_actions:
-  - Do NOT edit synthesis_report.json or synthesis.md
+  - Do NOT edit synthesis.json or synthesis.md
   - Do NOT edit any analysis file
   - Do NOT accept or reject the task yourself — only write the verdict file
   - Do NOT call any MCP tool that modifies pipeline state
@@ -74,7 +74,7 @@ rejection_triggers:
   - "Any required synthesis section is empty"
 
 completion_criteria:
-  - "synthesis_review.json exists"
+  - "{run_dir}/review/synthesis_review.json exists"
   - "verdict is 'accept' or 'reject'"
   - "All score fields present"
 
