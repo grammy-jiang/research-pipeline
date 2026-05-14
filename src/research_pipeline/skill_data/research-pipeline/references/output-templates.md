@@ -97,8 +97,8 @@ cite specific papers with `[arxiv_id]` or `[Author, Year]` references.
 
 ## Contents
 
-- [Executive Summary](#executive-summary)
 - [Round History](#round-history)
+- [Executive Summary](#executive-summary)
 - [Research Question](#research-question)
 - [Methodology](#methodology)
 - [Papers Reviewed](#papers-reviewed)

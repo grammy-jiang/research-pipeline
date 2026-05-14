@@ -2,6 +2,50 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.34] — 2026-05-17
+
+### Fixed
+
+- **Bug A (LOW — research-pipeline/references/output-templates.md): Contents link list had
+  `[Executive Summary]` before `[Round History]`, contradicting the template body order**
+  The `## Contents` template (the ToC model at the top of the report template) listed
+  `[Executive Summary](#executive-summary)` on the first link line and
+  `[Round History](#round-history)` on the second. However, the actual template body
+  defines `## Round History` first (line 113) and `## Executive Summary` second (line 126).
+  The `final-report-contract.yaml` required_sections list correctly orders Round History
+  before Executive Summary. An agent following the Contents template verbatim would generate
+  a table of contents whose first two links are in the wrong order relative to the document
+  body, causing a broken reading experience. Fixed by swapping the two lines so Round History
+  precedes Executive Summary in the Contents link list.
+
+- **Bug B (LOW — research-pipeline/manifest.json): `validate-report` task label still read
+  "14-section check" after the required section count was reduced to 12 in v0.17.32**
+  `manifest.json` task `validate-report` had `"label": "Validate final report completeness
+  (14-section check)"`. The required section count was reduced from 14 to 12 in v0.17.32
+  (final-report-contract.yaml) and v0.17.31 (final_report.schema.json), but the manifest
+  label was never updated. This created a confusing discrepancy: every other document (schema,
+  contract, templates) said 12, while the task label still said 14. Fixed: "14-section" →
+  "12-section" in the label.
+
+- **Bug C (LOW — daily-ai-intelligence/runners/subagent_contracts/rank_reviewer.yaml):
+  `forbidden_actions` third bullet said "only write verdict.json" but the actual output
+  file is `rank_review.json`**
+  Line 34 of `rank_reviewer.yaml` read `Do NOT mark the task accepted yourself — only write
+  verdict.json`. The actual output artifact is `rank_review.json` (declared in the same
+  file's `outputs` block on line 22 and `completion_criteria` on line 68). "verdict.json"
+  does not exist anywhere in the DAI workflow. A sub-agent reading the forbidden_actions
+  list would be directed to write a nonexistent file name. Fixed: "verdict.json" →
+  "rank_review.json".
+
+- **Bug D (CHANGELOG — CHANGELOG.md): `## [v0.17.32]` and `## [v0.17.31]` version headers
+  were missing; their bug entries were present but unattributed to a version**
+  Lines 61–135 (v0.17.32 bugs 1–6) and lines 138–219 (v0.17.31 bugs 1–7 + changed) had
+  their `### Fixed` section headers but lacked the preceding `## [v0.17.x] — date` version
+  entry, making the changelog structurally invalid. Readers could not tell which version
+  introduced each fix. Added `## [v0.17.32] — 2026-05-15` before the Bug 1 that starts
+  the v0.17.32 block, and `## [v0.17.31] — 2026-05-15` before the Bug 1 that starts the
+  v0.17.31 block.
+
 ## [v0.17.33] — 2026-05-16
 
 ### Fixed
@@ -57,6 +101,7 @@ All notable changes to research-pipeline.
   and `References` respectively.
 
 
+## [v0.17.32] — 2026-05-15
 
 ### Fixed
 
@@ -134,6 +179,7 @@ All notable changes to research-pipeline.
   "Confidence-Graded Findings" to match the current section name.
 
 
+## [v0.17.31] — 2026-05-15
 
 ### Fixed
 

@@ -345,7 +345,7 @@
     },
     {
       "id": "validate-report",
-      "label": "Validate final report completeness (14-section check)",
+      "label": "Validate final report completeness (12-section check)",
       "type": "verification",
       "phase": "report",
       "depends_on": ["report", "review-synthesis"],

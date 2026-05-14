@@ -31,7 +31,7 @@ allowed_tools:
 forbidden_actions:
   - Do NOT edit ranked.jsonl
   - Do NOT call any MCP tool that modifies briefing state
-  - Do NOT mark the task accepted yourself — only write verdict.json
+  - Do NOT mark the task accepted yourself — only write rank_review.json
 
 review_dimensions:
   deduplication:
