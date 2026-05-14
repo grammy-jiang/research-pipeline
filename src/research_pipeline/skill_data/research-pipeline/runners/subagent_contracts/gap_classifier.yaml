@@ -6,9 +6,10 @@ role: gap_classifier
 task_id: classify-gaps
 
 description: |
-  Classify the open gaps from the synthesis report as ENGINEERING or ACADEMIC.
-  For ACADEMIC gaps, propose concrete arXiv search queries to close them.
-  For ENGINEERING gaps, identify documentation or code sources to consult.
+  Classify the open gaps from the synthesis report as ACADEMIC, ENGINEERING, or OUT_OF_SCOPE.
+  For ACADEMIC gaps, propose a concrete arXiv search query to close them.
+  For ENGINEERING gaps, document how to resolve them (API references, benchmarks, code repos).
+  For OUT_OF_SCOPE gaps, explain why they fall outside the research topic.
 
 inputs:
   - path: "{run_dir}/summarize/synthesis_report.json"
@@ -26,6 +27,10 @@ instructions: |
   2. If {run_dir}/analysis/synthesis.json also exists (deep profile), merge any additional
      gaps from it that are not already present.
   3. {run_dir} = {cwd}/runs/{run_id}
+  4. Populate the `convergence` object: set `should_continue: true` with reason
+     `open_gaps_remain` if any ACADEMIC gaps remain and the current round is below
+     `max_rounds`; otherwise set `should_continue: false` with the appropriate reason
+     (`no_open_gaps`, `round_cap_reached`, `no_new_papers`, or `user_marked_out_of_scope`).
 
 outputs:
   - path: "{cwd}/gaps.json"
@@ -42,31 +47,44 @@ forbidden_actions:
   - Do NOT write outside the run workspace
 
 classification_criteria:
+  ACADEMIC: |
+    The gap requires additional academic literature:
+    - No existing papers in the current synthesis address it
+    - Needs new papers from arXiv/S2/OpenAlex to resolve
   ENGINEERING: |
     The gap can be resolved by:
     - Reading project documentation or API references
     - Reviewing benchmark code or datasets
     - Checking GitHub repos of cited papers
-  ACADEMIC: |
-    The gap requires additional academic literature:
-    - No existing papers in the current synthesis address it
-    - Needs new papers from arXiv/S2/OpenAlex to resolve
+  OUT_OF_SCOPE: |
+    The gap is outside the research topic:
+    - Unrelated to the core research question
+    - Would require a separate, independent investigation
+    - Explicitly excluded by the topic definition
 
 output_schema:
+  # Must validate against schemas/gap_classification.schema.json
+  run_id:       str       # pipeline run ID
+  round:        int       # current round number (1–4)
+  topic:        str       # optional: research topic
   gaps:
-    - gap_id:       str
-      description:  str
-      gap_type:     ENGINEERING | ACADEMIC
-      rationale:    str  # why this classification
-      search_queries:    list[str]   # ACADEMIC only — proposed arXiv queries
-      engineering_refs:  list[str]   # ENGINEERING only — URLs or repos
-      priority:     high | medium | low
+    - id:                     str   # unique gap identifier
+      description:            str   # clear description of the gap
+      classification:         ACADEMIC | ENGINEERING | OUT_OF_SCOPE
+      priority:               HIGH | MEDIUM | LOW  # optional
+      suggested_search_query: str   # ACADEMIC only — single arXiv search query
+      resolution_notes:       str   # ENGINEERING only — how to resolve the gap
+  convergence:
+    should_continue:  bool  # true if any ACADEMIC gaps remain and round < max_rounds
+    reason:           open_gaps_remain | no_open_gaps | round_cap_reached | no_new_papers | user_marked_out_of_scope
+    next_round_topic: str   # optional — topic for next round if should_continue is true
 
 completion_criteria:
-  - "{cwd}/gaps.json exists and validates against schema"
-  - "Every gap from the primary source ({run_dir}/summarize/synthesis_report.json, or {run_dir}/analysis/synthesis.json if the former is absent) open_gaps has a classification entry"
-  - "ACADEMIC gaps have at least 1 search_query"
-  - "ENGINEERING gaps have at least 1 engineering_ref"
+  - "{cwd}/gaps.json exists and validates against schemas/gap_classification.schema.json"
+  - "Every gap has required fields: id, description, classification"
+  - "ACADEMIC gaps include at least one suggested_search_query"
+  - "ENGINEERING gaps include at least one resolution_notes entry documenting how to resolve the gap"
+  - "convergence object is present with should_continue (bool) and reason"
 
 self_reporting_forbidden: true
 status_update: |

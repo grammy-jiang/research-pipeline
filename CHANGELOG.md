@@ -2,7 +2,49 @@
 
 All notable changes to research-pipeline.
 
-## [v0.17.24] — 2026-05-14
+## [v0.17.25] — 2026-05-14
+
+### Fixed
+
+- **Bug (sub-agents.md): Mermaid flowchart node still used `--topic` flag after v0.17.24 partial fix**
+  `research-pipeline/references/sub-agents.md` Mermaid flowchart node A showed
+  `python3 runner.py --topic TOPIC --profile deep`. `runner.py` declares `topic`
+  as a **positional** argument (`parser.add_argument("topic", nargs="?", …)`), so
+  `--topic` is unrecognized by argparse and raises "unrecognized arguments" at
+  runtime. v0.17.23 fixed `python` → `python3` in this exact node; v0.17.24 then
+  fixed the identical `--topic` issue in `iterative-synthesis.md` and stated "This
+  pattern was already correct everywhere else" — but the `sub-agents.md` Mermaid
+  node was still wrong. Fixed by removing `--topic` and using the positional form:
+  `python3 runner.py TOPIC --profile deep`.
+
+- **Bug (gap_classifier.yaml): `output_schema` field names contradicted `gap_classification.schema.json` — BREAKING**
+  `research-pipeline/runners/subagent_contracts/gap_classifier.yaml` `output_schema`
+  section described the `gaps.json` structure using field names that did not match the
+  normative `schemas/gap_classification.schema.json`. An agent following the YAML
+  contract would produce a `gaps.json` that fails schema validation because the
+  required fields `id` and `classification` were absent. The specific mismatches:
+  - `gap_id` → must be `id` (schema `required`)
+  - `gap_type: ENGINEERING | ACADEMIC` → must be `classification: ACADEMIC | ENGINEERING | OUT_OF_SCOPE` (schema `required`; enum extended to include `OUT_OF_SCOPE`)
+  - `search_queries: list[str]` → must be `suggested_search_query: str` (different name
+    and type: list vs. single string)
+  - `engineering_refs: list[str]` → not in schema; replaced with `resolution_notes: str`
+    which is the schema-sanctioned field for per-gap notes
+  - `priority` enum values `high | medium | low` → must be `HIGH | MEDIUM | LOW`
+  - Top-level required fields `run_id`, `round`, and `convergence` were entirely absent
+    from the `output_schema` illustration. The runner reads `convergence.should_continue`
+    to decide whether to continue iterating; an agent omitting `convergence` causes the
+    runner to silently treat convergence as `false` and stop after one round even when
+    open ACADEMIC gaps remain.
+
+  Additionally fixed in the same contract:
+  - `description`: mentioned only ENGINEERING/ACADEMIC; added OUT_OF_SCOPE.
+  - `classification_criteria`: was missing an OUT_OF_SCOPE entry; added it.
+  - `completion_criteria`: used `search_query` (inconsistent with both the old
+    `search_queries` and the correct `suggested_search_query`) and `engineering_ref`
+    (not in schema); both corrected to match schema field names.
+  - `instructions`: added step 4 explaining how to populate the `convergence` object,
+    since this is a runner-observable required field that the agent must produce.
+
 
 ### Fixed
 

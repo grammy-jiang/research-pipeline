@@ -144,7 +144,7 @@ Write both the Markdown synthesis and the structured JSON output to:
 
 ```mermaid
 flowchart TD
-    A["You: python3 runner.py --topic TOPIC --profile deep"] --> B
+    A["You: python3 runner.py TOPIC --profile deep"] --> B
     B["runner.py reads manifest.json<br/>builds task DAG"] --> C
     C["Deterministic stages run automatically<br/>(plan, search, screen, download, convert, extract, summarize)"] --> D
     D["runner.py detects llm_worker task: paper-screener<br/>Prints contract + pauses"] --> E
