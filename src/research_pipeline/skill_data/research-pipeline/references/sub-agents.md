@@ -70,7 +70,7 @@ Launch **one agent per paper** in parallel for efficiency.
 
 **Agent type**: `paper-analyzer`
 
-**Outputs**: `{arxiv_id}_analysis.md` (human-readable) + `{arxiv_id}_analysis.json` (structured)
+**Outputs**: `{arxiv_id}.analysis.md` (human-readable) + `{arxiv_id}.analysis.json` (structured)
 
 **Prompt template** (one per paper):
 ```
@@ -110,7 +110,7 @@ Synthesize findings from N analyzed papers on "<topic>".
 <paste the summary output from each paper-analyzer agent>
 
 ## Paper Analysis JSON Files
-<list paths to {arxiv_id}_analysis.json files for structured data>
+<list paths to {arxiv_id}.analysis.json files for structured data>
 
 ## Analysis Requirements
 1. Design pattern convergence across papers
@@ -136,17 +136,30 @@ Write both the Markdown synthesis and the structured JSON output to:
 
 ## Typical Orchestration Flow
 
+> **Important**: Sub-agents are **never launched directly** by you.
+> They are launched by `runner.py` as delegated LLM tasks.
+> You must always invoke `runner.py` and let it decide when to delegate.
+> See `SKILL.md` Rule #1.
+
 ```mermaid
 flowchart TD
-    A["1. research-pipeline run<br/>--source all --config CFG"] --> B
-    B["2. research-pipeline quality<br/>(optional)"] --> C
-    C["3. research-pipeline expand<br/>(optional)"] --> D
-    D["4. Launch paper-screener<br/>(optional, task tool)"] --> E
-    E["5. Launch paper-analyzer × N<br/>(parallel, task tool)"] --> F
-    F["6. Launch paper-synthesizer<br/>(task tool)"] --> G
-    G["7. Write final report to CWD"]
+    A["You: python runner.py --topic TOPIC --profile deep"] --> B
+    B["runner.py reads manifest.json<br/>builds task DAG"] --> C
+    C["Deterministic stages run automatically<br/>(plan, search, screen, download, convert, extract, summarize)"] --> D
+    D["runner.py detects llm_worker task: paper-screener<br/>Prints contract + pauses"] --> E
+    E["You: launch paper-screener sub-agent<br/>(task tool, claude-opus)"] --> F
+    F["Sub-agent writes results to {run_dir}/screen/"] --> G
+    G["You: re-run runner.py<br/>(runner validates output and advances DAG)"] --> H
+    H["runner.py delegates paper-analyzer × N<br/>(parallelizable)"] --> I
+    I["Sub-agents write to {run_dir}/analysis/"] --> J
+    J["runner.py delegates paper-synthesizer"] --> K
+    K["Sub-agent writes synthesis to {run_dir}/analysis/synthesis.json"] --> L
+    L["runner.py runs report, review-synthesis, validate-report,<br/>check-completion"] --> M
+    M["Final report written to {cwd}/{topic_slug}-research-report.md"]
 
     style D fill:#f9f,stroke:#333
     style E fill:#f9f,stroke:#333
-    style F fill:#f9f,stroke:#333
+    style H fill:#f9f,stroke:#333
+    style J fill:#f9f,stroke:#333
+    style K fill:#f9f,stroke:#333
 ```

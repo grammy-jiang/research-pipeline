@@ -118,14 +118,15 @@ All sub-agents **MUST** use `model: "claude-opus-4.6"`.
 ## Task `[classify-gaps]` — Gap classification
 
 ```bash
-# Runner delegates to gap_classifier sub-agent.
-# Direct invocation (debug only):
-research-pipeline classify-gaps --run-id <RUN_ID>
+# Runner delegates to gap_classifier sub-agent (llm_worker_task).
+# There is no standalone CLI command for this task.
+# To debug: re-run runner.py and inspect the delegation output for the
+# gap_classifier contract, or examine {cwd}/gaps.json after the round.
 ```
 
-Reads `synthesis_report.json` open_gaps. Writes `gap_classifications.json`
-with each gap typed as `ACADEMIC` (requires new papers) or `ENGINEERING`
-(fillable from docs/code).
+Reads `synthesis_report.json` open_gaps (and optionally `{run_dir}/analysis/synthesis.json`
+for deep profile). Writes `{cwd}/gaps.json` with each gap typed as `ACADEMIC`
+(requires new papers) or `ENGINEERING` (fillable from docs/code).
 
 ## Task `[report]` — Write final report
 
@@ -137,10 +138,9 @@ Then the report is written to `./<topic-slug>-research-report.md`. Required sect
 
 - `## Contents` — table of contents with internal Markdown links
 - `## Round History` — per-round table (see `references/output-templates.md`)
-- `## Executive Summary`, `## Background`, `## Methodology`, `## Key Findings`
-- `## Evidence Table`, `## Comparative Analysis`, `## Research Gaps`
-- `## Assumption Map`, `## Risk Register`, `## Recommendations`
-- `## Conclusion`, `## References`
+- `## Executive Summary`, `## Research Question`, `## Methodology`, `## Papers Reviewed`
+- `## Research Landscape`, `## Confidence-Graded Findings`, `## Research Gaps`
+- `## Practical Recommendations`, `## Evidence Map`, `## References`
 
 Required formatting:
 - Confidence annotations: `[HIGH]`, `[MEDIUM]`, `[LOW]`
@@ -164,14 +164,14 @@ The runner blocks on this gate. Validation failures must be fixed before
 
 ```bash
 # Runner invokes this automatically. Direct invocation (debug only):
-python "$SKILL_DIR/scripts/check_completion.py" --run-id <RUN_ID> --slug "<topic-slug>"
+python3 "$SKILL_DIR/scripts/check_completion.py" --run-id <RUN_ID> --slug "<topic-slug>"
 ```
 
 Exit 1: fix the reported issues before delivering to the user.
 
 ## Gap-closure rounds (iterative synthesis)
 
-After `[check-completion]` passes, read `gap_classifications.json`. If
+After `[check-completion]` passes, read `gaps.json`. If
 `convergence.should_continue: true` and the round cap has not been reached:
 
 1. Take ACADEMIC gaps → new search queries → start a new round (re-run runner).
@@ -199,7 +199,7 @@ candidate set before rewriting prose.
 | Profile | Manifest task set | Use when |
 |---------|------------------|----------|
 | `quick` | 12 tasks | Fast abstract-only overview |
-| `standard` | 16 tasks | Normal evidence-backed review |
+| `standard` | 17 tasks | Normal evidence-backed review |
 | `deep` | 23 tasks | Comprehensive review with quality, expansion, claim analysis |
 | `auto` | runner decides | Let the CLI choose based on query complexity |
 

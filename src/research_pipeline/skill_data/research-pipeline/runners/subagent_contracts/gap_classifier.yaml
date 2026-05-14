@@ -11,10 +11,21 @@ description: |
   For ENGINEERING gaps, identify documentation or code sources to consult.
 
 inputs:
-  - path: "{cwd}/analysis/synthesis.json"
-    description: "Synthesis report containing open_gaps list"
+  - path: "{run_dir}/summarize/synthesis_report.json"
+    description: "Primary: Synthesis report from the summarize stage (standard + deep profiles)"
+    optional: false
+  - path: "{run_dir}/analysis/synthesis.json"
+    description: "Alternative: Richer synthesis from paper-synthesizer (deep profile only, may not exist)"
+    optional: true
   - path: "{skill_dir}/schemas/gap_classification.schema.json"
     description: "Output schema"
+
+instructions: |
+  1. First check if {run_dir}/summarize/synthesis_report.json exists — use it as the
+     primary source for open_gaps.
+  2. If {run_dir}/analysis/synthesis.json also exists (deep profile), merge any additional
+     gaps from it that are not already present.
+  3. {run_dir} = {cwd}/runs/{run_id}
 
 outputs:
   - path: "{cwd}/gaps.json"
@@ -52,14 +63,14 @@ output_schema:
       priority:     high | medium | low
 
 completion_criteria:
-  - "gaps.json exists and validates against schema"
-  - "Every gap in analysis/synthesis.json open_gaps has a classification entry"
+  - "{cwd}/gaps.json exists and validates against schema"
+  - "Every gap in {run_dir}/analysis/synthesis.json open_gaps has a classification entry"
   - "ACADEMIC gaps have at least 1 search_query"
   - "ENGINEERING gaps have at least 1 engineering_ref"
 
 self_reporting_forbidden: true
 status_update: |
   After classification:
-  1. Verify gap_classifications.json exists and all gaps are classified
+  1. Verify gaps.json exists and all gaps are classified
   2. Do NOT mark task accepted
   3. Re-run runner.py — it will validate and accept

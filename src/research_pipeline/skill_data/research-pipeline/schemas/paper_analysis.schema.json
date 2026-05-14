@@ -1,0 +1,50 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PaperAnalysis",
+  "description": "Schema for per-paper analysis output produced by the paper-analyzer sub-agent.",
+  "type": "object",
+  "required": ["paper_id", "title", "research_question", "methodology", "key_findings", "limitations", "reproducibility", "confidence_scores", "raw_claims"],
+  "properties": {
+    "paper_id": {"type": "string", "minLength": 1, "description": "arXiv ID or other unique paper identifier"},
+    "title": {"type": "string", "minLength": 1},
+    "research_question": {"type": "string", "minLength": 1, "description": "Single-sentence statement of the paper's primary research question"},
+    "methodology": {"type": "string", "minLength": 1, "description": "Description of the research methodology used"},
+    "key_findings": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": ["finding", "evidence_type"],
+        "properties": {
+          "finding": {"type": "string", "minLength": 1},
+          "evidence_type": {"type": "string", "enum": ["supported", "unsupported", "contradicted"]},
+          "section": {"type": "string"},
+          "quote": {"type": "string"}
+        }
+      }
+    },
+    "limitations": {
+      "type": "array",
+      "items": {"type": "string"}
+    },
+    "reproducibility": {
+      "type": "object",
+      "properties": {
+        "code_available": {"type": "boolean"},
+        "dataset_available": {"type": "boolean"},
+        "metrics_reported": {"type": "boolean"}
+      }
+    },
+    "confidence_scores": {
+      "type": "object",
+      "description": "Map of finding summary → confidence in [0, 1]",
+      "additionalProperties": {"type": "number", "minimum": 0.0, "maximum": 1.0}
+    },
+    "raw_claims": {
+      "type": "array",
+      "items": {"type": "string"},
+      "description": "Atomic sentences extracted verbatim from the paper"
+    }
+  },
+  "additionalProperties": true
+}

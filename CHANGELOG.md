@@ -2,6 +2,51 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.20] — 2026-05-14
+
+### Fixed
+
+- **Bug (DAI runner): `task_ready` blocked on `skipped_by_policy` dependencies**
+  `daily-ai-intelligence/runners/runner.py`: `task_ready()` only accepted `"accepted"`
+  as a satisfying dependency status, causing `preferences` (which depends on optional
+  `feedback`) to stay permanently `pending` when `feedback` was skipped. Added
+  `READY_STATUSES = {"accepted", "skipped_by_policy"}` constant — mirroring the
+  research-pipeline runner — and updated `task_ready()` to use `not in READY_STATUSES`.
+
+- **Bug (research-pipeline manifest): `check-completion` used bare `python` not `python3`**
+  `manifest.json` check-completion executor command used `python` which fails on
+  Python-3-only systems. Changed to `python3` for consistency with all other skill
+  scripts (`resume-check.sh`, `stop-check.sh`, `resume-inject.sh`, `validate-registry.sh`).
+  Also fixed the debug invocation example in `references/workflow-steps.md`.
+
+- **Bug (gap_classifier contract): `status_update` referenced wrong output filename**
+  `runners/subagent_contracts/gap_classifier.yaml` `status_update` said
+  `gap_classifications.json` but the actual output (per manifest and runner code) is
+  `gaps.json`. This was a leftover from the partial fix in `0a3aaeb`. Updated to `gaps.json`.
+
+- **Bug (workflow-steps.md): gap-closure section referenced wrong filename**
+  `references/workflow-steps.md` gap-closure section said `read gap_classifications.json`
+  but the file is `gaps.json`. Updated to `gaps.json`.
+
+- **Bug (research-pipeline manifest): `paper-synthesizer` had conflicting `failure_policy`**
+  `paper-synthesizer` is declared `optional: true` but had `"on_failure": "block"`.
+  A task that is semantically optional must not block the workflow on failure. Changed
+  `"on_failure": "block"` → `"on_failure": "skip"` with explanatory note.
+
+- **Bug (research-pipeline manifest + contract): missing `paper_analysis.schema.json`**
+  `manifest.json` output section for `paper-analyzer` and the `paper_analyzer.yaml`
+  sub-agent contract both reference `schemas/paper_analysis.schema.json` which did not
+  exist. Created the schema with all required fields from the analysis template:
+  `paper_id`, `title`, `research_question`, `methodology`, `key_findings`
+  (with `evidence_type` enum), `limitations`, `reproducibility`, `confidence_scores`,
+  `raw_claims`.
+
+- **Bug (sub-agents.md): stale `_analysis` filename convention**
+  `references/sub-agents.md` still used the old underscore convention
+  (`{arxiv_id}_analysis.json`) after `0a3aaeb` changed to dot-separator
+  (`{arxiv_id}.analysis.json`). Updated both occurrences.
+
+
 ## [v0.17.14] — 2026-05-13
 
 ### Added

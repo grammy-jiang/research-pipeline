@@ -28,6 +28,7 @@ MANIFEST_PATH = SKILL_DIR / "manifest.json"
 CONTRACTS_DIR = Path(__file__).parent / "subagent_contracts"
 
 TERMINAL_STATUSES = {"accepted", "skipped_by_policy", "blocked", "failed"}
+READY_STATUSES = {"accepted", "skipped_by_policy"}
 LLM_KINDS = {"llm_worker", "llm_reviewer"}
 
 
@@ -58,7 +59,7 @@ def save_state(state: dict[str, Any], state_path: Path) -> None:
 
 def task_ready(task: dict[str, Any], task_states: dict[str, Any]) -> bool:
     for dep in task.get("depends_on", []):
-        if task_states.get(dep, {}).get("status") != "accepted":
+        if task_states.get(dep, {}).get("status") not in READY_STATUSES:
             return False
     return True
 

@@ -14,6 +14,7 @@
     "validate-report",
     "check-completion"
   ],
+  "_note_mandatory_gates": "Informational only — runner.py does NOT read this list. Gating is enforced per-task via failure_policy.on_failure='block'. Add or remove entries here for documentation purposes only.",
   "tasks": [
     {
       "id": "resume-check",
@@ -240,7 +241,7 @@
       "type": "llm_worker_task",
       "phase": "summarize",
       "optional": true,
-      "depends_on": ["convert-rough"],
+      "depends_on": ["convert-rough", "convert-fine"],
       "executor": {
         "kind": "llm_worker",
         "name": "paper-analyzer",
@@ -271,7 +272,7 @@
         "schema": "schemas/synthesis_report.schema.json"
       },
       "validation": ["artifact_exists", "schema_valid", "evidence_present"],
-      "failure_policy": {"on_failure": "block"}
+      "failure_policy": {"on_failure": "skip", "note": "optional deep-profile task; skip on failure"}
     },
     {
       "id": "analyze-claims",
@@ -304,7 +305,7 @@
       "label": "Render synthesis report using structured_synthesis template",
       "type": "pipeline_stage",
       "phase": "report",
-      "depends_on": ["summarize"],
+      "depends_on": ["summarize", "analyze-claims", "score-claims"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "tool_report",
@@ -334,14 +335,17 @@
         "schema": "schemas/reviewer_result.schema.json"
       },
       "validation": ["artifact_exists", "schema_valid"],
-      "failure_policy": {"on_failure": "retry_once_then_block"}
+      "failure_policy": {
+        "on_failure": "retry_once_then_block",
+        "_note": "For llm_reviewer tasks, runner.py delegates and pauses; it does not execute retry logic itself. On a 'reject' verdict the agent must reset 'report' and 'review-synthesis' to 'pending' in workflow_state.json, then re-run runner.py. The 'retry_once_then_block' policy is enforced by agent convention, not by runner code."
+      }
     },
     {
       "id": "validate-report",
       "label": "Validate final report completeness (14-section check)",
       "type": "verification",
       "phase": "report",
-      "depends_on": ["report"],
+      "depends_on": ["report", "review-synthesis"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "tool_validate_report",
@@ -358,7 +362,7 @@
       "depends_on": ["validate-report"],
       "executor": {
         "kind": "deterministic_script",
-        "command": "python {skill_dir}/scripts/check_completion.py --run-id {run_id} --slug {topic_slug}"
+        "command": "python3 {skill_dir}/scripts/check_completion.py --run-id {run_id} --slug {topic_slug} --cwd {cwd}"
       },
       "validation": ["exit_code_zero"],
       "failure_policy": {"on_failure": "block"}
