@@ -11,18 +11,18 @@ description: |
   For system-building mode: classify gaps as ENGINEERING or ACADEMIC.
 
 inputs:
-  - path: "{cwd}/analysis/"
+  - path: "{run_dir}/analysis/"
     description: "Per-paper JSON analysis files"
-  - path: "{cwd}/screened.jsonl"
+  - path: "{run_dir}/screen/screened.jsonl"
     description: "Paper metadata and quality scores"
   - path: "{skill_dir}/schemas/synthesis_report.schema.json"
     description: "Output schema to conform to"
 
 outputs:
-  - path: "{cwd}/analysis/synthesis.json"
+  - path: "{run_dir}/analysis/synthesis.json"
     description: "Machine-readable synthesis report"
     schema: "../../schemas/synthesis_report.schema.json"
-  - path: "{cwd}/analysis/synthesis.md"
+  - path: "{run_dir}/analysis/synthesis.md"
     description: "Human-readable synthesis narrative"
 
 allowed_tools:
@@ -37,7 +37,7 @@ forbidden_actions:
   - Do NOT fabricate claims not present in the analysis files
   - Do NOT include citation counts or h-indexes you have not verified
   - Do NOT call tool_analyze_papers or tool_analyze_claims (already done)
-  - Do NOT write outside the run workspace directory
+  - Do NOT write outside the run workspace directory ({run_dir})
 
 synthesis_structure:
   required_sections:
@@ -62,15 +62,15 @@ evidence_requirements:
   - Contradictions must name the papers on both sides
 
 completion_criteria:
-  - "analysis/synthesis.json exists and validates against synthesis_report.schema.json"
-  - "analysis/synthesis.md exists and has all required sections"
+  - "{run_dir}/analysis/synthesis.json exists and validates against synthesis_report.schema.json"
+  - "{run_dir}/analysis/synthesis.md exists and has all required sections"
   - "No section is empty"
   - "open_gaps list present (may be empty if no gaps found)"
 
 self_reporting_forbidden: true
 status_update: |
   After synthesis:
-  1. Verify synthesis_report.json validates against the schema
+  1. Verify synthesis.json validates against the schema
   2. Verify synthesis.md has all required sections
   3. Do NOT mark the task accepted
   4. Re-run runner.py — it will validate and accept

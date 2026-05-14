@@ -131,7 +131,7 @@
     {
       "id": "dossier",
       "label": "Generate hot-topic dossier for a ranked cluster (optional)",
-      "type": "llm_worker_task",
+      "type": "pipeline_stage",
       "phase": "extras",
       "optional": true,
       "depends_on": ["check-completion"],

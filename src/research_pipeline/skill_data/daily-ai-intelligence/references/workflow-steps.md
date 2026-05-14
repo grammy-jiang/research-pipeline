@@ -59,7 +59,7 @@ Artifacts produced:
 
 - `<WS>/<DATE>/raw/*.jsonl` — raw events per source
 - `<WS>/<DATE>/normalized/events.jsonl` — deduped, normalized
-- `<WS>/<DATE>/clusters/clusters.jsonl` — ranked clusters
+- `<WS>/<DATE>/clusters/ranked.jsonl` — ranked clusters
 - `<WS>/<DATE>/reports/daily.md` — the validated daily brief
 - `<WS>/<DATE>/validation/validation.json` — pass/fail + reasons
 
@@ -72,7 +72,8 @@ When the runner encounters this task, it delegates to the `rank_reviewer`
 sub-agent (see `runners/subagent_contracts/rank_reviewer.yaml`).
 
 The reviewer checks deduplication, cluster coherence, ranking plausibility,
-and source diversity. On `verdict: reject`, the runner re-queues `[rank]`.
+and source diversity. On `verdict: reject`, manually reset `[rank]` to
+`pending` in `workflow_state.json` and re-run the runner.
 
 ## Task `[validate-brief]` ⛔ GATE — Validation gate
 

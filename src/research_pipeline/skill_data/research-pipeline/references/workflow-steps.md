@@ -25,7 +25,7 @@ The runner executes this gate before every other task. It looks for
 `./<topic-slug>-research-report.md` in the CWD.
 
 If found: snapshot-renames the old file and writes `resume_context.json`
-with `prior_arxiv_ids` and `prior_gaps` to seed the new run.
+with `prior_paper_ids` and `open_gaps_raw` to seed the new run.
 
 ```bash
 # Runner invokes this automatically. Direct invocation (debug only):
@@ -37,10 +37,10 @@ Manual inspection of the context JSON:
 ```python
 import json
 ctx = json.load(open("resume_context.json"))
-# ctx["prior_report_path"]  — snapshot path of the renamed prior report
-# ctx["prior_arxiv_ids"]    — IDs to feed into expand --paper-ids
-# ctx["prior_gaps"]         — open gap lines to seed new query_variants
-# ctx["resuming"]           — bool
+# ctx["resume"]           — bool (True if a prior report was found)
+# ctx["snapshot"]         — snapshot path of the renamed prior report
+# ctx["prior_paper_ids"]  — IDs to feed into expand --paper-ids
+# ctx["open_gaps_raw"]    — open gap lines to seed new query_variants
 ```
 
 ## Tasks `[plan]` ⛔ GATE + `[verify-plan]` ⛔ GATE — Plan

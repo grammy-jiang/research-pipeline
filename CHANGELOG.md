@@ -2,7 +2,70 @@
 
 All notable changes to research-pipeline.
 
-## [v0.17.20] — 2026-05-14
+## [v0.17.21] — 2026-05-14
+
+### Fixed
+
+- **Bug (workflow-steps.md RP): resume_context.json field names were wrong in debug block**
+  `references/workflow-steps.md` resume-check section (prose description and the
+  Python debug snippet) used stale key names that never matched what `resume-check.sh`
+  actually writes. Updated four keys:
+  - `ctx["resuming"]` → `ctx["resume"]`
+  - `ctx["prior_report_path"]` → `ctx["snapshot"]`
+  - `ctx["prior_arxiv_ids"]` → `ctx["prior_paper_ids"]`
+  - `ctx["prior_gaps"]` → `ctx["open_gaps_raw"]`
+  Also updated the prose description on line 27 ("with `prior_arxiv_ids` and
+  `prior_gaps`" → "with `prior_paper_ids` and `open_gaps_raw`") to match.
+  The ground-truth keys are defined in `scripts/resume-check.sh` (unchanged).
+
+- **Bug (gap_classifier contract): completion_criteria referenced wrong primary source**
+  `runners/subagent_contracts/gap_classifier.yaml` `completion_criteria` said
+  "Every gap in `{run_dir}/analysis/synthesis.json`…" but that path is the
+  *optional* deep-profile output from `paper-synthesizer`; the *primary* source
+  is `{run_dir}/summarize/synthesis_report.json`. The `inputs` section already
+  correctly named both files with the right primary/optional distinction — only
+  `completion_criteria` was inconsistent. Updated the criterion to reference the
+  primary source first and the alternative second, matching the `instructions`
+  section logic.
+
+- **Bug (workflow-steps.md DAI): incorrect claim that runner auto-re-queues [rank] on reviewer reject**
+  `daily-ai-intelligence/references/workflow-steps.md` task `[review-ranked]`
+  section said "On `verdict: reject`, the runner re-queues `[rank]`." The runner
+  does NOT automatically reset any task status — that must be done manually by
+  the agent. Updated to: "On `verdict: reject`, manually reset `[rank]` to
+  `pending` in `workflow_state.json` and re-run the runner."
+
+- **Bug (workflow-steps.md DAI): wrong artifact filename for ranked clusters**
+  The `[poll]+[rank]+[generate-daily]` section listed
+  `<WS>/<DATE>/clusters/clusters.jsonl` as the ranked-clusters artifact, but the
+  DAI manifest `rank` task output path is `{workspace}/{date}/clusters/ranked.jsonl`.
+  Updated to `ranked.jsonl`.
+
+- **Bug (sub-agents.md): paper-synthesizer Outputs section described CLI tool outputs, not sub-agent outputs**
+  The `## paper-synthesizer` section listed `synthesis_report.md`,
+  `synthesis_report.json`, and `synthesis_traceability.json` as outputs — these
+  are files written by the deterministic CLI `summarize` stage, not by the
+  `paper-synthesizer` sub-agent. The sub-agent writes to
+  `{run_dir}/analysis/synthesis.md` and `{run_dir}/analysis/synthesis.json`.
+  Updated the `Outputs` field, the prompt template write instruction (was
+  `/runs/<run_id>/summarize/` → `/runs/<run_id>/analysis/`), and the `Writes`
+  line to reflect the correct paths.
+
+- **Bug (paper_synthesizer contract): status_update referenced wrong output filename**
+  `runners/subagent_contracts/paper_synthesizer.yaml` `status_update` said
+  "Verify synthesis_report.json validates against the schema" but the actual
+  output is `synthesis.json` (in `{run_dir}/analysis/`). Updated to
+  "Verify synthesis.json validates against the schema".
+
+- **Bug (DAI manifest): dossier task had wrong `type` field**
+  `daily-ai-intelligence/manifest.json` `dossier` task declared
+  `"type": "llm_worker_task"` but its executor is
+  `"kind": "deterministic_mcp_tool"`. The `type` field is metadata — the runner
+  uses `executor.kind` — but the inconsistency was misleading. Changed `type`
+  to `"pipeline_stage"` to match all other optional MCP tasks (`feedback`,
+  `export-obsidian`, etc.).
+
+
 
 ### Fixed
 

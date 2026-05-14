@@ -64,7 +64,7 @@ output_schema:
 
 completion_criteria:
   - "{cwd}/gaps.json exists and validates against schema"
-  - "Every gap in {run_dir}/analysis/synthesis.json open_gaps has a classification entry"
+  - "Every gap from the primary source ({run_dir}/summarize/synthesis_report.json, or {run_dir}/analysis/synthesis.json if the former is absent) open_gaps has a classification entry"
   - "ACADEMIC gaps have at least 1 search_query"
   - "ENGINEERING gaps have at least 1 engineering_ref"
 
