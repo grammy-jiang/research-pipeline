@@ -2,6 +2,46 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.22] — 2026-05-14
+
+### Fixed
+
+- **Bug (DAI runner): `print_llm_delegation` ignored manifest-declared contract path**
+  `daily-ai-intelligence/runners/runner.py` always derived the contract filename from
+  the task ID (`task_id.replace("-","_") + ".yaml"`), so for the `review-ranked` task
+  it looked for `review_ranked.yaml` instead of the actual file `rank_reviewer.yaml`
+  declared in `executor.contract`. Fixed by mirroring the RP runner: first check
+  `task["executor"].get("contract", "")` and resolve relative to `SKILL_DIR`; fall
+  back to the derived name only when no manifest path is declared.
+
+- **Bug (DAI runner): `print_llm_delegation` never substituted context variables**
+  The function took no `ctx` parameter and printed raw contract text, so the reviewer
+  sub-agent saw literal `{workspace}/{date}/...` template placeholders instead of real
+  paths. Fixed by adding a `ctx` parameter and iterating over its key/value pairs to
+  replace placeholders in the contract text — matching the pattern already used in
+  the RP runner. Updated the call site from `print_llm_delegation(task)` to
+  `print_llm_delegation(task, ctx)`.
+
+- **Bug (DAI stop-check.sh): hook blocked agent when no brief was run today**
+  `daily-ai-intelligence/hooks/stop-check.sh` called `check_completion.sh` without
+  `--workspace` / `--date`, so `check_completion.sh` exited 1 when
+  `./workspace/briefing/<today>/` did not exist, causing the hook to exit 2 and block
+  the agent in every project that had the hook installed globally — even when no brief
+  had been started. The header comment said "The hook is a no-op when no brief workspace
+  is found for today" but the code contradicted this. Fixed by adding a sentinel check
+  after locating `$CHECK_SCRIPT`: if `./workspace/briefing/$(date -u +%F)` does not
+  exist, exit 0 immediately — mirroring the RP `stop-check.sh` pattern.
+
+- **Bug (SKILL.md + workflow-steps.md): bare `python` invocations of runner.py**
+  Four locations still used bare `python` instead of `python3` for runner.py launch
+  examples. `v0.17.21` fixed `manifest.json` and the `check_completion.py` debug line
+  in `references/workflow-steps.md`, but missed the actual Launch blocks and the
+  Profiles section. Fixed:
+  - `research-pipeline/SKILL.md` Launch block
+  - `daily-ai-intelligence/SKILL.md` Launch block
+  - `research-pipeline/references/workflow-steps.md` Profiles section (two lines)
+  - `daily-ai-intelligence/references/workflow-steps.md` core-pipeline section
+
 ## [v0.17.21] — 2026-05-14
 
 ### Fixed

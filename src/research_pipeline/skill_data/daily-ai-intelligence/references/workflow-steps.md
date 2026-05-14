@@ -46,7 +46,7 @@ Exit 0 = proceed.
 
 ```bash
 # One-shot (runner preferred):
-python $SKILL_DIR/runners/runner.py --registry "$REG" --workspace "$WS"
+python3 $SKILL_DIR/runners/runner.py --registry "$REG" --workspace "$WS"
 
 # Step-by-step (debug/partial reruns):
 research-pipeline brief poll           --registry "$REG" --workspace "$WS" --date "$DATE"

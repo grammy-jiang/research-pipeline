@@ -31,7 +31,13 @@ done
 
 [[ -n "$CHECK_SCRIPT" ]] || exit 0   # skill not installed locally; fail open
 
-# ── 2. Run the brief completion check ────────────────────────────────────────
+# ── 2. Sentinel: if no brief was started today, this is a no-op ─────────────
+TODAY="$(date -u +%F)"
+if [[ ! -d "./workspace/briefing/$TODAY" ]]; then
+    exit 0   # no brief run today in this working directory; nothing to check
+fi
+
+# ── 3. Run the brief completion check ────────────────────────────────────────
 # check_completion.sh auto-detects today's workspace by convention (./workspace).
 # It exits 0 when no brief has been run today (nothing to check), exits 1 when
 # a brief exists but fails validation.

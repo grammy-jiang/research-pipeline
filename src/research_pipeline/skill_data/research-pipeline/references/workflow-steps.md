@@ -204,6 +204,6 @@ candidate set before rewriting prose.
 | `auto` | runner decides | Let the CLI choose based on query complexity |
 
 ```bash
-python $SKILL_DIR/runners/runner.py "<topic>" --profile standard --config "$CFG"
-python $SKILL_DIR/runners/runner.py "<topic>" --profile deep    --config "$CFG"
+python3 $SKILL_DIR/runners/runner.py "<topic>" --profile standard --config "$CFG"
+python3 $SKILL_DIR/runners/runner.py "<topic>" --profile deep    --config "$CFG"
 ```

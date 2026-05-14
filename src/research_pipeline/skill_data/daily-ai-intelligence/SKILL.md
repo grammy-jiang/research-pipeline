@@ -61,7 +61,7 @@ SKILL_DIR=~/.claude/skills/daily-ai-intelligence   # Claude Code / Copilot
 REG=~/my-daily-registry.toml   # user's reviewed registry
 WS=./workspace/briefing
 
-python $SKILL_DIR/runners/runner.py --registry "$REG" --workspace "$WS"
+python3 $SKILL_DIR/runners/runner.py --registry "$REG" --workspace "$WS"
 ```
 
 The runner reads `manifest.json`, initialises `workflow_state.json` under

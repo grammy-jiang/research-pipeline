@@ -51,7 +51,7 @@ SKILL_DIR=~/.claude/skills/research-pipeline    # Claude Code / Copilot
 # SKILL_DIR=~/.codex/skills/research-pipeline   # Codex
 CFG=$SKILL_DIR/config.toml
 
-python $SKILL_DIR/runners/runner.py "<topic>" --config "$CFG"
+python3 $SKILL_DIR/runners/runner.py "<topic>" --config "$CFG"
 ```
 
 The runner reads `manifest.json`, initialises `workflow_state.json`,

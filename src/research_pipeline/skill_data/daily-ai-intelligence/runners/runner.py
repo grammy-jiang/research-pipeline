@@ -90,15 +90,28 @@ def run_deterministic(task: dict[str, Any], ctx: dict[str, str]) -> tuple[bool, 
     return True, result.stdout.strip()
 
 
-def print_llm_delegation(task: dict[str, Any]) -> None:
-    contract_name = task["id"].replace("-", "_") + ".yaml"
-    contract_path = CONTRACTS_DIR / contract_name
+def print_llm_delegation(task: dict[str, Any], ctx: dict[str, Any]) -> None:
+    """Print the sub-agent contract for the delegated LLM task."""
+    # Prefer the manifest-declared contract path; fall back to derived name.
+    manifest_contract = task.get("executor", {}).get("contract", "")
+    if manifest_contract:
+        contract_path = SKILL_DIR / manifest_contract
+    else:
+        contract_name = task["id"].replace("-", "_") + ".yaml"
+        contract_path = CONTRACTS_DIR / contract_name
     print(f"\n{'=' * 60}")
     print(f"DELEGATE TO REVIEWER: {task['id']}")
-    print(f"  label: {task.get('label', '')}")
+    print(f"  label  : {task.get('label', '')}")
+    print(f"  kind   : {task['executor']['kind']}")
+    print(f"  name   : {task['executor'].get('name', task['id'])}")
     if contract_path.exists():
         print(f"  contract: {contract_path}")
-        print(f"\n{contract_path.read_text()}")
+        contract_text = contract_path.read_text()
+        # Substitute all known context variables so the reviewer sees
+        # concrete paths rather than literal template placeholders.
+        for key, val in ctx.items():
+            contract_text = contract_text.replace(f"{{{key}}}", str(val))
+        print(f"\n{contract_text}")
     print("=" * 60)
     print("After the reviewer completes, update workflow_state.json:")
     print(f"  tasks.{task['id']}.status = 'accepted'")
@@ -164,7 +177,7 @@ def run_workflow(
                 if current.get("status") == "delegated":
                     continue
                 print(f"\n[DELEGATING] {task_id}: {label}")
-                print_llm_delegation(task)
+                print_llm_delegation(task, ctx)
                 task_states[task_id] = {
                     "status": "delegated",
                     "started_at": datetime.now(UTC).isoformat(),
