@@ -2,6 +2,55 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.26] — 2026-05-14
+
+### Fixed
+
+- **Bug 1 (BREAKING — manifest.json): `paper-screener` depended on `["search"]` instead of `["screen"]`**
+  The runner processes tasks in manifest order. With `depends_on: ["search"]`, both `paper-screener`
+  and `screen` were ready at the same time. The runner delegated `paper-screener` first, paused, and
+  when re-run `screen` executed and **overwrote** `screened.jsonl` with the BM25 result — discarding
+  the LLM screener's improved shortlist entirely. Fixed by setting `depends_on: ["screen"]` so the LLM
+  screener always runs after BM25 screening and only refines its output. Also set `phase: "screen"` and
+  added `output.path: "runs/{run_id}/screen/screened.jsonl"` to the manifest entry, and replaced the
+  invalid `failure_policy.fallback` key (not enforced by the runner) with a `note` field.
+
+- **Bug 2 (BREAKING — manifest.json): `expand`, `quality`, `enrich`, `download` depended on `["screen"]`
+  instead of `["paper-screener"]`**
+  Even with Bug 1 fixed, if `paper-screener` was `delegated` (paused for LLM), downstream tasks still
+  saw `screen` as accepted and ran immediately — processing the BM25 shortlist before the LLM screener
+  could improve it. Fixed by setting all four tasks to `depends_on: ["paper-screener"]`. Since
+  `skipped_by_policy ∈ READY_STATUSES`, this is transparent in `quick`/`standard` profiles where
+  `paper-screener` is not included (it is immediately skipped, and downstream tasks proceed normally).
+
+- **Bug 3 (MEDIUM — paper_screener.yaml): contract primary input was `search/candidates.jsonl`**
+  The sub-agent contract listed `search/candidates.jsonl` as primary input, but `cmd_screen.py` writes
+  BM25 scores to `screen/cheap_scores.jsonl` (a richer file containing scores + explanation fields),
+  and `references/sub-agents.md` already documented `cheap_scores.jsonl` as the correct input. Fixed
+  by updating the contract to read `screen/cheap_scores.jsonl` as primary, with `search/candidates.jsonl`
+  as a fallback if BM25 scores are unavailable.
+
+- **Bug 4 (MEDIUM — sub-agents.md): paper-screener `Writes` line said "returned in agent output"**
+  The documentation stated that the LLM screener's output was "returned in agent output", contradicting
+  the `paper_screener.yaml` contract which requires writing to `{run_dir}/screen/screened.jsonl` and
+  uses `artifact_exists` as a completion criterion. Fixed by correcting both the `Reads` line
+  (to `screen/cheap_scores.jsonl`) and the `Writes` line (to `{run_dir}/screen/screened.jsonl`).
+
+- **Bug 5 (MEDIUM — iterative-synthesis.md): wrong field name, missing state-reset instruction,
+  and undefined template variable in runner invocation (step 3)**
+  Three errors in the per-round invocation instructions:
+  1. "set `current_round = <N+1>`" — `workflow_state.json` uses `"round"`, not `"current_round"`.
+     (`current_round` belongs to the separate `round_state.json` written by hooks.) This would cause
+     the runner to start round 2 with `round: 1` still in state, corrupting round tracking.
+  2. No instruction to reset task statuses to `pending`. The runner reads `workflow_state.json` and
+     sees all tasks as `accepted` from round 1, making no progress on the new round. The correct
+     preparation is to copy `workflow_state_template.json` (which has all tasks as `pending`) and
+     then update `run_id`, `round`, `context.prior_paper_ids`, and `context.prior_gaps`.
+  3. `--config CFG` — `CFG` is an undefined bare word. All other template variables in the docs use
+     `{variable}` syntax. Fixed to `--config {config}`.
+  Replaced the single "Before invoking…" sentence with a numbered 5-step preparation checklist that
+  covers all necessary `workflow_state.json` fields before the runner is invoked.
+
 ## [v0.17.25] — 2026-05-14
 
 ### Fixed

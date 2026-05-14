@@ -48,19 +48,29 @@ but is never referenced from the new report body.
      that the broader parent query did not answer.
    - Re-invoke `runner.py` for the new round — **do not call the
      pipeline CLI stages directly**. The runner handles stage
-     sequencing and state persistence:
+     sequencing and state persistence.
+
+     **Prepare `workflow_state.json` before invoking:**
+     1. Copy `workflow_state_template.json` to `workflow_state.json`
+        (this resets all task statuses to `pending`).
+     2. Set `run_id` to a new unique ID (e.g. `"<topic-slug>-r<N+1>-<yyyymmdd>"`).
+     3. Set `round` to `<N+1>`.
+     4. Under `context.prior_paper_ids`, list the arXiv IDs accepted in
+        round N (so the global index skips already-downloaded PDFs).
+     5. Under `context.prior_gaps`, paste the gap objects from the
+        previous round's `gaps.json` (for reference context).
+
+     Then invoke the runner:
      ```bash
      python3 {skill_dir}/runners/runner.py \
        "<gap-specific topic>" \
        --profile standard \
        --state "{cwd}/workflow_state.json" \
-       --config CFG
+       --config {config}
      ```
-     Before invoking, update `workflow_state.json` to record the new
-     `run_id` and set `current_round = <N+1>`.  The runner will plan,
-     search, screen, expand (seeded from `gaps.json` paper IDs),
-     download, convert, extract, summarize, and produce a gap-focused
-     report automatically.
+     The runner will plan, search, screen, expand (seeded from
+     `prior_paper_ids`), download, convert, extract, summarize, and
+     produce a gap-focused report automatically.
    - Merge the new evidence with the prior corpus; the global
      SQLite paper index deduplicates downloads and conversions
      automatically.

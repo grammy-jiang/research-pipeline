@@ -84,17 +84,20 @@
       "id": "paper-screener",
       "label": "LLM paper screener (optional — noisy topics)",
       "type": "llm_worker_task",
-      "phase": "search",
+      "phase": "screen",
       "optional": true,
-      "depends_on": ["search"],
+      "depends_on": ["screen"],
       "executor": {
         "kind": "llm_worker",
         "name": "paper-screener",
         "contract": "runners/subagent_contracts/paper_screener.yaml"
       },
       "trigger_condition": "BM25 screening results are noisy or topic is broad",
+      "output": {
+        "path": "runs/{run_id}/screen/screened.jsonl"
+      },
       "validation": ["artifact_exists", "schema_valid", "evidence_present"],
-      "failure_policy": {"on_failure": "skip", "fallback": "screen"}
+      "failure_policy": {"on_failure": "skip", "note": "On failure the BM25 screened.jsonl from the screen task is used instead"}
     },
     {
       "id": "screen",
@@ -119,7 +122,7 @@
       "type": "pipeline_stage",
       "phase": "screen",
       "optional": true,
-      "depends_on": ["screen"],
+      "depends_on": ["paper-screener"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "tool_expand_citations",
@@ -133,7 +136,7 @@
       "type": "pipeline_stage",
       "phase": "screen",
       "optional": true,
-      "depends_on": ["screen"],
+      "depends_on": ["paper-screener"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "tool_evaluate_quality",
@@ -147,7 +150,7 @@
       "type": "pipeline_stage",
       "phase": "screen",
       "optional": true,
-      "depends_on": ["screen"],
+      "depends_on": ["paper-screener"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "tool_enrich",
@@ -160,7 +163,7 @@
       "label": "Download shortlisted PDFs",
       "type": "pipeline_stage",
       "phase": "download",
-      "depends_on": ["screen"],
+      "depends_on": ["paper-screener"],
       "executor": {
         "kind": "deterministic_mcp_tool",
         "tool": "tool_download_pdfs",

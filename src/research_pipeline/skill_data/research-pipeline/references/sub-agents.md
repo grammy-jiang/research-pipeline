@@ -58,8 +58,8 @@ CUSTOM INSTRUCTIONS:
 Return: total screened, shortlist count, top papers with relevance, coverage gaps.
 ```
 
-**Reads**: `runs/{run_id}/search/candidates.jsonl` or `screen/cheap_scores.jsonl`
-**Writes**: screening assessment (returned in agent output)
+**Reads**: `runs/{run_id}/screen/cheap_scores.jsonl` (BM25 scores from the screen stage; falls back to `search/candidates.jsonl`)
+**Writes**: `{run_dir}/screen/screened.jsonl` (improved shortlist replacing the BM25 result)
 
 ## paper-analyzer
 

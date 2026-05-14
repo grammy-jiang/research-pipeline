@@ -11,13 +11,13 @@ description: |
   and recency. Produce a shortlist of papers to download and analyze.
 
 inputs:
-  - path: "{cwd}/candidates.jsonl"
-    description: "Raw search candidates from the search stage"
-  - path: "{skill_dir}/schemas/query_plan.schema.json"
-    description: "Validated query plan for topic context"
+  - path: "{run_dir}/screen/cheap_scores.jsonl"
+    description: "BM25 scored candidates from the screen stage (primary input for LLM re-ranking)"
+  - path: "{run_dir}/search/candidates.jsonl"
+    description: "Raw search candidates (fallback if cheap_scores.jsonl is not present)"
 
 outputs:
-  - path: "{cwd}/screened.jsonl"
+  - path: "{run_dir}/screen/screened.jsonl"
     description: "Shortlisted candidates with relevance scores"
 
 allowed_tools:
@@ -56,7 +56,7 @@ evidence_requirements:
   - Rejection reasons must be explicit (irrelevant / out_of_scope / low_quality / duplicate)
 
 completion_criteria:
-  - "{cwd}/screened.jsonl exists"
+  - "{run_dir}/screen/screened.jsonl exists"
   - "Shortlist contains 5–30 papers"
   - "All accepted papers have relevance_score ≥ 0.6"
   - "All rejected papers have rejection_reason"
@@ -68,6 +68,6 @@ validation_gate:
 self_reporting_forbidden: true
 status_update: |
   After completing screening:
-  1. Verify screened.jsonl exists and has ≥ 5 entries
+  1. Verify screened.jsonl exists at {run_dir}/screen/screened.jsonl and has ≥ 5 entries
   2. Do NOT mark the task accepted yourself
   3. Re-run runner.py — it will validate and accept the task
