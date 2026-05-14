@@ -6,8 +6,8 @@ declares success to the user. This is a deterministic guard — it does
 not invoke any LLM.
 
 Usage:
-    python check_completion.py --run-id RUN_ID --slug TOPIC_SLUG
-    python check_completion.py --run-id RUN_ID --slug TOPIC_SLUG \\
+    python3 check_completion.py --run-id RUN_ID --slug TOPIC_SLUG
+    python3 check_completion.py --run-id RUN_ID --slug TOPIC_SLUG \\
         --workspace ./runs --cwd .
 
 Exit codes:
@@ -29,7 +29,7 @@ from pathlib import Path
 REQUIRED_ARTIFACTS: list[tuple[str, str, bool]] = [
     ("plan/query_plan.json", "plan", True),
     ("search/candidates.jsonl", "search", True),
-    ("screen/shortlist.json", "screen", True),
+    ("screen/screened.jsonl", "screen", True),
 ]
 
 # At least one of these must exist (summarize stage).

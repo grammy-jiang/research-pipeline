@@ -184,8 +184,8 @@
       },
       "trigger_condition": "User supplies --vault path and it is in the registry allowlist",
       "failure_policy": {
-        "on_failure": "block",
-        "message": "Never overwrite a note that lacks generator-owned frontmatter."
+        "on_failure": "skip",
+        "note": "Never overwrite a note that lacks generator-owned frontmatter."
       }
     },
     {

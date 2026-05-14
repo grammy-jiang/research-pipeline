@@ -7,9 +7,9 @@ briefing pipeline in dependency order. The orchestrator is the single
 authority for task status transitions.
 
 Usage:
-  python runner.py --registry <REG> --workspace <WS> [--date YYYY-MM-DD]
-  python runner.py --status                           # show current state
-  python runner.py --dry-run --registry <REG> ...     # print task graph
+  python3 runner.py --registry <REG> --workspace <WS> [--date YYYY-MM-DD]
+  python3 runner.py --status                           # show current state
+  python3 runner.py --dry-run --registry <REG> ...     # print task graph
 """
 
 from __future__ import annotations
@@ -84,7 +84,12 @@ def run_deterministic(task: dict[str, Any], ctx: dict[str, str]) -> tuple[bool, 
         return True, "no command — MCP tool invocation handled by agent"
     for key, val in ctx.items():
         cmd = cmd.replace(f"{{{key}}}", str(val))
-    result = subprocess.run(shlex.split(cmd), capture_output=True, text=True)
+    try:
+        result = subprocess.run(
+            shlex.split(cmd), capture_output=True, text=True, timeout=300
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"command timed out after 300s: {cmd[:120]}"
     if result.returncode != 0:
         return False, (result.stderr or result.stdout).strip()
     return True, result.stdout.strip()

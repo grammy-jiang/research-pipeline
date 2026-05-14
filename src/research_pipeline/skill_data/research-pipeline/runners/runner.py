@@ -7,14 +7,15 @@ tasks, and delegates LLM worker/reviewer tasks to sub-agents. The orchestrator
 is the single authority for task status transitions.
 
 Usage:
-  python runner.py "<topic>" [--run-id <ID>] [--profile standard] [--state STATE]
-  python runner.py --status   # show current workflow state
-  python runner.py --dry-run "<topic>"  # print task graph without executing
+  python3 runner.py "<topic>" [--run-id <ID>] [--profile standard] [--state STATE]
+  python3 runner.py --status   # show current workflow state
+  python3 runner.py --dry-run "<topic>"  # print task graph without executing
 """
 
 from __future__ import annotations
 
 import argparse
+import contextlib
 import json
 import re
 import shlex
@@ -30,6 +31,9 @@ CONTRACTS_DIR = Path(__file__).parent / "subagent_contracts"
 
 # Valid task status values per the workflow state model.
 TERMINAL_STATUSES = {"accepted", "skipped_by_policy", "blocked", "failed"}
+# Statuses that satisfy a dependency (accepted = ran OK; skipped_by_policy = excluded
+# from profile or skipped after non-blocking failure — both count as "done enough").
+READY_STATUSES = {"accepted", "skipped_by_policy"}
 LLM_KINDS = {"llm_worker", "llm_reviewer"}
 
 
@@ -51,6 +55,49 @@ def load_state(state_path: Path) -> dict[str, Any]:
 def save_state(state: dict[str, Any], state_path: Path) -> None:
     state_path.write_text(json.dumps(state, indent=2))
     state_path.with_suffix(".json.bak").write_text(json.dumps(state, indent=2))
+    _write_round_state(state)
+
+
+def _write_round_state(state: dict[str, Any]) -> None:
+    """Write round_state.json into the workflow CWD for lifecycle hooks.
+
+    stop-check.sh and resume-inject.sh look for this file to detect an active
+    research session.  Without it both hooks are permanent no-ops.
+    """
+    cwd_str = state.get("context", {}).get("cwd", "")
+    if not cwd_str:
+        return
+    cwd = Path(cwd_str)
+    if not cwd.exists():
+        return
+
+    # Load classified gaps if available (written by classify-gaps task).
+    open_gaps: list[Any] = []
+    gaps_file = cwd / "gaps.json"
+    if gaps_file.exists():
+        try:
+            gaps_data = json.loads(gaps_file.read_text())
+            open_gaps = [
+                g
+                for g in gaps_data.get("gaps", [])
+                if g.get("gap_type") != "OUT_OF_SCOPE"
+            ]
+        except (json.JSONDecodeError, OSError):
+            pass
+
+    round_state: dict[str, Any] = {
+        "workflow_id": state.get("workflow_id", "research-pipeline"),
+        "run_id": state.get("run_id", ""),
+        "topic": state.get("topic", ""),
+        "topic_slug": state.get("topic_slug", ""),
+        "current_round": state.get("round", 1),
+        "status": state.get("status", "running"),
+        "profile": state.get("profile", "standard"),
+        "open_gaps": open_gaps,
+        "updated_at": datetime.now(UTC).isoformat(),
+    }
+    with contextlib.suppress(OSError):
+        (cwd / "round_state.json").write_text(json.dumps(round_state, indent=2))
 
 
 # ---------------------------------------------------------------------------
@@ -59,9 +106,14 @@ def save_state(state: dict[str, Any], state_path: Path) -> None:
 
 
 def task_ready(task: dict[str, Any], task_states: dict[str, Any]) -> bool:
-    """Return True when all declared dependencies have been accepted."""
+    """Return True when all declared dependencies have reached a satisfied state.
+
+    Both 'accepted' and 'skipped_by_policy' count as satisfied: a dep that was
+    excluded from the current profile (or skipped after a non-blocking failure)
+    should not block downstream tasks.
+    """
     for dep in task.get("depends_on", []):
-        if task_states.get(dep, {}).get("status") != "accepted":
+        if task_states.get(dep, {}).get("status") not in READY_STATUSES:
             return False
     return True
 
@@ -102,13 +154,18 @@ def run_deterministic(task: dict[str, Any], ctx: dict[str, str]) -> tuple[bool, 
         return True, "no command — MCP tool invocation handled by agent"
     for key, val in ctx.items():
         cmd = cmd.replace(f"{{{key}}}", str(val))
-    result = subprocess.run(shlex.split(cmd), capture_output=True, text=True)
+    try:
+        result = subprocess.run(
+            shlex.split(cmd), capture_output=True, text=True, timeout=300
+        )
+    except subprocess.TimeoutExpired:
+        return False, f"command timed out after 300s: {cmd[:120]}"
     if result.returncode != 0:
         return False, (result.stderr or result.stdout).strip()
     return True, result.stdout.strip()
 
 
-def print_llm_delegation(task: dict[str, Any]) -> None:
+def print_llm_delegation(task: dict[str, Any], ctx: dict[str, Any]) -> None:
     """Print the sub-agent contract for the delegated LLM task."""
     # Prefer the manifest-declared contract path; fall back to derived name.
     manifest_contract = task.get("executor", {}).get("contract", "")
@@ -124,7 +181,12 @@ def print_llm_delegation(task: dict[str, Any]) -> None:
     print(f"  name    : {task['executor'].get('name', task['id'])}")
     if contract_path.exists():
         print(f"  contract: {contract_path}")
-        print(f"\n{contract_path.read_text()}")
+        contract_text = contract_path.read_text()
+        # Substitute all known context variables so the sub-agent sees
+        # concrete paths rather than literal template placeholders.
+        for key, val in ctx.items():
+            contract_text = contract_text.replace(f"{{{key}}}", str(val))
+        print(f"\n{contract_text}")
     print("=" * 60)
     print("After the sub-agent completes and the artifact exists,")
     print(f"update workflow_state.json: tasks.{task['id']}.status = 'accepted'")
@@ -144,13 +206,17 @@ def run_workflow(
     dry_run: bool,
 ) -> int:
     task_states = state.setdefault("tasks", {})
+    cwd_str = state.get("context", {}).get("cwd", ".")
+    run_id = state.get("run_id", "")
     ctx = {
         "skill_dir": str(SKILL_DIR),
-        "run_id": state.get("run_id", ""),
+        "run_id": run_id,
         "topic": state.get("topic", ""),
         "topic_slug": state.get("topic_slug", ""),
         "config": state.get("context", {}).get("config", ""),
-        "cwd": state.get("context", {}).get("cwd", "."),
+        "cwd": cwd_str,
+        # Derived: default workspace location for this run (./runs/<run_id>).
+        "run_dir": str(Path(cwd_str) / "runs" / run_id) if run_id else "",
         "prior_paper_ids": ",".join(
             state.get("context", {}).get("prior_paper_ids", [])
         ),
@@ -182,6 +248,19 @@ def run_workflow(
             if not task_ready(task, task_states):
                 continue
 
+            # Guard: skip convert-fine when no paper IDs have been selected.
+            # Passing --paper-ids "" to the CLI causes an error; skipping is safe
+            # because convert-fine is an enrichment step, not a core stage.
+            if task_id == "convert-fine" and not ctx.get("fine_paper_ids"):
+                if current.get("status") != "skipped_by_policy":
+                    task_states[task_id] = {
+                        "status": "skipped_by_policy",
+                        "reason": "fine_paper_ids not set in workflow context",
+                    }
+                    save_state(state, state_path)
+                    changed = True
+                continue
+
             kind = task.get("executor", {}).get("kind", "deterministic_script")
             label = task.get("label", task_id)
 
@@ -195,7 +274,7 @@ def run_workflow(
                     # Already delegated; waiting for agent to mark accepted.
                     continue
                 print(f"\n[DELEGATING] {task_id}: {label}")
-                print_llm_delegation(task)
+                print_llm_delegation(task, ctx)
                 task_states[task_id] = {
                     "status": "delegated",
                     "started_at": datetime.now(UTC).isoformat(),
@@ -237,7 +316,7 @@ def run_workflow(
                 task_states[task_id].update({"status": "failed", "reason": msg})
                 save_state(state, state_path)
                 print(f"  FAILED: {msg}", file=sys.stderr)
-                if policy == "block":
+                if policy in ("block", "retry_once_then_block"):
                     return 1
                 task_states[task_id]["status"] = "skipped_by_policy"
                 save_state(state, state_path)
@@ -255,7 +334,7 @@ def run_workflow(
                 task_states[task_id].update({"status": "failed", "reason": reason})
                 save_state(state, state_path)
                 print(f"  BLOCKED — {reason}", file=sys.stderr)
-                if policy == "block":
+                if policy in ("block", "retry_once_then_block"):
                     return 1
                 task_states[task_id]["status"] = "skipped_by_policy"
 

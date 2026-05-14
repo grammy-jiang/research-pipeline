@@ -46,22 +46,21 @@ but is never referenced from the new report body.
    - For each academic gap (or a small merged cluster of related
      gaps), derive a narrower, more specific research question — one
      that the broader parent query did not answer.
-   - Feed that question, together with the prior paper IDs as
-     `expand --paper-ids` seeds and any prior
-     `must_terms`/`nice_terms` as variants, into a new run:
+   - Re-invoke `runner.py` for the new round — **do not call the
+     pipeline CLI stages directly**. The runner handles stage
+     sequencing and state persistence:
      ```bash
-     research-pipeline plan "<gap-specific topic>" --config CFG
-     # edit query_plan.json if needed (tighter must_terms,
-     #   synonym-rich variants)
-     research-pipeline search --run-id <NEW_RUN_ID> --source all --config CFG
-     research-pipeline screen --run-id <NEW_RUN_ID> --diversity --config CFG
-     research-pipeline expand --run-id <NEW_RUN_ID> \
-       --paper-ids "<prior-paper-ids>" --direction both --config CFG
-     research-pipeline download --run-id <NEW_RUN_ID> --config CFG
-     research-pipeline convert --run-id <NEW_RUN_ID> --config CFG
-     research-pipeline extract --run-id <NEW_RUN_ID> --config CFG
-     research-pipeline summarize --run-id <NEW_RUN_ID> --config CFG
+     python3 {skill_dir}/runners/runner.py \
+       --topic "<gap-specific topic>" \
+       --profile standard \
+       --state "{cwd}/workflow_state.json" \
+       --config CFG
      ```
+     Before invoking, update `workflow_state.json` to record the new
+     `run_id` and set `current_round = <N+1>`.  The runner will plan,
+     search, screen, expand (seeded from `gaps.json` paper IDs),
+     download, convert, extract, summarize, and produce a gap-focused
+     report automatically.
    - Merge the new evidence with the prior corpus; the global
      SQLite paper index deduplicates downloads and conversions
      automatically.

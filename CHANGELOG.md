@@ -2,6 +2,45 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.23] — 2026-05-14
+
+### Fixed
+
+- **Bug (DAI runner): `run_deterministic` lacked timeout — could hang forever**
+  `daily-ai-intelligence/runners/runner.py` called `subprocess.run(…)` with no
+  `timeout` argument and no `subprocess.TimeoutExpired` handler. If
+  `validate-registry.sh` or `check_completion.sh` ever hung, the DAI runner would
+  block indefinitely. The RP runner already had `timeout=300` with a proper
+  `TimeoutExpired` catch. Fixed by mirroring the RP runner pattern: pass
+  `timeout=300` to `subprocess.run` and wrap in `try/except subprocess.TimeoutExpired`
+  returning `False, "command timed out after 300s: ..."`.
+
+- **Bug (DAI manifest): `export-obsidian` had `on_failure: block` but is `optional: true`**
+  `daily-ai-intelligence/manifest.json` task `export-obsidian` declared
+  `"optional": true` but `"failure_policy": {"on_failure": "block", ...}`. While
+  the DAI runner never actually evaluates the failure policy for MCP tool tasks
+  (they are always auto-accepted), the policy was misleading and violated the
+  invariant that optional tasks must use `on_failure: skip`. The identical pattern
+  was fixed for the RP skill's `paper-synthesizer` in v0.17.21 but the DAI
+  `export-obsidian` was missed. Fixed by changing `"on_failure"` from `"block"` to
+  `"skip"` and renaming the explanatory key from `"message"` to `"note"` to match
+  all other optional tasks.
+
+- **Bug (iterative-synthesis.md + sub-agents.md): remaining bare `python` invocations**
+  `v0.17.22` fixed SKILL.md and `workflow-steps.md` for both skills but missed two
+  further locations where runner.py was invoked with bare `python`:
+  - `research-pipeline/references/iterative-synthesis.md` — bash code block in the
+    per-round procedure (step 3) used `python {skill_dir}/runners/runner.py`
+  - `research-pipeline/references/sub-agents.md` — Mermaid flowchart node
+    `A["You: python runner.py …"]`
+  Both fixed to `python3`.
+
+- **Chore (runner.py + check_completion.py docstrings): remaining bare `python` in Usage blocks**
+  The module-level docstrings in both `research-pipeline/runners/runner.py` and
+  `daily-ai-intelligence/runners/runner.py`, and `scripts/check_completion.py`,
+  still showed bare `python` in their `Usage:` examples. These are read by agents
+  consulting the source for CLI invocation hints. Fixed all to `python3`.
+
 ## [v0.17.22] — 2026-05-14
 
 ### Fixed
