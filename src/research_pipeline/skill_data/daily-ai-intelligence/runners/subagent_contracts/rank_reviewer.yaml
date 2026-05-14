@@ -44,17 +44,19 @@ review_dimensions:
     description: "Top 10 events span at least 2 different sources"
 
 verdict_schema:
-  reviewer_id: "rank_reviewer"
-  task_id:     "review-ranked"
-  verdict:     "accept | reject"
-  scores:
+  # Required fields (must match reviewer_result.schema.json)
+  reviewer_task_id: "review-ranked"
+  target_artifact:  "{workspace}/{date}/clusters/ranked.jsonl"
+  status:           "accepted | rejected | accepted_with_issues"
+  # Optional fields (all additional properties are allowed by the schema)
+  issues:           list[str]   # issues found (replaces deprecated findings)
+  required_fixes:   list[str]   # if status = rejected
+  confidence:       float       # reviewer confidence in verdict (0–1)
+  scores:                       # additional dimension scores (not in base schema)
     deduplication:         float  # 0–1
     cluster_coherence:     float  # 0–1
     ranking_plausibility:  float  # 0–1
     source_diversity:      float  # 0–1
-  findings:       list[str]
-  required_fixes: list[str]   # if verdict = reject
-  confidence:     float
 
 pass_threshold:
   deduplication:         0.80
@@ -64,7 +66,7 @@ pass_threshold:
 
 completion_criteria:
   - "rank_review.json exists"
-  - "verdict is 'accept' or 'reject'"
+  - "status is 'accepted' or 'rejected'"
   - "All score fields present"
 
 self_reporting_forbidden: true

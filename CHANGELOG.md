@@ -2,6 +2,37 @@
 
 All notable changes to research-pipeline.
 
+## [v0.17.29] — 2026-05-14
+
+### Fixed
+
+- **Bug 1 (BREAKING — daily-ai-intelligence/runners/subagent_contracts/rank_reviewer.yaml):
+  `verdict_schema` fields did not match `reviewer_result.schema.json`**
+  The `verdict_schema` section described a JSON structure that failed schema validation:
+  `reviewer_id` (wrong) → `reviewer_task_id` (required by schema); `task_id` (extra, non-normative)
+  removed; `verdict: "accept | reject"` (wrong field name + wrong enum) →
+  `status: "accepted | rejected | accepted_with_issues"`; `findings: list[str]` (wrong field name)
+  → `issues: list[str]`; `target_artifact` (required) was absent — added as
+  `"{workspace}/{date}/clusters/ranked.jsonl"`. This is the same class of bug as v0.17.27 Bug A
+  (which fixed `synthesis_reviewer.yaml`) but was never applied to `rank_reviewer.yaml`. An agent
+  following the old contract would write a verdict file that failed schema validation, breaking the
+  optional reviewer gate for the DAI skill. Also updated `completion_criteria`
+  ("verdict is 'accept' or 'reject'" → "status is 'accepted' or 'rejected'").
+
+- **Bug 2 (MEDIUM — daily-ai-intelligence/SKILL.md Rule 3): Rule 3 still referenced stale
+  `verdict: reject` field and value**
+  `daily-ai-intelligence/SKILL.md` Rule 3 said "If the optional rank_reviewer returns
+  `verdict: reject`… Do not override a `reject` verdict." `reviewer_result.schema.json`
+  uses `status` (not `verdict`) and the rejection value is `"rejected"` (not `"reject"`).
+  The `synthesis_reviewer.yaml` contract and `research-pipeline/SKILL.md` Rule 4 were both
+  corrected in v0.17.27–v0.17.28, but the equivalent DAI `SKILL.md` Rule 3 was not updated.
+  Fixed by updating Rule 3 to reference `status: "rejected"` and `rejected` throughout.
+
+- **Bug 3 (MEDIUM — daily-ai-intelligence/references/workflow-steps.md): `[review-ranked]`
+  section still referenced stale `verdict: reject`**
+  The `[review-ranked]` task description said "On `verdict: reject`, manually reset `[rank]` to
+  `pending`…". Same stale field as Bug 2. Fixed to "On `status: \"rejected\"`".
+
 ## [v0.17.28] — 2026-05-14
 
 ### Fixed

@@ -77,9 +77,9 @@ existence + schema validation — not by agent claim.
    without the orchestrator updating `workflow_state.json`.
 2. **Resume = re-run the runner.** Pass `--state <existing>.json` to
    continue an interrupted workflow. Idempotent: accepted tasks are skipped.
-3. **Reviewer gates.** If the optional rank_reviewer returns `verdict: reject`,
+3. **Reviewer gates.** If the optional rank_reviewer returns `status: "rejected"`,
    fix ranked events, reset the task to `pending`, and re-run. Do not
-   override a `reject` verdict.
+   override a `rejected` verdict.
 4. **Validate before delivery.** Never surface a brief whose
    `validation/validation.json` reports failures. Low-signal days are
    valid outputs — do not pad them.

@@ -72,7 +72,7 @@ When the runner encounters this task, it delegates to the `rank_reviewer`
 sub-agent (see `runners/subagent_contracts/rank_reviewer.yaml`).
 
 The reviewer checks deduplication, cluster coherence, ranking plausibility,
-and source diversity. On `verdict: reject`, manually reset `[rank]` to
+and source diversity. On `status: "rejected"`, manually reset `[rank]` to
 `pending` in `workflow_state.json` and re-run the runner.
 
 ## Task `[validate-brief]` ⛔ GATE — Validation gate
