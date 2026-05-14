@@ -66,7 +66,7 @@ pass_threshold:
 
 completion_criteria:
   - "rank_review.json exists"
-  - "status is 'accepted' or 'rejected'"
+  - "status is 'accepted', 'rejected', or 'accepted_with_issues'"
   - "All score fields present"
 
 self_reporting_forbidden: true

@@ -2,7 +2,84 @@
 
 All notable changes to research-pipeline.
 
-## [v0.17.31] — 2026-05-14
+## [v0.17.32] — 2026-05-15
+
+### Fixed
+
+- **Bug 1 (BREAKING — references/round_state_template.json): Template required fields
+  did not match what runner.py `_write_round_state()` actually writes**
+  The template declared `required: ["round", "run_id", "topic_slug", "convergence_reason",
+  "gaps_addressed", "gaps_remaining", "run_ids_all", "updated_at"]`, but the runner never
+  writes `convergence_reason`, `gaps_addressed`, `gaps_remaining`, or `run_ids_all`.
+  Conversely, fields the runner always writes — `workflow_id`, `topic`, `status`, `profile`,
+  `open_gaps` — were entirely absent from the template. An agent or report writer consulting
+  the template would build wrong expectations about `round_state.json` content (e.g.
+  `final-report-contract.yaml` referenced `run_ids_all` from the template). Fixed by
+  rewriting the template `required` list and all property definitions to match the actual
+  runtime output of `_write_round_state()`. The old convergence/accumulation fields
+  (`convergence_reason`, `gaps_addressed`, `gaps_remaining`, `run_ids_all`) were removed
+  because the runner never writes them; the template description was updated to clarify
+  that this is a running-state snapshot for hooks (stop-check.sh, resume-inject.sh)
+  and report writers.
+
+- **Bug 2 (BREAKING — references/gap-classification-contract.yaml): Contract contradicted
+  the normative `gap_classification.schema.json` in multiple fields**
+  The `references/gap-classification-contract.yaml` document (read by agents as guidance)
+  used different field names and required-fields than the normative JSON schema that the
+  runner validates `gaps.json` against. Specific conflicts:
+  (a) Top-level `required` included `report_path` and `date` (not in normative schema) and
+  omitted `round` (required by normative schema).
+  (b) Gap description field was `text` (schema requires `description`).
+  (c) Convergence field was `stop_reason` (schema requires `reason`).
+  (d) `stop_reason` enum used stale values (`converged_no_gaps`, `cap_reached`,
+  `no_new_papers`, `user_out_of_scope`, `continue`) instead of the normative values
+  (`open_gaps_remain`, `no_open_gaps`, `round_cap_reached`, `no_new_papers`,
+  `user_marked_out_of_scope`).
+  (e) Convergence `required` listed `open_academic` and `open_engineering` (not required by
+  schema). An agent following this contract would produce a `gaps.json` that fails
+  schema validation and whose gaps the runner could not filter correctly. Fixed by aligning
+  all field names and required lists with `gap_classification.schema.json`; supplementary
+  fields (`rationale`, `section`, `open_academic`, `open_engineering`) are now documented
+  as optional extras consistent with `additionalProperties: true` in the schema. Updated
+  `completion_criteria` to require the canonical `reason` enum values.
+
+- **Bug 3 (LOW — runners/subagent_contracts/synthesis_reviewer.yaml): completion_criteria
+  omitted `accepted_with_issues` as a valid status**
+  The `completion_criteria` block stated `"status is 'accepted' or 'rejected'"`, omitting
+  the third valid status `accepted_with_issues` defined in `reviewer_result.schema.json`.
+  A synthesis reviewer agent reading this criterion might incorrectly reject or re-write
+  a verdict with status `accepted_with_issues`. Fixed: criterion now reads
+  `"status is 'accepted', 'rejected', or 'accepted_with_issues'"`.
+
+- **Bug 4 (LOW — runners/subagent_contracts/rank_reviewer.yaml, daily-ai-intelligence):
+  Same `accepted_with_issues` omission in DAI rank reviewer**
+  The `rank_reviewer.yaml` completion_criteria had the identical defect as Bug 3.
+  Fixed with the same correction.
+
+- **Bug 5 (BREAKING — references/final-report-contract.yaml): required_sections listed
+  14 stale section headings that no longer match `output-templates.md` or `final_report.schema.json`**
+  The contract listed sections from an earlier report structure: `## Background`,
+  `## Key Findings`, `## Evidence Table`, `## Comparative Analysis`, `## Assumption Map`,
+  `## Risk Register`, `## Recommendations`, `## Conclusion`. These were all replaced or
+  removed in the `output-templates.md` and `final_report.schema.json` overhaul
+  (v0.17.31). The current required sections — `## Research Question`, `## Papers Reviewed`,
+  `## Research Landscape`, `## Confidence-Graded Findings`, `## Practical Recommendations`,
+  `## Evidence Map` — were entirely absent from the contract's list. An agent using this
+  contract as the authoritative section checklist would produce a report that fails
+  `research-pipeline validate`. Fixed: replaced `required_sections` with the 12 sections
+  declared in `final_report.schema.json`; updated completion_criteria from "All 14 required
+  sections" to "All 12 required sections".
+
+- **Bug 6 (MEDIUM — references/final-report-contract.yaml): Input path referenced
+  `screen/shortlist.json` (non-existent file) instead of `screen/screened.jsonl`**
+  The `required_inputs` block listed `"runs/<run_id>/screen/shortlist.json"`. The screen
+  stage writes `screened.jsonl` (JSONL, not JSON, and named `screened` not `shortlist`).
+  This same error was corrected in `command-reference.md` in v0.17.31 but not in
+  `final-report-contract.yaml`. Fixed path to `"runs/<run_id>/screen/screened.jsonl"`.
+  Also updated the `evidence_requirements` reference from "Key Findings" to
+  "Confidence-Graded Findings" to match the current section name.
+
+
 
 ### Fixed
 

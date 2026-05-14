@@ -2,64 +2,65 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "round_state_template",
   "title": "Round State",
-  "description": "Tracks iterative research round state. Written after each round, read at the start of the next round and by the final report writer. Lives in the CWD alongside the research report.",
+  "description": "Tracks iterative research round state. Written by runner.py _write_round_state() after every save_state() call. Read by stop-check.sh and resume-inject.sh hooks. Lives in the CWD alongside the research report. NOTE: this describes the file the runner actually writes — it is a running-state snapshot for hooks and report writers, not a round-completion record.",
   "type": "object",
-  "required": ["round", "run_id", "topic_slug", "convergence_reason", "gaps_addressed", "gaps_remaining", "run_ids_all", "updated_at"],
+  "required": ["workflow_id", "run_id", "topic", "topic_slug", "round", "status", "profile", "open_gaps", "updated_at"],
   "properties": {
+    "workflow_id": {
+      "type": "string",
+      "description": "Stable identifier for this workflow session (from workflow_state.json)."
+    },
+    "run_id": {
+      "type": "string",
+      "description": "Pipeline run_id for the current round."
+    },
+    "topic": {
+      "type": "string",
+      "description": "Full research topic string."
+    },
+    "topic_slug": {
+      "type": "string",
+      "description": "URL-safe slug for the research topic, used to name artifacts like <slug>-research-report.md."
+    },
     "round": {
       "type": "integer",
       "minimum": 1,
       "maximum": 4,
       "description": "Current round number (1-indexed). Never exceeds 4."
     },
-    "run_id": {
+    "status": {
       "type": "string",
-      "description": "Pipeline run_id for this round."
+      "enum": ["running", "complete", "failed"],
+      "description": "Current workflow execution status."
     },
-    "topic_slug": {
+    "profile": {
       "type": "string",
-      "description": "URL-safe slug for the research topic, used to name artifacts like <slug>-research-report.md."
+      "enum": ["quick", "standard", "deep", "auto"],
+      "description": "Active pipeline profile for this round."
     },
-    "convergence_reason": {
-      "type": "string",
-      "enum": ["continue", "converged_no_gaps", "cap_reached", "no_new_papers", "user_out_of_scope"],
-      "description": "Why the loop is continuing or has stopped. Set by the gap-classification step."
-    },
-    "gaps_addressed": {
+    "open_gaps": {
       "type": "array",
-      "items": { "type": "string" },
-      "description": "Gap IDs from gaps.json that were addressed in this round (e.g. ['G1', 'G3'])."
-    },
-    "gaps_remaining": {
-      "type": "array",
-      "items": { "type": "string" },
-      "description": "Gap IDs that remain open after this round."
-    },
-    "run_ids_all": {
-      "type": "array",
-      "items": { "type": "string" },
-      "minItems": 1,
-      "description": "All run IDs used across all rounds so far, in order. Append each new run_id."
+      "items": { "type": "object" },
+      "description": "Gap records from gaps.json that have classification != 'OUT_OF_SCOPE'. Populated only after the classify-gaps task completes. Empty list on rounds where classify-gaps has not yet run."
     },
     "updated_at": {
       "type": "string",
       "format": "date-time",
       "description": "ISO-8601 timestamp of the last update."
-    },
-    "notes": {
-      "type": "string",
-      "description": "Optional free-text notes about this round (e.g. why a gap was reclassified out of scope)."
     }
   },
   "example": {
-    "round": 2,
+    "workflow_id": "research-pipeline",
     "run_id": "run-20250115-143022",
+    "topic": "transformer memory efficiency",
     "topic_slug": "transformer-memory-efficiency",
-    "convergence_reason": "continue",
-    "gaps_addressed": ["G2", "G4"],
-    "gaps_remaining": ["G1", "G3"],
-    "run_ids_all": ["run-20250115-120000", "run-20250115-143022"],
-    "updated_at": "2025-01-15T14:35:00Z",
-    "notes": "G2 fully resolved by FlashAttention-2 paper. G4 reclassified to ENGINEERING."
+    "round": 2,
+    "status": "running",
+    "profile": "standard",
+    "open_gaps": [
+      {"id": "G1", "description": "No benchmark for sub-quadratic attention on long documents", "classification": "ACADEMIC"},
+      {"id": "G3", "description": "FlashAttention integration with DeepSpeed", "classification": "ENGINEERING"}
+    ],
+    "updated_at": "2025-01-15T14:35:00Z"
   }
 }

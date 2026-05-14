@@ -27,7 +27,7 @@ required_inputs:
   - path: "runs/<run_id>/summarize/paper_summaries/*.json"
     description: Per-paper summary files. Read for supporting evidence.
 
-  - path: "runs/<run_id>/screen/shortlist.json"
+  - path: "runs/<run_id>/screen/screened.jsonl"
     description: Screened shortlist with relevance scores and paper metadata.
 
   - path: "runs/<run_id>/plan/query_plan.json"
@@ -62,22 +62,21 @@ forbidden_actions:
 # ── Output ────────────────────────────────────────────────────────────────────
 output_file: "<topic-slug>-research-report.md"
 
-# Required 14 sections (must all be present, in any order):
+# Required 12 sections (must all be present; see references/output-templates.md
+# and schemas/final_report.schema.json for the canonical list):
 required_sections:
   - "## Contents"
+  - "## Round History"
   - "## Executive Summary"
-  - "## Background"
+  - "## Research Question"
   - "## Methodology"
-  - "## Key Findings"
-  - "## Evidence Table"        # table format required
-  - "## Comparative Analysis"
+  - "## Papers Reviewed"
+  - "## Research Landscape"
+  - "## Confidence-Graded Findings"
   - "## Research Gaps"
-  - "## Assumption Map"
-  - "## Risk Register"
-  - "## Recommendations"
-  - "## Conclusion"
+  - "## Practical Recommendations"
+  - "## Evidence Map"
   - "## References"
-  - "## Round History"         # populated from round_state.json
 
 required_formatting:
   - Confidence annotations on all major findings:
@@ -93,7 +92,7 @@ required_formatting:
 
 # ── Evidence requirements ─────────────────────────────────────────────────────
 evidence_requirements:
-  - Every claim in Key Findings must cite at least one paper from shortlist.json.
+  - Every claim in Confidence-Graded Findings must cite at least one paper from screened.jsonl.
   - The Evidence Table must list every paper used in Key Findings.
   - Confidence levels must be justified, not assigned arbitrarily.
   - Research Gaps section must reproduce all gaps from gaps.json
@@ -111,7 +110,7 @@ post_write_gate:
 # ── Completion criteria ───────────────────────────────────────────────────────
 completion_criteria:
   - File <topic-slug>-research-report.md exists in the CWD.
-  - All 14 required sections are present.
+  - All 12 required sections are present.
   - '"research-pipeline validate" exits 0.'
   - Confidence annotations are present on all major findings.
   - round_state.json has been updated with the current round's convergence data.

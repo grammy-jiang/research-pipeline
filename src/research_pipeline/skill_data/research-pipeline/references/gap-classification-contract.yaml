@@ -44,32 +44,34 @@ forbidden_actions:
   - merge_distinct_gaps        # each gap must remain a separate record
 
 # ── Output schema ─────────────────────────────────────────────────────────────
+# NOTE: This schema MUST match schemas/gap_classification.schema.json (normative).
+#       The runner validates gaps.json against that schema. Field names here
+#       are authoritative — the sub-agent contract in
+#       runners/subagent_contracts/gap_classifier.yaml is kept in sync.
 output_file: gaps.json
 
 output_schema:
   type: object
-  required: [run_id, report_path, date, gaps, convergence]
+  required: [run_id, round, gaps, convergence]
   properties:
     run_id:
       type: string
       description: The pipeline run ID whose report was analyzed.
-    report_path:
-      type: string
-      description: Absolute or relative path to the analyzed report.
-    date:
-      type: string
-      format: date
-      description: Classification date (YYYY-MM-DD, UTC).
+    round:
+      type: integer
+      minimum: 1
+      maximum: 4
+      description: Current round number (1-indexed). Matches round_state.json.
     gaps:
       type: array
       items:
         type: object
-        required: [id, text, classification, rationale, section, priority, out_of_scope]
+        required: [id, description, classification]
         properties:
           id:
             type: string
             description: Short stable identifier, e.g. "G1", "G2".
-          text:
+          description:
             type: string
             description: The gap statement, copied verbatim from the report.
           classification:
@@ -80,6 +82,20 @@ output_schema:
               ENGINEERING — fillable from implementation knowledge / best
                             practices without new searches.
               OUT_OF_SCOPE — explicitly deferred or irrelevant to current goal.
+          priority:
+            type: string
+            enum: [HIGH, MEDIUM, LOW]
+            description: >
+              Based on how prominently the gap was marked in the report.
+              HIGH = explicitly flagged as blocking or high-confidence missing.
+              LOW = minor or speculative.
+          suggested_search_query:
+            type: string
+            description: >
+              For ACADEMIC gaps only: a narrower search question derived from
+              this gap to seed a new pipeline run. Required if
+              classification == ACADEMIC.
+          # Supplementary fields (not required by schema but strongly encouraged):
           rationale:
             type: string
             description: >
@@ -91,46 +107,31 @@ output_schema:
             description: >
               Report section where this gap appears (e.g.
               "Research Gaps", "Unresolved Questions").
-          priority:
-            type: string
-            enum: [HIGH, MEDIUM, LOW]
-            description: >
-              Based on how prominently the gap was marked in the report.
-              HIGH = explicitly flagged as blocking or high-confidence missing.
-              LOW = minor or speculative.
-          out_of_scope:
-            type: boolean
-            description: true if the user has previously de-prioritized this gap.
-          suggested_search_query:
-            type: string
-            description: >
-              For ACADEMIC gaps only: a narrower search question derived from
-              this gap to seed a new pipeline run. Required if
-              classification == ACADEMIC.
     convergence:
       type: object
-      required: [open_academic, open_engineering, should_continue, stop_reason]
+      required: [should_continue, reason]
       properties:
-        open_academic:
-          type: integer
-          description: Number of ACADEMIC gaps remaining.
-        open_engineering:
-          type: integer
-          description: Number of ENGINEERING gaps remaining.
         should_continue:
           type: boolean
           description: >
             true if there are open non-out-of-scope gaps AND the 4-round
             cap has not been reached. The iteration controller reads this.
-        stop_reason:
+        reason:
           type: string
           enum:
-            - converged_no_gaps
-            - cap_reached
+            - open_gaps_remain
+            - no_open_gaps
+            - round_cap_reached
             - no_new_papers
-            - user_out_of_scope
-            - continue
+            - user_marked_out_of_scope
           description: Reason for stopping or continuing.
+        # Supplementary fields (not required by schema but helpful for tracing):
+        open_academic:
+          type: integer
+          description: Number of ACADEMIC gaps remaining (supplementary).
+        open_engineering:
+          type: integer
+          description: Number of ENGINEERING gaps remaining (supplementary).
 
 # ── Evidence requirements ─────────────────────────────────────────────────────
 evidence_requirements:
@@ -141,10 +142,12 @@ evidence_requirements:
 
 # ── Completion criteria ───────────────────────────────────────────────────────
 completion_criteria:
-  - gaps.json validates against the schema above.
-  - Every gap in the report's gap sections appears in the gaps array.
-  - convergence.should_continue correctly reflects the open gap count
-    and the current round number relative to the 4-round cap.
+  - "gaps.json validates against the schema above."
+  - "Every gap in the report's gap sections appears in the gaps array."
+  - "convergence.should_continue correctly reflects the open gap count
+    and the current round number relative to the 4-round cap."
+  - "convergence.reason uses one of the canonical values: open_gaps_remain,
+    no_open_gaps, round_cap_reached, no_new_papers, user_marked_out_of_scope."
 
 # ── Failure policy ────────────────────────────────────────────────────────────
 failure_policy:
