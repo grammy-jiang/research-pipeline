@@ -98,6 +98,20 @@ def _find_claude_hooks_source() -> Path | None:
     return candidate if candidate.is_file() else None
 
 
+def _find_all_claude_hooks_sources() -> list[Path]:
+    """Locate ``claude-code-hooks.json`` for every bundled skill.
+
+    Returns one path per skill that ships a ``hooks/claude-code-hooks.json``
+    file, covering both ``research-pipeline`` and ``daily-ai-intelligence``
+    (and any future skills added under ``skill_data/``).
+    """
+    return [
+        candidate
+        for skill_dir in _find_skill_sources()
+        if (candidate := skill_dir / "hooks" / "claude-code-hooks.json").is_file()
+    ]
+
+
 def _install_claude_hooks(
     settings_file: Path,
     hooks_source: Path,
@@ -135,6 +149,41 @@ def _install_claude_hooks(
     if not new_hooks:
         return False
 
+    def _expand_tilde_in_hooks(
+        hooks: dict[str, list[object]],
+    ) -> dict[str, list[object]]:
+        """Expand leading ``~`` in hook command paths to the real home directory.
+
+        ``posix_spawn`` (used by Claude Code) does not perform tilde expansion,
+        so ``~/.claude/...`` paths fail at runtime unless they are absolute.
+        """
+        home = str(Path.home())
+        result: dict[str, list[object]] = {}
+        for event, matchers in hooks.items():
+            expanded_matchers: list[object] = []
+            for matcher in matchers:
+                if not isinstance(matcher, dict):
+                    expanded_matchers.append(matcher)
+                    continue
+                expanded_hooks: list[object] = []
+                for hook in matcher.get("hooks", []):
+                    if isinstance(hook, dict) and "command" in hook:
+                        cmd = str(hook["command"])
+                        if cmd.startswith("~/"):
+                            hook = {**hook, "command": home + cmd[1:]}
+                    expanded_hooks.append(hook)
+                expanded_matchers.append({**matcher, "hooks": expanded_hooks})
+            result[event] = expanded_matchers
+        return result
+
+    new_hooks = _expand_tilde_in_hooks(new_hooks)
+
+    _home = str(Path.home())
+
+    def _normalize_cmd(cmd: str) -> str:
+        """Expand a leading ``~/`` so tilde and absolute forms compare equal."""
+        return _home + cmd[1:] if cmd.startswith("~/") else cmd
+
     def _extract_commands(matchers: list[object]) -> set[str]:
         cmds: set[str] = set()
         for matcher in matchers:
@@ -142,7 +191,7 @@ def _install_claude_hooks(
                 continue
             for hook in matcher.get("hooks", []):
                 if isinstance(hook, dict) and "command" in hook:
-                    cmds.add(str(hook["command"]))
+                    cmds.add(_normalize_cmd(str(hook["command"])))
         return cmds
 
     existing: dict[str, object] = {}
@@ -740,11 +789,12 @@ def run_setup(
 
     # --- Claude Code lifecycle hooks ---
     if not skip_hooks and default_multi_target and _detect_claude():
-        hooks_source = _find_claude_hooks_source()
-        if hooks_source is not None:
-            _install_claude_hooks(
-                DEFAULT_CLAUDE_SETTINGS_FILE, hooks_source, force=force
-            )
+        hooks_sources = _find_all_claude_hooks_sources()
+        if hooks_sources:
+            for hooks_source in hooks_sources:
+                _install_claude_hooks(
+                    DEFAULT_CLAUDE_SETTINGS_FILE, hooks_source, force=force
+                )
         else:
             logger.info("Bundled Claude Code hooks config not found; skipping.")
 

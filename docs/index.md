@@ -62,9 +62,10 @@ For a task-oriented introduction to common workflows, see the
 | [Security Model](security-model.md) | HC1–HC6 constraints, MCP guard, taint tracking |
 | [Testing Strategy](testing-strategy.md) | Test pyramid, VCR cassettes, CI gates |
 | [Operations Runbook](operations-runbook.md) | Deploy, monitor, troubleshoot, maintain |
-| [Architecture](architecture.md) | Legacy architecture overview (see System Design for full detail) |
+| [Implementation Plan](implementation-plan.md) | Current state, open work, out-of-scope items |
 | [ADRs](adr/README.md) | Architecture Decision Records |
 | [Changelog](changelog.md) | Version history |
+| [Latest audit](audit-deep-research-compliance-2026-05-17.md) | Compliance vs. comprehensive deep-research design (2026-05-17) |
 
 ## Links
 

@@ -378,8 +378,24 @@ never be relaxed by runtime overlays (`CLAUDE.md`, `.github/copilot-instructions
 
 ## Related documentation
 
-- [docs/architecture.md](docs/architecture.md) — system design, stage I/O
+- [docs/system-design.md](docs/system-design.md) — system design, stage I/O
   contracts, cross-cutting concerns
+- [docs/implementation-plan.md](docs/implementation-plan.md) — current state,
+  open work, design-document follow-through, out-of-scope items
 - [docs/user-guide.md](docs/user-guide.md) — installation, configuration
   reference, CLI usage, MCP setup
+- [docs/developer-guide.md](docs/developer-guide.md) — contributor onboarding,
+  adding stages/backends/sources
+- [docs/api-reference.md](docs/api-reference.md) — all CLI commands and MCP
+  tools/resources/prompts
+- [docs/data-model.md](docs/data-model.md) — Pydantic domain models and SQLite schemas
+- [docs/security-model.md](docs/security-model.md) — HC1–HC6 constraints, MCP
+  guard, taint tracking
+- [docs/testing-strategy.md](docs/testing-strategy.md) — test pyramid, VCR
+  cassettes, CI gates
+- [docs/operations-runbook.md](docs/operations-runbook.md) — deploy, monitor,
+  troubleshoot, maintain
+- [docs/adr/](docs/adr/) — Architecture Decision Records
+- [docs/changelog.md](docs/changelog.md) — versioned history
+- [docs/audit-deep-research-compliance-2026-05-17.md](docs/audit-deep-research-compliance-2026-05-17.md) — latest compliance audit
 - [config.example.toml](config.example.toml) — annotated configuration template
