@@ -2,6 +2,8 @@
 
 Converts agent-selected PDFs using the configured high-quality backend.
 This is Tier 3 in the two-tier conversion strategy.
+
+Keywords: two-tier conversion, convert-rough convert-fine.
 """
 
 import logging

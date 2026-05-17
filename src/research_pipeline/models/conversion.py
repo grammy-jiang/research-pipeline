@@ -1,4 +1,7 @@
-"""Conversion manifest entry model."""
+"""Conversion manifest entry model.
+
+Keywords: two-tier conversion, convert-rough convert-fine.
+"""
 
 from datetime import datetime
 from typing import Literal

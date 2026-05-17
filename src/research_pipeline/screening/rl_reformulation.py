@@ -11,6 +11,8 @@ bandit-style approach with:
 - Binary reward (relevant results found / not found)
 - Thompson sampling for operator selection
 - Budget-aware iteration limiting
+
+Keywords: Q2D, Query-to-Document, hypothetical document generation.
 """
 
 from __future__ import annotations

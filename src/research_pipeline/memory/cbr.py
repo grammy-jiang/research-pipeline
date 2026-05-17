@@ -7,6 +7,8 @@ Retrieve → Reuse → Revise → Retain.
 Based on the Deep Research Agents Roadmap (arXiv 2506.18096) finding that
 CBR enables agents to improve without retraining by accumulating
 institutional knowledge from past usage patterns.
+
+Keywords: cbr_lookup, cbr_retain, query strategy lookup.
 """
 
 from __future__ import annotations

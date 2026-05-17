@@ -4,6 +4,8 @@ Uses the Mathpix REST API (https://docs.mathpix.com) for best-in-class
 LaTeX equation extraction. Requires ``app_id`` and ``app_key`` from
 https://console.mathpix.com.
 Free tier: 1,000 pages/month.
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

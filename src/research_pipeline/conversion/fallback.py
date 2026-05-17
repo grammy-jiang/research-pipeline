@@ -4,6 +4,8 @@ Wraps multiple converter backends and tries them in order. When a backend
 fails (quota exceeded, rate limited, or any error), automatically moves to
 the next backend. Backends are ordered: all accounts of service A first,
 then all accounts of service B, etc.
+
+Keywords: FallbackConverter, cross-service fallback, multi-backend failover.
 """
 
 from __future__ import annotations

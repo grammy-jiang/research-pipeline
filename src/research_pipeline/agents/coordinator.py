@@ -13,6 +13,8 @@ The architecture supports:
 2. Evidence-only merging (sub-agents produce evidence, master synthesizes)
 3. Pre-commitment aggregation (results collected before final synthesis)
 4. Conflict detection across sub-agent outputs
+
+Keywords: Pass@k, Pass[k], dual evaluation metrics.
 """
 
 from __future__ import annotations

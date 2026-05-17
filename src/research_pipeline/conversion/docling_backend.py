@@ -1,4 +1,7 @@
-"""Docling-based PDF-to-Markdown converter backend."""
+"""Docling-based PDF-to-Markdown converter backend.
+
+Keywords: multi-account, account rotation, quota rotation.
+"""
 
 import logging
 from pathlib import Path

@@ -2,6 +2,8 @@
 
 Converts ALL downloaded PDFs using pymupdf4llm (fast, CPU-only).
 This is Tier 2 in the two-tier conversion strategy.
+
+Keywords: two-tier conversion, convert-rough convert-fine.
 """
 
 import logging

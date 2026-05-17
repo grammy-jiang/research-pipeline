@@ -3,6 +3,8 @@
 A fast, lightweight converter (~10-50x faster than Docling) that trades
 equation rendering quality for speed. Best for pre-screening or when
 LaTeX equations are not critical.
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

@@ -7,6 +7,8 @@ Implements two harness engineering patterns:
    metrics to detect search space exhaustion.
 
 Principle: "Detect repetition before it wastes resources."
+
+Keywords: Shannon entropy, rolling-window monitor, in-context locking detection.
 """
 
 from __future__ import annotations

@@ -1,4 +1,7 @@
-"""Deterministic briefing ranking."""
+"""Deterministic briefing ranking.
+
+Keywords: SPECTER2, semantic re-ranking, embedding scoring.
+"""
 
 from __future__ import annotations
 
