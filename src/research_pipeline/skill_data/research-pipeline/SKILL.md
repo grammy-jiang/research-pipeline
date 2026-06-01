@@ -17,15 +17,6 @@ description: >
   (use `research-pipeline convert-file` directly), or requirements
   analysis (use the req-analysis skill).
 license: MIT
-compatibility: >
-  Requires the research-pipeline CLI (pip install research-pipeline)
-  and network access to arXiv/Scholar/Semantic Scholar/OpenAlex/DBLP.
-  Works in Claude Code, Claude.ai, GitHub Copilot, and Codex.
-metadata:
-  author: grammy-jiang
-  version: 2.0.0
-  category: research
-  tags: [arxiv, scholar, papers, research, literature-review, academic, citation-graph, quality-evaluation, gap-analysis]
 ---
 
 # Academic Paper Research

@@ -21,18 +21,6 @@ description: >
   or paper-only synthesis (hand off to the `research-pipeline`
   academic skill).
 license: MIT
-compatibility: >
-  Requires the research-pipeline CLI (`pip install research-pipeline`)
-  and a reviewed source registry (TOML/JSON/YAML). Network access is
-  needed only for enabled live sources; fixtures-only runs work
-  fully offline. Works in Claude Code, Claude.ai, GitHub Copilot
-  CLI, Codex, and any MCP client that can invoke the `brief_*`
-  family.
-metadata:
-  author: grammy-jiang
-  version: 2.0.0
-  category: intelligence
-  tags: [daily-brief, ai-tooling, mcp, copilot, claude-code, governance, feedback, obsidian, dossier, weekly-synthesis]
 ---
 
 # Daily AI Intelligence

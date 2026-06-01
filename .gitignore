@@ -450,6 +450,10 @@ package
 !.vscode/settings.json
 !.vscode/mcp.json
 
+### MCP config ###
+# Project-level MCP server config (tracked for team sharing)
+!.mcp.json
+
 ### Research Pipeline ###
 # Pipeline run outputs (intermediate/temporary data)
 runs/
