@@ -4,6 +4,8 @@ Uses the Datalab REST API (https://documentation.datalab.to/) — the hosted
 version of Marker. Requires ``DATALAB_API_KEY`` from
 https://www.datalab.to/app/keys.
 Free tier: $5 credit on signup (~1,250 pages on fast mode).
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

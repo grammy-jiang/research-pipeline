@@ -4,6 +4,8 @@ Uses the LlamaCloud API (https://developers.llamaindex.ai) for
 document parsing. Requires ``LLAMA_CLOUD_API_KEY`` from
 https://cloud.llamaindex.ai.
 Free tier: 1,000 pages/day.
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

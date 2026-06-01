@@ -1,4 +1,7 @@
-"""Marker-based PDF-to-Markdown converter backend."""
+"""Marker-based PDF-to-Markdown converter backend.
+
+Keywords: multi-account, account rotation, quota rotation.
+"""
 
 from __future__ import annotations
 

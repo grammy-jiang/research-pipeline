@@ -4,6 +4,8 @@ Uses the Mistral Document AI OCR API (https://docs.mistral.ai/capabilities/docum
 with the ``mistral-ocr-latest`` model via direct HTTP requests. Requires
 ``MISTRAL_API_KEY`` from https://console.mistral.ai.
 Per-token pricing with free API credits for new accounts.
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

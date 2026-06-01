@@ -3,6 +3,8 @@
 Uses the OpenAI Chat Completions API with vision to convert PDF pages
 to Markdown. Requires ``OPENAI_API_KEY``.
 Per-token pricing, no dedicated free tier for volume.
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

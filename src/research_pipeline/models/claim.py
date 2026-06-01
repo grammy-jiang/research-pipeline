@@ -1,4 +1,7 @@
-"""Claim decomposition and evidence taxonomy models."""
+"""Claim decomposition and evidence taxonomy models.
+
+Keywords: L1 L2 L3 L4 confidence layers, DINCO calibration.
+"""
 
 from __future__ import annotations
 

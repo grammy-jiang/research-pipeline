@@ -3,6 +3,8 @@
 A high-quality scientific PDF parser achieving TEDS 93.42% for table
 recognition. Supports auto/ocr/txt parse modes. The Python package
 is ``magic-pdf`` and provides the ``magic_pdf`` module.
+
+Keywords: multi-account, account rotation, quota rotation.
 """
 
 from __future__ import annotations

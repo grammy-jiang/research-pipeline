@@ -16,6 +16,8 @@ Key insight: different query *intents* need different stopping aggressiveness.
 
 Each profile defines thresholds, patience, and cost multipliers so
 the pipeline can self-select the right stopping behaviour.
+
+Keywords: Q2D, Query-to-Document augmentation.
 """
 
 from __future__ import annotations

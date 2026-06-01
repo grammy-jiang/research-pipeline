@@ -11,6 +11,8 @@ from the deep research literature (A-MBER, TiMem, AMA, MemoryOS):
 5. Coherence Score — composite metric across dimensions
 
 Reference: FD#9 Multi-Session Coherence Evaluation (10 papers).
+
+Keywords: SPECTER2, semantic re-ranking.
 """
 
 import json

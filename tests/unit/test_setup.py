@@ -1388,8 +1388,8 @@ class TestRunSetupHooks:
                 (claude_target,),
             ),
             patch(
-                "research_pipeline.cli.cmd_setup._find_claude_hooks_source",
-                return_value=hooks_src,
+                "research_pipeline.cli.cmd_setup._find_all_claude_hooks_sources",
+                return_value=[hooks_src],
             ),
             patch("research_pipeline.cli.cmd_setup._detect_claude", return_value=True),
             patch(

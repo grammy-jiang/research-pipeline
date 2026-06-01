@@ -8,7 +8,8 @@ architecture overview, and step-by-step instructions for common extension tasks
 (new stage, new converter backend, new search source, new MCP tool).
 
 For end-user CLI/MCP reference see [user-guide.md](user-guide.md).
-For system design and stage I/O contracts see [architecture.md](architecture.md).
+For system design and stage I/O contracts see [system-design.md](system-design.md).
+For current state, open work, and out-of-scope items see [implementation-plan.md](implementation-plan.md).
 
 ---
 

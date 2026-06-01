@@ -1,4 +1,7 @@
-"""Deterministic validators for briefing artifacts."""
+"""Deterministic validators for briefing artifacts.
+
+Keywords: Pass@k, Pass[k], dual evaluation metrics.
+"""
 
 from __future__ import annotations
 
