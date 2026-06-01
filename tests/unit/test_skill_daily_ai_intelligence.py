@@ -32,7 +32,7 @@ def test_skill_md_exists_and_has_frontmatter() -> None:
     text = skill.read_text(encoding="utf-8")
     assert text.startswith("---\n"), "SKILL.md must start with YAML frontmatter"
     head, _, _ = text[4:].partition("\n---\n")
-    # Required frontmatter keys (name, description, license are the standard Copilot CLI fields)
+    # Required frontmatter keys (standard Copilot CLI fields only)
     for key in ("name:", "description:", "license:"):
         assert key in head, f"SKILL.md frontmatter missing: {key}"
 
