@@ -2,6 +2,28 @@
 
 All notable changes to research-pipeline.
 
+## [v0.18.0] — 2026-06-02
+
+### Added
+
+- **New bundled skill: `blueprint` (Research-to-Product Blueprint).**
+  Converts a `research-pipeline` synthesis report into an
+  implementation-neutral product blueprint (`<topic-slug>-product-blueprint.md`).
+  It classifies input quality (strong/usable/weak/insufficient), maps
+  `ACADEMIC` gaps to validation requirements and `ENGINEERING` gaps to
+  product requirements, resolves each idea as ADOPT/ADAPT/MERGE/DEFER/REJECT,
+  and emits an 18-section blueprint (thesis, users, workflows with Mermaid,
+  logical architecture, conceptual information model, decision policies,
+  risk model, evaluation strategy, MVP boundary, roadmap, open questions,
+  technical-design handoff, traceability appendix). The skill is a pure
+  prompt-driven transformation with no CLI/MCP backend, and never selects a
+  tech stack.
+- The skill ships under `src/research_pipeline/skill_data/blueprint/`
+  (SKILL.md, manifest.json, five prompts, five templates, four references,
+  and example inputs/outputs) and is auto-discovered and installed by
+  `research-pipeline setup` alongside `research-pipeline` and
+  `daily-ai-intelligence`.
+
 ## [v0.17.34] — 2026-05-17
 
 ### Fixed

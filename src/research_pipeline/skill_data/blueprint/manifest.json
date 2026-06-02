@@ -1,0 +1,151 @@
+{
+  "workflow_id": "blueprint",
+  "version": "0.1.0",
+  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
+  "mandatory_gates": [
+    "assess-input-quality",
+    "quality-gate"
+  ],
+  "tasks": [
+    {
+      "id": "intake",
+      "label": "Read the source research report and any supplementary artifacts",
+      "type": "llm_task",
+      "phase": "intake",
+      "depends_on": [],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/01_extract_research_items.md"
+      },
+      "inputs": [
+        "<topic-slug>-research-report.md",
+        "gaps.json",
+        "runs/<run_id>/summarize/synthesis_report.json",
+        "runs/<run_id>/screen/screened.jsonl",
+        "runs/<run_id>/plan/query_plan.json"
+      ],
+      "output": {
+        "path": "intermediate/parsed_report.json"
+      },
+      "validation": ["source_report_present"],
+      "failure_policy": {
+        "on_failure": "stop_with_insufficient_input_template",
+        "message": "No research report found. Run research-pipeline first."
+      }
+    },
+    {
+      "id": "assess-input-quality",
+      "label": "Classify input quality (strong / usable / weak / insufficient)",
+      "type": "gate",
+      "phase": "intake",
+      "depends_on": ["intake"],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/01_extract_research_items.md",
+        "reference": "references/input-mapping.md"
+      },
+      "output": {
+        "path": "intermediate/input_quality.json"
+      },
+      "validation": ["quality_not_insufficient"],
+      "failure_policy": {
+        "on_failure": "stop_with_insufficient_input_template",
+        "message": "Input is insufficient; emit the standardized failure output and stop. Do not fabricate a blueprint."
+      }
+    },
+    {
+      "id": "extract-research-items",
+      "label": "Extract and classify research items with type and confidence grade",
+      "type": "llm_task",
+      "phase": "extract",
+      "depends_on": ["assess-input-quality"],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/01_extract_research_items.md"
+      },
+      "output": {
+        "path": "intermediate/research_items.json"
+      },
+      "validation": ["must_contain_research_question_or_fail"],
+      "failure_policy": {"on_failure": "revise", "retries": 1}
+    },
+    {
+      "id": "translate-to-primitives",
+      "label": "Translate research items into product primitives; apply gap-type mapping; merge overlaps",
+      "type": "llm_task",
+      "phase": "translate",
+      "depends_on": ["extract-research-items"],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/02_translate_to_product_primitives.md",
+        "reference": "references/gap-type-mapping.md"
+      },
+      "output": {
+        "path": "intermediate/product_primitives.json"
+      },
+      "validation": ["no_tech_stack_terms_selected"],
+      "failure_policy": {"on_failure": "revise", "retries": 1}
+    },
+    {
+      "id": "resolve-ideas",
+      "label": "Decide ADOPT / ADAPT / MERGE / DEFER / REJECT for each major idea",
+      "type": "llm_task",
+      "phase": "resolve",
+      "depends_on": ["translate-to-primitives"],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/03_resolve_ideas.md"
+      },
+      "output": {
+        "path": "intermediate/idea_decisions.json"
+      },
+      "validation": ["all_major_ideas_have_decisions"],
+      "failure_policy": {"on_failure": "revise", "retries": 1}
+    },
+    {
+      "id": "compose-blueprint",
+      "label": "Compose the 18-section implementation-neutral product blueprint",
+      "type": "llm_task",
+      "phase": "compose",
+      "depends_on": ["resolve-ideas"],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/04_generate_blueprint.md",
+        "template": "templates/product_blueprint_template.md"
+      },
+      "output": {
+        "path": "<topic-slug>-product-blueprint.md"
+      },
+      "validation": ["all_18_sections_present", "contents_section_present", "mermaid_workflow_and_architecture_present"],
+      "failure_policy": {"on_failure": "revise", "retries": 3}
+    },
+    {
+      "id": "quality-gate",
+      "label": "Run the seven quality gates; revise failing sections (max 3 attempts)",
+      "type": "verification",
+      "phase": "compose",
+      "depends_on": ["compose-blueprint"],
+      "executor": {
+        "kind": "llm_task",
+        "prompt": "prompts/05_quality_gate.md",
+        "reference": "tests/expected_sections_checklist.md"
+      },
+      "output": {
+        "path": "intermediate/quality_gate_result.json"
+      },
+      "validation": ["all_gates_pass"],
+      "failure_policy": {
+        "on_failure": "revise_max_3_then_stop",
+        "message": "After 3 failed revisions, surface the specific failing gates to the user and stop. Do not deliver an unvalidated blueprint."
+      }
+    }
+  ],
+  "failure_policy_defaults": {
+    "insufficient_input": "stop_with_insufficient_input_template",
+    "tech_stack_selected": "revise",
+    "missing_required_section": "revise",
+    "missing_required_mermaid": "revise",
+    "max_revision_attempts": 3,
+    "after_max_revisions": "surface_failing_gates_and_stop"
+  }
+}

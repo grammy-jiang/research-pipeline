@@ -306,9 +306,26 @@ agents found on PATH:
 
 MCP config snippet → `~/.config/research-pipeline/mcp.json`
 
-The skill is structured per Anthropic's Skill-Building Guide (explicit
-trigger phrases, `license`/`compatibility` frontmatter, Examples section,
-progressive disclosure into `references/`). Core behaviors: **resume on
+`setup` auto-discovers every bundled skill (any `skill_data/*/SKILL.md`)
+and fans out each one into its own directory under the agent's skills path.
+Three skills ship today:
+
+| Skill | Purpose |
+|-------|---------|
+| `research-pipeline` | Academic literature search → screen → convert → synthesize report |
+| `daily-ai-intelligence` | Private daily AI tooling intelligence brief |
+| `blueprint` | Convert a research report into an implementation-neutral product blueprint (`<topic-slug>-product-blueprint.md`) |
+
+The `blueprint` skill is a pure prompt-driven transformation (no CLI/MCP
+backend): it classifies input quality, maps `ACADEMIC`/`ENGINEERING` gaps
+to validation requirements vs product requirements, resolves each idea as
+ADOPT/ADAPT/MERGE/DEFER/REJECT, and emits an 18-section blueprint that
+stays tech-stack-neutral and hands off to a later technical-design skill.
+
+The skills are structured per Anthropic's Skill-Building Guide (explicit
+trigger phrases, standard-only `name`/`description`/`license` frontmatter,
+progressive disclosure into `references/`). `research-pipeline` core
+behaviors: **resume on
 top of any prior same-topic report** (snapshot-rename, seed with prior
 paper IDs, regenerate from scratch — never append); **iterate up to 4
 gap-closure rounds** (stop on empty gap list / no-new-papers /
