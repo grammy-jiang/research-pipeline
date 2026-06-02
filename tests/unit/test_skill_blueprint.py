@@ -170,9 +170,9 @@ def test_manifest_executors_reference_real_prompt_files() -> None:
 
 
 def test_output_template_has_all_18_sections_and_contents() -> None:
-    template = (_skill_root() / "templates" / "product_blueprint_template.md").read_text(
-        encoding="utf-8"
-    )
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
     assert "## Contents" in template
     for section in REQUIRED_SECTIONS:
         assert section in template, f"template missing section: {section}"
