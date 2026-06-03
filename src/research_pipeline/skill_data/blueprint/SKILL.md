@@ -1,22 +1,19 @@
 ---
 name: blueprint
 description: >
-  Convert a research synthesis report produced by the research-pipeline
-  skill into an implementation-neutral product blueprint. Transforms
-  confidence-graded findings, mechanism taxonomies, ACADEMIC/ENGINEERING
-  gap classifications, contradiction maps, and risk items into a product
-  concept, target users, workflow model, logical architecture, conceptual
-  information model, decision policies, MVP boundary, evaluation strategy,
-  and a technical-design handoff. Use when the user has a research report
-  and asks to "create a blueprint", "design the product", "turn this
-  research into a product", "what should we build?", "generate a product
-  blueprint", "convert the research to an MVP plan", or accepts the
-  research-pipeline handover offer. Aliases: "product-blueprint",
-  "research-blueprint", "research-to-product". Do NOT use for more
-  literature research (use the `research-pipeline` skill), technical
-  architecture or tech-stack selection (a later technical-design skill),
-  requirements clarification with user stories (use `req-analysis`), or
-  single-paper explanation (use `paper-analyzer`).
+  Convert a research synthesis report into an implementation-neutral product
+  blueprint. Transforms confidence-graded findings, gap classifications,
+  contradiction maps, and risk items into a product concept, target users,
+  workflow model, logical architecture, information model, decision policies,
+  MVP boundary, evaluation strategy, and technical-design handoff. Use when
+  the user has a research report and asks to "create a blueprint", "design
+  the product", "turn this research into a product", "what should we build?",
+  "generate a product blueprint", "convert the research to an MVP plan", or
+  accepts the research-pipeline handover offer. Aliases: "product-blueprint",
+  "research-blueprint", "research-to-product". Do NOT use for more literature
+  research (use `research-pipeline`), tech-stack selection, requirements with
+  user stories (use `req-analysis`), or single-paper explanation
+  (use `paper-analyzer`).
 license: MIT
 ---
 

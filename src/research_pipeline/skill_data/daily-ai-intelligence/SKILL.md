@@ -1,25 +1,20 @@
 ---
 name: daily-ai-intelligence
 description: >
-  Run a private daily AI technical-intelligence briefing using the
-  research-pipeline `brief` CLI/MCP workflow. Polls only governed
-  registry sources (GitHub releases, RSS/Atom, Hacker News, Reddit,
-  Bluesky, X, papers, video/audio, academic enrichment, manual
-  curated items), normalizes and deduplicates events, ranks
-  deterministically with topic memory and explicit feedback,
-  generates a validated daily Markdown brief, and optionally
-  exports to Obsidian, builds hot-topic dossiers, records
-  feedback, applies reversible preference adjustments, runs
-  weekly trend synthesis, or compares ranked output across
-  registries. Use when the user asks for a "daily AI brief",
+  Run the daily AI technical-intelligence briefing workflow. Polls governed
+  registry sources (GitHub releases, RSS/Atom, Hacker News, Reddit, Bluesky,
+  X, papers, video/audio, manual items), normalizes and deduplicates events,
+  ranks with topic memory and explicit feedback, generates a validated daily
+  Markdown brief, and optionally exports to Obsidian, builds hot-topic
+  dossiers, records feedback, runs weekly trend synthesis, or compares ranked
+  output across registries. Use when the user asks for a "daily AI brief",
   "AI tooling watch", "coding-agent update scan",
-  "MCP/Copilot/Claude Code daily brief", "weekly AI tooling
-  trend memo", "hot-topic dossier from a daily brief", a
-  "weekly AI tooling synthesis", or to "rank/validate/export
-  today's AI intelligence". Do NOT use for academic literature
-  reviews, PDF download/conversion, citation-graph expansion,
-  or paper-only synthesis (hand off to the `research-pipeline`
-  academic skill).
+  "MCP/Copilot/Claude Code daily brief", "weekly AI tooling trend memo",
+  "hot-topic dossier from a daily brief", a "weekly AI tooling synthesis",
+  or to "rank/validate/export today's AI intelligence". Do NOT use for
+  academic literature reviews, PDF download/conversion, citation-graph
+  expansion, or paper-only synthesis (use the `research-pipeline` skill
+  instead).
 license: MIT
 ---
 

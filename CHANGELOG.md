@@ -2,6 +2,16 @@
 
 All notable changes to research-pipeline.
 
+## [v0.18.1] — 2026-06-03
+
+### Fixed
+
+- **Skill description truncated to fit the 1024-character Copilot CLI limit.**
+  Both `daily-ai-intelligence` and `blueprint` SKILL.md `description:` fields
+  exceeded 1024 characters, causing the skills to fail to load in GitHub
+  Copilot CLI. Descriptions trimmed to ≤926 chars while preserving all
+  trigger phrases and `Do NOT use` guards.
+
 ## [v0.18.0] — 2026-06-02
 
 ### Added
