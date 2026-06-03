@@ -2,6 +2,20 @@
 
 All notable changes to research-pipeline.
 
+## [v0.18.2] — 2026-06-03
+
+### Fixed
+
+- **`research-pipeline setup` now overwrites stale skill copies in default
+  multi-target mode.** Previously, running `setup` after `pipx upgrade` would
+  silently skip any already-installed skill directory (e.g.
+  `~/.agents/skills/daily-ai-intelligence/`, `~/.claude/skills/…`) with only a
+  WARNING, leaving stale copies behind. Root cause: `_install_directory` was
+  called with `skip_existing=True` in default mode. Fix: pass
+  `force or default_multi_target` so default mode always overwrites (upgrade
+  semantics) while single-target mode still requires explicit `--force`.
+  Same fix applied to `_install_agent_files` for agent files.
+
 ## [v0.18.1] — 2026-06-03
 
 ### Fixed

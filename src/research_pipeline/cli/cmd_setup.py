@@ -728,9 +728,11 @@ def run_setup(
                     skill_source,
                     install_target,
                     symlink,
-                    force,
+                    # In default multi-target mode always overwrite so that
+                    # running `setup` after `pipx upgrade` refreshes stale
+                    # copies in ~/.agents/skills/, ~/.claude/skills/, etc.
+                    force or default_multi_target,
                     "Skill",
-                    skip_existing=default_multi_target,
                 )
                 if installed:
                     logger.info("Skill installed at %s", install_target)
@@ -764,7 +766,13 @@ def run_setup(
                         )
                     break
         if install_agents:
-            count = _install_agent_files(source, agents_target, symlink, force)
+            count = _install_agent_files(
+                source,
+                agents_target,
+                symlink,
+                # Same upgrade semantics: overwrite in default multi-target mode.
+                force or default_multi_target,
+            )
             logger.info("Installed %d agent(s) to %s", count, agents_target)
 
     # --- MCP server config ---
