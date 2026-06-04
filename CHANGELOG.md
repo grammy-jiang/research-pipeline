@@ -2,6 +2,20 @@
 
 All notable changes to research-pipeline.
 
+## [v0.19.1] — 2026-06-05
+
+### Fixed
+
+- **`architecture` skill — shortened the `SKILL.md` description to fit GitHub
+  Copilot's 1024-character limit.** The v0.19.0 description was 1376 characters,
+  which prevented the GitHub Copilot CLI from loading the skill (Claude Code and
+  Codex CLI were unaffected). Rewrote it to 925 characters while preserving the
+  purpose statement, the pipeline-chain position, the key trigger phrases, the
+  aliases, and the do-not-use routing — the dropped detail already lives in the
+  SKILL.md body. Added `test_skill_md_description_fits_copilot_limit` to
+  `tests/unit/test_skill_architecture.py` so the description cannot creep back
+  over the limit.
+
 ## [v0.19.0] — 2026-06-05
 
 ### Added
