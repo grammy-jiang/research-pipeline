@@ -2,6 +2,40 @@
 
 All notable changes to research-pipeline.
 
+## [v0.19.0] — 2026-06-05
+
+### Added
+
+- **New `architecture` skill (skill manifest 0.1.0).** Converts a product
+  blueprint into a concrete technical architecture and tech-stack design,
+  continuing the chain `research-pipeline → blueprint → architecture →
+  implementation-plan`. Like `blueprint`, it is a pure prompt-driven
+  transformation (no CLI/MCP backend) and is auto-discovered and installed by
+  `research-pipeline setup` alongside the other bundled skills.
+  - **Input discovery & resume** — discovers/parses a `*-product-blueprint.md`
+    (with candidate scoring), derives the topic slug deterministically, detects
+    an existing `<topic-slug>-architecture-design.md`, and supports
+    regenerate / patch / compare / adr-only / resume update modes with an
+    `## Update History`.
+  - **Tech-stack / AI-boundary co-design** — provisional tech stack →
+    Traditional-vs-AI responsibility matrix → skill/MCP decision → coherence
+    review, so the stack stays consistent with the AI boundary and MCP
+    strategy. MCP is adopted only when it passes an explicit adoption gate.
+  - **25-section output** — Contents, generation metadata, Update History, a
+    blueprint-to-architecture traceability map, C4 views (system context,
+    container/runtime, dynamic; optional component/deployment), interface and
+    data contracts, security/trust boundaries, observability/audit, failure
+    handling, a testing/evaluation architecture, ADRs, a quality-gate
+    self-check, and implementation-planning handoff notes.
+  - **Determinism guarantee** — durable control, state, storage, audit, and
+    workflow transitions stay in traditional software; AI output is validated
+    before any state change. The skill selects a tech stack but never writes
+    code or implementation tasks.
+  - Ships 24 prompt files, 11 templates, 6 references, 7 rule packs, a worked
+    translation example, and 10 quality-gate checklists under
+    `src/research_pipeline/skill_data/architecture/`, with
+    `tests/unit/test_skill_architecture.py` validating the contract.
+
 ## [v0.18.5] — 2026-06-04
 
 ### Changed
