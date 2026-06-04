@@ -61,6 +61,22 @@ visible (rephrased, or surfaced in the Appendix A self-check) rather than
 silently accepted. When in doubt between Warning and Forbidden, prefer the
 more conservative classification.
 
+### Example rewrites (Warning → product-level)
+
+| Runtime-leaning | Preferred product-level wording |
+|---|---|
+| backbone model reachable | translation backend available |
+| retry with fallback backbone | use a fallback translation route |
+| immutable audit log | tamper-resistant audit record |
+| CLI skill | callable workflow interface |
+| open-LLM route | lower-cost open-model route |
+| service-deployable | (state the responsibility; defer deployment to §17) |
+| KV-cache | keep only if cited as a research-derived evaluation baseline |
+
+These are illustrative: rewrite to the *purpose*, or move the detail to the
+§17 technical-design handoff. Keep a research-derived term only when it is
+cited and tied to evaluation.
+
 ## Conceptual component names
 
 Neutral logical names such as `Memory Admission Controller` or `Retrieval

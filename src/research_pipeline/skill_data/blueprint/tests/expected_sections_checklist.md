@@ -60,20 +60,30 @@ combines the seven quality gates with the acceptance criteria.
 - [ ] Metadata is copied, not invented: skill version from `manifest.json`
       or `unknown`; **pipeline runs integrated** and **gap-closure rounds**
       are separate fields (no run count relabelled as a round count).
+- [ ] The thesis leads with the primary research-backed architecture; a
+      conditional/secondary/escalation-only mechanism is not promoted to
+      product identity.
 - [ ] Every primary actor / MVP domain is named (or implied) by the
       thesis; high-stakes domains seen only as evidence are
       Secondary/Future, not primary.
 - [ ] Each major claim is research-backed, engineering-extrapolation,
       product-design-decision, or relocated (speculative → Open Questions;
       unsupported → removed or marked design hypothesis).
+- [ ] No citation cell is blank: gap-derived items cite
+      `[Source Report: Research Gaps — <name>]`; blank only for an explicit
+      internal design hypothesis.
+- [ ] §14 splits the core path into MVP-0 (smallest demonstrable) and MVP-1
+      (first usable); a large Phase-1 system is not labelled MVP-0.
+- [ ] Release gates from MEDIUM/LOW-confidence mechanisms are justified
+      (HIGH risk + no cheaper control + why-now) or downgraded.
 - [ ] Runtime/architecture-leaning wording is rephrased or surfaced as a
       WARNING (not silently accepted); only forbidden tech/vendor choices
       hard-fail.
 - [ ] `standard` output respects the length budget, or switches to
       `detailed`.
-- [ ] An `## Appendix A: Blueprint Quality-Gate Self-Check` is present with
-      a PASS/WARNING/FAIL row per gate; any FAIL is resolved before
-      delivery.
+- [ ] An `## Appendix A: Blueprint Quality-Gate Self-Check` is present;
+      every WARNING has a required action and a blocks-technical-design
+      verdict; any FAIL is resolved before delivery.
 
 ## Hard fails
 

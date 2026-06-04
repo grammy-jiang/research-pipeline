@@ -1,7 +1,7 @@
 {
   "workflow_id": "blueprint",
-  "version": "0.2.0",
-  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The quality-gate stage runs metadata-integrity, source-fidelity, scope-control, MVP-structure (core path vs. safety/evaluation baselines), and implementation-neutrality (with a warning tier) checks, then emits a compact PASS/WARNING/FAIL self-check appendix. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
+  "version": "0.3.0",
+  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The quality-gate stage runs metadata-integrity, thesis-emphasis, source-fidelity (incl. gap-citation fallback), scope-control, MVP-structure (MVP-0 vs MVP-1 vs safety/evaluation baselines), release-gate-confidence-consistency, and implementation-neutrality (with a warning tier) checks, then emits an actionable PASS/WARNING/FAIL self-check appendix (gate · status · finding · required action · blocks-technical-design). Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
   "mandatory_gates": [
     "assess-input-quality",
     "quality-gate"
@@ -116,12 +116,12 @@
       "output": {
         "path": "<topic-slug>-product-blueprint.md"
       },
-      "validation": ["all_18_sections_present", "contents_section_present", "mermaid_workflow_and_architecture_present", "metadata_not_invented", "primary_scope_matches_thesis", "mvp_core_path_separated_from_baselines"],
+      "validation": ["all_18_sections_present", "contents_section_present", "mermaid_workflow_and_architecture_present", "metadata_not_invented", "thesis_emphasizes_primary_architecture", "primary_scope_matches_thesis", "mvp0_mvp1_split_present", "no_blank_citations", "release_gates_confidence_justified"],
       "failure_policy": {"on_failure": "revise", "retries": 3}
     },
     {
       "id": "quality-gate",
-      "label": "Run the seven quality gates (incl. metadata integrity, source fidelity, scope control, MVP structure, implementation-neutrality warning tier); emit the self-check appendix; revise failing sections (max 3 attempts)",
+      "label": "Run the quality gates (metadata integrity, thesis emphasis, source fidelity + gap-citation fallback, scope control, MVP-0/MVP-1 structure, release-gate confidence, implementation-neutrality warning tier); emit the actionable self-check appendix; revise failing sections (max 3 attempts)",
       "type": "verification",
       "phase": "compose",
       "depends_on": ["compose-blueprint"],

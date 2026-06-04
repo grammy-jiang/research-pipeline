@@ -253,11 +253,11 @@ def test_template_actor_table_has_scope_column() -> None:
     assert "| Actor | Scope |" in template
 
 
-def test_template_mvp_separates_core_path_from_baselines() -> None:
+def test_template_mvp_splits_mvp0_mvp1_and_baselines() -> None:
     template = (
         _skill_root() / "templates" / "product_blueprint_template.md"
     ).read_text(encoding="utf-8")
-    for heading in ("Core Value Path", "Safety Baseline", "Evaluation Baseline"):
+    for heading in ("MVP-0", "MVP-1", "Safety Baseline", "Evaluation Baseline"):
         assert heading in template, f"§14 missing subsection: {heading}"
 
 
@@ -295,7 +295,67 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.2.0"
+    assert data["version"] == "0.3.0"
+
+
+# --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
+# self-check, release-gate confidence ---
+
+
+def test_thesis_emphasis_control_present() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Emphasis control" in prompt or "primary" in prompt.lower()
+    assert "Emphasis" in template
+
+
+def test_gap_citation_fallback_present() -> None:
+    for rel in (
+        ("prompts", "04_generate_blueprint.md"),
+        ("prompts", "05_quality_gate.md"),
+    ):
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Source Report: Research Gaps" in text, f"{rel} missing gap-citation"
+    # The example must model the fallback (no blank gap citation).
+    example = (
+        _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+    ).read_text(encoding="utf-8")
+    assert "Source Report: Research Gaps" in example
+
+
+def test_self_check_is_actionable() -> None:
+    for rel in (
+        ("templates", "product_blueprint_template.md"),
+        ("tests", "sample_outputs", "product_blueprint_example.md"),
+    ):
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Required Action" in text, f"{rel} self-check not actionable"
+        assert "Blocks Technical Design" in text, f"{rel} missing blocks-TD column"
+
+
+def test_release_gate_confidence_check_present() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Release-gate confidence" in gate or "release gate" in gate.lower()
+
+
+def test_example_uses_mvp0_mvp1_split() -> None:
+    example = (
+        _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+    ).read_text(encoding="utf-8")
+    assert "MVP-0" in example and "MVP-1" in example
+
+
+def test_borderline_cases_has_example_rewrites() -> None:
+    text = (_skill_root() / "references" / "borderline-cases.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Example rewrites" in text
 
 
 def test_example_metadata_is_not_invented() -> None:

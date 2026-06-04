@@ -23,6 +23,11 @@ blueprint.
   and **gap-closure rounds** are separate fields — flag a `WARNING` if a
   pipeline-run count has been relabelled as a round count. Unavailable
   fields read `unknown`.
+- **Thesis emphasis:** the thesis leads with the primary research-backed
+  architecture; a conditional, bounded, escalation-only, or secondary
+  mechanism is not promoted to product identity. Flag a `WARNING` and
+  rewrite if it is (e.g. leading with "multi-agent" when the evidence says
+  "backbone-first with conditional review").
 
 ## Gate 2 — Research-to-product traceability & source fidelity
 
@@ -39,6 +44,10 @@ blueprint.
   - Unsupported claims must be removed or marked "Design hypothesis —
     requires validation."
   - A product decision must not replace research evidence for a core claim.
+- **No blank citations:** paper-derived rows cite `[arxiv_id]` /
+  `[Author, Year]`; gap-derived rows cite
+  `[Source Report: Research Gaps — <gap name>]`. A cell is blank only when
+  the row is explicitly an internal design hypothesis.
 
 ## Gate 3 — Implementation neutrality (with warning tier)
 
@@ -65,16 +74,19 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
   implied) by the product thesis. High-stakes/adjacent domains that appear
   only as research evidence must be Secondary/Future, not primary — flag a
   `WARNING` if such a domain appears as a primary actor or MVP requirement.
-- **MVP structure:** §14 separates Core Value Path from Safety Baseline and
-  Evaluation Baseline, and has an explicit pass/fail success definition.
-- The **core value path** is minimal and proves the thesis; safety and
-  evaluation baselines are justified separately (they do not count against
-  the core-path size).
+- **MVP structure:** §14 splits the core path into **MVP-0** (smallest
+  demonstrable end-to-end slice) and **MVP-1** (first usable version),
+  separates Safety and Evaluation baselines, and has an explicit pass/fail
+  success definition.
+- **MVP-0** is minimal and proves the thesis; safety and evaluation
+  baselines are justified separately (they do not count against MVP-0
+  size). Flag a `WARNING` if a large Phase-1 system is labelled MVP-0, or
+  if MVP-0/MVP-1 are split artificially for a trivial product.
 - `ACADEMIC`-gap items are not in MVP unless the product validates that gap.
-- Flag a `WARNING` (not `FAIL`) when the core value path carries more than
-  6 capabilities without justification, or when `standard` output exceeds
-  the §04 length budgets. `FAIL` only if the MVP no longer represents a
-  small, testable core value path.
+- Flag a `WARNING` (not `FAIL`) when MVP-0 carries more than 6 capabilities
+  without justification, or when `standard` output exceeds the §04 length
+  budgets. `FAIL` only if the MVP no longer represents a small, testable
+  core value path.
 
 ## Gate 6 — Risk honesty
 
@@ -82,6 +94,12 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
   the model better"). Open risks are not hidden. Safety-critical deferred
   items are release gates. Risks from unvalidated `ACADEMIC` items are
   flagged.
+- **Release-gate confidence consistency:** a release gate derived from a
+  MEDIUM/LOW-confidence mechanism is justified only if risk impact is HIGH,
+  no cheaper baseline control exists, and the blueprint says why it is
+  required now. Otherwise flag a `WARNING` and downgrade it to a warning,
+  an evaluation/monitoring requirement, or a Phase 2 gate. Each release
+  gate states its confidence and risk impact.
 
 ## Gate 7 — Downstream usefulness
 
@@ -116,14 +134,14 @@ attempts total).
 ## Self-check output
 
 After the gates pass (no `FAIL` remaining), emit `## Appendix A: Blueprint
-Quality-Gate Self-Check` in the blueprint: a compact table marking each
-gate `PASS` / `WARNING` / `FAIL` with a one-line note. Every `WARNING`
-raised above must appear there — do not hide it. Example notes:
+Quality-Gate Self-Check`: a compact table with columns **Gate · Status ·
+Finding · Required Action · Blocks Technical Design?**. Mark each gate
+`PASS` / `WARNING` / `FAIL`. Every `WARNING` raised above must appear with
+a concrete required action and a yes/no blocks-technical-design verdict —
+never a passive note. Example rows:
 
-```text
-MVP discipline: WARNING — core path has 7 capabilities; safety/eval
-  baselines listed separately and justified.
-Metadata integrity: WARNING — report stated "15 pipeline runs"; rounds
-  recorded as unknown.
-Implementation neutrality: WARNING — "service-deployable" deferred to §17.
-```
+| Gate | Status | Finding | Required Action | Blocks TD? |
+|---|---|---|---|---|
+| Thesis emphasis | WARNING | Thesis leads with a conditional mechanism | Rewrite to lead with the primary architecture | No |
+| MVP discipline | WARNING | MVP-0 still has 6 capabilities | Move routing + plugin architecture to MVP-1 | No — resolve before implementation planning |
+| Release-gate confidence | WARNING | MEDIUM-confidence control set as default gate | Downgrade to monitoring at MVP-0; gate in Phase 2 | No |

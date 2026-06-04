@@ -46,6 +46,10 @@
 > `<research-derived mechanisms>`, with explicit measurement of
 > `<evaluation criteria>` to close the remaining gap.
 
+**Emphasis:** lead with the *primary* research-backed architecture. A
+conditional, bounded, or escalation-only mechanism is a supporting
+mechanism, not the product identity — do not let it dominate the thesis.
+
 ### 1.2 Product Type
 
 <System type — e.g. "local-first service", "governance layer",
@@ -290,41 +294,47 @@ flowchart TD
 
 ## 14. MVP Scope
 
-> Separate the **core value path** (what proves the thesis) from the
-> **safety** and **evaluation** baselines (what makes it shippable and
-> measurable). Do not translate research completeness into MVP inclusion —
-> move anything not required for one useful end-to-end outcome, or for its
-> safety/evaluation, to §15. Safety and evaluation baselines are not
-> "extra" capabilities; count and justify them separately from the core
-> path so the core path stays minimal.
+> Split the core value path into **MVP-0** (the smallest end-to-end slice
+> that demonstrates the thesis) and **MVP-1** (the first usable production
+> version). Keep safety and evaluation baselines separate — they are
+> non-negotiable but must not inflate MVP-0. Do not translate research
+> completeness into MVP inclusion. For a genuinely simple product MVP-0 and
+> MVP-1 may coincide; say so rather than inventing a split.
 
-### 14.1 Core Value Path
+### 14.1 MVP-0 — Smallest Demonstrable Core
 
-Items required to produce one useful end-to-end product outcome.
+The minimum end-to-end path that produces one useful outcome from one
+realistic input, for one domain.
 
 - ...
 
-### 14.2 Safety Baseline
+### 14.2 MVP-1 — First Usable Version
+
+The first production-hardening layer on top of MVP-0 (richer evaluation,
+optional escalation, broader coverage).
+
+- ...
+
+### 14.3 Safety Baseline
 
 Non-negotiable controls required to avoid unsafe, leaking, or misleading
-output.
+output. Mark which are required already at MVP-0.
 
 - ...
 
-### 14.3 Evaluation Baseline
+### 14.4 Evaluation Baseline
 
-Minimum checks required to know whether the MVP works.
-
-- ...
-
-### 14.4 Explicitly Deferred from MVP
-
-Valuable items intentionally excluded from MVP, each pointing to its §15
-phase.
+Minimum checks required to know whether the MVP works (mark which at MVP-0).
 
 - ...
 
-### 14.5 MVP Success Definition
+### 14.5 Explicitly Deferred from MVP
+
+| Item | Move To | Reason |
+|---|---|---|
+| ... | Phase 2 / Phase 3 | ... |
+
+### 14.6 MVP Success Definition
 
 The MVP is successful if ... <specific, pass/fail criteria>.
 
@@ -405,19 +415,21 @@ The next technical-design stage must decide:
 
 ## Appendix A: Blueprint Quality-Gate Self-Check
 
-> Compact self-assessment so residual warnings are visible to the reader,
-> not hidden. Mark each gate `PASS` / `WARNING` / `FAIL`. Any `FAIL` must
-> be fixed before delivery; surface every `WARNING` here with a one-line
-> note rather than silently passing.
+> Compact self-assessment so residual warnings are visible and actionable,
+> not hidden. Mark each gate `PASS` / `WARNING` / `FAIL`. Any `FAIL` must be
+> fixed before delivery; every `WARNING` carries a concrete required action
+> and a yes/no "blocks technical design?" verdict — never a passive note.
 
-| Gate | Status | Notes |
-|---|---|---|
-| Required sections + Contents present | PASS / WARNING / FAIL | ... |
-| Metadata integrity (no invented values) | PASS / WARNING / FAIL | ... |
-| Research traceability / source fidelity | PASS / WARNING / FAIL | ... |
-| Scope control (primary scope matches thesis) | PASS / WARNING / FAIL | ... |
-| MVP discipline (core path vs. baselines) | PASS / WARNING / FAIL | ... |
-| Implementation neutrality | PASS / WARNING / FAIL | ... |
-| Risk honesty | PASS / WARNING / FAIL | ... |
-| Evaluation coverage | PASS / WARNING / FAIL | ... |
-| Downstream usefulness | PASS / WARNING / FAIL | ... |
+| Gate | Status | Finding | Required Action | Blocks Technical Design? |
+|---|---|---|---|---|
+| Required sections + Contents present | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Metadata integrity (no invented values) | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Thesis emphasis (primary architecture) | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Research traceability / source fidelity | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Scope control (primary scope matches thesis) | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| MVP discipline (MVP-0 vs MVP-1 vs baselines) | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Release-gate confidence consistency | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Implementation neutrality | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Risk honesty | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Evaluation coverage | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Downstream usefulness | PASS / WARNING / FAIL | ... | ... | Yes/No |

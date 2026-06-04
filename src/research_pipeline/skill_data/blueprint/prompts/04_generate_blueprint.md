@@ -34,6 +34,13 @@ templates in the output template (single-domain / multi-domain /
 research-validation). It must not be a paper summary, a list of
 technologies, or a vague research ambition.
 
+**Emphasis control.** Lead with the *primary* research-backed architecture,
+not a conditional or secondary mechanism. If the report frames a mechanism
+as conditional, bounded, escalation-only, or secondary, describe it as a
+supporting mechanism — do not make it the product identity. (E.g. if the
+evidence says "backbone-first generation with conditional review", lead
+with the backbone-first engine, not with "multi-agent".)
+
 ## Workflows (§8)
 
 Every major workflow needs: purpose, trigger, actors, inputs,
@@ -66,7 +73,9 @@ services, packages, processes, or deployable units. See
   If content exceeds a budget, compress or switch to `detailed`; do not
   silently expand `standard` into an architecture dossier.
 - End with `## Appendix A: Blueprint Quality-Gate Self-Check` — a compact
-  PASS/WARNING/FAIL table that surfaces residual warnings (see
+  table (Gate · Status · Finding · Required Action · Blocks Technical
+  Design?). Every WARNING must carry a concrete required action and a
+  blocks-technical-design verdict, not a passive note (see
   `prompts/05_quality_gate.md`).
 
 ## Traceability discipline
@@ -78,6 +87,12 @@ trace exists, mark it **"Design hypothesis — requires validation."** An
 explicit design decision may be used only to connect, operationalize, or
 govern research-backed capabilities; it needs a rationale and must not
 replace research traceability for core product claims.
+
+**Gap-citation fallback.** Do not leave a citation cell blank. Paper-derived
+items cite `[arxiv_id]` / `[Author, Year]`. An item derived from a
+source-report gap with no paper citation cites
+`[Source Report: Research Gaps — <gap name>]`. Leave a citation blank only
+when the row is explicitly an internal design hypothesis.
 
 ## Metadata integrity (§1.5–1.6)
 
@@ -107,18 +122,32 @@ Future / Evidence-only / Out-of-scope.
 
 ## MVP scope (§14)
 
-Build §14 as Core Value Path / Safety Baseline / Evaluation Baseline /
+Build §14 as MVP-0 / MVP-1 / Safety Baseline / Evaluation Baseline /
 Explicitly Deferred / Success Definition.
 
-- The **core value path** is the smallest set that proves the thesis
-  end-to-end. Keep it minimal.
+- **MVP-0** is the smallest end-to-end slice that demonstrates the thesis
+  with one realistic input and one realistic output. Keep it minimal — do
+  not put every routing, memory, governance, and evaluation mechanism in
+  MVP-0 unless the product cannot function or be safely evaluated without
+  it. Do not call a large Phase-1 system an MVP-0.
+- **MVP-1** is the first usable production version: production hardening,
+  richer evaluation, and optional escalation added on top of MVP-0. For a
+  genuinely simple product MVP-0 and MVP-1 may coincide — say so rather
+  than inventing a split.
 - List and justify safety and evaluation baselines **separately** from the
-  core path so they do not inflate its apparent size.
+  core path, noting which are required already at MVP-0.
 - Do not translate research completeness into MVP inclusion. Anything not
-  required for one useful outcome (or its safety/evaluation) moves to a
-  §15 phase with a one-line reason.
+  required moves to a §15 phase with a one-line reason.
 - `ACADEMIC`-gap items stay out of MVP unless the product's purpose is to
   validate that gap.
+
+## Release-gate discipline (§12)
+
+A release gate derived from a MEDIUM- or LOW-confidence mechanism is
+justified only when the risk impact is HIGH, no cheaper baseline control
+exists, and the blueprint states why it is required now. Otherwise
+downgrade it to a warning, an evaluation/monitoring requirement, or a
+Phase 2 release gate. State each gate's confidence and risk impact.
 
 ## Hard constraints
 

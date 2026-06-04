@@ -346,29 +346,38 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ## 14. MVP Scope
 
-### 14.1 Core Value Path
+### 14.1 MVP-0 — Smallest Demonstrable Core
+
+The smallest path that proves the thesis: an agent writes a gated memory
+and retrieves it within one scope.
 
 - Memory Admission workflow + policy (fail-closed).
-- Hybrid Retrieval with scope filtering.
+- Hybrid Retrieval, local scope only.
+
+### 14.2 MVP-1 — First Usable Version
+
 - Scoped records (local/project) with explicit promotion.
+- Verified deletion promoted to a first-class workflow.
 
-### 14.2 Safety Baseline
+### 14.3 Safety Baseline
 
-- Verified deletion + tombstoning.
-- Admission quarantine path for untrusted/poisoned candidates.
+- Admission quarantine path for untrusted/poisoned candidates — **MVP-0**.
+- Verified deletion + tombstoning — required by **MVP-1**.
 
-### 14.3 Evaluation Baseline
+### 14.4 Evaluation Baseline
 
-- Admission-precision and scope-isolation scenarios (§13).
-- Post-delete re-query check (deleted records never resurface).
+- Admission-precision and scope-isolation scenarios (§13) — **MVP-0**.
+- Post-delete re-query check (deleted records never resurface) — **MVP-1**.
 
-### 14.4 Explicitly Deferred from MVP
+### 14.5 Explicitly Deferred from MVP
 
-- Automatic consolidation scheduling (ACADEMIC — validate first; → Phase 4).
-- Hierarchical retrieval (scaling extension; → Phase 3).
-- Team-scope multi-tenant sharing (→ Phase 3).
+| Item | Move To | Reason |
+|---|---|---|
+| Automatic consolidation scheduling | Phase 4 | ACADEMIC gap — validate first |
+| Hierarchical retrieval | Phase 3 | Scaling extension, not core value |
+| Team-scope multi-tenant sharing | Phase 3 | Beyond single-user proof |
 
-### 14.5 MVP Success Definition
+### 14.6 MVP Success Definition
 
 The MVP is successful if agents reuse prior context across sessions, no
 unsafe or out-of-scope write is admitted in evaluation, and every deletion
@@ -418,7 +427,7 @@ applying:** optimal consolidation frequency [2403.09999].
 | Memory Admission | Evaluator-gated writes | [2312.01234] | ADOPT | Fail-closed |
 | Hybrid Retrieval | Hybrid retrieval | [Park et al., 2023] | ADOPT | Core value |
 | Scoped Sharing & Promotion | Scoped memory | [2401.05678] | ADOPT | Trust boundary |
-| Deletion Verification | ENGINEERING gap | (gap) | ADAPT | Safety baseline |
+| Deletion Verification | ENGINEERING gap | [Source Report: Research Gaps — deletion verification] | ADAPT | Safety baseline |
 | Forgetting Policy | Selective forgetting | [2402.01234] | ADAPT | Manual-first |
 | Auto-consolidation | Consolidation freq. | [2403.09999] | DEFER / VALIDATE | ACADEMIC |
 
@@ -426,14 +435,16 @@ applying:** optimal consolidation frequency [2403.09999].
 
 ## Appendix A: Blueprint Quality-Gate Self-Check
 
-| Gate | Status | Notes |
-|---|---|---|
-| Required sections + Contents present | PASS | All 18 sections + Contents. |
-| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.2.0 from manifest. |
-| Research traceability / source fidelity | PASS | Every capability cited; deletion verification marked as ENGINEERING gap. |
-| Scope control (primary scope matches thesis) | PASS | Only agent + developer are Primary; no out-of-scope actors. |
-| MVP discipline (core path vs. baselines) | PASS | 3 core-path capabilities; safety + evaluation baselines listed separately. |
-| Implementation neutrality | PASS | No tech/vendor names; conceptual components only. |
-| Risk honesty | PASS | Poisoning, leakage, unverifiable deletion are release gates. |
-| Evaluation coverage | PASS | ≥1 scenario per core capability; deletion + scope-isolation covered. |
-| Downstream usefulness | PASS | Two Mermaid diagrams; handoff lists what technical design must decide. |
+| Gate | Status | Finding | Required Action | Blocks Technical Design? |
+|---|---|---|---|---|
+| Required sections + Contents present | PASS | All 18 sections + Contents. | — | No |
+| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.3.0 from manifest. | — | No |
+| Thesis emphasis (primary architecture) | PASS | Thesis leads with gated admission + scoped records + retrieval, not a conditional mechanism. | — | No |
+| Research traceability / source fidelity | PASS | Every capability cited; deletion verification cites the source-report gap. | — | No |
+| Scope control (primary scope matches thesis) | PASS | Only agent + developer are Primary; no out-of-scope actors. | — | No |
+| MVP discipline (MVP-0 vs MVP-1 vs baselines) | PASS | MVP-0 is 2 capabilities; promotion + verified deletion deferred to MVP-1. | — | No |
+| Release-gate confidence consistency | PASS | All release gates derive from HIGH-confidence safety findings. | — | No |
+| Implementation neutrality | PASS | No tech/vendor names; conceptual components only. | — | No |
+| Risk honesty | PASS | Poisoning, leakage, unverifiable deletion are release gates. | — | No |
+| Evaluation coverage | PASS | ≥1 scenario per core capability; deletion + scope-isolation covered. | — | No |
+| Downstream usefulness | PASS | Two Mermaid diagrams; handoff lists what technical design must decide. | — | No |

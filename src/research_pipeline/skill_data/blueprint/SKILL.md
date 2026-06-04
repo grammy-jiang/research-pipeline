@@ -182,16 +182,20 @@ task graph, gate names, and failure policy.
    every major idea, conservatively. Use `prompts/03_resolve_ideas.md`.
 8. **Size the MVP** — apply the Round History signal (a long round history
    with many remaining gaps, or `Readiness: HAS_GAPS`, means a speculative
-   space → heavier DEFER/REJECT pressure). Structure §14 as Core Value Path
-   / Safety Baseline / Evaluation Baseline / Deferred; keep the core path
-   minimal and do not translate research completeness into MVP inclusion.
+   space → heavier DEFER/REJECT pressure). Structure §14 as MVP-0 (smallest
+   demonstrable end-to-end slice) / MVP-1 (first usable version) / Safety
+   Baseline / Evaluation Baseline / Deferred; keep MVP-0 minimal and do not
+   translate research completeness into MVP inclusion.
 9. **Compose** — generate the thesis, then all 18 sections with the
-   required Mermaid coverage and tables. Copy metadata (never invent; keep
-   pipeline runs vs. gap-closure rounds separate; skill version from
-   `manifest.json` or `unknown`). Keep primary actors/domains aligned with
-   the thesis — high-stakes domains seen only as evidence go to roadmap or
-   non-goals. Respect the `output_detail` length budget. Use
-   `prompts/04_generate_blueprint.md` and the templates.
+   required Mermaid coverage and tables. Lead the thesis with the primary
+   research-backed architecture, not a conditional/secondary mechanism.
+   Copy metadata (never invent; keep pipeline runs vs. gap-closure rounds
+   separate; skill version from `manifest.json` or `unknown`). Keep primary
+   actors/domains aligned with the thesis. Never leave a citation blank —
+   gap-derived items cite `[Source Report: Research Gaps — <name>]`. A
+   release gate from a MEDIUM/LOW-confidence mechanism needs a HIGH-risk
+   why-now justification or is downgraded. Respect the `output_detail`
+   length budget. Use `prompts/04_generate_blueprint.md` and the templates.
 10. **Quality gates & self-check** — run the gates in
     `prompts/05_quality_gate.md`, revise failing sections, and emit the
     compact `## Appendix A` self-check (PASS/WARNING/FAIL). Maximum 3
@@ -214,15 +218,17 @@ task graph, gate names, and failure policy.
 Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
 `tests/expected_sections_checklist.md`):
 
-1. **Input understanding & metadata integrity** — names the source
+1. **Input understanding, metadata & thesis emphasis** — names the source
    research question, acknowledges input quality and the targeted domain
-   (if multi-domain), and uses copied-not-invented metadata (skill version
-   from `manifest.json` or `unknown`; pipeline runs and gap-closure rounds
-   kept as separate fields).
+   (if multi-domain), uses copied-not-invented metadata (skill version from
+   `manifest.json` or `unknown`; pipeline runs and gap-closure rounds kept
+   separate), and leads the thesis with the primary research-backed
+   architecture (not a conditional/secondary mechanism).
 2. **Traceability** — every major capability traces to a research
    citation (`[arxiv_id]` / `[Author, Year]`) or a constrained explicit
-   design decision with rationale. Otherwise mark it "Design hypothesis —
-   requires validation."
+   design decision with rationale; otherwise mark it "Design hypothesis —
+   requires validation." No citation cell is blank — gap-derived items cite
+   `[Source Report: Research Gaps — <name>]`.
 3. **Implementation neutrality** — no programming language, framework,
    database, cloud provider, vendor, package structure, deployment
    commands, code, or tickets.
@@ -231,15 +237,19 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
    success criteria.
 5. **Scope control & MVP discipline** — primary actors/domains match the
    thesis (high-stakes domains seen only as evidence stay Secondary/Future);
-   §14 separates a minimal Core Value Path from Safety and Evaluation
-   baselines with an explicit success definition; `ACADEMIC`-gap items are
-   excluded unless the product validates that gap. Flag (do not auto-fail)
-   a core path over 6 capabilities without justification, or `standard`
-   output over budget; fail only if it is no longer a small, testable core.
-6. **Risk honesty** — HIGH-impact risks are explicit, mitigations are
-   realistic (never "prompt the model better"), safety-critical deferred
-   items are release gates, and risks from unvalidated `ACADEMIC` items
-   are flagged.
+   §14 splits the core path into MVP-0 (smallest demonstrable) and MVP-1
+   (first usable), separates Safety and Evaluation baselines, and has an
+   explicit success definition; `ACADEMIC`-gap items are excluded unless the
+   product validates that gap. Flag (do not auto-fail) an MVP-0 over 6
+   capabilities without justification, a large Phase-1 system mislabelled
+   MVP-0, or `standard` output over budget; fail only if it is no longer a
+   small, testable core.
+6. **Risk honesty & release-gate confidence** — HIGH-impact risks are
+   explicit, mitigations are realistic (never "prompt the model better"),
+   safety-critical deferred items are release gates, and risks from
+   unvalidated `ACADEMIC` items are flagged. A release gate derived from a
+   MEDIUM/LOW-confidence mechanism is justified only by HIGH risk impact +
+   no cheaper control + an explicit why-now; otherwise downgrade it.
 7. **Downstream usefulness** — a technical-design agent can choose a tech
    stack and plan an implementation without re-reading the papers; the
    Contents section exists with valid links; the main end-to-end workflow
