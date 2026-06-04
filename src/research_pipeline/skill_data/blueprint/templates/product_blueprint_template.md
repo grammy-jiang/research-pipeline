@@ -20,6 +20,12 @@
 - [16. Open Questions and Validation Plan](#16-open-questions-and-validation-plan)
 - [17. Handoff Notes for Technical Design](#17-handoff-notes-for-technical-design)
 - [18. Traceability Appendix](#18-traceability-appendix)
+- [Appendix A: Blueprint Quality-Gate Self-Check](#appendix-a-blueprint-quality-gate-self-check)
+- [Appendix B: Design Decision Register](#appendix-b-design-decision-register) *(optional)*
+
+> Contents must list **every** numbered section **and every appendix that
+> is actually present** (Appendix A is always present; include the
+> Appendix B line only when you include that appendix).
 
 ---
 
@@ -298,8 +304,9 @@ flowchart TD
 > that demonstrates the thesis) and **MVP-1** (the first usable production
 > version). Keep safety and evaluation baselines separate — they are
 > non-negotiable but must not inflate MVP-0. Do not translate research
-> completeness into MVP inclusion. For a genuinely simple product MVP-0 and
-> MVP-1 may coincide; say so rather than inventing a split.
+> completeness into MVP inclusion. If the product has more than 4 major
+> capabilities, the MVP-0/MVP-1 split is mandatory; for a genuinely simple
+> product MVP-0 and MVP-1 may coincide; say so rather than inventing a split.
 
 ### 14.1 MVP-0 — Smallest Demonstrable Core
 
@@ -433,3 +440,22 @@ The next technical-design stage must decide:
 | Risk honesty | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Evaluation coverage | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Downstream usefulness | PASS / WARNING / FAIL | ... | ... | Yes/No |
+
+Apply any **safe wording rewrite** a `WARNING` identifies *before* delivery,
+then re-run the self-check so this table reflects the post-repair document.
+A `WARNING` should remain only when it needs human or downstream technical
+judgement.
+
+---
+
+## Appendix B: Design Decision Register *(optional — include only for technical-architecture handoff)*
+
+> Optional. Add this only when handing off to technical architecture and the
+> blueprint is detailed enough to warrant it. Do **not** duplicate the §6
+> Adopt/Adapt/Merge/Defer/Reject table — list only decisions that materially
+> affect downstream architecture, and add the **reversibility** and
+> **revisit-trigger** view that §6 lacks. If included, add it to Contents.
+
+| Decision | Type | Rationale | Evidence | Reversible? | Revisit Trigger |
+|---|---|---|---|---|---|
+| ... | Research-backed / Scope / MVP-staging / Safety / Evaluation / Deferred-technical | ... | [arxiv_id] / [Source Report: Research Gaps — <name>] | Yes/No | ... |

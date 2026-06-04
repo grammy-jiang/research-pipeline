@@ -58,7 +58,10 @@ services, packages, processes, or deployable units. See
 
 ## Formatting requirements
 
-- `## Contents` with valid internal links to every section.
+- `## Contents` with valid internal links to every numbered section **and
+  every appendix actually present** — scan the final headings and add any
+  `## Appendix …` (the Appendix A self-check is always present; the optional
+  Appendix B register only when you include it).
 - At least one **Mermaid** diagram for the main end-to-end workflow.
 - At least one **Mermaid** diagram for the logical architecture.
 - Additional Mermaid workflow diagrams only for complex, safety-critical,
@@ -70,8 +73,10 @@ services, packages, processes, or deployable units. See
 - Apply the length budget for the active `output_detail` setting. For
   `standard`, prefer: ≤ 8 core capabilities, ≤ 3 workflows, ≤ 10 risks,
   ≤ 8 evaluation scenarios, ≤ 8 decision policies, ≤ 10 open questions.
-  If content exceeds a budget, compress or switch to `detailed`; do not
-  silently expand `standard` into an architecture dossier.
+  Keep the main body scannable in one pass — move large tables (the full
+  §5 translation map, the §18 traceability appendix) to appendices rather
+  than the main flow. If content exceeds a budget, compress or switch to
+  `detailed`; do not silently expand `standard` into an architecture dossier.
 - End with `## Appendix A: Blueprint Quality-Gate Self-Check` — a compact
   table (Gate · Status · Finding · Required Action · Blocks Technical
   Design?). Every WARNING must carry a concrete required action and a
@@ -131,9 +136,10 @@ Explicitly Deferred / Success Definition.
   MVP-0 unless the product cannot function or be safely evaluated without
   it. Do not call a large Phase-1 system an MVP-0.
 - **MVP-1** is the first usable production version: production hardening,
-  richer evaluation, and optional escalation added on top of MVP-0. For a
-  genuinely simple product MVP-0 and MVP-1 may coincide — say so rather
-  than inventing a split.
+  richer evaluation, and optional escalation added on top of MVP-0. If the
+  product has more than 4 major capabilities the MVP-0/MVP-1 split is
+  mandatory; for a genuinely simple product MVP-0 and MVP-1 may coincide —
+  say so rather than inventing a split.
 - List and justify safety and evaluation baselines **separately** from the
   core path, noting which are required already at MVP-0.
 - Do not translate research completeness into MVP inclusion. Anything not
@@ -148,6 +154,16 @@ justified only when the risk impact is HIGH, no cheaper baseline control
 exists, and the blueprint states why it is required now. Otherwise
 downgrade it to a warning, an evaluation/monitoring requirement, or a
 Phase 2 release gate. State each gate's confidence and risk impact.
+
+## Optional Appendix B — Design Decision Register
+
+When the blueprint is intended for technical-architecture handoff (and is
+detailed enough to warrant it), you may add `## Appendix B: Design Decision
+Register` with columns Decision · Type · Rationale · Evidence · Reversible?
+· Revisit Trigger. Include only decisions that materially affect downstream
+architecture; do **not** duplicate the §6 table — the value is the
+reversibility / revisit-trigger view §6 lacks. If you add it, list it in
+Contents.
 
 ## Hard constraints
 

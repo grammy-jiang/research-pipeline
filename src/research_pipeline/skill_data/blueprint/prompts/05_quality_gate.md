@@ -105,7 +105,10 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
 
 - A technical-design agent can choose a tech stack and plan an
   implementation without re-reading the papers.
-- The `## Contents` section exists and all section links are valid.
+- The `## Contents` section exists, all links are valid, and it lists every
+  numbered section **and every appendix present** (Appendix A always;
+  Appendix B if included). Flag a `WARNING` if an appendix in the body is
+  missing from Contents.
 - A Mermaid diagram exists for both the main end-to-end workflow and the
   logical architecture.
 
@@ -130,6 +133,21 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
 
 Then revise the failing sections and re-run the gates (bounded to 3
 attempts total).
+
+## Self-repair pass (before delivery)
+
+Behave like a final editor: **detect → repair → re-check → deliver**. For
+each `WARNING`:
+
+- If it is a safe wording rewrite (e.g. a runtime-leaning phrase with a
+  clear product-level equivalent per `references/borderline-cases.md`, or a
+  missing appendix link), **apply the fix now** rather than only reporting it.
+- If it is a structural issue, revise the relevant section.
+- Keep a `WARNING` only when it genuinely needs human or downstream
+  technical judgement (then give it a required action).
+
+Re-run the self-check after repairs so the appendix reflects the
+**post-repair** document, not the pre-repair draft.
 
 ## Self-check output
 

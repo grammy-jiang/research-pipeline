@@ -194,13 +194,18 @@ task graph, gate names, and failure policy.
    actors/domains aligned with the thesis. Never leave a citation blank —
    gap-derived items cite `[Source Report: Research Gaps — <name>]`. A
    release gate from a MEDIUM/LOW-confidence mechanism needs a HIGH-risk
-   why-now justification or is downgraded. Respect the `output_detail`
-   length budget. Use `prompts/04_generate_blueprint.md` and the templates.
-10. **Quality gates & self-check** — run the gates in
-    `prompts/05_quality_gate.md`, revise failing sections, and emit the
-    compact `## Appendix A` self-check (PASS/WARNING/FAIL). Maximum 3
-    revision attempts; after 3 failures, surface the specific failing gates
-    to the user and stop. Do not deliver an unvalidated blueprint.
+   why-now justification or is downgraded. The Contents lists every numbered
+   section and every appendix present; keep the main body scannable (move
+   large tables to appendices). Respect the `output_detail` length budget.
+   Use `prompts/04_generate_blueprint.md` and the templates.
+10. **Quality gates, self-repair & self-check** — run the gates in
+    `prompts/05_quality_gate.md`, revise failing sections, and **apply safe
+    wording rewrites before delivery** (detect → repair → re-check) so only
+    judgement-needing warnings remain. Emit the actionable `## Appendix A`
+    self-check (gate · status · finding · required action · blocks-TD)
+    reflecting the post-repair document. Maximum 3 revision attempts; after
+    3 failures, surface the specific failing gates to the user and stop. Do
+    not deliver an unvalidated blueprint.
 
 ## Decision Categories
 
@@ -252,8 +257,9 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
    no cheaper control + an explicit why-now; otherwise downgrade it.
 7. **Downstream usefulness** — a technical-design agent can choose a tech
    stack and plan an implementation without re-reading the papers; the
-   Contents section exists with valid links; the main end-to-end workflow
-   and the logical architecture each have a Mermaid diagram.
+   Contents section exists with valid links and lists every numbered section
+   and every appendix present; the main end-to-end workflow and the logical
+   architecture each have a Mermaid diagram.
 
 Fail immediately if any tech-stack choice, code, or implementation ticket
 appears; if either required Mermaid diagram is missing; if open research

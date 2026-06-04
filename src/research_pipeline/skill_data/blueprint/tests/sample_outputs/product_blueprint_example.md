@@ -24,6 +24,7 @@
 - [16. Open Questions and Validation Plan](#16-open-questions-and-validation-plan)
 - [17. Handoff Notes for Technical Design](#17-handoff-notes-for-technical-design)
 - [18. Traceability Appendix](#18-traceability-appendix)
+- [Appendix A: Blueprint Quality-Gate Self-Check](#appendix-a-blueprint-quality-gate-self-check)
 
 ---
 

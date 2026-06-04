@@ -79,11 +79,20 @@ combines the seven quality gates with the acceptance criteria.
 - [ ] Runtime/architecture-leaning wording is rephrased or surfaced as a
       WARNING (not silently accepted); only forbidden tech/vendor choices
       hard-fail.
-- [ ] `standard` output respects the length budget, or switches to
-      `detailed`.
+- [ ] `standard` output respects the length budget and stays scannable in
+      one pass; large tables are moved to appendices rather than the main
+      body, or the output switches to `detailed`.
+- [ ] Contents lists every numbered section AND every appendix present
+      (Appendix A always; Appendix B only when included).
+- [ ] Safe wording rewrites flagged by the self-check are applied before
+      delivery (self-repair); the self-check reflects the post-repair
+      document, and remaining WARNINGs need human/downstream judgement.
 - [ ] An `## Appendix A: Blueprint Quality-Gate Self-Check` is present;
       every WARNING has a required action and a blocks-technical-design
       verdict; any FAIL is resolved before delivery.
+- [ ] *(optional)* An `## Appendix B: Design Decision Register` is included
+      for architecture handoff — reversibility + revisit trigger, not a
+      duplicate of §6.
 
 ## Hard fails
 

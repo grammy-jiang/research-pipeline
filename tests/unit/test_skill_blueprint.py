@@ -295,7 +295,7 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.3.0"
+    assert data["version"] == "0.4.0"
 
 
 # --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
@@ -367,3 +367,63 @@ def test_example_metadata_is_not_invented() -> None:
     assert "Gap-closure rounds" in example
     # Must not reintroduce the conflated field the improvement plan flagged.
     assert "Research-pipeline rounds: 15" not in example
+
+
+# --- v0.4.0 skill: Contents/appendix consistency, self-repair, optional
+# Appendix B register ---
+
+
+def _contents_block(text: str) -> str:
+    """Return the text from '## Contents' up to the first horizontal rule."""
+    start = text.index("## Contents")
+    end = text.index("\n---", start)
+    return text[start:end]
+
+
+def test_template_and_example_contents_list_self_check_appendix() -> None:
+    """Imp.1: the Contents must include the self-check appendix link."""
+    for rel in (
+        ("templates", "product_blueprint_template.md"),
+        ("tests", "sample_outputs", "product_blueprint_example.md"),
+    ):
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        contents = _contents_block(text)
+        assert "Appendix A" in contents, f"{rel} Contents omits Appendix A"
+
+
+def test_quality_gate_has_self_repair_pass() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Self-repair" in gate
+    assert "detect → repair → re-check" in gate or "post-repair" in gate
+
+
+def test_compose_prompt_lists_appendices_in_contents_rule() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    assert "every appendix actually present" in prompt
+    # Optional Appendix B (design decision register) must be described.
+    assert "Design Decision Register" in prompt
+
+
+def test_template_has_optional_appendix_b() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Appendix B: Design Decision Register" in template
+    assert "Revisit Trigger" in template
+
+
+def test_mvp_split_mandatory_trigger_present() -> None:
+    for rel in (
+        ("prompts", "04_generate_blueprint.md"),
+        ("templates", "product_blueprint_template.md"),
+    ):
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        # Tolerate line wrapping and blockquote markers between words.
+        normalized = " ".join(text.replace(">", " ").split())
+        assert "more than 4 major capabilities" in normalized, (
+            f"{rel} missing MVP trigger"
+        )
