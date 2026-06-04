@@ -2,6 +2,26 @@
 
 All notable changes to research-pipeline.
 
+## [v0.18.4] — 2026-06-04
+
+### Changed
+
+- **`blueprint` skill — precision & buildability pass (skill manifest
+  0.2.0 → 0.3.0).** Driven by a review of a second real generated blueprint.
+  The quality gate now also enforces: **thesis emphasis** (lead with the
+  primary research-backed architecture, not a conditional/secondary
+  mechanism); **MVP-0 / MVP-1 split** (§14 splits the core path into a
+  smallest-demonstrable MVP-0 and a first-usable MVP-1, with safety and
+  evaluation baselines kept separate); **release-gate confidence
+  consistency** (a MEDIUM/LOW-confidence mechanism becomes a release gate
+  only with HIGH risk impact + no cheaper control + an explicit why-now);
+  and a **gap-citation fallback** (gap-derived rows cite
+  `[Source Report: Research Gaps — <name>]` instead of leaving the citation
+  blank). The Appendix A self-check is now **actionable** (gate · status ·
+  finding · required action · blocks-technical-design). Implemented entirely
+  inside the existing prompts/template/references — no new prompt files; the
+  skill remains a pure prompt-driven transformation.
+
 ## [v0.18.3] — 2026-06-04
 
 ### Changed
