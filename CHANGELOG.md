@@ -2,6 +2,33 @@
 
 All notable changes to research-pipeline.
 
+## [v0.18.3] — 2026-06-04
+
+### Changed
+
+- **`blueprint` skill — post-generation quality-control hardening (skill
+  manifest version 0.1.0 → 0.2.0).** Driven by a review of a real generated
+  blueprint. The quality gate now also enforces: **metadata integrity**
+  (skill version copied from `manifest.json` or `unknown`; **pipeline runs
+  integrated** and **gap-closure rounds** kept as separate fields, never
+  conflated); **scope control** (primary actors/domains must match the
+  thesis; high-stakes domains seen only as evidence stay Secondary/Future);
+  **source fidelity** (claims classified research-backed / extrapolation /
+  design-decision / speculative / unsupported, with relocation or removal);
+  an **implementation-neutrality warning tier** (runtime-leaning wording is
+  flagged, not silently accepted, while only named tech/vendor choices hard
+  fail); and **`standard` length budgets**. §14 MVP now separates a minimal
+  Core Value Path from Safety and Evaluation baselines, and every blueprint
+  ends with a compact `Appendix A: Blueprint Quality-Gate Self-Check`
+  (PASS/WARNING/FAIL). The skill remains a pure prompt-driven transformation
+  (no new prompt files or executing runner).
+
+### Fixed
+
+- **`setup` test** updated to assert the always-overwrite default-mode
+  upgrade semantics introduced in v0.18.2 (`test_setup.py`), restoring a
+  green test job.
+
 ## [v0.18.2] — 2026-06-03
 
 ### Fixed
