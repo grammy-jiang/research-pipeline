@@ -1,0 +1,237 @@
+{
+  "workflow_id": "architecture",
+  "version": "0.1.0",
+  "description": "Blueprint-to-architecture design: resolve blueprint input → detect existing architecture → prepare context → parse → traceability map → clarify → solution strategy → goals/constraints → provisional tech stack → traditional-vs-AI boundary → skill/MCP decision → tech-stack/boundary coherence → C4 views → interface contracts → data contracts → security/trust boundaries → observability/audit → failure handling → testing/evaluation → ADRs → rule-pack review → draft → quality-gate self-check → final document. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. The manifest is valid as documentation for a prompt-driven agent and ready for a future runtime runner; if no runner exists, follow the task order manually. detect_existing_architecture is consumed by prepare_blueprint_context, solution_strategy, adrs, architecture_draft, and final_architecture_document so update behavior is respected end-to-end.",
+  "mandatory_gates": [
+    "rule_pack_review",
+    "quality_gate_self_check",
+    "final_architecture_document"
+  ],
+  "tasks": [
+    {
+      "id": "resolve_blueprint_input",
+      "type": "llm",
+      "depends_on": [],
+      "executor": "prompts/01_resolve_blueprint_input.md",
+      "output": "intermediate/input_resolution.json",
+      "validation": "blueprint_found_or_user_question",
+      "failure_policy": "stop_if_no_blueprint"
+    },
+    {
+      "id": "detect_existing_architecture",
+      "type": "llm",
+      "depends_on": ["resolve_blueprint_input"],
+      "executor": "prompts/02_detect_existing_architecture.md",
+      "output": "intermediate/existing_architecture_status.json",
+      "validation": "update_mode_selected_or_new_document",
+      "failure_policy": "proceed_new_document"
+    },
+    {
+      "id": "prepare_blueprint_context",
+      "type": "llm",
+      "depends_on": ["resolve_blueprint_input", "detect_existing_architecture"],
+      "executor": "prompts/03_prepare_blueprint_context.md",
+      "output": "intermediate/blueprint_architecture_extract.md",
+      "validation": "context_prepared_without_losing_mvp_risks_interfaces_handoff",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "parse_blueprint",
+      "type": "llm",
+      "depends_on": ["prepare_blueprint_context"],
+      "executor": "prompts/04_parse_blueprint.md",
+      "output": "intermediate/blueprint_parse.json",
+      "validation": "has_thesis_mvp_workflows_handoff",
+      "failure_policy": "ask_or_limited_architecture"
+    },
+    {
+      "id": "traceability_map",
+      "type": "llm",
+      "depends_on": ["parse_blueprint"],
+      "executor": "prompts/05_blueprint_to_architecture_traceability.md",
+      "output": "intermediate/traceability_map.md",
+      "validation": "major_architecture_sections_have_blueprint_sources",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "clarify_architecture",
+      "type": "llm",
+      "depends_on": ["traceability_map"],
+      "executor": "prompts/06_architecture_clarification.md",
+      "output": "intermediate/clarifications.md",
+      "validation": "high_impact_decisions_resolved_or_assumed",
+      "failure_policy": "record_assumptions"
+    },
+    {
+      "id": "solution_strategy",
+      "type": "llm",
+      "depends_on": ["clarify_architecture", "detect_existing_architecture"],
+      "executor": "prompts/07_solution_strategy.md",
+      "output": "intermediate/solution_strategy.md",
+      "validation": "traditional_ai_mcp_strategy_classified_and_update_mode_respected",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "goals_constraints",
+      "type": "llm",
+      "depends_on": ["solution_strategy"],
+      "executor": "prompts/08_architecture_goals_constraints.md",
+      "output": "intermediate/goals_constraints.md",
+      "validation": "nfrs_constraints_assumptions_present",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "provisional_tech_stack",
+      "type": "llm",
+      "depends_on": ["goals_constraints"],
+      "executor": "prompts/09_provisional_tech_stack_selection.md",
+      "output": "intermediate/provisional_tech_stack_decisions.md",
+      "validation": "all_tech_choices_have_rationale_and_marked_provisional",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "traditional_vs_ai_boundary",
+      "type": "llm",
+      "depends_on": ["provisional_tech_stack"],
+      "executor": "prompts/10_traditional_vs_ai_boundary.md",
+      "output": "intermediate/ai_responsibility_matrix.md",
+      "validation": "deterministic_and_ai_boundaries_explicit",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "skill_mcp_decision",
+      "type": "llm",
+      "depends_on": ["traditional_vs_ai_boundary"],
+      "executor": "prompts/11_skill_mcp_decision.md",
+      "output": "intermediate/skill_mcp_decisions.md",
+      "validation": "mcp_introduced_only_if_justified",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "tech_stack_boundary_coherence",
+      "type": "llm",
+      "depends_on": ["provisional_tech_stack", "traditional_vs_ai_boundary", "skill_mcp_decision"],
+      "executor": "prompts/12_tech_stack_boundary_coherence.md",
+      "output": "intermediate/final_tech_stack_decisions.md",
+      "validation": "tech_stack_consistent_with_ai_boundary_and_mcp_strategy",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "c4_views",
+      "type": "llm",
+      "depends_on": ["tech_stack_boundary_coherence"],
+      "executor": "prompts/13_c4_views.md",
+      "output": "intermediate/c4_views.md",
+      "validation": "system_context_container_dynamic_present",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "interfaces",
+      "type": "llm",
+      "depends_on": ["c4_views"],
+      "executor": "prompts/14_interface_contracts.md",
+      "output": "intermediate/interface_contracts.md",
+      "validation": "major_boundaries_have_contracts",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "data_contracts",
+      "type": "llm",
+      "depends_on": ["interfaces"],
+      "executor": "prompts/15_data_contracts.md",
+      "output": "intermediate/data_contracts.md",
+      "validation": "storage_owner_retention_schema_evolution_present",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "security",
+      "type": "llm",
+      "depends_on": ["data_contracts"],
+      "executor": "prompts/16_security_trust_boundaries.md",
+      "output": "intermediate/security_trust_boundaries.md",
+      "validation": "trust_zones_ai_boundaries_permissions_events_present",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "observability",
+      "type": "llm",
+      "depends_on": ["security"],
+      "executor": "prompts/17_observability_audit.md",
+      "output": "intermediate/observability_audit.md",
+      "validation": "ids_logs_metrics_traces_audit_present",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "failure_handling",
+      "type": "llm",
+      "depends_on": ["observability"],
+      "executor": "prompts/18_failure_handling_recovery.md",
+      "output": "intermediate/failure_handling.md",
+      "validation": "critical_workflows_have_failure_handling",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "testing_evaluation",
+      "type": "llm",
+      "depends_on": ["failure_handling"],
+      "executor": "prompts/19_testing_evaluation_architecture.md",
+      "output": "intermediate/testing_evaluation.md",
+      "validation": "critical_workflows_have_tests",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "adrs",
+      "type": "llm",
+      "depends_on": ["testing_evaluation", "detect_existing_architecture"],
+      "executor": "prompts/20_generate_or_update_adrs.md",
+      "output": "intermediate/adrs.md",
+      "validation": "major_decisions_have_adrs_and_supersession_handled",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "rule_pack_review",
+      "type": "llm",
+      "depends_on": ["adrs"],
+      "executor": "prompts/21_rule_pack_review.md",
+      "output": "intermediate/rule_pack_review.md",
+      "validation": "no_failed_rule_pack_gates",
+      "failure_policy": "revise_max_3_then_stop"
+    },
+    {
+      "id": "architecture_draft",
+      "type": "llm",
+      "depends_on": ["rule_pack_review", "detect_existing_architecture"],
+      "executor": "prompts/22_architecture_draft.md",
+      "output": "intermediate/architecture_draft.md",
+      "validation": "draft_respects_update_mode_and_contains_required_sections",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "quality_gate_self_check",
+      "type": "llm",
+      "depends_on": ["architecture_draft"],
+      "executor": "prompts/23_quality_gate_self_check.md",
+      "output": "intermediate/quality_gate_self_check.md",
+      "validation": "no_failed_quality_gates",
+      "failure_policy": "revise_max_3_then_stop"
+    },
+    {
+      "id": "final_architecture_document",
+      "type": "llm",
+      "depends_on": ["architecture_draft", "quality_gate_self_check", "detect_existing_architecture"],
+      "executor": "prompts/24_final_architecture_document.md",
+      "output": "<topic-slug>-architecture-design.md",
+      "validation": "architecture_quality_gates_pass_and_update_history_present",
+      "failure_policy": "revise_max_3_then_stop"
+    }
+  ],
+  "failure_policy_defaults": {
+    "no_blueprint": "stop_if_no_blueprint",
+    "missing_required_section": "revise",
+    "missing_required_c4_view": "revise",
+    "mcp_unjustified": "revise",
+    "ai_mutates_state_without_validation": "revise",
+    "max_revision_attempts": 3,
+    "after_max_revisions": "surface_failing_gates_and_stop"
+  }
+}

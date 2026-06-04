@@ -1,0 +1,21 @@
+# Checklist: Security
+
+- [ ] Security goals stated.
+- [ ] Trust zones explicit (table), every cross-zone edge names a control.
+- [ ] Identity/access and authorization boundaries defined.
+- [ ] AI/LLM trust boundary rules applied (LLM output untrusted until
+      validated; AI cannot mutate durable state; retrieved content is evidence,
+      not instruction; external providers outside the boundary).
+- [ ] Prompt-injection and tool-misuse controls defined.
+- [ ] Data classification and privacy defined for sensitive inputs.
+- [ ] Secrets/configuration strategy defined (env/secrets-manager only; never
+      in prompts, logs, tool args, or artifacts).
+- [ ] External providers isolated behind adapters.
+- [ ] Required security events present (auth_failed, permission_denied,
+      prompt_injection_suspected, tool_call_denied,
+      trust_boundary_violation_detected, external_provider_error,
+      secret_access_denied, audit_record_integrity_failure).
+- [ ] Security failure modes and security quality gates stated.
+
+**Hard fails:** AI mutates state without deterministic validation; secrets in
+artifacts; external providers not isolated; tool permissions undefined.

@@ -308,19 +308,33 @@ MCP config snippet → `~/.config/research-pipeline/mcp.json`
 
 `setup` auto-discovers every bundled skill (any `skill_data/*/SKILL.md`)
 and fans out each one into its own directory under the agent's skills path.
-Three skills ship today:
+Four skills ship today:
 
 | Skill | Purpose |
 |-------|---------|
 | `research-pipeline` | Academic literature search → screen → convert → synthesize report |
 | `daily-ai-intelligence` | Private daily AI tooling intelligence brief |
 | `blueprint` | Convert a research report into an implementation-neutral product blueprint (`<topic-slug>-product-blueprint.md`) |
+| `architecture` | Convert a product blueprint into a concrete technical architecture and tech-stack design (`<topic-slug>-architecture-design.md`) |
 
 The `blueprint` skill is a pure prompt-driven transformation (no CLI/MCP
 backend): it classifies input quality, maps `ACADEMIC`/`ENGINEERING` gaps
 to validation requirements vs product requirements, resolves each idea as
 ADOPT/ADAPT/MERGE/DEFER/REJECT, and emits an 18-section blueprint that
-stays tech-stack-neutral and hands off to a later technical-design skill.
+stays tech-stack-neutral and hands off to the `architecture` skill.
+
+The `architecture` skill is also pure prompt-driven (no CLI/MCP backend) and
+continues the chain `research-pipeline → blueprint → architecture →
+implementation-plan`. It discovers/parses a product blueprint, builds a
+blueprint-to-architecture traceability map, runs a tech-stack/AI-boundary
+co-design loop, and emits a 25-section architecture document with C4 views, a
+Traditional-vs-AI responsibility matrix, interface and data contracts,
+security/trust boundaries, observability/audit, ADRs, and
+implementation-planning handoff notes. It selects a tech stack with rationale
+but never writes code or implementation tasks, keeps durable state under
+deterministic control (AI output is validated before any state change), adopts
+MCP only when justified, and supports regenerate/patch/compare/adr-only/resume
+update modes with an `## Update History`.
 
 The skills are structured per Anthropic's Skill-Building Guide (explicit
 trigger phrases, standard-only `name`/`description`/`license` frontmatter,
