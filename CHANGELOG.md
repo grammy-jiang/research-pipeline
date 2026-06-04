@@ -2,6 +2,33 @@
 
 All notable changes to research-pipeline.
 
+## [v0.18.5] — 2026-06-04
+
+### Changed
+
+- **`blueprint` skill — finalization-quality pass (skill manifest 0.3.0 →
+  0.4.0).** Driven by a review of a third real generated blueprint (which
+  scored 9.4/10). Refinements, not a redesign:
+  - **Contents/appendix consistency** — the Contents now lists every
+    appendix actually present (the Appendix A self-check was sometimes
+    omitted); added to the template, prompts, gate, and example.
+  - **Self-repair pass** — the skill now applies safe wording rewrites the
+    self-check identifies *before* delivery (detect → repair → re-check),
+    so only judgement-needing warnings remain and the self-check reflects
+    the post-repair document.
+  - **Stricter `standard` length control** — large tables (full §5
+    translation map, §18 traceability) move to appendices; the main body
+    stays scannable in one pass.
+  - **Optional Appendix B — Design Decision Register** — an opt-in,
+    handoff-only register (reversibility + revisit trigger) that does not
+    duplicate §6.
+  - **MVP-0/MVP-1 split now mandatory** when a product has more than 4
+    major capabilities.
+  - Thesis-emphasis, gap-citation-fallback, scope-control, and
+    metadata-integrity gates from 0.2.0/0.3.0 are preserved.
+  Implemented entirely inside the existing prompts/template/references — no
+  new prompt files; the skill remains a pure prompt-driven transformation.
+
 ## [v0.18.4] — 2026-06-04
 
 ### Changed
