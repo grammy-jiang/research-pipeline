@@ -180,10 +180,14 @@ class TestRunSetup:
         assert (agents_target / "paper-analyzer.md").is_file()
         assert (tmp_path / "mcp.json").is_file()
 
-    def test_default_skips_existing_skill_and_installs_missing(
+    def test_default_overwrites_existing_skill_and_installs_missing(
         self,
         tmp_path: Path,
     ) -> None:
+        # Default multi-target mode uses upgrade semantics (since
+        # cmd_setup passes ``force or default_multi_target``): an existing
+        # skill install is overwritten/refreshed rather than skipped, so that
+        # running ``setup`` after ``pipx upgrade`` replaces stale copies.
         skill_src = tmp_path / "skill_src"
         skill_src.mkdir()
         (skill_src / "SKILL.md").write_text("# New Skill")
@@ -208,7 +212,8 @@ class TestRunSetup:
                 skip_mcp=True,
             )
 
-        assert (claude_target / "SKILL.md").read_text() == "# Existing Skill"
+        # Existing target refreshed to the new content; missing target created.
+        assert (claude_target / "SKILL.md").read_text() == "# New Skill"
         assert (codex_target / "SKILL.md").read_text() == "# New Skill"
 
     def test_skip_skill(self, tmp_path: Path) -> None:
