@@ -233,6 +233,23 @@ def test_skill_md_has_anti_patterns_and_handoff() -> None:
     assert "deterministic" in lowered
 
 
+def test_skill_md_description_fits_copilot_limit() -> None:
+    """The folded description must stay under GitHub Copilot's 1024-char limit.
+
+    Copilot silently refuses to load a skill whose ``description`` exceeds
+    1024 characters, so this guards against the field creeping back over the
+    limit. The folded value joins the YAML ``>`` block's lines with spaces.
+    """
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    head, _, _ = text[4:].partition("\n---\n")
+    m = re.search(
+        r"(?ms)^description:\s*>\s*\n(.*?)(?=^[A-Za-z_][A-Za-z0-9_-]*:)", head
+    )
+    assert m, "description must be a folded (>) YAML block"
+    folded = " ".join(line.strip() for line in m.group(1).strip().splitlines())
+    assert len(folded) < 1024, f"description is {len(folded)} chars (limit 1024)"
+
+
 # --- prompts / templates / references / rule-packs / examples / checklists ---
 
 

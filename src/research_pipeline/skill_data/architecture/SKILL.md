@@ -2,25 +2,19 @@
 name: architecture
 description: >
   Convert a product blueprint into a concrete technical architecture and
-  tech-stack design. Produces C4 views (system context, container/runtime,
-  dynamic, optional component/deployment), a Traditional-Software-vs-AI
-  responsibility matrix, a justified tech-stack with alternatives, skill/MCP
-  boundary decisions, interface contracts, data contracts and storage
-  lifecycle, security and trust boundaries, observability/audit, failure
-  handling, a testing/evaluation architecture, ADRs, and handoff notes for
-  implementation planning. Use when the user has a product blueprint (or a
-  product/logical-architecture design document) and asks to "convert this
-  blueprint to architecture", "design the technical architecture", "choose
-  the tech stack", "create C4 diagrams", "define module boundaries",
-  "define interfaces / data contracts", "define AI boundaries", "define MCP
-  architecture", "define observability", "write ADRs", or accepts the
-  blueprint skill's technical-design handoff. Aliases:
-  "blueprint-to-architecture", "technical-architecture", "architecture-design",
-  "system-architecture", "tech-stack-design". Do NOT use for raw idea intake,
-  research synthesis or paper review (use `research-pipeline`), product
-  blueprint generation (use `blueprint`), detailed implementation task
-  breakdown (use the implementation-plan skill), or code/repository changes
-  (route to the coding agent).
+  tech-stack design: C4 views, a Traditional-Software-vs-AI responsibility
+  matrix, a justified tech stack, skill/MCP boundaries, interface and data
+  contracts, security/trust boundaries, observability/audit, ADRs, and
+  implementation-planning handoff notes. The third stage of
+  research-pipeline → blueprint → architecture → implementation-plan. Use
+  when the user has a product blueprint and asks to "convert this blueprint
+  to architecture", "design the technical architecture", "choose the tech
+  stack", "create C4 diagrams", or "define module/interface/AI/MCP
+  boundaries". Aliases: blueprint-to-architecture, technical-architecture,
+  architecture-design, system-architecture, tech-stack-design. Do NOT use
+  for research (use `research-pipeline`), blueprint generation (use
+  `blueprint`), implementation task breakdown (use implementation-plan), or
+  writing code.
 license: MIT
 ---
 
