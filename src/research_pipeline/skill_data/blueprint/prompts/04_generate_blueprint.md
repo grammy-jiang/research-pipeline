@@ -60,8 +60,14 @@ services, packages, processes, or deployable units. See
   (§12), evaluations (§13), and policies (§11).
 - Cite research evidence as `[arxiv_id]` or `[Author, Year]`, traceable to
   the source report's `## References`.
-- Apply the section-length guidance for the active `output_detail`
-  setting (concise / standard / detailed; default standard).
+- Apply the length budget for the active `output_detail` setting. For
+  `standard`, prefer: ≤ 8 core capabilities, ≤ 3 workflows, ≤ 10 risks,
+  ≤ 8 evaluation scenarios, ≤ 8 decision policies, ≤ 10 open questions.
+  If content exceeds a budget, compress or switch to `detailed`; do not
+  silently expand `standard` into an architecture dossier.
+- End with `## Appendix A: Blueprint Quality-Gate Self-Check` — a compact
+  PASS/WARNING/FAIL table that surfaces residual warnings (see
+  `prompts/05_quality_gate.md`).
 
 ## Traceability discipline
 
@@ -72,6 +78,47 @@ trace exists, mark it **"Design hypothesis — requires validation."** An
 explicit design decision may be used only to connect, operationalize, or
 govern research-backed capabilities; it needs a rationale and must not
 replace research traceability for core product claims.
+
+## Metadata integrity (§1.5–1.6)
+
+Copy metadata from the source report and skill metadata; never infer,
+normalise, invent, or upgrade a value.
+
+- The **blueprint skill version** comes from `manifest.json` (`version`).
+  If you cannot read it, write `unknown` — do not invent a number
+  (e.g. "1.0").
+- Keep **pipeline runs integrated** and **gap-closure rounds** as separate
+  fields. A report that "consolidates N pipeline runs" states a run count,
+  not a gap-closure round count; if no round count is given, write
+  `unknown` for rounds.
+- Any field not explicitly available is `unknown` / `not specified`.
+
+## Scope discipline (§3, §4, §14)
+
+Classify every actor, domain, and use case as Primary / Secondary /
+Future / Evidence-only / Out-of-scope.
+
+- Only Primary-scope actors and domains — those the **thesis** names —
+  appear as first-class users and MVP requirements.
+- High-stakes or adjacent domains that appear only as research evidence
+  (e.g. legal/medical when the thesis targets technical/academic content)
+  are Secondary or Future: put them in §15 roadmap or §4 non-goals, not
+  the primary actor table or MVP.
+
+## MVP scope (§14)
+
+Build §14 as Core Value Path / Safety Baseline / Evaluation Baseline /
+Explicitly Deferred / Success Definition.
+
+- The **core value path** is the smallest set that proves the thesis
+  end-to-end. Keep it minimal.
+- List and justify safety and evaluation baselines **separately** from the
+  core path so they do not inflate its apparent size.
+- Do not translate research completeness into MVP inclusion. Anything not
+  required for one useful outcome (or its safety/evaluation) moves to a
+  §15 phase with a one-line reason.
+- `ACADEMIC`-gap items stay out of MVP unless the product's purpose is to
+  validate that gap.
 
 ## Hard constraints
 

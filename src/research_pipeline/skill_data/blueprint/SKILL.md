@@ -180,17 +180,23 @@ task graph, gate names, and failure policy.
    primitives. Use `prompts/02_translate_to_product_primitives.md`.
 7. **Resolve ideas** — decide ADOPT / ADAPT / MERGE / DEFER / REJECT for
    every major idea, conservatively. Use `prompts/03_resolve_ideas.md`.
-8. **Size the MVP** — apply the Round History signal: a long round
-   history with many remaining gaps, or `Readiness: HAS_GAPS`, means the
-   product space is speculative — apply heavier DEFER/REJECT pressure and
-   keep the MVP minimal and validation-oriented.
+8. **Size the MVP** — apply the Round History signal (a long round history
+   with many remaining gaps, or `Readiness: HAS_GAPS`, means a speculative
+   space → heavier DEFER/REJECT pressure). Structure §14 as Core Value Path
+   / Safety Baseline / Evaluation Baseline / Deferred; keep the core path
+   minimal and do not translate research completeness into MVP inclusion.
 9. **Compose** — generate the thesis, then all 18 sections with the
-   required Mermaid coverage and tables. Use
+   required Mermaid coverage and tables. Copy metadata (never invent; keep
+   pipeline runs vs. gap-closure rounds separate; skill version from
+   `manifest.json` or `unknown`). Keep primary actors/domains aligned with
+   the thesis — high-stakes domains seen only as evidence go to roadmap or
+   non-goals. Respect the `output_detail` length budget. Use
    `prompts/04_generate_blueprint.md` and the templates.
-10. **Quality gates** — run the seven gates in `prompts/05_quality_gate.md`.
-    Revise failing sections and re-run. Maximum 3 revision attempts; after
-    3 failures, surface the specific failing gates to the user and stop.
-    Do not deliver an unvalidated blueprint.
+10. **Quality gates & self-check** — run the gates in
+    `prompts/05_quality_gate.md`, revise failing sections, and emit the
+    compact `## Appendix A` self-check (PASS/WARNING/FAIL). Maximum 3
+    revision attempts; after 3 failures, surface the specific failing gates
+    to the user and stop. Do not deliver an unvalidated blueprint.
 
 ## Decision Categories
 
@@ -208,9 +214,11 @@ task graph, gate names, and failure policy.
 Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
 `tests/expected_sections_checklist.md`):
 
-1. **Input understanding** — the blueprint names the source research
-   question, acknowledges input quality, and documents the targeted
-   domain if multi-domain.
+1. **Input understanding & metadata integrity** — names the source
+   research question, acknowledges input quality and the targeted domain
+   (if multi-domain), and uses copied-not-invented metadata (skill version
+   from `manifest.json` or `unknown`; pipeline runs and gap-closure rounds
+   kept as separate fields).
 2. **Traceability** — every major capability traces to a research
    citation (`[arxiv_id]` / `[Author, Year]`) or a constrained explicit
    design decision with rationale. Otherwise mark it "Design hypothesis —
@@ -221,12 +229,13 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
 4. **Workflow completeness** — each major workflow has a trigger, inputs,
    decision gates, steps (or a Mermaid flow), outputs, failure modes, and
    success criteria.
-5. **MVP discipline** — MVP is small, has an explicit success definition,
-   excludes speculative extensions, keeps safety-critical baselines, and
-   excludes `ACADEMIC`-gap items unless the product validates that gap.
-   Flag (do not auto-fail) an MVP with more than 6 capabilities lacking
-   justification; fail only if it no longer represents a small, testable
-   core value path.
+5. **Scope control & MVP discipline** — primary actors/domains match the
+   thesis (high-stakes domains seen only as evidence stay Secondary/Future);
+   §14 separates a minimal Core Value Path from Safety and Evaluation
+   baselines with an explicit success definition; `ACADEMIC`-gap items are
+   excluded unless the product validates that gap. Flag (do not auto-fail)
+   a core path over 6 capabilities without justification, or `standard`
+   output over budget; fail only if it is no longer a small, testable core.
 6. **Risk honesty** — HIGH-impact risks are explicit, mitigations are
    realistic (never "prompt the model better"), safety-critical deferred
    items are release gates, and risks from unvalidated `ACADEMIC` items

@@ -22,6 +22,23 @@
 A long Round History with many remaining gaps signals a speculative
 product space that requires more conservative MVP scoping.
 
+## Metadata extraction (do not conflate or invent)
+
+Two distinct counts are easy to confuse — keep them separate in §1.5/§1.6:
+
+- **Pipeline runs integrated** — how many `research-pipeline` runs the
+  report consolidates (a report may say "synthesises N papers across N
+  pipeline runs"). This is a *run* count.
+- **Gap-closure rounds** — how many iterative gap-closure rounds the
+  report's `## Round History` records. If the report states no round
+  count, record rounds as `unknown`; do **not** reuse the pipeline-run
+  count as the round count.
+
+The **blueprint skill version** is the `version` field of the skill's own
+`manifest.json` — never the source report's version, and never a
+fabricated number. If it cannot be read, record `unknown`. Treat all
+other metadata the same way: copy or `unknown`, never invent.
+
 ## Supplementary artifacts (optional)
 
 | Artifact | Purpose |

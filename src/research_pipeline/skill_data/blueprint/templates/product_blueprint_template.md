@@ -62,18 +62,29 @@
 ### 1.5 Research Basis
 
 - **Source report:** `<topic-slug>-research-report.md`
-- **Research-pipeline rounds:** `<N>`
-- **Readiness verdict:** `IMPLEMENTATION_READY` / `HAS_GAPS`
+- **Pipeline runs integrated:** `<N or unknown>`
+- **Gap-closure rounds:** `<N or unknown>` *(distinct from pipeline runs;
+  use "unknown" if the report does not state a round count)*
+- **Readiness verdict:** `IMPLEMENTATION_READY` / `HAS_GAPS` / unknown
 - **Input quality:** strong / usable / weak
 
 ### 1.6 Generation Metadata
 
+> Copy every value from the source report or skill metadata. Do **not**
+> infer, normalise, invent, or upgrade a value. If a field is not
+> explicitly available, write `unknown`. Never collapse distinct concepts
+> (e.g. pipeline runs vs. gap-closure rounds) into one field.
+
 | Field | Value |
 |---|---|
-| Source report | `<topic-slug>-research-report.md` |
-| Source report version/hash | `<hash or timestamp>` |
+| Source report | `<filename>` |
+| Source report date | `<date or unknown>` |
+| Pipeline runs integrated | `<N or unknown>` |
+| Gap-closure rounds | `<N or unknown>` |
+| Latest run ID | `<run_id or unknown>` |
+| Source readiness verdict | `IMPLEMENTATION_READY` / `HAS_GAPS` / unknown |
+| Blueprint skill version | `<copied from manifest.json, or unknown>` |
 | Generated at | `<date>` |
-| Blueprint skill version | `<version>` |
 | Output detail | concise / standard / detailed |
 | Target domain | `<domain>` |
 
@@ -109,9 +120,16 @@
 
 ## 3. Target Users and System Actors
 
-| Actor | Role | Needs | Interaction with Product |
-|---|---|---|---|
-| ... | ... | ... | ... |
+> List as **Primary** only actors the product **thesis** explicitly serves.
+> Tag every actor's scope. High-stakes or adjacent domains the thesis does
+> not name (e.g. legal/medical when the thesis targets technical/academic
+> docs) are **Secondary** or **Future** — keep them out of the primary
+> actor set and the MVP unless the thesis makes them primary. Evidence-only
+> examples should not become actors at all.
+
+| Actor | Scope | Role | Needs | Interaction with Product |
+|---|---|---|---|---|
+| ... | Primary / Secondary / Future / System actor | ... | ... | ... |
 
 ---
 
@@ -272,17 +290,43 @@ flowchart TD
 
 ## 14. MVP Scope
 
-### 14.1 MVP Must Include
+> Separate the **core value path** (what proves the thesis) from the
+> **safety** and **evaluation** baselines (what makes it shippable and
+> measurable). Do not translate research completeness into MVP inclusion —
+> move anything not required for one useful end-to-end outcome, or for its
+> safety/evaluation, to §15. Safety and evaluation baselines are not
+> "extra" capabilities; count and justify them separately from the core
+> path so the core path stays minimal.
+
+### 14.1 Core Value Path
+
+Items required to produce one useful end-to-end product outcome.
 
 - ...
 
-### 14.2 MVP Must Not Include
+### 14.2 Safety Baseline
+
+Non-negotiable controls required to avoid unsafe, leaking, or misleading
+output.
 
 - ...
 
-### 14.3 MVP Success Definition
+### 14.3 Evaluation Baseline
 
-The MVP is successful if ...
+Minimum checks required to know whether the MVP works.
+
+- ...
+
+### 14.4 Explicitly Deferred from MVP
+
+Valuable items intentionally excluded from MVP, each pointing to its §15
+phase.
+
+- ...
+
+### 14.5 MVP Success Definition
+
+The MVP is successful if ... <specific, pass/fail criteria>.
 
 ---
 
@@ -356,3 +400,24 @@ The next technical-design stage must decide:
 | Product Element | Derived From | Research Citation | Decision | Notes |
 |---|---|---|---|---|
 | ... | ... | [arxiv_id] | ADOPT | ... |
+
+---
+
+## Appendix A: Blueprint Quality-Gate Self-Check
+
+> Compact self-assessment so residual warnings are visible to the reader,
+> not hidden. Mark each gate `PASS` / `WARNING` / `FAIL`. Any `FAIL` must
+> be fixed before delivery; surface every `WARNING` here with a one-line
+> note rather than silently passing.
+
+| Gate | Status | Notes |
+|---|---|---|
+| Required sections + Contents present | PASS / WARNING / FAIL | ... |
+| Metadata integrity (no invented values) | PASS / WARNING / FAIL | ... |
+| Research traceability / source fidelity | PASS / WARNING / FAIL | ... |
+| Scope control (primary scope matches thesis) | PASS / WARNING / FAIL | ... |
+| MVP discipline (core path vs. baselines) | PASS / WARNING / FAIL | ... |
+| Implementation neutrality | PASS / WARNING / FAIL | ... |
+| Risk honesty | PASS / WARNING / FAIL | ... |
+| Evaluation coverage | PASS / WARNING / FAIL | ... |
+| Downstream usefulness | PASS / WARNING / FAIL | ... |

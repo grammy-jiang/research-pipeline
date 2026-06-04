@@ -54,7 +54,8 @@ deletion that cannot be verified.
 ### 1.5 Research Basis
 
 - **Source report:** `agent-memory-research-report.md`
-- **Research-pipeline rounds:** 2
+- **Pipeline runs integrated:** 1
+- **Gap-closure rounds:** 2
 - **Readiness verdict:** `HAS_GAPS`
 - **Input quality:** strong
 
@@ -63,9 +64,13 @@ deletion that cannot be verified.
 | Field | Value |
 |---|---|
 | Source report | `agent-memory-research-report.md` |
-| Source report version/hash | `round-2` |
+| Source report date | unknown |
+| Pipeline runs integrated | 1 |
+| Gap-closure rounds | 2 |
+| Latest run ID | unknown |
+| Source readiness verdict | `HAS_GAPS` |
+| Blueprint skill version | 0.2.0 |
 | Generated at | `<date>` |
-| Blueprint skill version | `0.1.0` |
 | Output detail | standard |
 | Target domain | AI coding-agent memory |
 
@@ -103,12 +108,12 @@ defensible core.
 
 ## 3. Target Users and System Actors
 
-| Actor | Role | Needs | Interaction with Product |
-|---|---|---|---|
-| AI coding agent | Primary consumer | Read/write durable context | Proposes writes; issues retrieval queries |
-| Developer | Owner/operator | Control, audit, correct memory | Reviews flagged items; deletes records |
-| Admission Evaluator | System actor | Judge candidate writes | Gates every write |
-| Audit Layer | System actor | Record decisions | Receives every admission/deletion event |
+| Actor | Scope | Role | Needs | Interaction with Product |
+|---|---|---|---|---|
+| AI coding agent | Primary | Primary consumer | Read/write durable context | Proposes writes; issues retrieval queries |
+| Developer | Primary | Owner/operator | Control, audit, correct memory | Reviews flagged items; deletes records |
+| Admission Evaluator | System actor | Judge candidate writes | Gates every write | — |
+| Audit Layer | System actor | Record decisions | Receives every admission/deletion event | — |
 
 ---
 
@@ -341,20 +346,29 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ## 14. MVP Scope
 
-### 14.1 MVP Must Include
+### 14.1 Core Value Path
 
 - Memory Admission workflow + policy (fail-closed).
 - Hybrid Retrieval with scope filtering.
 - Scoped records (local/project) with explicit promotion.
-- Verified deletion + audit trail.
 
-### 14.2 MVP Must Not Include
+### 14.2 Safety Baseline
 
-- Automatic consolidation scheduling (ACADEMIC — validate first).
-- Hierarchical retrieval (scaling extension).
-- Team-scope multi-tenant sharing.
+- Verified deletion + tombstoning.
+- Admission quarantine path for untrusted/poisoned candidates.
 
-### 14.3 MVP Success Definition
+### 14.3 Evaluation Baseline
+
+- Admission-precision and scope-isolation scenarios (§13).
+- Post-delete re-query check (deleted records never resurface).
+
+### 14.4 Explicitly Deferred from MVP
+
+- Automatic consolidation scheduling (ACADEMIC — validate first; → Phase 4).
+- Hierarchical retrieval (scaling extension; → Phase 3).
+- Team-scope multi-tenant sharing (→ Phase 3).
+
+### 14.5 MVP Success Definition
 
 The MVP is successful if agents reuse prior context across sessions, no
 unsafe or out-of-scope write is admitted in evaluation, and every deletion
@@ -407,3 +421,19 @@ applying:** optimal consolidation frequency [2403.09999].
 | Deletion Verification | ENGINEERING gap | (gap) | ADAPT | Safety baseline |
 | Forgetting Policy | Selective forgetting | [2402.01234] | ADAPT | Manual-first |
 | Auto-consolidation | Consolidation freq. | [2403.09999] | DEFER / VALIDATE | ACADEMIC |
+
+---
+
+## Appendix A: Blueprint Quality-Gate Self-Check
+
+| Gate | Status | Notes |
+|---|---|---|
+| Required sections + Contents present | PASS | All 18 sections + Contents. |
+| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.2.0 from manifest. |
+| Research traceability / source fidelity | PASS | Every capability cited; deletion verification marked as ENGINEERING gap. |
+| Scope control (primary scope matches thesis) | PASS | Only agent + developer are Primary; no out-of-scope actors. |
+| MVP discipline (core path vs. baselines) | PASS | 3 core-path capabilities; safety + evaluation baselines listed separately. |
+| Implementation neutrality | PASS | No tech/vendor names; conceptual components only. |
+| Risk honesty | PASS | Poisoning, leakage, unverifiable deletion are release gates. |
+| Evaluation coverage | PASS | ≥1 scenario per core capability; deletion + scope-isolation covered. |
+| Downstream usefulness | PASS | Two Mermaid diagrams; handoff lists what technical design must decide. |

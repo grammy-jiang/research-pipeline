@@ -49,10 +49,31 @@ combines the seven quality gates with the acceptance criteria.
 - [ ] `ACADEMIC` gaps → validation requirements, not MVP features.
 - [ ] `ENGINEERING` gaps → product requirements.
 - [ ] Evaluation strategy has ≥1 scenario per capability.
-- [ ] MVP scope is small with an explicit success definition.
+- [ ] MVP scope separates a minimal Core Value Path from Safety and
+      Evaluation baselines, with an explicit success definition.
 - [ ] Future roadmap exists with deferred items justified.
 - [ ] Open questions are not hidden.
 - [ ] Handoff notes explicitly list what technical design must decide.
+
+## Integrity & discipline
+
+- [ ] Metadata is copied, not invented: skill version from `manifest.json`
+      or `unknown`; **pipeline runs integrated** and **gap-closure rounds**
+      are separate fields (no run count relabelled as a round count).
+- [ ] Every primary actor / MVP domain is named (or implied) by the
+      thesis; high-stakes domains seen only as evidence are
+      Secondary/Future, not primary.
+- [ ] Each major claim is research-backed, engineering-extrapolation,
+      product-design-decision, or relocated (speculative → Open Questions;
+      unsupported → removed or marked design hypothesis).
+- [ ] Runtime/architecture-leaning wording is rephrased or surfaced as a
+      WARNING (not silently accepted); only forbidden tech/vendor choices
+      hard-fail.
+- [ ] `standard` output respects the length budget, or switches to
+      `detailed`.
+- [ ] An `## Appendix A: Blueprint Quality-Gate Self-Check` is present with
+      a PASS/WARNING/FAIL row per gate; any FAIL is resolved before
+      delivery.
 
 ## Hard fails
 

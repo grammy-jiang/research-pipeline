@@ -45,6 +45,22 @@ Install package X.     Deploy with Docker Compose.
 > specific product, vendor, or deployment model, it belongs in the
 > technical-architecture skill.
 
+## Warning tier (runtime-leaning, not forbidden)
+
+Not every implementation-leaning phrase is a hard failure. Use four levels:
+
+| Level | Meaning | Example | Action |
+|---|---|---|---|
+| Allowed | Conceptual product responsibility | quality gate, domain profile, audit record, durable store | Keep |
+| Warning | Runtime / architecture / deployment leaning | "service-deployable", "deployed as microservices", a specific context-window assumption, "reachable model" | Rephrase to its purpose, or defer to §17 technical-design handoff; record as a `WARNING` in the self-check |
+| Research-derived exception | A specific mechanism named in the research | a cited decoding/caching technique used as an evaluation anchor | Keep only if cited and tied to evaluation |
+| Forbidden | Concrete technology, vendor, or deployment product | Python, FastAPI, PostgreSQL, FAISS, AWS, Docker | `FAIL` — remove |
+
+A `WARNING`-level phrase does not fail the blueprint, but it must be made
+visible (rephrased, or surfaced in the Appendix A self-check) rather than
+silently accepted. When in doubt between Warning and Forbidden, prefer the
+more conservative classification.
+
 ## Conceptual component names
 
 Neutral logical names such as `Memory Admission Controller` or `Retrieval

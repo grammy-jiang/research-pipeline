@@ -228,3 +228,82 @@ def test_skill_is_discoverable_by_setup() -> None:
     sources = _find_skill_sources()
     names = {p.name for p in sources}
     assert "blueprint" in names, "setup did not discover the blueprint skill"
+
+
+# --- Post-generation quality-control improvements (v0.2.0 skill) ---
+
+
+def test_template_metadata_separates_runs_from_rounds() -> None:
+    """§1.5/§1.6 must keep pipeline runs and gap-closure rounds distinct."""
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Pipeline runs integrated" in template
+    assert "Gap-closure rounds" in template
+    # The ambiguous combined field must be gone.
+    assert "Research-pipeline rounds" not in template
+    # Skill version must be sourced from manifest, not invented.
+    assert "manifest.json" in template
+
+
+def test_template_actor_table_has_scope_column() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "| Actor | Scope |" in template
+
+
+def test_template_mvp_separates_core_path_from_baselines() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    for heading in ("Core Value Path", "Safety Baseline", "Evaluation Baseline"):
+        assert heading in template, f"§14 missing subsection: {heading}"
+
+
+def test_template_and_example_have_self_check_appendix() -> None:
+    for rel in (
+        ("templates", "product_blueprint_template.md"),
+        ("tests", "sample_outputs", "product_blueprint_example.md"),
+    ):
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Blueprint Quality-Gate Self-Check" in text, f"{rel} missing self-check"
+
+
+def test_borderline_cases_has_warning_tier() -> None:
+    text = (_skill_root() / "references" / "borderline-cases.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Warning tier" in text
+    # The four classification levels must be named.
+    for level in ("Allowed", "Warning", "Research-derived exception", "Forbidden"):
+        assert level in text, f"borderline-cases missing level: {level}"
+
+
+def test_quality_gate_prompt_covers_new_checks() -> None:
+    text = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "metadata integrity",
+        "source fidelity",
+        "Scope control",
+        "self-check",
+    ):
+        assert needle.lower() in text.lower(), f"gate prompt missing: {needle}"
+
+
+def test_manifest_skill_version_bumped() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    assert data["version"] == "0.2.0"
+
+
+def test_example_metadata_is_not_invented() -> None:
+    """The example must model copied (not fabricated) metadata."""
+    example = (
+        _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+    ).read_text(encoding="utf-8")
+    assert "Pipeline runs integrated" in example
+    assert "Gap-closure rounds" in example
+    # Must not reintroduce the conflated field the improvement plan flagged.
+    assert "Research-pipeline rounds: 15" not in example

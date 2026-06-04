@@ -1,7 +1,7 @@
 {
   "workflow_id": "blueprint",
-  "version": "0.1.0",
-  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
+  "version": "0.2.0",
+  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The quality-gate stage runs metadata-integrity, source-fidelity, scope-control, MVP-structure (core path vs. safety/evaluation baselines), and implementation-neutrality (with a warning tier) checks, then emits a compact PASS/WARNING/FAIL self-check appendix. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
   "mandatory_gates": [
     "assess-input-quality",
     "quality-gate"
@@ -116,12 +116,12 @@
       "output": {
         "path": "<topic-slug>-product-blueprint.md"
       },
-      "validation": ["all_18_sections_present", "contents_section_present", "mermaid_workflow_and_architecture_present"],
+      "validation": ["all_18_sections_present", "contents_section_present", "mermaid_workflow_and_architecture_present", "metadata_not_invented", "primary_scope_matches_thesis", "mvp_core_path_separated_from_baselines"],
       "failure_policy": {"on_failure": "revise", "retries": 3}
     },
     {
       "id": "quality-gate",
-      "label": "Run the seven quality gates; revise failing sections (max 3 attempts)",
+      "label": "Run the seven quality gates (incl. metadata integrity, source fidelity, scope control, MVP structure, implementation-neutrality warning tier); emit the self-check appendix; revise failing sections (max 3 attempts)",
       "type": "verification",
       "phase": "compose",
       "depends_on": ["compose-blueprint"],
@@ -133,7 +133,7 @@
       "output": {
         "path": "intermediate/quality_gate_result.json"
       },
-      "validation": ["all_gates_pass"],
+      "validation": ["all_gates_pass", "self_check_appendix_present"],
       "failure_policy": {
         "on_failure": "revise_max_3_then_stop",
         "message": "After 3 failed revisions, surface the specific failing gates to the user and stop. Do not deliver an unvalidated blueprint."
