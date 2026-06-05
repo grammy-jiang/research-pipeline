@@ -48,6 +48,15 @@ mechanism.>
 - **Where determinism is enforced:** <control, state, audit, validation>
 - **MCP decision:** <adopted / deferred — one line of why>
 
+### 1.2 Architecture Warnings Requiring Attention
+
+<Surface every §24 WARNING / PASS-with-warning row here (and in §25). If none,
+write "No open warnings." Do not let warnings live only in §24.>
+
+| Warning | Required Action | Blocks Implementation Planning? |
+|---|---|---|
+| <warning> | <action> | yes/no |
+
 ### 1.x Generation Metadata
 
 | Field | Value |
@@ -84,9 +93,9 @@ conflicts and how they were resolved.>
 
 ## 3. Clarification Summary
 
-| # | Question | Decision | Source | Review Requirement | Reversible? | Revisit Trigger |
-|---|---|---|---|---|---|---|
-| 1 | <question> | <answer/assumption> | user-confirmed / blueprint-derived / inferred / assumption / ADR-locked | none / review before implementation / review before production / blocks | yes/no | <trigger> |
+| # | Question | Decision | Source | Decision Evidence | Review Requirement | Reversible? | Revisit Trigger |
+|---|---|---|---|---|---|---|---|
+| 1 | <question> | <answer/assumption> | user-confirmed / blueprint-derived / inferred / assumption / ADR-locked | confirmed_in_interactive_answer / …_from_supplied_configuration / …_from_blueprint / architecture_assumption / unknown_requires_review | none / review before implementation / review before production / blocks | yes/no | <trigger> |
 
 > In hybrid mode every major decision needs a **Source** and a **Review
 > Requirement**. A high-impact decision that was inferred or assumed (external
@@ -101,6 +110,13 @@ conflicts and how they were resolved.>
 > hybrid_by_domain / unknown_requires_user_review. Keep it separate from the
 > provider-abstraction/library decision; if unanswered, mark it "review before
 > implementation planning".
+>
+> **Decision Evidence (provenance):** every high-impact row records *how* its
+> source was established (confirmed_in_interactive_answer /
+> …_from_supplied_configuration / …_from_previous_architecture_document /
+> …_from_blueprint / architecture_assumption / unknown_requires_review). Never
+> label a decision `user-confirmed` without an explicit evidence source — if
+> unclear, downgrade to `architecture_assumption` + review.
 
 ## 4. Architecture Goals and Constraints
 
@@ -415,6 +431,10 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 | State-semantics consistency | PASS / WARNING / FAIL | every state/condition term resolves to the §14 canonical model | <action> | yes/no |
 | Standard-vs-detailed budget | PASS / WARNING / FAIL | standard output keeps a concise main body + appendices | <action> | yes/no |
 | Security gate verification format | PASS / WARNING / FAIL | §17 gates are a verification table (evidence + method + blocks-release), not unchecked checkboxes | <action> | yes/no |
+| Decision evidence / provenance | PASS / WARNING / FAIL | high-impact decisions carry Decision Evidence; none labelled user-confirmed without a source | <action> | yes/no |
+| Raw source-content logging policy | PASS / WARNING / FAIL | raw source content forbidden in logs by default; redaction + log-snapshot tests required | <action> | yes/no |
+| Warning surfacing | PASS / WARNING / FAIL | every §24 warning is echoed in §1 and §25 | <action> | yes/no |
+| Architecture-stage sequencing cap | PASS / WARNING / FAIL | §25 sequencing ≤ 5 high-level constraints; no file-by-file/tickets/PR order | <action> | yes/no |
 
 > Status legend: **PASS** (complete + consistent), **WARNING** ("PASS with
 > warning" — acceptable direction, needs cleanup; non-blocking but carries a
@@ -434,7 +454,13 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
   proposed module namespaces for implementation planning — not mandatory
   file-by-file implementation tasks>
 
+- **Open warnings (from §24):** <echo every WARNING / PASS-with-warning row
+  here with its required action and blocking status, or "No open warnings">
+
 > Stay on the architecture side of the boundary: module boundaries, proposed
 > namespaces, contracts to freeze, high-risk prototypes, and ADR-locked
 > constraints are in scope. Task tickets, code patches, migration scripts, and
 > file-by-file steps are the implementation-plan skill's job — do not emit them.
+> **Build sequencing is capped at five high-level constraints** — anything more
+> detailed (file-by-file order, task tickets, PR sequence, class/migration
+> ordering) belongs to the implementation-plan skill.

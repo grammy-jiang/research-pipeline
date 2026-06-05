@@ -40,13 +40,23 @@ unknown_requires_user_review}; `unknown_requires_user_review` blocks
 implementation planning.
 
 ```text
-| Decision | Value | Source | Review Requirement | Reason |
+| Decision | Value | Source | Decision Evidence | Review Requirement | Reason |
 | Can raw or projected source content leave the local trust boundary? | … |
 | Which providers may receive content? | … |
 | Is redaction required before model calls? | … |
-| May logs contain source content? | … |
+| May logs contain raw source content? | No (default) | … |
 | Can domain plugins override data-egress policy? | … |
 ```
+
+**Raw source content is forbidden in logs by default.** For any system using
+external model providers, the "May logs contain raw source content?" answer is
+**No** unless the user explicitly opts in with justification. If the provider
+SDK/wrapper may log prompt content (e.g. verbose logging), the architecture must
+**require** redaction, a safe log level, a **log-snapshot test**, and a
+**provider-wrapper redaction test** — never rely on operator configuration
+alone. Add a §17.12 gate "raw source content never written to logs" (blocks
+release) with those tests as the verification method. Logs must not become a
+second, accidental data-egress channel.
 
 ### Security Quality Gates as a verification table (§17.12)
 

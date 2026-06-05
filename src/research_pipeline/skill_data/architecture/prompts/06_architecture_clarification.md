@@ -87,6 +87,28 @@ LLM providers?"*. If the blueprint or user did not explicitly answer it, mark it
 affects privacy, data residency, compliance, cost, provider trust boundary, and
 any local-only fallback requirement.
 
+## Decision evidence / provenance (high-impact decisions)
+
+Every high-impact decision must carry a **Decision Evidence** value showing *how*
+its source was established. Do **not** label a decision `user-confirmed` unless
+the confirmation source is explicit. Use these controlled values:
+
+```text
+confirmed_in_interactive_answer
+confirmed_from_supplied_configuration
+confirmed_from_previous_architecture_document
+confirmed_from_blueprint
+architecture_assumption
+unknown_requires_review
+```
+
+If the confirmation source is unclear, downgrade Source to
+`architecture_assumption`, set Decision Evidence to `unknown_requires_review`,
+and set Review Requirement to "review before implementation planning". Populate
+the §3 table's **Decision Evidence** column (at least for high-impact rows;
+data-egress always). A downstream agent must never read an inferred decision as
+user-approved.
+
 ## Output
 
 `intermediate/clarifications.md` — the questions asked, the answers/assumptions,

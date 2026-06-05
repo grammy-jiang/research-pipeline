@@ -459,7 +459,7 @@ V020_GATE_NAMES = [
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.4.0"
+    assert data["version"] == "0.5.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:
@@ -511,7 +511,7 @@ def test_template_has_decision_source_and_review_columns() -> None:
     template = (
         _skill_root() / "templates" / "architecture_design_template.md"
     ).read_text(encoding="utf-8")
-    assert "| Source | Review Requirement |" in template
+    assert "| Source | Decision Evidence | Review Requirement |" in template
 
 
 def test_template_self_check_lists_new_gates() -> None:
@@ -533,7 +533,7 @@ def test_example_models_new_gates_and_columns() -> None:
     example = (
         _skill_root() / "examples" / "translation_architecture_example.md"
     ).read_text(encoding="utf-8")
-    assert "| Source | Review Requirement |" in example
+    assert "| Source | Decision Evidence | Review Requirement |" in example
     for gate in V020_GATE_NAMES:
         assert gate in example, f"example §24 missing gate: {gate}"
     assert "proposed module namespaces" in example
@@ -627,7 +627,7 @@ def test_example_models_v030_gates() -> None:
     assert "external_allowed" in example
     for cat in ("Lifecycle states", "Operational condition flags", "Audit events"):
         assert cat in example, f"example §14 missing state category: {cat}"
-    assert "0.4.0" in example
+    assert "0.5.0" in example
 
 
 # --- v0.4.0 hardening pass (verification-table security gates, data-egress
@@ -685,3 +685,94 @@ def test_example_security_gates_are_verification_table_not_checkboxes() -> None:
     # The worked example must contain NO ambiguous unchecked checkboxes.
     assert "- [ ]" not in example, "example must not use unchecked checkboxes"
     assert "Security gate verification format" in example
+
+
+# --- v0.5.0 hardening pass (decision provenance, log-egress default, warning
+# surfacing, build-sequencing cap) ---
+
+V050_GATE_NAMES = [
+    "Decision evidence / provenance",
+    "Raw source-content logging policy",
+    "Warning surfacing",
+    "Architecture-stage sequencing cap",
+]
+
+
+def test_clarification_prompt_has_decision_evidence() -> None:
+    text = (
+        (_skill_root() / "prompts" / "06_architecture_clarification.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "decision evidence" in text
+    for v in ("confirmed_in_interactive_answer", "architecture_assumption"):
+        assert v in text, f"clarification prompt missing evidence value: {v}"
+
+
+def test_security_prompt_forbids_raw_source_in_logs() -> None:
+    text = (
+        (_skill_root() / "prompts" / "16_security_trust_boundaries.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "forbidden in logs by default" in text
+    assert "log-snapshot test" in text
+
+
+def test_draft_prompt_surfaces_warnings_and_has_budget_targets() -> None:
+    text = (_skill_root() / "prompts" / "22_architecture_draft.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Surface warnings" in text
+    assert "Architecture Warnings Requiring Attention" in text
+    # Concrete standard-budget targets.
+    assert "≤ 1 page" in text or "<= 1 page" in text
+
+
+def test_final_prompt_caps_build_sequencing() -> None:
+    text = (_skill_root() / "prompts" / "24_final_architecture_document.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Cap build sequencing" in text
+    assert "five" in text.lower()
+
+
+def test_self_check_prompt_covers_v050_gates() -> None:
+    text = (
+        (_skill_root() / "prompts" / "23_quality_gate_self_check.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    for needle in (
+        "decision evidence / provenance",
+        "raw source-content logging policy",
+        "warning surfacing",
+        "architecture-stage sequencing cap",
+    ):
+        assert needle in text, f"self-check prompt missing: {needle}"
+
+
+def test_template_has_warnings_section_and_v050_gates() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Architecture Warnings Requiring Attention" in template
+    assert "| Source | Decision Evidence |" in template
+    for gate in V050_GATE_NAMES:
+        assert gate in template, f"template §24 missing gate: {gate}"
+
+
+def test_example_models_v050_pass_with_warning_and_provenance() -> None:
+    example = (
+        _skill_root() / "examples" / "translation_architecture_example.md"
+    ).read_text(encoding="utf-8")
+    # Provenance column + values.
+    assert "| Source | Decision Evidence |" in example
+    assert "architecture_assumption" in example
+    # Models the PASS-with-warning tier and surfaces it.
+    assert "WARNING" in example
+    assert "Architecture Warnings Requiring Attention" in example
+    for gate in V050_GATE_NAMES:
+        assert gate in example, f"example §24 missing gate: {gate}"
+    # Raw-source-content logging gate present in §17.12.
+    assert "Raw source content never written to logs" in example

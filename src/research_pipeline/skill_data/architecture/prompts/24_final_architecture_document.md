@@ -26,6 +26,14 @@ You are producing the final architecture document and writing it to disk.
    planning, not mandatory file-by-file implementation tasks." Do not emit task
    tickets, code patches, migration scripts, or file-by-file steps — those
    belong to the implementation-plan skill.
+5a. **Cap build sequencing:** §25 may include at most **five** high-level
+   sequencing constraints (e.g. "build the deterministic spine before AI
+   adapters", "freeze core contracts first", "implement audit before state
+   transitions"). A detailed build plan, file-by-file order, PR sequence, or
+   class/migration ordering must be removed or deferred to the implementation-plan
+   skill.
+5b. **Surface warnings:** ensure every §24 WARNING / PASS-with-warning row is
+   echoed in §1 and §25 with its required action and blocking status.
 6. Write the document to `<topic-slug>-architecture-design.md`, co-located with
    the blueprint unless another output directory was specified. Write ADR files
    under `adr/`. In `compare` mode, emit the diff review instead of overwriting.

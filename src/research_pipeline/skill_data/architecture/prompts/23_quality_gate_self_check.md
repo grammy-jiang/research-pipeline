@@ -95,6 +95,25 @@ the actionable §24 self-check.
     the dedicated Data Egress / External Model Use table (content-leaves-boundary,
     which providers, redaction, logs-may-contain-source, domain-plugin-override);
     `unknown_requires_user_review` blocks implementation planning.
+12. **Decision evidence / provenance** — FAIL if a high-impact decision is
+    labelled `user-confirmed` without an explicit Decision Evidence source;
+    every high-impact decision (data-egress always) carries a Decision Evidence
+    value (confirmed_in_interactive_answer / …_from_supplied_configuration /
+    …_from_previous_architecture_document / …_from_blueprint /
+    architecture_assumption / unknown_requires_review). Unclear provenance →
+    downgrade to architecture_assumption + review before implementation planning.
+13. **Raw source-content logging policy** — for external-model systems, FAIL if
+    raw source content is permitted in logs as a normal mode; the default is
+    "No", with redaction + log-snapshot + provider-wrapper tests as the
+    verification method (a §17.12 release-blocking gate). Operator configuration
+    alone is insufficient.
+14. **Warning surfacing** — FAIL if any §24 WARNING / PASS-with-warning row is
+    not also summarized in §1 (Executive Summary) and §25 (Handoff Notes) with
+    its required action and blocking status.
+15. **Architecture-stage sequencing cap** — WARNING if §25 build sequencing
+    exceeds five high-level constraints; FAIL if it contains file-by-file order,
+    task tickets, a PR sequence, or detailed class/migration ordering (that is
+    the implementation-plan skill's job).
 
 When running gate 6 (residual invalid-claim scan), scan the §17 security gates,
 §24 checklist rows, and ADRs character-by-character for borrowed-technology
@@ -127,7 +146,9 @@ Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
    review, Technology-specific validity, Probe/evaluator availability,
    Architecture-vs-implementation boundary, Residual invalid-claim scan, Data
    egress / external model use, State-semantics consistency,
-   Standard-vs-detailed budget, and Security gate verification format.
+   Standard-vs-detailed budget, Security gate verification format, Decision
+   evidence / provenance, Raw source-content logging policy, Warning surfacing,
+   and Architecture-stage sequencing cap.
 3. If any gate FAILs, return the specific failing gates so prompt 24 can revise.
    Every WARNING must carry a concrete required action, not a passive note.
 

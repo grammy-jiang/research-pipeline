@@ -55,6 +55,12 @@ automation.
 - **MCP decision:** deferred (single application; no reusable multi-client tool
   surface yet) — recorded as ADR-0006.
 
+### 1.2 Architecture Warnings Requiring Attention
+
+| Warning | Required Action | Blocks Implementation Planning? |
+|---|---|---|
+| Data egress is an architecture assumption (`external_allowed`), not user-confirmed | Confirm with the user and review the provider DPA before production | No (review before production) |
+
 ### 1.x Generation Metadata
 
 | Field | Value |
@@ -62,7 +68,7 @@ automation.
 | Source blueprint | `translation_blueprint_excerpt.md` |
 | Source blueprint version/hash | unknown |
 | Source blueprint generated at | unknown |
-| Architecture skill version | 0.4.0 |
+| Architecture skill version | 0.5.0 |
 | Generated at | 2026-06-05 |
 | Operating mode | hybrid |
 | Clarification count | 3 |
@@ -74,7 +80,7 @@ automation.
 
 | Date | Source Blueprint | Architecture Version | Change Type | Affected Sections | Notes |
 |---|---|---|---|---|---|
-| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.4.0 | initial | all | First architecture from blueprint |
+| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.5.0 | initial | all | First architecture from blueprint |
 
 ## 2. Source Blueprint Interpretation
 
@@ -89,11 +95,11 @@ invite.
 
 ## 3. Clarification Summary
 
-| # | Question | Decision | Source | Review Requirement | Reversible? | Revisit Trigger |
-|---|---|---|---|---|---|---|
-| 1 | Single-tenant or multi-tenant at MVP? | Single-tenant server | architecture assumption | review before production | yes | First external customer |
-| 2 | May document text reach the LLM verbatim? | Yes, but sanitized and treated as evidence, not instruction | blueprint-derived + clarified | review before production | yes | New provider with tool use |
-| 3 | Can source/projected content be sent to external LLM providers? | `external_allowed` — sanitized segments sent to the hosted backbone model; local-only fallback deferred to Phase 2 | architecture assumption | review before implementation planning | yes | Regulated-data / on-prem customer → switch to `local_only` |
+| # | Question | Decision | Source | Decision Evidence | Review Requirement | Reversible? | Revisit Trigger |
+|---|---|---|---|---|---|---|---|
+| 1 | Single-tenant or multi-tenant at MVP? | Single-tenant server | architecture assumption | architecture_assumption | review before production | yes | First external customer |
+| 2 | May document text reach the LLM verbatim? | Yes, but sanitized and treated as evidence, not instruction | blueprint-derived + clarified | confirmed_from_blueprint | review before production | yes | New provider with tool use |
+| 3 | Can source/projected content be sent to external LLM providers? | `external_allowed` — sanitized segments sent to the hosted backbone model; local-only fallback deferred to Phase 2 | architecture assumption | architecture_assumption | review before implementation planning | yes | Regulated-data / on-prem customer → switch to `local_only` |
 
 ## 4. Architecture Goals and Constraints
 
@@ -441,6 +447,7 @@ All provider calls go through the adapter; failures raise
 | Append-only audit (application-enforced; no update/delete path exposed) + hash-chain tamper-evident | single-writer AuditWriter; no repository update/delete path; hash-chain verifier | unit + integration tests | Yes |
 | External provider isolated behind an adapter | all provider calls route through the translation adapter | integration tests; no direct SDK calls in core | Yes |
 | Secrets never written to artifacts/logs/prompts | secret-redaction tests; log-snapshot tests | security test suite | Yes |
+| Raw source content never written to logs | provider-wrapper redaction; safe log level; logs carry IDs/hashes only | log-snapshot test + provider-wrapper redaction test | Yes |
 
 > Gates are verification rows (evidence + method + blocks-release), not
 > unchecked checkboxes, and the audit gate is worded as application-enforced +
@@ -537,10 +544,14 @@ shown in §9.
 | Probe/evaluator availability | PASS | n/a — no model-backed evaluators/probes in this design | — | no |
 | Architecture-vs-implementation boundary | PASS | §25 names layers, not file paths; no tickets/code/migrations | — | no |
 | Residual invalid-claim scan | PASS | Whole-doc scan: audit framed app-enforced + tamper-evident (§13/§17); no DB-grant wording anywhere | — | no |
-| Data egress / external model use | PASS | §3 row 3 records `external_allowed` (sanitized), distinct from the provider-abstraction choice; flagged for review | — | no |
+| Data egress / external model use | WARNING | `external_allowed` is an architecture assumption (not user-confirmed); §17.9 table present, distinct from provider abstraction | Confirm with user + review provider DPA before production (surfaced in §1.2/§25) | no |
 | State-semantics consistency | PASS | All state/condition terms resolve to the §14 canonical model (lifecycle vs condition flag vs audit event) | — | no |
 | Standard-vs-detailed budget | PASS | Concise main body; heavy ADR bodies live under `adr/` | — | no |
 | Security gate verification format | PASS | §17.12 is a verification table (evidence + method + blocks-release); no unchecked checkboxes; audit gate worded app-enforced + tamper-evident | — | no |
+| Decision evidence / provenance | PASS | every §3 row carries Decision Evidence; data-egress = architecture_assumption (not labelled user-confirmed) | — | no |
+| Raw source-content logging policy | PASS | §17.9 forbids raw source in logs (No); §17.12 has a log-snapshot + provider-wrapper redaction gate | — | no |
+| Warning surfacing | PASS | the data-egress WARNING is echoed in §1.2 and §25 | — | no |
+| Architecture-stage sequencing cap | PASS | §25 build order is 4 high-level constraints; no file-by-file/tickets/PR order | — | no |
 
 ## 25. Handoff Notes for Implementation Planning
 
@@ -556,6 +567,10 @@ shown in §9.
   chosen relational path; queue technology.
 - **What the implementation-plan skill should NOT re-decide:** ADR-0001..0006.
 - **Boundary note:** the build order above names architectural layers, not file
-  paths; any module names are proposed module namespaces for implementation
-  planning, not file-by-file tasks. No task tickets, code, or migrations are
-  emitted here — those are the implementation-plan skill's job.
+  paths (4 high-level constraints, within the five-constraint cap); any module
+  names are proposed module namespaces for implementation planning, not
+  file-by-file tasks. No task tickets, code, or migrations are emitted here —
+  those are the implementation-plan skill's job.
+- **Open warnings (from §24):** Data egress is an architecture assumption
+  (`external_allowed`), not user-confirmed — confirm with the user and review
+  the provider DPA before production. Non-blocking for implementation planning.

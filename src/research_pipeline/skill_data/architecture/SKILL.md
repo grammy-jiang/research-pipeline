@@ -345,6 +345,19 @@ and `tests/expected_sections_checklist.md`:
     Verification Method · Blocks Release?), never ambiguous unchecked `- [ ]`
     checkboxes; and when external models are used, §17.9 carries the Data
     Egress / External Model Use table.
+21. **Decision evidence / provenance** — high-impact decisions carry Decision
+    Evidence (controlled provenance values); none is labelled `user-confirmed`
+    without an explicit confirmation source (else downgrade to
+    `architecture_assumption` + review).
+22. **Raw source-content logging** — for external-model systems, raw source
+    content is forbidden in logs by default, with redaction + log-snapshot +
+    provider-wrapper tests as the verification (a release-blocking §17.12 gate).
+23. **Warning surfacing** — every §24 WARNING / PASS-with-warning row is echoed
+    in §1 (Executive Summary) and §25 (Handoff Notes) with its required action
+    and blocking status.
+24. **Build-sequencing cap** — §25 includes at most five high-level sequencing
+    constraints; file-by-file order, task tickets, PR sequences, and
+    class/migration ordering belong to the implementation-plan skill.
 
 ## References
 

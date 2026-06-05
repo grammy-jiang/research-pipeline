@@ -29,8 +29,13 @@
       to the chosen technology.
 - [ ] §17.9 includes the Data Egress / External Model Use table when external
       models are used.
+- [ ] Raw source content is **forbidden in logs by default** for external-model
+      systems, with a release-blocking §17.12 gate verified by log-snapshot +
+      provider-wrapper redaction tests (not operator configuration alone).
+- [ ] High-impact decisions carry Decision Evidence; none labelled
+      `user-confirmed` without an explicit confirmation source.
 
 **Hard fails:** AI mutates state without deterministic validation; secrets in
 artifacts; external providers not isolated; tool permissions undefined; external
 models used with no data-egress decision; security gates rendered as ambiguous
-unchecked checkboxes.
+unchecked checkboxes; raw source content permitted in logs as a normal mode.

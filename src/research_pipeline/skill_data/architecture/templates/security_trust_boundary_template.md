@@ -77,9 +77,15 @@ implementation planning.
 | Can raw or projected source content leave the local trust boundary? | <value> | <source> | <review> | <reason> |
 | Which providers may receive content? | <…> | | | |
 | Is redaction required before model calls? | <…> | | | |
-| May logs contain source content? | <…> | | | |
+| May logs contain raw source content? | No (default) | architecture rule | | source content must not become a second egress channel |
 | Can domain plugins override data-egress policy? | <…> | | | |
 ```
+
+**Raw source content is forbidden in logs by default** for external-model
+systems. If the provider SDK/wrapper can log prompt content, require redaction,
+a safe log level, a log-snapshot test, and a provider-wrapper redaction test —
+not operator configuration alone — and add the §17.12 release-blocking gate
+below.
 
 ## Security Quality Gates (§17.12) — verification table, not checkboxes
 
@@ -93,6 +99,7 @@ Render security gates as a **verification table**, never as ambiguous unchecked
 | <gate, e.g. AI cannot mutate durable state without deterministic validation> | <evidence that proves it> | <unit/integration/security tests, audit events> | Yes/No |
 | Append-only audit (application-enforced; no update/delete path exposed) + hash-chain tamper-evident | single-writer tests; no repository update/delete path; hash-chain verifier | unit + integration tests | Yes |
 | Secrets never written to artifacts/logs/prompts | secret-redaction tests; log-snapshot tests | security test suite | Yes |
+| Raw source content never written to logs (external-model systems) | provider-wrapper redaction; safe log level; no prompt text in logs | log-snapshot test + provider-wrapper redaction test | Yes |
 ```
 
 The architecture **fails** if: the security boundary is not explicit; AI can
