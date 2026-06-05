@@ -18,7 +18,8 @@ all 25 numbered sections in order.
 - [ ] 11. AI / Skill / MCP Architecture
 - [ ] 12. Interface Contracts
 - [ ] 13. Data Contracts and Schemas
-- [ ] 14. State, Storage, and Data Lifecycle
+- [ ] 14. State, Storage, and Data Lifecycle (canonical state model: lifecycle
+      states vs operational condition flags vs audit events kept distinct)
 - [ ] 15. Workflow / Sequence Views
 - [ ] 16. Observability, Logging, Telemetry, and Audit
 - [ ] 17. Security and Trust Boundaries

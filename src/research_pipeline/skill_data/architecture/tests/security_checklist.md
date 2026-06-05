@@ -16,6 +16,14 @@
       trust_boundary_violation_detected, external_provider_error,
       secret_access_denied, audit_record_integrity_failure).
 - [ ] Security failure modes and security quality gates stated.
+- [ ] **Data egress decision** present when external models are used: §3
+      records whether source/projected content may leave the local trust
+      boundary (external_allowed / …_with_redaction / local_only /
+      hybrid_by_domain / unknown_requires_user_review), separate from the
+      provider-abstraction choice, and §17.9 reflects it.
+- [ ] No residual technology-inconsistent security claims (whole-document scan,
+      not just the tech-stack section).
 
 **Hard fails:** AI mutates state without deterministic validation; secrets in
-artifacts; external providers not isolated; tool permissions undefined.
+artifacts; external providers not isolated; tool permissions undefined; external
+models used with no data-egress decision.

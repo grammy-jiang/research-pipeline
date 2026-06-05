@@ -94,6 +94,13 @@ conflicts and how they were resolved.>
 > retention, cost-sensitive routing, MCP exposure, human-approval workflow) must
 > be flagged "review before implementation planning" or stronger — hybrid mode
 > must not silently behave like automatic mode.
+>
+> **Data egress (mandatory when external models are used):** include a distinct
+> row — *"Can source or projected content be sent to external LLM providers?"* —
+> classified external_allowed / external_allowed_with_redaction / local_only /
+> hybrid_by_domain / unknown_requires_user_review. Keep it separate from the
+> provider-abstraction/library decision; if unanswered, mark it "review before
+> implementation planning".
 
 ## 4. Architecture Goals and Constraints
 
@@ -258,7 +265,17 @@ See `templates/interface_contract_template.md`. Cover:
 
 ## 14. State, Storage, and Data Lifecycle
 
-- **State machine(s):** <states and transitions for the primary entity>
+**Canonical state model** (keep these three categories distinct; every state /
+status / condition term used anywhere in the document must resolve here):
+
+- **Lifecycle states:** <the persisted states of the primary entity, e.g.
+  queued → … → completed / failed — the only values the schema and API status
+  use>
+- **Operational condition flags:** <orthogonal runtime conditions, e.g.
+  degraded / fallback-used / probe-unavailable — not lifecycle states>
+- **Audit events:** <things that happened, e.g. escalated / job_failed — not
+  states>
+
 - **Storage ownership & retention:** <per store>
 - **Schema evolution strategy:** <how schemas change safely>
 - **Artifact lifecycle:** <creation → retention → deletion>
@@ -368,25 +385,34 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 
 | Gate | Status | Finding | Required Action | Blocks Implementation? |
 |---|---|---|---|---|
-| Traceability map present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| All 25 sections present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Tech-stack rationale + alternatives | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Traditional-vs-AI matrix present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| C4 context/container/dynamic present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Interface + data contracts present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Security/trust boundary model present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Observability/audit plan present | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Failure handling for critical workflows | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| ADRs for major decisions | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| MCP justified or deferred | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| AI cannot mutate state without validation | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| MVP-0/MVP-1 respected | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Update behavior defined (if updating) | PASS/WARN/FAIL | <finding> | <action> | yes/no |
-| Metadata consistency | PASS/WARN/FAIL | counts match tables; A-N/ADR/Contents refs resolve | <action> | yes/no |
-| Hybrid decision review | PASS/WARN/FAIL | every §3 decision has source + review requirement | <action> | yes/no |
-| Technology-specific validity | PASS/WARN/FAIL | tech claims match actual capabilities | <action> | yes/no |
-| Probe/evaluator availability | PASS/WARN/FAIL | each model-backed evaluator has an availability policy (or n/a) | <action> | yes/no |
-| Architecture-vs-implementation boundary | PASS/WARN/FAIL | namespaces labelled proposed; no tickets/code/migrations | <action> | yes/no |
+| Traceability map present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| All 25 sections present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Tech-stack rationale + alternatives | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Traditional-vs-AI matrix present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| C4 context/container/dynamic present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Interface + data contracts present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Security/trust boundary model present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Observability/audit plan present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Failure handling for critical workflows | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| ADRs for major decisions | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| MCP justified or deferred | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| AI cannot mutate state without validation | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| MVP-0/MVP-1 respected | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Update behavior defined (if updating) | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Metadata consistency | PASS / WARNING / FAIL | counts match tables; A-N/ADR/Contents refs resolve | <action> | yes/no |
+| Hybrid decision review | PASS / WARNING / FAIL | every §3 decision has source + review requirement | <action> | yes/no |
+| Technology-specific validity | PASS / WARNING / FAIL | tech claims match actual capabilities | <action> | yes/no |
+| Probe/evaluator availability | PASS / WARNING / FAIL | each model-backed evaluator has an availability policy (or n/a) | <action> | yes/no |
+| Architecture-vs-implementation boundary | PASS / WARNING / FAIL | namespaces labelled proposed; no tickets/code/migrations | <action> | yes/no |
+| Residual invalid-claim scan | PASS / WARNING / FAIL | whole-document scan for tech-inconsistent wording (security gates, data, ADRs, checklist) | <action> | yes/no |
+| Data egress / external model use | PASS / WARNING / FAIL | external-model architectures have a distinct §3 data-egress decision (or n/a) | <action> | yes/no |
+| State-semantics consistency | PASS / WARNING / FAIL | every state/condition term resolves to the §14 canonical model | <action> | yes/no |
+| Standard-vs-detailed budget | PASS / WARNING / FAIL | standard output keeps a concise main body + appendices | <action> | yes/no |
+
+> Status legend: **PASS** (complete + consistent), **WARNING** ("PASS with
+> warning" — acceptable direction, needs cleanup; non-blocking but carries a
+> required action), **FAIL** (missing/false/misleading). Never mark a section
+> PASS when a known contradiction or residual invalid claim remains.
 
 ## 25. Handoff Notes for Implementation Planning
 

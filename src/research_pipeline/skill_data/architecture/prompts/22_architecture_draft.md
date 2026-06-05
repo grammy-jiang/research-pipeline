@@ -26,6 +26,18 @@ artifacts.
    - `resume` → continue from previously unresolved questions.
 4. Include the required Mermaid C4 views (context, container, dynamic) and the
    Traditional-vs-AI matrix and tech-stack table.
+5. **Respect the output detail budget.** All 25 sections are always present, but
+   match their depth to `output_detail`:
+   - `standard` (default): keep the main body concise and decision-focused —
+     trust zones + major controls, required IDs/logs/metrics/traces, strategy +
+     key tests, an ADR summary table. Move heavy material (full schemas,
+     extended risk/threat tables, full test matrices, full ADR bodies) into
+     appendices or `adr/` files. The result is a concise main body + appendices,
+     not a full dossier.
+   - `detailed`: full schemas, full ADR bodies, extended risks, and detailed
+     test matrices may live in the main body.
+   - `concise`: tighten further; keep every major decision visible.
+   Never drop a required section or a major decision to meet the budget.
 
 ## Output
 

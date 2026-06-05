@@ -62,11 +62,11 @@ automation.
 | Source blueprint | `translation_blueprint_excerpt.md` |
 | Source blueprint version/hash | unknown |
 | Source blueprint generated at | unknown |
-| Architecture skill version | 0.2.0 |
+| Architecture skill version | 0.3.0 |
 | Generated at | 2026-06-05 |
 | Operating mode | hybrid |
-| Clarification count | 2 |
-| Assumptions made | 3 |
+| Clarification count | 3 |
+| Assumptions made | 4 |
 | Output detail | standard |
 | Target deployment assumption | server |
 
@@ -74,7 +74,7 @@ automation.
 
 | Date | Source Blueprint | Architecture Version | Change Type | Affected Sections | Notes |
 |---|---|---|---|---|---|
-| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.2.0 | initial | all | First architecture from blueprint |
+| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.3.0 | initial | all | First architecture from blueprint |
 
 ## 2. Source Blueprint Interpretation
 
@@ -93,6 +93,7 @@ invite.
 |---|---|---|---|---|---|---|
 | 1 | Single-tenant or multi-tenant at MVP? | Single-tenant server | architecture assumption | review before production | yes | First external customer |
 | 2 | May document text reach the LLM verbatim? | Yes, but sanitized and treated as evidence, not instruction | blueprint-derived + clarified | review before production | yes | New provider with tool use |
+| 3 | Can source/projected content be sent to external LLM providers? | `external_allowed` — sanitized segments sent to the hosted backbone model; local-only fallback deferred to Phase 2 | architecture assumption | review before implementation planning | yes | Regulated-data / on-prem customer → switch to `local_only` |
 
 ## 4. Architecture Goals and Constraints
 
@@ -136,6 +137,7 @@ invite.
 | Single external LLM provider at MVP | Simplicity | yes | Quality/cost pressure |
 | Server deployment, not serverless | Long-running jobs | yes | Bursty load profile |
 | One metadata store + one artifact store | Small scale | yes | Scale or compliance needs |
+| Source content may be sent to the external LLM (`external_allowed`), sanitized | MVP uses a hosted model for translation quality | yes | Regulated-data / on-prem customer → `local_only` |
 
 ## 5. Solution Strategy
 
@@ -308,8 +310,14 @@ C4Component
 
 ## 14. State, Storage, and Data Lifecycle
 
-- **Job state machine:** `received → segmented → translating → scored →
-  (escalated → reviewed)? → assembled → completed | failed`.
+- **Lifecycle states (canonical):** `received → segmented → translating →
+  scored → (escalated → reviewed)? → assembled → completed | failed`. These are
+  the only values the `jobs` schema and the API status field use.
+- **Operational condition flags (not states):** `degraded` (a required probe
+  unavailable), `discourse-unscored`, `fallback-route-used` — orthogonal to the
+  lifecycle state.
+- **Audit events (not states):** `escalation_triggered`, `job_completed`,
+  `job_failed`.
 - **Ownership/retention:** metadata store owns state + audit; artifact store
   owns documents; retention policies are independent.
 - **Schema evolution:** additive-first; migrations authored, never executed
@@ -504,11 +512,15 @@ shown in §9.
 | AI cannot mutate state without validation | PASS | Gate before commit | — | no |
 | MVP-0/MVP-1 respected | PASS | §4.8 honors blueprint | — | no |
 | Update behavior defined (if updating) | PASS | Initial document | — | no |
-| Metadata consistency | PASS | Clarification count 2 = §3 rows (2); assumptions 3 = §4.9 rows (3); ADR/Contents refs resolve | — | no |
+| Metadata consistency | PASS | Clarification count 3 = §3 rows (3); assumptions 4 = §4.9 rows (4); ADR/Contents refs resolve | — | no |
 | Hybrid decision review | PASS | Both §3 decisions carry a source + review requirement | — | no |
 | Technology-specific validity | PASS | Append-only audit framed as application-enforced + hash-chain tamper-evident, not DB-grant-enforced (§13) | — | no |
 | Probe/evaluator availability | PASS | n/a — no model-backed evaluators/probes in this design | — | no |
 | Architecture-vs-implementation boundary | PASS | §25 names layers, not file paths; no tickets/code/migrations | — | no |
+| Residual invalid-claim scan | PASS | Whole-doc scan: audit framed app-enforced + tamper-evident (§13/§17); no DB-grant wording anywhere | — | no |
+| Data egress / external model use | PASS | §3 row 3 records `external_allowed` (sanitized), distinct from the provider-abstraction choice; flagged for review | — | no |
+| State-semantics consistency | PASS | All state/condition terms resolve to the §14 canonical model (lifecycle vs condition flag vs audit event) | — | no |
+| Standard-vs-detailed budget | PASS | Concise main body; heavy ADR bodies live under `adr/` | — | no |
 
 ## 25. Handoff Notes for Implementation Planning
 

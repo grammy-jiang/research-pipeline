@@ -31,6 +31,14 @@ Include the required security events (auth_failed, permission_denied,
 prompt_injection_suspected, tool_call_denied, trust_boundary_violation_detected,
 external_provider_error, secret_access_denied, audit_record_integrity_failure).
 
+In §17.9 (External Provider Boundary), reflect the **data-egress decision** from
+§3 (external_allowed / external_allowed_with_redaction / local_only /
+hybrid_by_domain / unknown_requires_user_review): state exactly what content may
+cross the boundary, what is redacted, and any local-only fallback. Keep claims
+honest — do not credit a chosen technology with enforcement it does not provide;
+say "application-enforced" / "tamper-evident" rather than borrowing another
+technology's permission model.
+
 ## Output
 
 `intermediate/security_trust_boundaries.md` → populates §17.

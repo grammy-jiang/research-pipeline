@@ -65,6 +65,28 @@ Populate the §3 Clarification Summary table's **Source** and **Review
 Requirement** columns from this classification. Low-risk, reversible,
 blueprint-aligned decisions are "no review needed"; do not over-flag them.
 
+## Data egress / external model use (mandatory when external models are used)
+
+If the architecture sends any input — source content or a projection of it — to
+an external model provider or any service outside the local trust boundary,
+record a **separate, first-class** decision (do not merge it into the
+provider-abstraction / library choice — "can content leave the boundary?" is a
+bigger decision than "which provider wrapper?"). Classify it as one of:
+
+```text
+external_allowed
+external_allowed_with_redaction
+local_only
+hybrid_by_domain
+unknown_requires_user_review
+```
+
+Add it as a §3 row, e.g. *"Can source or projected content be sent to external
+LLM providers?"*. If the blueprint or user did not explicitly answer it, mark it
+**"architecture assumption — review before implementation planning"** because it
+affects privacy, data residency, compliance, cost, provider trust boundary, and
+any local-only fallback requirement.
+
 ## Output
 
 `intermediate/clarifications.md` — the questions asked, the answers/assumptions,

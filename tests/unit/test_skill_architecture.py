@@ -457,9 +457,9 @@ V020_GATE_NAMES = [
 ]
 
 
-def test_manifest_skill_version_bumped_to_0_2_0() -> None:
+def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.2.0"
+    assert data["version"] == "0.3.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:
@@ -537,6 +537,94 @@ def test_example_models_new_gates_and_columns() -> None:
     for gate in V020_GATE_NAMES:
         assert gate in example, f"example §24 missing gate: {gate}"
     assert "proposed module namespaces" in example
-    # The example must model honest tech claims (skill version bumped too).
+    # The example must model honest tech claims.
     assert "tamper-evident" in example
-    assert "0.2.0" in example
+
+
+# --- v0.3.0 hardening pass (data egress, residual-claim scan, self-check
+# skepticism, state-semantics consistency, output budget) ---
+
+# Gate names that must appear in the §24 self-check (template + example) and in
+# the quality-gate self-check prompt.
+V030_GATE_NAMES = [
+    "Residual invalid-claim scan",
+    "Data egress / external model use",
+    "State-semantics consistency",
+    "Standard-vs-detailed budget",
+]
+
+
+def test_self_check_prompt_covers_v030_gates() -> None:
+    text = (
+        (_skill_root() / "prompts" / "23_quality_gate_self_check.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    for needle in (
+        "residual invalid-claim scan",
+        "data egress",
+        "state-semantics consistency",
+        "standard-vs-detailed budget",
+        "pass with warning",
+    ):
+        assert needle in text, f"self-check prompt missing: {needle}"
+
+
+def test_clarification_prompt_has_data_egress_decision() -> None:
+    text = (
+        (_skill_root() / "prompts" / "06_architecture_clarification.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "data egress" in text
+    for cls in ("external_allowed", "local_only", "unknown_requires_user_review"):
+        assert cls in text, f"clarification prompt missing egress class: {cls}"
+
+
+def test_data_contracts_prompt_has_canonical_state_model() -> None:
+    text = (_skill_root() / "prompts" / "15_data_contracts.md").read_text(
+        encoding="utf-8"
+    )
+    assert "canonical state model" in text.lower()
+    for cat in ("Lifecycle states", "Operational condition flags", "Audit events"):
+        assert cat in text, f"data-contracts prompt missing state category: {cat}"
+
+
+def test_draft_prompt_has_output_detail_budget() -> None:
+    text = (_skill_root() / "prompts" / "22_architecture_draft.md").read_text(
+        encoding="utf-8"
+    )
+    assert "output detail budget" in text.lower()
+    assert "appendices" in text.lower()
+
+
+def test_template_has_data_egress_and_state_model() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Data egress" in template
+    assert "external_allowed" in template
+    for cat in ("Lifecycle states", "Operational condition flags", "Audit events"):
+        assert cat in template, f"template §14 missing state category: {cat}"
+
+
+def test_template_self_check_lists_v030_gates() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    for gate in V030_GATE_NAMES:
+        assert gate in template, f"template §24 missing gate: {gate}"
+    # WARNING vocabulary standardized (no leftover WARN/ slashes legend).
+    assert "PASS / WARNING / FAIL" in template
+
+
+def test_example_models_v030_gates() -> None:
+    example = (
+        _skill_root() / "examples" / "translation_architecture_example.md"
+    ).read_text(encoding="utf-8")
+    for gate in V030_GATE_NAMES:
+        assert gate in example, f"example §24 missing gate: {gate}"
+    assert "external_allowed" in example
+    for cat in ("Lifecycle states", "Operational condition flags", "Audit events"):
+        assert cat in example, f"example §14 missing state category: {cat}"
+    assert "0.3.0" in example

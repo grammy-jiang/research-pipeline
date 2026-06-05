@@ -17,7 +17,20 @@ database migrations.
 4. Define a schema-evolution strategy (additive-first, migration path).
 5. Separate metadata from large artifacts.
 6. Define audit immutability semantics (append-only).
-7. Describe the state machine(s) for the primary entity (§14).
+7. Describe the §14 state machine(s) as a **canonical state model** with three
+   distinct categories so terms are not conflated:
+   - **Lifecycle states** — the persisted states a unit of work moves through
+     (e.g. queued → … → completed / failed). These are the only values the
+     persistence schema and API status should use.
+   - **Operational condition flags** — orthogonal runtime conditions (e.g.
+     degraded, fallback-used, probe-unavailable, discourse-unscored), not
+     lifecycle states.
+   - **Audit events** — things that happened (e.g. escalated, job_failed), not
+     states.
+   Every status/state/condition term used elsewhere (API contracts, failure
+   handling, observability, human-review, probe policy) must resolve to one of
+   these three categories. Do not use a condition word (e.g. "degraded") as a
+   lifecycle state unless it is in the lifecycle list.
 
 Do not author concrete migrations or DDL.
 

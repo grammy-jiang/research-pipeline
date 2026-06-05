@@ -55,18 +55,64 @@ the actionable §24 self-check.
    PASS as n/a if the system has no model-backed evaluators.
 5. **Architecture-vs-implementation boundary** — FAIL if the document contains
    task tickets, code patches, migration scripts, or file-by-file
-   implementation steps. WARN if proposed package/module names are presented as
-   final file paths rather than labelled "proposed module namespaces".
+   implementation steps. WARNING if proposed package/module names are presented
+   as final file paths rather than labelled "proposed module namespaces".
+
+## v0.3.0 hardening gates (also evaluate these)
+
+6. **Residual invalid-claim scan** — scan the *whole* document (not just the
+   tech-stack section): §17 security gates, §13/§14 data, §24 checklist rows,
+   ADRs. FAIL/WARNING on any technology-inconsistent claim — e.g. borrowing one
+   technology's permission/enforcement/immutability/provider-neutrality wording
+   for a different chosen technology (an embedded file-based store described
+   with role/grant "DB user" wording; local filesystem called "immutable"; a
+   provider wrapper called "provider-independent"). Rewrite to the honest
+   mechanism (application-enforced / tamper-evident / content-addressed +
+   integrity-checked / provider-abstraction).
+7. **Data egress / external model use** — FAIL if the architecture uses any
+   external model/provider but has no separate §3 data-egress decision
+   (external_allowed / …_with_redaction / local_only / hybrid_by_domain /
+   unknown_requires_user_review). It must not be merged into the
+   provider-abstraction decision; if unanswered it is "review before
+   implementation planning". PASS as n/a only if nothing leaves the local
+   boundary.
+8. **State-semantics consistency** — FAIL if a status/state/condition term is
+   used (API, failure handling, observability, human-review, probe policy) but
+   does not resolve to the canonical §14 state model; lifecycle states,
+   operational condition flags, and audit events must stay distinct (e.g. do not
+   use "degraded" as a lifecycle state unless it is in the lifecycle list).
+9. **Standard-vs-detailed budget** — WARNING if `output_detail` is `standard`
+   but the main body is dossier-sized (heavy schemas/ADR bodies/long matrices
+   inline instead of in appendices). Required action: move heavy material to
+   appendices or relabel `detailed`. Non-blocking.
+
+## Self-check skepticism (status discipline)
+
+Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
+
+- Use **PASS** only when the section is complete *and* internally consistent.
+- Use **WARNING** when the direction is acceptable but wording, assumptions,
+  review flags, consistency, or budget need cleanup. A WARNING is not blocking
+  but must carry a concrete required action and a blocks-implementation verdict.
+- Use **FAIL** for a missing required section, an unsupported major decision, a
+  false technology claim, a missing required security/observability control, or
+  anything that would mislead a downstream implementation agent.
+- **Do not mark a section PASS when a known contradiction or residual invalid
+  claim exists** — downgrade it to WARNING (or FAIL) with the required action.
+  Be skeptical of your own draft; the residual-claim scan exists precisely
+  because earlier passes rubber-stamped PASS.
 
 ## Instructions
 
-1. Evaluate each gate (the FAIL list above and the five v0.2.0 gates) against the
-   draft; record PASS / WARNING / FAIL with a finding, a required action, and a
-   blocks-implementation verdict.
+1. Evaluate every gate (the FAIL list, the five v0.2.0 gates, and the four
+   v0.3.0 gates) against the draft; record PASS / WARNING / FAIL with a finding,
+   a required action, and a blocks-implementation verdict.
 2. Emit the §24 table (Gate · Status · Finding · Required Action · Blocks
    Implementation?), including rows for: Metadata consistency, Hybrid decision
-   review, Technology-specific validity, Probe/evaluator availability, and
-   Architecture-vs-implementation boundary.
+   review, Technology-specific validity, Probe/evaluator availability,
+   Architecture-vs-implementation boundary, Residual invalid-claim scan, Data
+   egress / external model use, State-semantics consistency, and
+   Standard-vs-detailed budget.
 3. If any gate FAILs, return the specific failing gates so prompt 24 can revise.
    Every WARNING must carry a concrete required action, not a passive note.
 

@@ -323,6 +323,23 @@ and `tests/expected_sections_checklist.md`:
 14. **Architecture-vs-implementation boundary** — module boundaries and
     *proposed* namespaces are allowed; task tickets, code, migrations, and
     file-by-file steps are not.
+15. **Residual invalid-claim scan** — the whole document (not just §7) is free
+    of technology-inconsistent claims (no borrowing another technology's
+    permission/immutability/provider-neutrality wording).
+16. **Data egress / external model use** — any architecture that sends content
+    to an external model has a distinct §3 data-egress decision
+    (external_allowed / …_with_redaction / local_only / hybrid_by_domain /
+    unknown_requires_user_review), separate from the provider-abstraction choice.
+17. **State-semantics consistency** — every state/status/condition term resolves
+    to the canonical §14 state model (lifecycle states vs operational condition
+    flags vs audit events stay distinct).
+18. **Output detail budget** — `standard` output is a concise main body +
+    appendices, not a full dossier; no required section or major decision is
+    dropped to meet the budget.
+19. **Self-check skepticism** — the §24 self-check uses PASS / WARNING / FAIL
+    (WARNING ≡ "PASS with warning", non-blocking but with a required action);
+    a section with a known contradiction or residual invalid claim is never a
+    clean PASS.
 
 ## References
 
