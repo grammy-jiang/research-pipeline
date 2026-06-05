@@ -2,6 +2,44 @@
 
 All notable changes to research-pipeline.
 
+## [v0.19.3] — 2026-06-05
+
+### Changed
+
+- **`architecture` skill — quality-control hardening pass (skill manifest 0.2.0
+  → 0.3.0).** Driven by a second review of a real generated architecture
+  document; each claim was verified against the actual output before
+  implementing, and the checks were folded into the existing
+  `quality_gate_self_check` + pass prompts (no new manifest tasks):
+  - **Data egress / external-model-use decision** — when the architecture sends
+    content to an external model, §3 must carry a *distinct* data-egress
+    decision (external_allowed / external_allowed_with_redaction / local_only /
+    hybrid_by_domain / unknown_requires_user_review), separate from the
+    provider-abstraction choice and review-flagged when assumed. (The reviewed
+    output used external models with no such decision.)
+  - **Residual invalid-claim scan** — the validity check now scans the whole
+    document (security gates, data, ADRs, checklist rows), not just the
+    tech-stack section, for technology-inconsistent wording. (A residual
+    "no UPDATE/DELETE granted to the application DB user" line had survived the
+    earlier per-section fix.)
+  - **Self-check skepticism** — the §24 status model is standardized to
+    PASS / WARNING / FAIL (WARNING ≡ "PASS with warning", non-blocking but with
+    a required action); a section with a known contradiction or residual invalid
+    claim must never be a clean PASS.
+  - **State-semantics consistency** — §14 is now a canonical state model that
+    keeps lifecycle states, operational condition flags, and audit events
+    distinct; every state/status/condition term used elsewhere must resolve to
+    it.
+  - **Output detail budget** — `standard` output stays a concise main body +
+    appendices (heavy schemas / full ADR bodies / long matrices move to
+    appendices) rather than a full dossier; no required section or major
+    decision is dropped.
+  Kept tech/domain-neutral (SQLite/LiteLLM/translation specifics are
+  illustrations, not hard-coded rules). Updates prompts 06/15/16/22/23, the
+  template (§3 data-egress note, §14 canonical state model, §24 gate rows +
+  status legend), the worked example, SKILL.md, and the security/expected
+  checklists, with new guard tests in `tests/unit/test_skill_architecture.py`.
+
 ## [v0.19.2] — 2026-06-05
 
 ### Changed
