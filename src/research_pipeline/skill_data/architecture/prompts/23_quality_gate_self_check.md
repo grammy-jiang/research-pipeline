@@ -85,6 +85,21 @@ the actionable §24 self-check.
    but the main body is dossier-sized (heavy schemas/ADR bodies/long matrices
    inline instead of in appendices). Required action: move heavy material to
    appendices or relabel `detailed`. Non-blocking.
+10. **Security gate verification format** — FAIL if §17 security quality gates
+    are written as ambiguous unchecked `- [ ]` checkboxes instead of a
+    verification table (Security Gate · Required Implementation Evidence ·
+    Verification Method · Blocks Release?). Checkbox gates are also the place
+    residual invalid claims hide (gate 6) — convert them and rewrite any
+    technology-inconsistent wording to the honest mechanism while doing so.
+11. **Data-egress table** — when external models are used, FAIL if §17.9 lacks
+    the dedicated Data Egress / External Model Use table (content-leaves-boundary,
+    which providers, redaction, logs-may-contain-source, domain-plugin-override);
+    `unknown_requires_user_review` blocks implementation planning.
+
+When running gate 6 (residual invalid-claim scan), scan the §17 security gates,
+§24 checklist rows, and ADRs character-by-character for borrowed-technology
+wording — not just the §7 prose. If a gate is currently a checkbox, rewriting it
+as a verification table (gate 10) is the moment to fix the wording.
 
 ## Self-check skepticism (status discipline)
 
@@ -104,15 +119,15 @@ Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
 
 ## Instructions
 
-1. Evaluate every gate (the FAIL list, the five v0.2.0 gates, and the four
-   v0.3.0 gates) against the draft; record PASS / WARNING / FAIL with a finding,
+1. Evaluate every gate (the FAIL list, the five v0.2.0 gates, and the v0.3.0 /
+   v0.4.0 gates) against the draft; record PASS / WARNING / FAIL with a finding,
    a required action, and a blocks-implementation verdict.
 2. Emit the §24 table (Gate · Status · Finding · Required Action · Blocks
    Implementation?), including rows for: Metadata consistency, Hybrid decision
    review, Technology-specific validity, Probe/evaluator availability,
    Architecture-vs-implementation boundary, Residual invalid-claim scan, Data
-   egress / external model use, State-semantics consistency, and
-   Standard-vs-detailed budget.
+   egress / external model use, State-semantics consistency,
+   Standard-vs-detailed budget, and Security gate verification format.
 3. If any gate FAILs, return the specific failing gates so prompt 24 can revise.
    Every WARNING must carry a concrete required action, not a passive note.
 

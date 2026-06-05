@@ -63,14 +63,41 @@ trust_boundary_violation_detected, external_provider_error,
 secret_access_denied, audit_record_integrity_failure
 ```
 
-## Security Quality Gates — fail if
+## Data Egress / External Model Use (§17.9)
 
-```text
-security boundary is not explicit
-AI can mutate state without deterministic validation
-external providers are not isolated behind adapters
-tool permissions are not defined
-audit events for security decisions are missing
-secrets/configuration strategy is absent
-data classification is absent for sensitive inputs
+When the system sends content to an external model, render a dedicated table
+(do **not** merge it into the provider-abstraction choice). Value ∈ {local_only,
+external_allowed, external_allowed_with_redaction, hybrid_by_domain,
+unknown_requires_user_review}; `unknown_requires_user_review` blocks
+implementation planning.
+
+```markdown
+| Decision | Value | Source | Review Requirement | Reason |
+|---|---|---|---|---|
+| Can raw or projected source content leave the local trust boundary? | <value> | <source> | <review> | <reason> |
+| Which providers may receive content? | <…> | | | |
+| Is redaction required before model calls? | <…> | | | |
+| May logs contain source content? | <…> | | | |
+| Can domain plugins override data-egress policy? | <…> | | | |
 ```
+
+## Security Quality Gates (§17.12) — verification table, not checkboxes
+
+Render security gates as a **verification table**, never as ambiguous unchecked
+`- [ ]` checkboxes. Each gate's wording must be honest to the chosen technology
+(no borrowed role/grant/immutability language).
+
+```markdown
+| Security Gate | Required Implementation Evidence | Verification Method | Blocks Release? |
+|---|---|---|---|
+| <gate, e.g. AI cannot mutate durable state without deterministic validation> | <evidence that proves it> | <unit/integration/security tests, audit events> | Yes/No |
+| Append-only audit (application-enforced; no update/delete path exposed) + hash-chain tamper-evident | single-writer tests; no repository update/delete path; hash-chain verifier | unit + integration tests | Yes |
+| Secrets never written to artifacts/logs/prompts | secret-redaction tests; log-snapshot tests | security test suite | Yes |
+```
+
+The architecture **fails** if: the security boundary is not explicit; AI can
+mutate state without deterministic validation; external providers are not
+isolated behind adapters; tool permissions are undefined; audit events for
+security decisions are missing; secrets/configuration strategy is absent; data
+classification is absent for sensitive inputs; or any gate uses
+technology-inconsistent enforcement wording.

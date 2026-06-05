@@ -23,7 +23,14 @@
       provider-abstraction choice, and §17.9 reflects it.
 - [ ] No residual technology-inconsistent security claims (whole-document scan,
       not just the tech-stack section).
+- [ ] §17.12 security quality gates are a **verification table** (Security Gate ·
+      Required Implementation Evidence · Verification Method · Blocks Release?),
+      not ambiguous unchecked `- [ ]` checkboxes; each gate's wording is honest
+      to the chosen technology.
+- [ ] §17.9 includes the Data Egress / External Model Use table when external
+      models are used.
 
 **Hard fails:** AI mutates state without deterministic validation; secrets in
 artifacts; external providers not isolated; tool permissions undefined; external
-models used with no data-egress decision.
+models used with no data-egress decision; security gates rendered as ambiguous
+unchecked checkboxes.

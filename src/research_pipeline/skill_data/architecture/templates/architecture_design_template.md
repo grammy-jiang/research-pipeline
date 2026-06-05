@@ -317,7 +317,13 @@ trust zones, identity/access, authorization boundaries, the AI/LLM trust
 boundary, prompt-injection and tool-misuse controls, data classification and
 privacy, secrets and configuration management, the external-provider boundary,
 audit/compliance requirements, security failure modes, and security quality
-gates.
+gates. Render **§17.12 Security Quality Gates as a verification table**
+(Security Gate · Required Implementation Evidence · Verification Method · Blocks
+Release?) — never as ambiguous unchecked `- [ ]` checkboxes — and when external
+models are used, include the **§17.9 Data Egress / External Model Use table**
+(content-leaves-boundary, which providers, redaction, logs-may-contain-source,
+domain-plugin-override). Keep every gate's wording honest to the chosen
+technology.
 
 ## 18. Failure Handling and Recovery
 
@@ -408,6 +414,7 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 | Data egress / external model use | PASS / WARNING / FAIL | external-model architectures have a distinct §3 data-egress decision (or n/a) | <action> | yes/no |
 | State-semantics consistency | PASS / WARNING / FAIL | every state/condition term resolves to the §14 canonical model | <action> | yes/no |
 | Standard-vs-detailed budget | PASS / WARNING / FAIL | standard output keeps a concise main body + appendices | <action> | yes/no |
+| Security gate verification format | PASS / WARNING / FAIL | §17 gates are a verification table (evidence + method + blocks-release), not unchecked checkboxes | <action> | yes/no |
 
 > Status legend: **PASS** (complete + consistent), **WARNING** ("PASS with
 > warning" — acceptable direction, needs cleanup; non-blocking but carries a

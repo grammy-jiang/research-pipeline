@@ -62,7 +62,7 @@ automation.
 | Source blueprint | `translation_blueprint_excerpt.md` |
 | Source blueprint version/hash | unknown |
 | Source blueprint generated at | unknown |
-| Architecture skill version | 0.3.0 |
+| Architecture skill version | 0.4.0 |
 | Generated at | 2026-06-05 |
 | Operating mode | hybrid |
 | Clarification count | 3 |
@@ -74,7 +74,7 @@ automation.
 
 | Date | Source Blueprint | Architecture Version | Change Type | Affected Sections | Notes |
 |---|---|---|---|---|---|
-| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.3.0 | initial | all | First architecture from blueprint |
+| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.4.0 | initial | all | First architecture from blueprint |
 
 ## 2. Source Blueprint Interpretation
 
@@ -412,20 +412,39 @@ failure the job is marked `failed` with an audit record (see §18).
   prompts, logs, tool args, or artifacts.
 
 ### 17.9 External Provider Boundary
-- All provider calls go through the adapter; failures raise
-  `external_provider_error`.
+
+All provider calls go through the adapter; failures raise
+`external_provider_error`. Data Egress / External Model Use:
+
+| Decision | Value | Source | Review Requirement | Reason |
+|---|---|---|---|---|
+| Can raw/projected source content leave the local trust boundary? | external_allowed | architecture assumption | review before implementation planning | Hosted backbone model used for translation quality |
+| Which providers may receive content? | The configured backbone provider only (single provider at MVP) | blueprint-derived | review before production | Limits provider trust surface |
+| Is redaction required before model calls? | No at MVP; sanitized evidence-projection only | architecture assumption | review before production | Source is the unit of work; redaction deferred |
+| May logs contain source content? | No — logs carry IDs/hashes, not source text | architecture assumption | no review needed | Privacy + audit minimization |
+| Can domain plugins override data-egress policy? | No — policy is global at MVP | architecture assumption | review before production | Prevents per-plugin egress drift |
 
 ### 17.10 Audit and Compliance Requirements
-- Every segment decision is auditable and immutable.
+- Every segment decision is auditable; the audit log is append-only
+  (application-enforced) and hash-chained (tamper-evident), not tamper-proof
+  against privileged storage access.
 
 ### 17.11 Security Failure Modes
 - Audit write failure halts the job (fail-closed) rather than completing
   unaudited.
 
 ### 17.12 Security Quality Gates
-- Fail if AI can mutate state without validation, providers are not isolated,
-  tool permissions are undefined, or secrets strategy is absent — none apply
-  here.
+
+| Security Gate | Required Implementation Evidence | Verification Method | Blocks Release? |
+|---|---|---|---|
+| AI cannot mutate durable state without deterministic validation | Quality Gate sits between every translation proposal and any state write | unit + integration tests | Yes |
+| Append-only audit (application-enforced; no update/delete path exposed) + hash-chain tamper-evident | single-writer AuditWriter; no repository update/delete path; hash-chain verifier | unit + integration tests | Yes |
+| External provider isolated behind an adapter | all provider calls route through the translation adapter | integration tests; no direct SDK calls in core | Yes |
+| Secrets never written to artifacts/logs/prompts | secret-redaction tests; log-snapshot tests | security test suite | Yes |
+
+> Gates are verification rows (evidence + method + blocks-release), not
+> unchecked checkboxes, and the audit gate is worded as application-enforced +
+> tamper-evident — not borrowed database-grant wording.
 
 ## 18. Failure Handling and Recovery
 
@@ -521,6 +540,7 @@ shown in §9.
 | Data egress / external model use | PASS | §3 row 3 records `external_allowed` (sanitized), distinct from the provider-abstraction choice; flagged for review | — | no |
 | State-semantics consistency | PASS | All state/condition terms resolve to the §14 canonical model (lifecycle vs condition flag vs audit event) | — | no |
 | Standard-vs-detailed budget | PASS | Concise main body; heavy ADR bodies live under `adr/` | — | no |
+| Security gate verification format | PASS | §17.12 is a verification table (evidence + method + blocks-release); no unchecked checkboxes; audit gate worded app-enforced + tamper-evident | — | no |
 
 ## 25. Handoff Notes for Implementation Planning
 

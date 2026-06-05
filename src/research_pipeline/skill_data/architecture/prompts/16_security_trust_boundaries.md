@@ -22,22 +22,48 @@ Produce all of §17:
 - 17.6 Prompt Injection and Tool Misuse Controls
 - 17.7 Data Classification and Privacy
 - 17.8 Secrets and Configuration Management
-- 17.9 External Provider Boundary
+- 17.9 External Provider Boundary (+ Data Egress / External Model Use table)
 - 17.10 Audit and Compliance Requirements
 - 17.11 Security Failure Modes
-- 17.12 Security Quality Gates
+- 17.12 Security Quality Gates (**verification table**, not checkboxes)
 
 Include the required security events (auth_failed, permission_denied,
 prompt_injection_suspected, tool_call_denied, trust_boundary_violation_detected,
 external_provider_error, secret_access_denied, audit_record_integrity_failure).
 
-In §17.9 (External Provider Boundary), reflect the **data-egress decision** from
-§3 (external_allowed / external_allowed_with_redaction / local_only /
-hybrid_by_domain / unknown_requires_user_review): state exactly what content may
-cross the boundary, what is redacted, and any local-only fallback. Keep claims
-honest — do not credit a chosen technology with enforcement it does not provide;
-say "application-enforced" / "tamper-evident" rather than borrowing another
-technology's permission model.
+### Data Egress / External Model Use table (§17.9, mandatory when external models are used)
+
+Expand the §3 headline data-egress decision into a dedicated table (do **not**
+merge it into the provider-abstraction choice). Each value ∈ {local_only,
+external_allowed, external_allowed_with_redaction, hybrid_by_domain,
+unknown_requires_user_review}; `unknown_requires_user_review` blocks
+implementation planning.
+
+```text
+| Decision | Value | Source | Review Requirement | Reason |
+| Can raw or projected source content leave the local trust boundary? | … |
+| Which providers may receive content? | … |
+| Is redaction required before model calls? | … |
+| May logs contain source content? | … |
+| Can domain plugins override data-egress policy? | … |
+```
+
+### Security Quality Gates as a verification table (§17.12)
+
+Render §17.12 as a **verification table**, never as unchecked `- [ ]`
+checkboxes (a checkbox is ambiguous — requirement? done? TODO? — and misleads
+the implementation-plan skill):
+
+```text
+| Security Gate | Required Implementation Evidence | Verification Method | Blocks Release? |
+```
+
+Every gate row states what must be true, the evidence that proves it, how it is
+verified, and whether it blocks release. Keep each gate's wording **honest to
+the chosen technology** — e.g. an append-only audit on an embedded file-based
+store is "application-enforced (single-writer; no update/delete path exposed) +
+hash-chain tamper-evident", never "no UPDATE/DELETE granted to the application
+DB user" (that borrows a role/grant model the store does not have).
 
 ## Output
 

@@ -459,7 +459,7 @@ V020_GATE_NAMES = [
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.3.0"
+    assert data["version"] == "0.4.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:
@@ -627,4 +627,61 @@ def test_example_models_v030_gates() -> None:
     assert "external_allowed" in example
     for cat in ("Lifecycle states", "Operational condition flags", "Audit events"):
         assert cat in example, f"example §14 missing state category: {cat}"
-    assert "0.3.0" in example
+    assert "0.4.0" in example
+
+
+# --- v0.4.0 hardening pass (verification-table security gates, data-egress
+# table, residual-scan strengthening) ---
+
+
+def test_security_prompt_requires_verification_table_and_egress_table() -> None:
+    text = (
+        (_skill_root() / "prompts" / "16_security_trust_boundaries.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "verification table" in text
+    assert "data egress / external model use" in text
+    # Must steer away from checkbox gates and borrowed grant wording.
+    assert "checkbox" in text
+    assert "blocks release?" in text
+
+
+def test_self_check_prompt_has_security_gate_format_gate() -> None:
+    text = (
+        (_skill_root() / "prompts" / "23_quality_gate_self_check.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "security gate verification format" in text
+    assert "verification method" in text
+
+
+def test_security_template_has_verification_table_and_egress() -> None:
+    text = (
+        _skill_root() / "templates" / "security_trust_boundary_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Required Implementation Evidence" in text
+    assert "Verification Method" in text
+    assert "Data Egress / External Model Use" in text
+
+
+def test_template_self_check_has_security_gate_format_row() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Security gate verification format" in template
+
+
+def test_example_security_gates_are_verification_table_not_checkboxes() -> None:
+    example = (
+        _skill_root() / "examples" / "translation_architecture_example.md"
+    ).read_text(encoding="utf-8")
+    # §17.12 verification-table columns present.
+    assert "Required Implementation Evidence" in example
+    assert "Verification Method" in example
+    # §17.9 data-egress table present.
+    assert "Data Egress / External Model Use" in example
+    # The worked example must contain NO ambiguous unchecked checkboxes.
+    assert "- [ ]" not in example, "example must not use unchecked checkboxes"
+    assert "Security gate verification format" in example

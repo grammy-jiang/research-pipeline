@@ -340,6 +340,11 @@ and `tests/expected_sections_checklist.md`:
     (WARNING ≡ "PASS with warning", non-blocking but with a required action);
     a section with a known contradiction or residual invalid claim is never a
     clean PASS.
+20. **Security gate verification format** — §17 security quality gates are a
+    verification table (Security Gate · Required Implementation Evidence ·
+    Verification Method · Blocks Release?), never ambiguous unchecked `- [ ]`
+    checkboxes; and when external models are used, §17.9 carries the Data
+    Egress / External Model Use table.
 
 ## References
 
