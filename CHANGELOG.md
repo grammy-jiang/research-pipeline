@@ -2,6 +2,42 @@
 
 All notable changes to research-pipeline.
 
+## [v0.19.2] — 2026-06-05
+
+### Changed
+
+- **`architecture` skill — quality-control pass (skill manifest 0.1.0 →
+  0.2.0).** Driven by a review of a real generated architecture document. Five
+  final-gate checks were added to `quality_gate_self_check` (and the relevant
+  pass prompts), folded into the existing 24-task manifest rather than adding
+  new tasks — no workflow redesign:
+  - **Metadata consistency gate** — `Clarification count` must equal the §3
+    row count, `Assumptions made` must equal the §4.9 row count, and every
+    `A-N`, ADR, Contents, and section reference must resolve. (The reviewed
+    output had count/table and `A-N` mismatches.)
+  - **Hybrid-mode decision-review classification** — §3 now carries **Source**
+    and **Review Requirement** columns; high-impact inferred/assumed decisions
+    (external LLM use, data privacy, deployment, storage, auth, retention, cost
+    routing, MCP, human approval) must be review-flagged so hybrid mode does not
+    silently behave like automatic mode.
+  - **Technology-specific validity** — the architecture may not credit a chosen
+    technology with enforcement/security properties it does not provide;
+    absolute wording is downgraded to application-enforced / tamper-evident /
+    best-effort with a risk or ADR note. (Kept tech-neutral — illustrated, not
+    hard-coded.)
+  - **Probe/evaluator availability policy** — every model-backed evaluator or
+    gating probe needs a required-level + behavior-if-unavailable +
+    auto-accept-allowed + audit-event policy; required probes disable
+    auto-accept when unavailable. (Generalized; n/a when there are no
+    model-backed evaluators.)
+  - **Architecture-vs-implementation boundary** — module names are labelled
+    "proposed module namespaces," and task tickets / code / migrations /
+    file-by-file steps are rejected (they belong to the implementation-plan
+    skill).
+  Implemented inside the existing prompts/template/example plus new guard tests
+  in `tests/unit/test_skill_architecture.py`; the skill remains a pure
+  prompt-driven transformation.
+
 ## [v0.19.1] — 2026-06-05
 
 ### Fixed
