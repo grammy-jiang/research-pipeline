@@ -306,6 +306,23 @@ and `tests/expected_sections_checklist.md`:
 9. **Update behavior** — when an architecture document already exists, the
    update mode (regenerate / patch / compare / adr-only / resume) is explicit
    and Update History is appended.
+10. **Metadata consistency** — §1 metadata counts match the document
+    (`Clarification count` = §3 rows; `Assumptions made` = §4.9 rows) and every
+    `A-N`, ADR, Contents, and section reference resolves; no metadata is
+    invented.
+11. **Hybrid decision review** — in hybrid mode every major §3 decision carries
+    a Source and a Review Requirement, and high-impact inferred/assumed
+    decisions are review-flagged (hybrid must not silently act as automatic).
+12. **Technology-specific validity** — the architecture never credits a chosen
+    technology with enforcement/security properties it does not provide;
+    absolute wording is downgraded to application-enforced / tamper-evident /
+    best-effort with a risk or ADR note.
+13. **Probe/evaluator availability** — every model-backed evaluator or gating
+    probe has an availability policy (required level, behavior if unavailable,
+    whether auto-accept is still allowed, audit event), or the gate is n/a.
+14. **Architecture-vs-implementation boundary** — module boundaries and
+    *proposed* namespaces are allowed; task tickets, code, migrations, and
+    file-by-file steps are not.
 
 ## References
 

@@ -62,7 +62,7 @@ automation.
 | Source blueprint | `translation_blueprint_excerpt.md` |
 | Source blueprint version/hash | unknown |
 | Source blueprint generated at | unknown |
-| Architecture skill version | 0.1.0 |
+| Architecture skill version | 0.2.0 |
 | Generated at | 2026-06-05 |
 | Operating mode | hybrid |
 | Clarification count | 2 |
@@ -74,7 +74,7 @@ automation.
 
 | Date | Source Blueprint | Architecture Version | Change Type | Affected Sections | Notes |
 |---|---|---|---|---|---|
-| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.1.0 | initial | all | First architecture from blueprint |
+| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.2.0 | initial | all | First architecture from blueprint |
 
 ## 2. Source Blueprint Interpretation
 
@@ -89,10 +89,10 @@ invite.
 
 ## 3. Clarification Summary
 
-| # | Question | Decision | Mode | Reversible? | Revisit Trigger |
-|---|---|---|---|---|---|
-| 1 | Single-tenant or multi-tenant at MVP? | Single-tenant server | automatic | yes | First external customer |
-| 2 | May document text reach the LLM verbatim? | Yes, but sanitized and treated as evidence, not instruction | hybrid | yes | New provider with tool use |
+| # | Question | Decision | Source | Review Requirement | Reversible? | Revisit Trigger |
+|---|---|---|---|---|---|---|
+| 1 | Single-tenant or multi-tenant at MVP? | Single-tenant server | architecture assumption | review before production | yes | First external customer |
+| 2 | May document text reach the LLM verbatim? | Yes, but sanitized and treated as evidence, not instruction | blueprint-derived + clarified | review before production | yes | New provider with tool use |
 
 ## 4. Architecture Goals and Constraints
 
@@ -303,7 +303,7 @@ C4Component
 | Quality Score | Quality Gate | Metadata store | With job | Reproducible from inputs |
 | Review Round | Escalation Coordinator | Metadata store | With job | MVP-1 |
 | Domain Profile | Routing Coordinator | Metadata store | Long-lived | Versioned |
-| Audit Record | Audit Writer | Append-only audit table | Long, immutable | Hash-chained |
+| Audit Record | Audit Writer | Append-only audit table | Long; no expiry | Append-only is application-enforced (single writer, no update/delete path) + SHA-256 hash-chained (tamper-evident), not database-grant-enforced |
 | Source / Translated Document | Artifact Manager | Artifact store | Separate policy | Not in metadata DB |
 
 ## 14. State, Storage, and Data Lifecycle
@@ -504,6 +504,11 @@ shown in §9.
 | AI cannot mutate state without validation | PASS | Gate before commit | — | no |
 | MVP-0/MVP-1 respected | PASS | §4.8 honors blueprint | — | no |
 | Update behavior defined (if updating) | PASS | Initial document | — | no |
+| Metadata consistency | PASS | Clarification count 2 = §3 rows (2); assumptions 3 = §4.9 rows (3); ADR/Contents refs resolve | — | no |
+| Hybrid decision review | PASS | Both §3 decisions carry a source + review requirement | — | no |
+| Technology-specific validity | PASS | Append-only audit framed as application-enforced + hash-chain tamper-evident, not DB-grant-enforced (§13) | — | no |
+| Probe/evaluator availability | PASS | n/a — no model-backed evaluators/probes in this design | — | no |
+| Architecture-vs-implementation boundary | PASS | §25 names layers, not file paths; no tickets/code/migrations | — | no |
 
 ## 25. Handoff Notes for Implementation Planning
 
@@ -518,3 +523,7 @@ shown in §9.
 - **Decisions deferred to implementation:** concrete store engine within the
   chosen relational path; queue technology.
 - **What the implementation-plan skill should NOT re-decide:** ADR-0001..0006.
+- **Boundary note:** the build order above names architectural layers, not file
+  paths; any module names are proposed module namespaces for implementation
+  planning, not file-by-file tasks. No task tickets, code, or migrations are
+  emitted here — those are the implementation-plan skill's job.

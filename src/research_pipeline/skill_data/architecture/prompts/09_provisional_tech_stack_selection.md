@@ -23,7 +23,17 @@ AI-boundary and skill/MCP decisions are made and the coherence review (prompt
    simplicity, performance, cost, maintainability, reversibility).
 4. **Anti-default rule:** never apply a fixed stack as a universal default.
    Justify every choice from this blueprint's context.
-5. Mark the whole table **provisional**.
+5. **Technology-specific validity:** only credit a chosen technology with
+   properties it actually provides. Do not describe one technology's
+   enforcement model in terms of another's. When an enforcement or guarantee
+   depends on implementation discipline rather than the technology itself,
+   downgrade absolute wording ("guaranteed", "immutable", "no grants") to
+   "application-enforced", "tamper-evident", "best-effort", or "requires
+   operational control", and add a risk or ADR note. (Example: an append-only
+   audit log on an embedded store with no role/grant model is
+   *application-enforced + hash-chain tamper-evident*, not enforced by database
+   grants — say so. This is an illustration, not a tech recommendation.)
+6. Mark the whole table **provisional**.
 
 ## Output
 

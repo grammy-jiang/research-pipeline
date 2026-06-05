@@ -441,3 +441,102 @@ def test_skill_is_discoverable_by_setup() -> None:
     sources = _find_skill_sources()
     names = {p.name for p in sources}
     assert "architecture" in names, "setup did not discover the architecture skill"
+
+
+# --- v0.2.0 quality-control pass (metadata consistency, hybrid decision
+# review, technology validity, probe availability, impl boundary) ---
+
+# Gate names that must appear in the §24 self-check (template + example) and in
+# the quality-gate self-check prompt.
+V020_GATE_NAMES = [
+    "Metadata consistency",
+    "Hybrid decision review",
+    "Technology-specific validity",
+    "Probe/evaluator availability",
+    "Architecture-vs-implementation boundary",
+]
+
+
+def test_manifest_skill_version_bumped_to_0_2_0() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    assert data["version"] == "0.2.0"
+
+
+def test_self_check_prompt_covers_new_gates() -> None:
+    text = (
+        (_skill_root() / "prompts" / "23_quality_gate_self_check.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    for needle in (
+        "metadata consistency",
+        "hybrid decision review",
+        "technology-specific validity",
+        "availability",
+        "architecture-vs-implementation boundary",
+    ):
+        assert needle in text, f"self-check prompt missing: {needle}"
+
+
+def test_clarification_prompt_has_decision_review_classification() -> None:
+    text = (
+        (_skill_root() / "prompts" / "06_architecture_clarification.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "review requirement" in text
+    assert "requires user review before implementation planning" in text
+
+
+def test_failure_prompt_has_probe_availability_policy() -> None:
+    text = (
+        (_skill_root() / "prompts" / "18_failure_handling_recovery.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "availability policy" in text
+    assert "auto-accept" in text
+
+
+def test_tech_stack_prompt_has_validity_rule() -> None:
+    text = (
+        (_skill_root() / "prompts" / "09_provisional_tech_stack_selection.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "tamper-evident" in text or "application-enforced" in text
+
+
+def test_template_has_decision_source_and_review_columns() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    assert "| Source | Review Requirement |" in template
+
+
+def test_template_self_check_lists_new_gates() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    for gate in V020_GATE_NAMES:
+        assert gate in template, f"template §24 missing gate: {gate}"
+
+
+def test_template_labels_proposed_namespaces() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    assert "proposed module namespaces" in template
+
+
+def test_example_models_new_gates_and_columns() -> None:
+    example = (
+        _skill_root() / "examples" / "translation_architecture_example.md"
+    ).read_text(encoding="utf-8")
+    assert "| Source | Review Requirement |" in example
+    for gate in V020_GATE_NAMES:
+        assert gate in example, f"example §24 missing gate: {gate}"
+    assert "proposed module namespaces" in example
+    # The example must model honest tech claims (skill version bumped too).
+    assert "tamper-evident" in example
+    assert "0.2.0" in example

@@ -84,9 +84,16 @@ conflicts and how they were resolved.>
 
 ## 3. Clarification Summary
 
-| # | Question | Decision | Mode | Reversible? | Revisit Trigger |
-|---|---|---|---|---|---|
-| 1 | <question> | <answer/assumption> | interactive / automatic | yes/no | <trigger> |
+| # | Question | Decision | Source | Review Requirement | Reversible? | Revisit Trigger |
+|---|---|---|---|---|---|---|
+| 1 | <question> | <answer/assumption> | user-confirmed / blueprint-derived / inferred / assumption / ADR-locked | none / review before implementation / review before production / blocks | yes/no | <trigger> |
+
+> In hybrid mode every major decision needs a **Source** and a **Review
+> Requirement**. A high-impact decision that was inferred or assumed (external
+> LLM use, source-data privacy, deployment model, storage backend, auth, data
+> retention, cost-sensitive routing, MCP exposure, human-approval workflow) must
+> be flagged "review before implementation planning" or stronger — hybrid mode
+> must not silently behave like automatic mode.
 
 ## 4. Architecture Goals and Constraints
 
@@ -375,6 +382,11 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 | AI cannot mutate state without validation | PASS/WARN/FAIL | <finding> | <action> | yes/no |
 | MVP-0/MVP-1 respected | PASS/WARN/FAIL | <finding> | <action> | yes/no |
 | Update behavior defined (if updating) | PASS/WARN/FAIL | <finding> | <action> | yes/no |
+| Metadata consistency | PASS/WARN/FAIL | counts match tables; A-N/ADR/Contents refs resolve | <action> | yes/no |
+| Hybrid decision review | PASS/WARN/FAIL | every §3 decision has source + review requirement | <action> | yes/no |
+| Technology-specific validity | PASS/WARN/FAIL | tech claims match actual capabilities | <action> | yes/no |
+| Probe/evaluator availability | PASS/WARN/FAIL | each model-backed evaluator has an availability policy (or n/a) | <action> | yes/no |
+| Architecture-vs-implementation boundary | PASS/WARN/FAIL | namespaces labelled proposed; no tickets/code/migrations | <action> | yes/no |
 
 ## 25. Handoff Notes for Implementation Planning
 
@@ -385,3 +397,11 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 - **Highest-risk areas to prototype:** <link §22>
 - **Decisions deferred to implementation:** <list>
 - **What the implementation-plan skill should NOT re-decide:** <ADR-locked items>
+- **Module namespaces (optional):** <if listed, present them as
+  proposed module namespaces for implementation planning — not mandatory
+  file-by-file implementation tasks>
+
+> Stay on the architecture side of the boundary: module boundaries, proposed
+> namespaces, contracts to freeze, high-risk prototypes, and ADR-locked
+> constraints are in scope. Task tickets, code patches, migration scripts, and
+> file-by-file steps are the implementation-plan skill's job — do not emit them.

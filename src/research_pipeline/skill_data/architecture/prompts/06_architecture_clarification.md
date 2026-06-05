@@ -43,10 +43,33 @@ Never ask what the blueprint or codebase already answers — inspect files first
 In automatic/hybrid mode, for every unanswered high-impact decision record an
 assumption with reason, reversibility, and a revisit trigger.
 
+## Hybrid-mode decision review classification
+
+Hybrid mode must not silently behave like automatic mode. For every major
+architecture decision, classify two things:
+
+- **Source:** user-confirmed / blueprint-derived / automatically inferred /
+  architecture assumption / ADR-locked.
+- **Review requirement:** no review needed / review before implementation
+  planning / review before production use / blocks implementation planning.
+
+A **high-impact** decision that was *automatically inferred or assumed* (not
+answered by the blueprint or user) must be marked
+**"Assumed — requires user review before implementation planning"** (or a
+stronger level). High-impact areas include: external LLM provider usage;
+source-data privacy / whether inputs reach external models; deployment model;
+storage backend; authentication / authorization; data retention; cost-sensitive
+model routing; MCP exposure; the human-approval workflow.
+
+Populate the §3 Clarification Summary table's **Source** and **Review
+Requirement** columns from this classification. Low-risk, reversible,
+blueprint-aligned decisions are "no review needed"; do not over-flag them.
+
 ## Output
 
-`intermediate/clarifications.md` — the questions asked and the
-answers/assumptions, ready to populate §3 and §4.9.
+`intermediate/clarifications.md` — the questions asked, the answers/assumptions,
+and the per-decision Source + Review Requirement classification, ready to
+populate §3 and §4.9.
 
 ## Validation / failure policy
 

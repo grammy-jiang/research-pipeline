@@ -15,6 +15,11 @@ not cross into implementation. The output FAILS if it contains:
       without rationale.
 - [ ] Secrets, API keys, or credentials of any kind.
 - [ ] Hidden/unstated unresolved questions (they must appear in §23).
+- [ ] File-by-file implementation steps, or package/module names presented as
+      final file paths rather than labelled "proposed module namespaces".
+- [ ] Enforcement/security claims a chosen technology does not actually provide
+      (downgrade absolute wording to application-enforced / tamper-evident /
+      best-effort and add a risk or ADR note).
 
 Allowed (and expected): tech-stack names with rationale, schema-level data
 objects (not migrations), interface contracts, C4 diagrams, ADRs, and

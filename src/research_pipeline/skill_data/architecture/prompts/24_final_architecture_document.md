@@ -16,12 +16,22 @@ You are producing the final architecture document and writing it to disk.
 3. Ensure `## Contents` links every numbered section and that `## Update
    History` has the correct row appended for this run (initial for new
    documents; a new row for updates — never delete prior rows).
-4. Write the document to `<topic-slug>-architecture-design.md`, co-located with
+4. **Enforce metadata consistency before writing:** the §1 metadata
+   `Clarification count` equals the §3 row count; `Assumptions made` equals the
+   §4.9 row count; every `A-N`, ADR, Contents, and section reference resolves;
+   no metadata is invented. Fix any mismatch (do not deliver inconsistent
+   metadata).
+5. **Label proposed namespaces, not file paths:** if §25 lists package/module
+   names, introduce them as "proposed module namespaces for implementation
+   planning, not mandatory file-by-file implementation tasks." Do not emit task
+   tickets, code patches, migration scripts, or file-by-file steps — those
+   belong to the implementation-plan skill.
+6. Write the document to `<topic-slug>-architecture-design.md`, co-located with
    the blueprint unless another output directory was specified. Write ADR files
    under `adr/`. In `compare` mode, emit the diff review instead of overwriting.
-5. If files cannot be written, output the full Markdown inline and state the
+7. If files cannot be written, output the full Markdown inline and state the
    recommended filename(s).
-6. End by pointing at the implementation-plan skill as the next stage (§25
+8. End by pointing at the implementation-plan skill as the next stage (§25
    handoff notes).
 
 ## Output
