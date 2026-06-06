@@ -295,7 +295,7 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.6.0"
+    assert data["version"] == "0.7.0"
 
 
 # --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
@@ -680,3 +680,111 @@ def test_manifest_mentions_recommended_next_stages() -> None:
     assert "Recommended Next Stages" in data["description"]
     compose = next(t for t in data["tasks"] if t["id"] == "compose-blueprint")
     assert "recommended_next_stages_present" in compose["validation"]
+
+
+# --- v0.7.0 skill: adaptive-routing clarity (Depends On, linear-vs-conditional
+# split, ASK_USER rationale, interaction-mode classification, heuristic label) ---
+
+_V07_DOCS = (
+    ("templates", "product_blueprint_template.md"),
+    ("tests", "sample_outputs", "product_blueprint_example.md"),
+)
+
+
+def test_stage_recommendations_have_depends_on_column() -> None:
+    """§19.2 must carry an explicit ``Depends On`` column (template + example)."""
+    for rel in _V07_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Depends On" in text, f"{rel} §19.2 missing Depends On column"
+    # The compose prompt and routing reference must instruct it.
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    ref = (_skill_root() / "references" / "adaptive-stage-gate-routing.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Depends On" in prompt
+    assert "Depends On" in ref
+
+
+def test_recommended_pipeline_splits_linear_and_conditional() -> None:
+    """§19 must separate the linear core path from conditional follow-up gates."""
+    for rel in _V07_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Recommended Linear Path" in text, (
+            f"{rel} missing Recommended Linear Path"
+        )
+        assert "Conditional Follow-up Gates" in text, (
+            f"{rel} missing Conditional Follow-up Gates"
+        )
+    ref = (_skill_root() / "references" / "adaptive-stage-gate-routing.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Recommended Linear Path" in ref
+    assert "Conditional Follow-up Gates" in ref
+
+
+def test_ask_user_decision_rationale_present() -> None:
+    """§19 must explain ASK_USER decisions (or their absence)."""
+    for rel in _V07_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "ASK_USER Decision Rationale" in text, (
+            f"{rel} missing ASK_USER Decision Rationale"
+        )
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "ASK_USER Decision Rationale" in gate or "ASK_USER absence" in gate
+
+
+def test_complexity_score_labelled_as_heuristic() -> None:
+    """§19.1 must flag the complexity score as a routing heuristic, not an estimate."""
+    for rel in _V07_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "routing heuristic" in text, f"{rel} §19.1 missing heuristic label"
+    ref = (_skill_root() / "references" / "adaptive-stage-gate-routing.md").read_text(
+        encoding="utf-8"
+    )
+    assert "routing heuristic" in ref
+
+
+def test_interaction_modes_have_classification_column() -> None:
+    """§9.4/§9.5 must classify each interaction mode with a controlled value."""
+    for rel in _V07_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "| Mode | Classification |" in text, (
+            f"{rel} §9.4 missing Classification column"
+        )
+    ref = (_skill_root() / "references" / "product-experience-direction.md").read_text(
+        encoding="utf-8"
+    )
+    # Controlled vocabulary + the AI-Skill-vs-MCP disambiguation must be documented.
+    assert "wrapper / integration surface" in ref
+    assert "primary surface" in ref
+
+
+def test_compose_prompt_covers_v07_routing_clarity() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "Recommended Linear Path",
+        "Conditional Follow-up Gates",
+        "ASK_USER Decision Rationale",
+        "routing heuristic",
+        "Classification",
+    ):
+        assert needle in prompt, f"compose prompt missing v0.7.0 element: {needle}"
+
+
+def test_quality_gate_covers_v07_routing_clarity() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "Depends On",
+        "Recommended Linear Path",
+        "Conditional Follow-up Gates",
+        "routing heuristic",
+    ):
+        assert needle in gate, f"quality gate missing v0.7.0 check: {needle}"

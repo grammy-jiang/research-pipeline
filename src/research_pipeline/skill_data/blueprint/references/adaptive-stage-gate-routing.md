@@ -67,7 +67,11 @@ Testing / E2E importance
 | 8–12 | medium | Run the relevant optional gates. |
 | 13+ | complex | Recommend the full gated workflow. |
 
-This is a disciplined reasoning aid, not a scientific score.
+This is a disciplined reasoning aid, not a scientific score. **Surface that
+honesty in the output:** after the total, add a one-line note that the score is
+a **routing heuristic, not a formal project estimate**, used to guide optional
+stage selection and to be revisited after architecture-design. The score guides
+routing; it never overrides human judgement or downstream review.
 
 ## Per-stage rules
 
@@ -151,6 +155,65 @@ A conditional repair / reconciliation mode, never a mandatory stage.
 - **DEFER** — at blueprint stage (no architecture to reconcile yet); revisit
   when a conflict is detected.
 
+## Stage-recommendation table columns (incl. `Depends On`)
+
+The §19.2 Stage Recommendations table carries one row per stage with these
+columns:
+
+```text
+Stage | Decision | Depends On | Confidence | Reason | Blocks Next Step? | Revisit Trigger
+```
+
+`Depends On` makes the prerequisite explicit so the pipeline does not look more
+rigid (or more parallel) than it is. It is **not** the same as `Revisit
+Trigger`: `Depends On` names the prerequisite artifact/stage; `Revisit Trigger`
+names the event that re-opens a DEFER. Typical dependencies for this pipeline:
+
+| Stage | Typically depends on |
+|---|---|
+| architecture-design | blueprint |
+| tech-stack-selection | architecture-design (or initial architecture assumptions) |
+| security-review | architecture-design (data flow + trust boundaries) |
+| ux-design | architecture-design (states, contracts, review artifacts) |
+| test-design | ux-design or implementation-plan |
+| architecture-update | architecture-design + a changed downstream decision |
+| architecture-reconciliation | architecture-design + a conflict report |
+
+These are defaults, not laws — a project may run tech-stack-selection alongside
+an initial architecture pass, or fold a simple security review into
+architecture-design. State the actual dependency in the row.
+
+## Recommended pipeline: linear path + conditional follow-up gates
+
+Do **not** present the recommended pipeline as one flat list — that hides which
+stages are conditional and can make a deferred stage look forgotten. Split it:
+
+- **Recommended Linear Path** — the core, near-always-ordered sequence
+  (research-pipeline → blueprint → architecture-design → … →
+  implementation-plan). Include only stages that are RUN now or are an expected
+  part of the main path.
+- **Conditional Follow-up Gates** — a small table for stages that run only when
+  a condition is met (chiefly `architecture-update` and
+  `architecture-reconciliation`, plus any DEFERred conditional stage). Columns:
+  `Gate | Run When | Typical Input | Output`. Every deferred conditional stage
+  from §19.2 must appear here with its run condition — so nothing silently
+  disappears from the routing picture.
+
+## ASK_USER rationale
+
+The router must not look over-confident on a high-risk project. After the Stage
+Recommendations table, add a short **ASK_USER Decision Rationale**:
+
+- If any stage is **ASK_USER**, name the missing decision input for each.
+- If **no** stage is ASK_USER, briefly justify why — each high-impact unknown
+  (e.g. external data egress, deployment environment, data sensitivity,
+  compliance) is either already answered by the source report / §9 Product
+  Experience Direction, deferred to architecture-design (states/contracts/data
+  flow), or delegated to security-review — and name the downstream owner. If a
+  high-impact unknown is none of these, emit ASK_USER instead of assuming.
+
+Keep it to a few lines; it is a discipline check, not an essay.
+
 ## Integrate Product Experience Direction (§9)
 
 §9 makes the routing actionable, not decorative:
@@ -164,9 +227,12 @@ A conditional repair / reconciliation mode, never a mandatory stage.
 
 ## Output discipline (§19 stays compact)
 
-§19 is **one compact section**: one complexity table, one stage-recommendation
-table, one short recommended pipeline, one decision-log table. Use scoring and
-tables; avoid essays; do not describe full downstream skill outputs.
+§19 is **one compact section**: a complexity table (with the one-line heuristic
+note), a stage-recommendation table (with `Depends On`), a few-line ASK_USER
+rationale, a recommended pipeline (linear path + a small conditional-gates
+table), and a decision-log table. Use scoring and tables; avoid essays; do not
+describe full downstream skill outputs. The clarity additions are columns and
+small tables, not new prose sections.
 
 ## Adaptive Stage-Gate Recommendation Gate
 
@@ -182,17 +248,26 @@ with a required action and a blocks-handoff verdict).
 | DEFER decisions have revisit trigger | Each DEFER names the artifact/condition that revisits it. |
 | ASK_USER decisions identify missing info | Each ASK_USER names the missing decision input. |
 | Product Experience Direction informs recommendations | §9 signals are reflected in the UX/security/test decisions. |
+| Stage table has `Depends On` | §19.2 makes each stage's prerequisite explicit. |
+| Linear path vs conditional gates split | §19 separates the linear core path from a Conditional Follow-up Gates table; no deferred conditional stage is dropped. |
+| ASK_USER absence explained | When no stage is ASK_USER, §19 justifies why (answered / deferred / delegated, with an owner). |
+| Complexity score labelled heuristic | §19.1 flags the score as a routing heuristic with a revisit point. |
 
 ### Fail conditions
 
 `FAIL` if: the Recommended Next Stages section is missing; a decision uses
 uncontrolled wording; a RUN lacks evidence; an ASK_USER does not identify the
 missing information; architecture-design is skipped without strong
-justification; or a high-risk project recommends no optional gates.
+justification; a high-risk project recommends no optional gates; or ASK_USER is
+absent despite an unresolved high-impact unknown with no downstream owner.
 
 ### Warning conditions
 
 `WARNING` if: ux-design is skipped despite human review or multiple user roles;
 security-review is skipped despite external data egress; test-design is skipped
-despite E2E-critical workflows; or tech-stack-selection is skipped despite
-multiple serious technology choices.
+despite E2E-critical workflows; tech-stack-selection is skipped despite multiple
+serious technology choices; the Stage Recommendations table omits `Depends On`;
+a deferred conditional gate has no run condition / revisit trigger; the
+recommended pipeline is a single flat list with no linear-vs-conditional split;
+the complexity score is presented as a formal estimate; or an interaction-mode
+label is ambiguous (see `references/product-experience-direction.md`).

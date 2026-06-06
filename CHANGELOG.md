@@ -2,6 +2,50 @@
 
 All notable changes to research-pipeline.
 
+## [v0.22.0] — 2026-06-06
+
+### Changed
+
+- **`blueprint` skill — adaptive next-stage routing clarity (skill manifest
+  0.6.0 → 0.7.0).** A focused follow-up to the §19 router and §9 Product
+  Experience Direction, acting on an external review of a generated blueprint.
+  No redesign — the changes are columns, a couple of small tables, and a short
+  rationale, all tech/domain-neutral and folded into the existing
+  prompts/templates/reference/example:
+  - **§19.2 `Depends On` column.** The Stage Recommendations table now states
+    each stage's prerequisite explicitly (e.g. security-review and ux-design
+    depend on architecture-design), distinct from the revisit trigger, so the
+    pipeline no longer looks more rigid — or more parallel — than intended.
+  - **§19.4 Recommended Pipeline split.** The single flat pipeline list is now a
+    **Recommended Linear Path** (core ordered sequence) plus a **Conditional
+    Follow-up Gates** table (`Gate | Run When | Typical Input | Output`), so
+    deferred conditional stages — chiefly `architecture-update` /
+    `architecture-reconciliation` — are never silently dropped from the routing
+    picture.
+  - **§19.3 ASK_USER Decision Rationale.** When no stage is `ASK_USER`, §19 now
+    justifies why (each high-impact unknown is already answered by the source
+    report / §9, deferred to architecture-design, or delegated to
+    security-review, with a named owner) instead of looking over-confident;
+    `FAIL` if `ASK_USER` is absent despite an unresolved high-impact unknown with
+    no downstream owner.
+  - **§19.1 complexity score labelled a routing heuristic.** The output now
+    states that the `/ 21` score is a routing heuristic, not a formal project
+    estimate, to be revisited after architecture-design — preventing false
+    precision.
+  - **§9.4 / §9.5 interaction-mode `Classification`.** Every interaction mode now
+    carries a controlled classification — *primary surface* / *secondary
+    surface* / *wrapper / integration surface* / *future surface* — with an
+    explicit rule that "AI Skill" must be disambiguated (usually a
+    wrapper/integration surface around the CLI/core, not a separate runtime) and
+    never conflated with MCP (a tool surface for external AI agents).
+  - **Quality gates.** The Product Experience Gate gains an "Interaction modes
+    classified" row; the Adaptive Stage-Gate Recommendation Gate gains
+    "Stage table has Depends On", "Linear-path vs conditional-gates split",
+    "ASK_USER absence explained", and "Complexity score labelled heuristic" rows,
+    plus matching WARNING conditions. The §19 output-discipline budget was
+    updated so the additions (columns + small tables) do not contradict the
+    "keep §19 compact" rule.
+
 ## [v0.21.0] — 2026-06-06
 
 ### Added

@@ -57,10 +57,17 @@ architecture stage does not invent UX assumptions. Blueprint defines the
 experience direction; architecture defines the UX-enabling technical structure;
 a later UX-design skill defines the detailed experience. Include, compactly:
 Primary Experience Thesis · Primary User / Operator · Primary Job-to-Be-Done ·
-Primary Interaction Mode (with MVP stage + rationale) · Secondary / Future
-Interaction Modes · Critical Trust, Control, and Transparency Requirements ·
-Human-in-the-Loop Experience · Failure and Recovery Expectations · UX
-Assumptions for Architecture · Product Experience Handoff to Architecture.
+Primary Interaction Mode (with a Classification, MVP stage + rationale) ·
+Secondary / Future Interaction Modes · Critical Trust, Control, and Transparency
+Requirements · Human-in-the-Loop Experience · Failure and Recovery Expectations ·
+UX Assumptions for Architecture · Product Experience Handoff to Architecture.
+
+- **Classify every interaction mode** (§9.4 and §9.5) with a controlled value:
+  *primary surface* · *secondary surface* · *wrapper / integration surface* ·
+  *future surface*. Disambiguate "AI Skill" (usually a wrapper / integration
+  surface around the CLI/core, not a separate runtime) and never conflate it
+  with MCP (a tool surface for external AI agents). See
+  `references/product-experience-direction.md`.
 
 - Keep it to **1–2 pages** in `standard` output; use tables, not long prose;
   include only UX detail that affects architecture or MVP scope.
@@ -198,11 +205,23 @@ compact artifacts, all overrideable defaults (full rules in
   complexity, technical ambiguity, security/privacy risk, AI/LLM uncertainty,
   integration complexity, human-review complexity, testing/E2E importance); give
   the total `/ 21` and a workflow class (simple / lightweight / medium / complex).
+  Add a one-line note that the score is a **routing heuristic, not a formal
+  project estimate**, to be revisited after architecture-design.
 - **Stage Recommendations** — one row per stage (architecture-design,
   tech-stack-selection, ux-design, security-review, test-design,
   architecture-update, architecture-reconciliation) with a controlled decision
-  (**RUN / SKIP / DEFER / ASK_USER**), confidence, reason, blocks-next-step, and
-  revisit trigger.
+  (**RUN / SKIP / DEFER / ASK_USER**), a **`Depends On`** prerequisite,
+  confidence, reason, blocks-next-step, and revisit trigger. Columns:
+  `Stage | Decision | Depends On | Confidence | Reason | Blocks Next Step? | Revisit Trigger`.
+- **ASK_USER Decision Rationale** — if any stage is ASK_USER, name the missing
+  input; if none is, briefly justify why each high-impact unknown is already
+  answered, deferred to architecture-design, or delegated to security-review
+  (name the owner). Do not silently assume a high-impact unknown.
+- **Recommended Pipeline** — split into a **Recommended Linear Path** (the core
+  ordered sequence) and a small **Conditional Follow-up Gates** table
+  (`Gate | Run When | Typical Input | Output`) so deferred conditional stages —
+  chiefly architecture-update / architecture-reconciliation — are not dropped
+  from the picture.
 - **Stage-Gate Decision Log** — evidence, risk-if-wrong, and revisit trigger for
   the key decisions.
 
@@ -211,15 +230,18 @@ Rules:
 - `architecture-design` is normally **RUN**; SKIP only for a trivial or no-build
   output.
 - `architecture-update` and `architecture-reconciliation` default to **DEFER**
-  at blueprint stage (no architecture document exists yet).
+  at blueprint stage (no architecture document exists yet) and appear in the
+  Conditional Follow-up Gates table with their run condition.
 - Every RUN/ASK_USER cites blueprint evidence; every SKIP gives a reason; every
-  DEFER names a revisit trigger. No vague wording (`maybe`, `consider`,
-  `nice to have`).
+  DEFER names a revisit trigger; every stage names what it `Depends On`. No vague
+  wording (`maybe`, `consider`, `nice to have`).
 - Let §9 Product Experience Direction drive the UX/security/test decisions
   (human review → ux-design / test-design; external egress → security-review;
   CLI-first → ux-design DEFER; future MCP → tech-stack-selection RUN/DEFER).
-- Keep §19 compact: one complexity table, one recommendation table, one short
-  recommended pipeline, one decision log.
+- Keep §19 compact: a complexity table + heuristic note, a recommendation table
+  with `Depends On`, a few-line ASK_USER rationale, a recommended pipeline
+  (linear path + a small conditional-gates table), and a decision log. The
+  clarity additions are columns and small tables, not new essays.
 
 ## Optional Appendix B — Design Decision Register
 

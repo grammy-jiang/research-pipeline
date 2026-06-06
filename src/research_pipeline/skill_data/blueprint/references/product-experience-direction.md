@@ -38,8 +38,10 @@ A compact `## 9. Product Experience Direction` section with:
   need.
 - **Primary Job-to-Be-Done** — the job and its success outcome.
 - **Primary Interaction Mode** — CLI / Web UI / Desktop GUI / TUI / API / AI
-  Skill / MCP / Hybrid, with MVP stage and rationale.
-- **Secondary / Future Interaction Modes** — staged, with a revisit trigger.
+  Skill / MCP / Hybrid, with a **classification** (see below), MVP stage, and
+  rationale.
+- **Secondary / Future Interaction Modes** — staged, with a classification and a
+  revisit trigger.
 - **Critical Trust, Control, and Transparency Requirements** — and their
   architecture impact.
 - **Human-in-the-Loop Experience** — trigger, user decision, expected product
@@ -50,6 +52,35 @@ A compact `## 9. Product Experience Direction` section with:
   impact.
 
 Keep it **compact**: 1–2 pages maximum in `standard` output, tables over prose.
+
+## Interaction-mode classification
+
+Architecture consumes §9, so an ambiguous interaction-mode label can mislead it
+(e.g. building a separate AI-skill runtime when the intent was only a callable
+wrapper). Give every mode in §9.4 (Primary) and §9.5 (Secondary / Future) a
+controlled **Classification**:
+
+| Classification | Meaning |
+|---|---|
+| **primary surface** | The main runtime interface users/operators drive at MVP. |
+| **secondary surface** | An additional surface present at MVP, but not primary. |
+| **wrapper / integration surface** | A callable wrapper around another surface (e.g. an AI skill or thin API over the CLI) — not a separate runtime product. |
+| **future surface** | Deferred to a later phase, with a revisit trigger. |
+
+Disambiguation rules:
+
+- **"AI Skill" must be classified explicitly** — usually a *wrapper /
+  integration surface* (a callable workflow around the CLI/core), occasionally a
+  *primary surface* (a distinct runtime). Never leave it as a bare "AI Skill"
+  that architecture has to guess at.
+- **"AI Skill" is not "MCP".** MCP is a tool surface for *external AI agents* to
+  call the system; an AI-skill wrapper is how *this* workflow is invoked. Tag
+  them separately; do not merge them in one cell.
+- Combining two modes in one cell (e.g. "CLI / AI Skill") is acceptable **only**
+  if both share the same classification; otherwise split them into separate rows.
+
+This is still UX **intent** — classify the surface, do not design it (no command
+syntax, schemas, or routes).
 
 ## What §9 must NOT include
 
@@ -132,6 +163,7 @@ Add these rows to the Appendix A self-check (status `PASS` / `WARNING` /
 | Primary job-to-be-done defined | §9 states the job and success outcome. |
 | Primary experience thesis defined | §9 has a one/two-sentence experience thesis. |
 | Primary interaction mode selected | A primary mode with rationale + MVP stage. |
+| Interaction modes classified | Each §9.4/§9.5 mode carries a controlled classification; "AI Skill" is disambiguated and not conflated with MCP (only when multiple modes are listed). |
 | Trust / control / transparency needs defined | Present for an AI-heavy system. |
 | Human-in-the-loop experience defined where needed | Present when review is required. |
 | Failure / recovery expectations defined | High-level recovery experience present. |
@@ -159,7 +191,9 @@ Add these rows to the Appendix A self-check (status `PASS` / `WARNING` /
 - CLI is selected but the first users are non-technical;
 - human review is deferred despite high quality risk;
 - data egress is possible but user visibility is not defined;
-- auditability is required but user-facing audit access is not defined.
+- auditability is required but user-facing audit access is not defined;
+- an interaction-mode label is ambiguous or unclassified (e.g. a bare "AI Skill"
+  not tagged as a wrapper/integration vs primary surface, or conflated with MCP).
 
 ## Output budget
 

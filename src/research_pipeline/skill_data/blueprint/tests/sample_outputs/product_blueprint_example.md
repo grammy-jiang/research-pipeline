@@ -275,16 +275,16 @@ transparent about what was stored, why, and what can be deleted.
 
 ### 9.4 Primary Interaction Mode
 
-| Mode | MVP Stage | Rationale |
-|---|---|---|
-| API / agent-facing surface | MVP-0 | Primary consumer is an agent; the value path is programmatic read/write |
+| Mode | Classification | MVP Stage | Rationale |
+|---|---|---|---|
+| API / agent-facing surface | primary surface | MVP-0 | Primary consumer is an agent; the value path is programmatic read/write. Not an MCP tool surface (no external AI client at MVP) and not an AI-skill wrapper — it is the product's own runtime interface |
 
 ### 9.5 Secondary / Future Interaction Modes
 
-| Mode | Stage | Reason Deferred | Revisit Trigger |
-|---|---|---|---|
-| CLI for developer audit | MVP-1 | Not needed to prove the agent value path | Developers need to inspect/correct memory |
-| Web UI | Future | No human-facing review at MVP | Non-technical reviewers need direct access |
+| Mode | Classification | Stage | Reason Deferred | Revisit Trigger |
+|---|---|---|---|---|
+| CLI for developer audit | secondary surface | MVP-1 | Not needed to prove the agent value path | Developers need to inspect/correct memory |
+| Web UI | future surface | Future | No human-facing review at MVP | Non-technical reviewers need direct access |
 
 ### 9.6 Critical Trust, Control, and Transparency Requirements
 
@@ -522,19 +522,37 @@ ACADEMIC gaps still applying:** optimal consolidation frequency [2403.09999].
 **Total Score:** 16 / 21
 **Recommended Workflow Class:** complex (13+)
 
+> This complexity score is a **routing heuristic, not a formal project
+> estimate**. It guides optional stage selection and should be revisited after
+> architecture-design; it does not override human judgement or downstream review.
+
 ### 19.2 Stage Recommendations
 
-| Stage | Decision | Confidence | Reason | Blocks Next Step? | Revisit Trigger |
-|---|---|---:|---|---|---|
-| architecture-design | RUN | High | Defines AI boundary, state model, storage/retrieval, audit ledger, deletion verification, and trust boundaries (§10, §13) | Yes | Always after blueprint |
-| tech-stack-selection | RUN | High | Storage, indexing/search, embedding, audit-ledger, and evaluator-runtime choices materially shape the data layer | Yes | After architecture-design defines containers / data flow |
-| security-review | RUN | High | Poisoning, cross-scope leakage, and verifiable deletion are release gates (§13); trust boundaries need review | Yes | After architecture-design defines data flow / trust boundaries |
-| ux-design | DEFER | Medium | Primary user is an agent (API); developer audit + contradiction review are MVP-1 (§9); architecture must define states/contracts first | No | After architecture-design; before MVP-1 developer surfaces |
-| test-design | DEFER | High | E2E seeds exist (§14) but should derive from architecture contracts and deferred UX stories | No | After architecture-design / ux-design, or at implementation-plan |
-| architecture-update | DEFER | High | No architecture document exists yet | No | After tech-stack-selection or security-review changes assumptions |
-| architecture-reconciliation | DEFER | High | Only needed if downstream design conflicts with architecture | No | When a conflict is detected |
+> `Depends On` names the prerequisite stage/artifact (distinct from `Revisit
+> Trigger`, the event that re-opens a DEFER).
 
-### 19.3 Recommended Pipeline
+| Stage | Decision | Depends On | Confidence | Reason | Blocks Next Step? | Revisit Trigger |
+|---|---|---|---:|---|---|---|
+| architecture-design | RUN | blueprint | High | Defines AI boundary, state model, storage/retrieval, audit ledger, deletion verification, and trust boundaries (§10, §13) | Yes | Always after blueprint |
+| tech-stack-selection | RUN | architecture-design | High | Storage, indexing/search, embedding, audit-ledger, and evaluator-runtime choices materially shape the data layer | Yes | After architecture-design defines containers / data flow |
+| security-review | RUN | architecture-design | High | Poisoning, cross-scope leakage, and verifiable deletion are release gates (§13); trust boundaries need review | Yes | After architecture-design defines data flow / trust boundaries |
+| ux-design | DEFER | architecture-design | Medium | Primary user is an agent (API); developer audit + contradiction review are MVP-1 (§9); architecture must define states/contracts first | No | After architecture-design; before MVP-1 developer surfaces |
+| test-design | DEFER | ux-design or implementation-plan | High | E2E seeds exist (§14) but should derive from architecture contracts and deferred UX stories | No | After architecture-design / ux-design, or at implementation-plan |
+| architecture-update | DEFER | architecture-design + a changed downstream decision | High | No architecture document exists yet | No | After tech-stack-selection or security-review changes assumptions |
+| architecture-reconciliation | DEFER | architecture-design + a conflict report | High | Only needed if downstream design conflicts with architecture | No | When a conflict is detected |
+
+### 19.3 ASK_USER Decision Rationale
+
+No ASK_USER decisions were emitted. The high-impact unknowns are accounted for, not silently assumed:
+- Cross-scope isolation and verifiable deletion are already defined as release-gate requirements (§13) and §9 trust requirements — not open questions.
+- Storage / indexing / embedding / evaluator-runtime choices are deferred to tech-stack-selection (a RUN gate), not assumed here.
+- Data-sensitivity and deployment-environment specifics are delegated to security-review (a RUN gate), which validates trust boundaries and egress.
+
+If the deployment environment or data-retention / compliance policy is still unspecified after architecture-design defines the data flow, security-review should emit ASK_USER rather than assume a default.
+
+### 19.4 Recommended Pipeline
+
+#### Recommended Linear Path
 
 ```text
 research-pipeline
@@ -542,13 +560,19 @@ research-pipeline
   -> architecture-design
   -> tech-stack-selection
   -> security-review
-  -> architecture-update (if assumptions change)
   -> ux-design (before MVP-1 developer surfaces)
   -> test-design
   -> implementation-plan
 ```
 
-### 19.4 Stage-Gate Decision Log
+#### Conditional Follow-up Gates
+
+| Gate | Run When | Typical Input | Output |
+|---|---|---|---|
+| architecture-update | tech-stack-selection or security-review changes storage / data-flow / trust-boundary assumptions | architecture + changed decisions | patched architecture |
+| architecture-reconciliation | ux-design / test-design / security-review conflicts with architecture states or contracts | architecture + conflict report | reconciliation recommendations or patched architecture |
+
+### 19.5 Stage-Gate Decision Log
 
 | Decision | Evidence | Risk if Wrong | Revisit Trigger |
 |---|---|---|---|
@@ -597,6 +621,7 @@ Architecture?".
 | Primary job-to-be-done defined | PASS | Reuse trustworthy prior context across sessions. | — | No |
 | Primary experience thesis defined | PASS | Trustworthy local-first memory keeper; conservative under risk. | — | No |
 | Primary interaction mode selected | PASS | Agent-facing API at MVP-0, with rationale. | — | No |
+| Interaction modes classified | PASS | API = primary surface; CLI = secondary surface; Web UI = future surface; not conflated with MCP/AI-skill. | — | No |
 | Trust / control / transparency needs defined | PASS | Admission rationale, verifiable deletion, scope visibility. | — | No |
 | Human-in-the-loop experience defined where needed | PASS | Contradiction review surfaced at MVP-1. | — | No |
 | Failure / recovery expectations defined | PASS | Fail-closed on evaluator/deletion-verification failure. | — | No |
@@ -614,3 +639,7 @@ means "blocks the recommended next stage".
 | DEFER decisions have revisit trigger | PASS | ux-design, test-design, architecture-update/-reconciliation each name a trigger. | — | No |
 | ASK_USER decisions identify missing info | PASS | No ASK_USER needed; the report fixes data sensitivity and the primary user. | — | No |
 | Product Experience Direction informs recommendations | PASS | Agent-first API (§9) drives ux-design DEFER; egress/leakage risk drives security-review RUN. | — | No |
+| Stage table has Depends On | PASS | §19.2 names each prerequisite (architecture-design ← blueprint; security/ux/tech ← architecture-design; test-design ← ux-design/implementation-plan). | — | No |
+| Linear-path vs conditional-gates split | PASS | §19.4 separates the linear path from a Conditional Follow-up Gates table; architecture-update/-reconciliation appear there with run conditions. | — | No |
+| ASK_USER absence explained | PASS | §19.3 justifies why no ASK_USER (defined in §13/§9, deferred to tech-stack-selection, delegated to security-review). | — | No |
+| Complexity score labelled heuristic | PASS | §19.1 flags the 16/21 score as a routing heuristic to revisit after architecture-design. | — | No |

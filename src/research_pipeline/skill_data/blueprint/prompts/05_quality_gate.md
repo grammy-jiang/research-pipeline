@@ -126,11 +126,14 @@ Gate rows in the self-check.
   trust/control/transparency requirements are absent for an AI-heavy system; or
   UX assumptions are not handed off to architecture.
 - `WARNING` if any of: multiple interaction modes are plausible but none is
-  primary; MCP is selected without a clear external AI-client need; Web UI is
-  selected but users are mostly technical and CLI/API may be cheaper; CLI is
-  selected but first users are non-technical; human review is deferred despite
-  high quality risk; data egress is possible but user visibility is undefined;
-  or auditability is required but user-facing audit access is undefined.
+  primary; an interaction-mode label is ambiguous or unclassified (a bare "AI
+  Skill" not tagged wrapper/integration vs primary surface, or conflated with
+  MCP) when multiple modes are listed; MCP is selected without a clear external
+  AI-client need; Web UI is selected but users are mostly technical and CLI/API
+  may be cheaper; CLI is selected but first users are non-technical; human review
+  is deferred despite high quality risk; data egress is possible but user
+  visibility is undefined; or auditability is required but user-facing audit
+  access is undefined.
 - `FAIL` (UX over-reach) if §9 contains screen layout, wireframes, CSS/visual
   design, exact CLI syntax/flags, exact MCP/API schemas, detailed copywriting,
   or implementation tasks — relocate those to a later UX-design/implementation
@@ -146,14 +149,21 @@ Recommendation Gate rows in the self-check.
 - `FAIL` if any of: the Recommended Next Stages section is missing; a stage
   decision uses uncontrolled wording instead of RUN / SKIP / DEFER / ASK_USER; a
   RUN lacks evidence; an ASK_USER does not identify the missing information;
-  `architecture-design` is skipped without strong justification; or a high-risk
-  project (complexity ≥ 13) recommends no optional gates.
+  `architecture-design` is skipped without strong justification; a high-risk
+  project (complexity ≥ 13) recommends no optional gates; or ASK_USER is absent
+  despite an unresolved high-impact unknown with no downstream owner.
 - `WARNING` if any of: `ux-design` is skipped despite human review or multiple
   user roles; `security-review` is skipped despite external data egress;
   `test-design` is skipped despite E2E-critical workflows;
   `tech-stack-selection` is skipped despite multiple serious technology choices;
-  a DEFER has no revisit trigger; or `architecture-update` /
-  `architecture-reconciliation` is not DEFER at blueprint stage.
+  a DEFER has no revisit trigger; `architecture-update` /
+  `architecture-reconciliation` is not DEFER at blueprint stage; the Stage
+  Recommendations table omits the **`Depends On`** column; the recommended
+  pipeline is a single flat list with no **Recommended Linear Path** /
+  **Conditional Follow-up Gates** split (or a deferred conditional gate is
+  dropped from it); the **ASK_USER Decision Rationale** is missing when no stage
+  is ASK_USER; or the complexity score is presented as a formal estimate rather
+  than a labelled **routing heuristic**.
 - Confirm §9 Product Experience Direction signals are reflected in the
   UX/security/test decisions.
 
@@ -211,15 +221,18 @@ never a passive note. Example rows:
 
 Then add the **Product Experience Gate** rows (§9): Primary user identified ·
 Primary job-to-be-done defined · Primary experience thesis defined · Primary
-interaction mode selected · Trust / control / transparency needs defined ·
-Human-in-the-loop experience defined where needed · Failure / recovery
-expectations defined · UX assumptions handed off to architecture. Each carries a
-status, a concrete required action for any WARNING/FAIL, and a
-blocks-technical-design verdict (here "Blocks Architecture?" ≡ "Blocks TD?").
+interaction mode selected · Interaction modes classified · Trust / control /
+transparency needs defined · Human-in-the-loop experience defined where needed ·
+Failure / recovery expectations defined · UX assumptions handed off to
+architecture. Each carries a status, a concrete required action for any
+WARNING/FAIL, and a blocks-technical-design verdict (here "Blocks Architecture?"
+≡ "Blocks TD?").
 
 Then add the **Adaptive Stage-Gate Recommendation Gate** rows (§19): Recommended
 Next Stages section exists · Controlled decision values used · RUN decisions
 have evidence · SKIP decisions have reason · DEFER decisions have revisit
 trigger · ASK_USER decisions identify missing info · Product Experience
-Direction informs recommendations. Each carries a status, a required action for
-any WARNING/FAIL, and a blocks-next-stage verdict.
+Direction informs recommendations · Stage table has Depends On · Linear-path vs
+conditional-gates split · ASK_USER absence explained · Complexity score labelled
+heuristic. Each carries a status, a required action for any WARNING/FAIL, and a
+blocks-next-stage verdict.

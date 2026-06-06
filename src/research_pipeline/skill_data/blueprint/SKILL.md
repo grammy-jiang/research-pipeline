@@ -291,20 +291,26 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
    and every appendix present; the main end-to-end workflow and the logical
    architecture each have a Mermaid diagram.
 8. **Product Experience Gate** — §9 names a primary user, job-to-be-done,
-   experience thesis, and primary interaction mode; defines
-   trust/control/transparency needs, human-in-the-loop, and failure/recovery
-   where relevant; and hands UX assumptions off to architecture. It stays UX
-   **intent** (no wireframes, screen layout, exact CLI/MCP/API syntax, or copy).
-   Full fail/warning conditions in `references/product-experience-direction.md`.
+   experience thesis, and primary interaction mode; classifies each interaction
+   mode (primary / secondary / wrapper-integration / future surface — "AI Skill"
+   disambiguated, not conflated with MCP); defines trust/control/transparency
+   needs, human-in-the-loop, and failure/recovery where relevant; and hands UX
+   assumptions off to architecture. It stays UX **intent** (no wireframes, screen
+   layout, exact CLI/MCP/API syntax, or copy). Full fail/warning conditions in
+   `references/product-experience-direction.md`.
 9. **Adaptive Stage-Gate Recommendation Gate** — §19 Recommended Next Stages
-   exists with a complexity assessment and a stage-recommendation table; every
-   stage uses a controlled decision (RUN / SKIP / DEFER / ASK_USER); each RUN
-   has evidence, each SKIP a reason, each DEFER a revisit trigger, and each
-   ASK_USER the missing information; `architecture-design` is normally RUN and
-   `architecture-update` / `architecture-reconciliation` default to DEFER at
-   blueprint stage; and §9 Product Experience Direction informs the
-   UX/security/test decisions. The skill recommends — it does not silently
-   expand the pipeline. Full conditions in
+   exists with a complexity assessment (labelled a **routing heuristic**, not a
+   formal estimate) and a stage-recommendation table with a **`Depends On`**
+   column; every stage uses a controlled decision (RUN / SKIP / DEFER /
+   ASK_USER); each RUN has evidence, each SKIP a reason, each DEFER a revisit
+   trigger, and each ASK_USER the missing information; an **ASK_USER rationale**
+   explains any absence of ASK_USER; the recommended pipeline splits a
+   **Recommended Linear Path** from a **Conditional Follow-up Gates** table (so
+   deferred conditional stages are not dropped); `architecture-design` is
+   normally RUN and `architecture-update` / `architecture-reconciliation` default
+   to DEFER at blueprint stage; and §9 Product Experience Direction informs the
+   UX/security/test decisions. The skill recommends — it does not silently expand
+   the pipeline. Full conditions in
    `references/adaptive-stage-gate-routing.md`.
 
 Fail immediately if any tech-stack choice, code, or implementation ticket

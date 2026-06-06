@@ -254,15 +254,20 @@ The product should feel like `<short description of the intended experience>`.
 
 ### 9.4 Primary Interaction Mode
 
-| Mode | MVP Stage | Rationale |
-|---|---|---|
-| CLI / Web UI / Desktop GUI / TUI / API / AI Skill / MCP / Hybrid | MVP-0 / MVP-1 / Future | ... |
+> Classify every mode (primary surface / secondary surface / wrapper /
+> integration surface / future surface). Disambiguate "AI Skill" (usually a
+> wrapper/integration surface around the CLI/core, not a separate runtime) and
+> do not conflate it with MCP. See `references/product-experience-direction.md`.
+
+| Mode | Classification | MVP Stage | Rationale |
+|---|---|---|---|
+| CLI / Web UI / Desktop GUI / TUI / API / AI Skill / MCP / Hybrid | primary surface | MVP-0 / MVP-1 / Future | ... |
 
 ### 9.5 Secondary / Future Interaction Modes
 
-| Mode | Stage | Reason Deferred | Revisit Trigger |
-|---|---|---|---|
-| ... | ... | ... | ... |
+| Mode | Classification | Stage | Reason Deferred | Revisit Trigger |
+|---|---|---|---|---|
+| ... | secondary surface / wrapper / integration surface / future surface | ... | ... | ... |
 
 ### 9.6 Critical Trust, Control, and Transparency Requirements
 
@@ -510,19 +515,43 @@ The next technical-design stage must decide:
 **Total Score:** ... / 21
 **Recommended Workflow Class:** simple (0–3) / lightweight (4–7) / medium (8–12) / complex (13+)
 
+> This complexity score is a **routing heuristic, not a formal project
+> estimate**. It guides optional stage selection and should be revisited after
+> architecture-design; it does not override human judgement or downstream review.
+
 ### 19.2 Stage Recommendations
 
-| Stage | Decision | Confidence | Reason | Blocks Next Step? | Revisit Trigger |
-|---|---|---:|---|---|---|
-| architecture-design | RUN | High | ... | Yes | Always after blueprint |
-| tech-stack-selection | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
-| ux-design | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
-| security-review | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
-| test-design | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
-| architecture-update | DEFER | High | No architecture exists yet; revisit after tech-stack / UX / security changes | No | After architecture-design |
-| architecture-reconciliation | DEFER | High | Only needed if downstream design conflicts with architecture | No | When a conflict is detected |
+> `Depends On` names the prerequisite stage/artifact (distinct from `Revisit
+> Trigger`, which names the event that re-opens a DEFER).
 
-### 19.3 Recommended Pipeline
+| Stage | Decision | Depends On | Confidence | Reason | Blocks Next Step? | Revisit Trigger |
+|---|---|---|---:|---|---|---|
+| architecture-design | RUN | blueprint | High | ... | Yes | Always after blueprint |
+| tech-stack-selection | RUN / SKIP / DEFER / ASK_USER | architecture-design | ... | ... | ... | ... |
+| ux-design | RUN / SKIP / DEFER / ASK_USER | architecture-design | ... | ... | ... | ... |
+| security-review | RUN / SKIP / DEFER / ASK_USER | architecture-design | ... | ... | ... | ... |
+| test-design | RUN / SKIP / DEFER / ASK_USER | ux-design or implementation-plan | ... | ... | ... | ... |
+| architecture-update | DEFER | architecture-design + a changed downstream decision | High | No architecture exists yet; revisit after tech-stack / UX / security changes | No | After architecture-design |
+| architecture-reconciliation | DEFER | architecture-design + a conflict report | High | Only needed if downstream design conflicts with architecture | No | When a conflict is detected |
+
+### 19.3 ASK_USER Decision Rationale
+
+> If any stage is ASK_USER, name the missing input for each. If none is, justify
+> why (each high-impact unknown is already answered by the source report / §9,
+> deferred to architecture-design, or delegated to security-review — name the
+> owner). Do not silently assume a high-impact unknown.
+
+No ASK_USER decisions were emitted because all high-impact unknowns are either:
+- already defined in the source research report or §9 Product Experience Direction;
+- deferred to architecture-design, where states / contracts / data flow are defined;
+- delegated to security-review, where data-egress and trust-boundary questions are validated.
+
+If `<data sensitivity / deployment environment / egress policy>` remains unclear
+after architecture-design, the next stage should emit ASK_USER.
+
+### 19.4 Recommended Pipeline
+
+#### Recommended Linear Path
 
 ```text
 research-pipeline
@@ -532,7 +561,14 @@ research-pipeline
   -> implementation-plan
 ```
 
-### 19.4 Stage-Gate Decision Log
+#### Conditional Follow-up Gates
+
+| Gate | Run When | Typical Input | Output |
+|---|---|---|---|
+| architecture-update | tech-stack-selection or security-review changes runtime / data-flow assumptions | architecture + changed decisions | patched architecture |
+| architecture-reconciliation | UX / test / security conflicts with architecture states / contracts | architecture + conflict report | reconciliation recommendations or patched architecture |
+
+### 19.5 Stage-Gate Decision Log
 
 | Decision | Evidence | Risk if Wrong | Revisit Trigger |
 |---|---|---|---|
@@ -579,6 +615,7 @@ research-pipeline
 | Primary job-to-be-done defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Primary experience thesis defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Primary interaction mode selected | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Interaction modes classified | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Trust / control / transparency needs defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Human-in-the-loop experience defined where needed | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Failure / recovery expectations defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
@@ -597,6 +634,10 @@ research-pipeline
 | DEFER decisions have revisit trigger | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | ASK_USER decisions identify missing info | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Product Experience Direction informs recommendations | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Stage table has Depends On | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Linear-path vs conditional-gates split | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| ASK_USER absence explained | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Complexity score labelled heuristic | PASS / WARNING / FAIL | ... | ... | Yes/No |
 
 Apply any **safe wording rewrite** a `WARNING` identifies *before* delivery,
 then re-run the self-check so this table reflects the post-repair document.
