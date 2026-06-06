@@ -2,6 +2,45 @@
 
 All notable changes to research-pipeline.
 
+## [v0.24.0] — 2026-06-07
+
+### Added
+
+- **`ux-design` skill (new; skill manifest 0.1.0).** The fifth bundled skill and
+  the fourth stage of the design chain: `research-pipeline → blueprint →
+  architecture → ux-design → implementation-plan`. It consumes an architecture
+  design document (`architecture --mode design` output; the matching blueprint
+  and tech-stack are optional) and emits `<topic-slug>-ux-design.md`. Pure
+  prompt-driven (no CLI/MCP backend); auto-discovered by `setup`.
+  - **User-story-driven, not screen-drawing.** It separates **Skill Operator UX**
+    (how the user drives the skill workflow) from **Target Software UX** (how end
+    users and agents interact with the product), and produces structured user
+    stories (preconditions, main / alternative / failure-recovery flows,
+    user-visible states resolving to the architecture state model, acceptance
+    criteria), core journeys, surface-specific UX (only for
+    architecture-supported surfaces), human-in-the-loop UX, error / empty /
+    loading / degraded / recovery states, acceptance criteria, and Gherkin-style
+    **E2E scenario seeds** (seeds, not executable tests).
+  - **Mandatory architecture feedback.** §21 records UX-exposed architecture gaps
+    (missing states / events / review schema / permissions) with severity and
+    recommends `architecture --mode reconcile` when needed — the UX→architecture
+    feedback loop.
+  - **Input discovery + fail-fast.** Auto-discovers `*-architecture-design.md` in
+    the working dir / `docs` / `design` / `artifacts`, ranks candidates, and
+    STOPs with a clear message if none is found (it does not run from a blueprint
+    alone). Hybrid is the default operating mode.
+  - 22-section + Appendix-A output template, 13-task manifest, 13 prompts, 3
+    templates, 4 references, a worked translation-system example, and structural
+    tests (`tests/unit/test_skill_ux_design.py`).
+
+### Changed
+
+- **`architecture` skill references** updated to reflect that `ux-design` now
+  exists (the mode-selection and Experience-Architecture guides no longer call it
+  a "future skill not yet built"; no behavior change, architecture manifest stays
+  0.6.0).
+- AGENTS.md: "Four skills" → "Five skills" with a `ux-design` row and description.
+
 ## [v0.23.0] — 2026-06-06
 
 ### Changed

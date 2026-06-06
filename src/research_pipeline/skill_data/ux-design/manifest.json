@@ -1,0 +1,135 @@
+{
+  "workflow_id": "ux-design",
+  "version": "0.1.0",
+  "description": "Architecture-to-UX design: discover/resolve input → parse architecture → parse blueprint → clarify → skill-operator UX → target-software UX → user stories → surface-specific UX → error/recovery UX → E2E scenario seeds → architecture feedback → final document → quality-gate self-check. The fourth stage of research-pipeline → blueprint → architecture → ux-design → implementation-plan, consuming an architecture design document (architecture --mode design output) and optionally the matching blueprint and tech-stack. It is a user-story-driven experience design skill, not a screen-drawing skill: it separates Skill Operator UX (how the user drives the skill workflow) from Target Software UX (how end users and agents interact with the product), and its highest-value output is testable user stories, failure/recovery UX, E2E scenario seeds, and mandatory architecture feedback (recommending architecture --mode reconcile when UX exposes architecture gaps). The composed document has 22 sections plus an Appendix A UX Quality-Gate Self-Check. Hybrid is the default operating mode (ask only high-impact UX questions, infer low-risk details, record assumptions). Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. The manifest is valid as documentation for a prompt-driven agent and ready for a future runtime runner; if no runner exists, follow the task order manually. ux-design never re-decides architecture or the tech stack, never writes executable tests, and never produces pixel-level visual design.",
+  "mandatory_gates": [
+    "final_document",
+    "quality_gate_self_check"
+  ],
+  "tasks": [
+    {
+      "id": "input_discovery",
+      "type": "llm",
+      "depends_on": [],
+      "executor": "prompts/01_input_discovery.md",
+      "output": "intermediate/input_resolution.json",
+      "validation": "architecture_design_found_or_user_question",
+      "failure_policy": "stop_if_no_architecture_design"
+    },
+    {
+      "id": "architecture_parse",
+      "type": "llm",
+      "depends_on": ["input_discovery"],
+      "executor": "prompts/02_architecture_parse.md",
+      "output": "intermediate/architecture_parse.json",
+      "validation": "surfaces_states_contracts_review_egress_observability_extracted_or_marked_missing",
+      "failure_policy": "warn_or_stop_if_critical_section_missing"
+    },
+    {
+      "id": "blueprint_parse",
+      "type": "llm",
+      "depends_on": ["input_discovery"],
+      "executor": "prompts/03_blueprint_parse.md",
+      "output": "intermediate/blueprint_parse.json",
+      "validation": "product_experience_direction_extracted_or_marked_absent",
+      "failure_policy": "warn_continue_if_no_blueprint"
+    },
+    {
+      "id": "clarification",
+      "type": "llm",
+      "depends_on": ["architecture_parse", "blueprint_parse"],
+      "executor": "prompts/04_clarification.md",
+      "output": "intermediate/clarifications.md",
+      "validation": "high_impact_ux_decisions_resolved_or_assumed",
+      "failure_policy": "record_assumptions"
+    },
+    {
+      "id": "skill_operator_ux",
+      "type": "llm",
+      "depends_on": ["clarification"],
+      "executor": "prompts/05_skill_operator_ux.md",
+      "output": "intermediate/skill_operator_ux.md",
+      "validation": "skill_invocation_discovery_clarification_resume_output_defined",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "target_software_ux",
+      "type": "llm",
+      "depends_on": ["clarification"],
+      "executor": "prompts/06_target_software_ux.md",
+      "output": "intermediate/target_software_ux.md",
+      "validation": "submit_progress_review_recovery_audit_agent_paths_defined",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "user_stories",
+      "type": "llm",
+      "depends_on": ["skill_operator_ux", "target_software_ux"],
+      "executor": "prompts/07_user_stories.md",
+      "output": "intermediate/user_stories.md",
+      "validation": "stories_have_preconditions_flows_states_acceptance_criteria",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "surface_specific_ux",
+      "type": "llm",
+      "depends_on": ["user_stories"],
+      "executor": "prompts/08_surface_specific_ux.md",
+      "output": "intermediate/surface_specific_ux.md",
+      "validation": "only_architecture_supported_surfaces_covered",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "error_recovery_ux",
+      "type": "llm",
+      "depends_on": ["user_stories"],
+      "executor": "prompts/09_error_recovery_ux.md",
+      "output": "intermediate/error_recovery_ux.md",
+      "validation": "empty_loading_error_degraded_review_permission_states_defined",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "e2e_scenario_seeds",
+      "type": "llm",
+      "depends_on": ["user_stories", "error_recovery_ux"],
+      "executor": "prompts/10_e2e_scenario_seeds.md",
+      "output": "intermediate/e2e_scenario_seeds.md",
+      "validation": "testable_seeds_not_executable_tests",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "architecture_feedback",
+      "type": "llm",
+      "depends_on": ["surface_specific_ux", "error_recovery_ux", "e2e_scenario_seeds"],
+      "executor": "prompts/11_architecture_feedback.md",
+      "output": "intermediate/architecture_feedback.md",
+      "validation": "feedback_section_present_with_severity_and_reconcile_decision",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "final_document",
+      "type": "llm",
+      "depends_on": ["architecture_feedback"],
+      "executor": "prompts/12_final_document.md",
+      "output": "<topic-slug>-ux-design.md",
+      "validation": "all_22_sections_and_appendix_present_with_contents_and_update_history",
+      "failure_policy": "revise_max_3_then_stop"
+    },
+    {
+      "id": "quality_gate_self_check",
+      "type": "llm",
+      "depends_on": ["final_document"],
+      "executor": "prompts/13_quality_gate_self_check.md",
+      "output": "intermediate/quality_gate_self_check.md",
+      "validation": "no_failed_ux_quality_gates",
+      "failure_policy": "revise_max_3_then_stop"
+    }
+  ],
+  "failure_policy_defaults": {
+    "no_architecture_design": "stop_if_no_architecture_design",
+    "missing_required_section": "revise",
+    "out_of_scope_output": "revise",
+    "max_revision_attempts": 3,
+    "after_max_revisions": "surface_failing_gates_and_stop"
+  }
+}

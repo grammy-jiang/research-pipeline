@@ -12,7 +12,7 @@ The blueprint routes downstream stages with controlled decisions
 
 ```text
 tech-stack-selection   -> architecture `stack` mode
-ux-design              -> future ux-design skill
+ux-design              -> the ux-design skill
 security-review        -> security review
 test-design            -> test / E2E design
 architecture-update    -> architecture `update` mode

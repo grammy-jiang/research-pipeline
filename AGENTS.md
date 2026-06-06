@@ -308,7 +308,7 @@ MCP config snippet → `~/.config/research-pipeline/mcp.json`
 
 `setup` auto-discovers every bundled skill (any `skill_data/*/SKILL.md`)
 and fans out each one into its own directory under the agent's skills path.
-Four skills ship today:
+Five skills ship today:
 
 | Skill | Purpose |
 |-------|---------|
@@ -316,6 +316,7 @@ Four skills ship today:
 | `daily-ai-intelligence` | Private daily AI tooling intelligence brief |
 | `blueprint` | Convert a research report into an implementation-neutral product blueprint (`<topic-slug>-product-blueprint.md`) |
 | `architecture` | Convert a product blueprint into a concrete technical architecture and tech-stack design (`<topic-slug>-architecture-design.md`) |
+| `ux-design` | Convert an architecture design into a user-story-driven UX design with E2E scenario seeds and architecture feedback (`<topic-slug>-ux-design.md`) |
 
 The `blueprint` skill is a pure prompt-driven transformation (no CLI/MCP
 backend): it classifies input quality, maps `ACADEMIC`/`ENGINEERING` gaps
@@ -348,6 +349,22 @@ implementation tasks, keeps durable state under deterministic control (AI output
 is validated before any state change), adopts MCP only when justified, and
 supports regenerate/patch/compare/adr-only/resume update modes with an
 `## Update History`.
+
+The `ux-design` skill is also pure prompt-driven (no CLI/MCP backend) and
+continues the chain `research-pipeline → blueprint → architecture → ux-design →
+implementation-plan`. It consumes an architecture design document
+(`architecture --mode design` output; the matching blueprint and tech-stack are
+optional) and emits `<topic-slug>-ux-design.md`. It is a **user-story-driven**
+experience design skill, not a screen-drawing skill: it auto-discovers the
+architecture design (failing clearly if none exists), asks high-impact UX
+questions in hybrid mode, and emits a 22-section + Appendix-A document that
+**separates Skill Operator UX from Target Software UX** and covers user stories,
+core journeys, surface-specific UX (only for architecture-supported surfaces),
+human-in-the-loop UX, error/empty/loading/degraded/recovery states, acceptance
+criteria, Gherkin-style E2E scenario seeds, and a **mandatory Architecture
+Feedback section** that recommends `architecture --mode reconcile` when UX
+exposes architecture gaps. It never re-decides architecture or the tech stack,
+never writes executable tests, and never produces pixel-level visual design.
 
 The skills are structured per Anthropic's Skill-Building Guide (explicit
 trigger phrases, standard-only `name`/`description`/`license` frontmatter,

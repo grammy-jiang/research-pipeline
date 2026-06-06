@@ -108,19 +108,19 @@ architecture --mode reconcile   <architecture-design.md> <ux-design.md>
 - Ask the user only when the mode materially changes the output and cannot be
   inferred from the request or the artifacts present.
 
-## Future flow
+## Downstream flow
 
 ```text
 blueprint
   -> architecture --mode design
   -> architecture --mode stack
   -> architecture --mode update      (if stack decisions change the architecture)
-  -> ux-design                       (future skill)
+  -> ux-design
   -> architecture --mode reconcile   (if UX exposes gaps)
   -> implementation-plan
 ```
 
-`ux-design` is a future skill and is intentionally **not** built until the
-`architecture` skill has a stable `design` mode, a separated `stack` mode, and
-at least one architecture output that includes an Experience Architecture
-section — otherwise it would consume unstable architecture boundaries.
+The `ux-design` skill consumes this architecture's `design` output (its
+Experience Architecture section and UX-Design Handoff) and emits
+`<topic-slug>-ux-design.md`. If `ux-design` exposes architecture gaps, it records
+them as architecture feedback and recommends `architecture --mode reconcile`.

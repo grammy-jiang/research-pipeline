@@ -9,13 +9,13 @@ translates UX *intent* into UX-enabling *technical structure*.
 ```text
 blueprint §9 Product Experience Direction:  UX intent (what the experience should be)
 architecture §23 Experience Architecture:   technical support for that intent
-ux-design (future skill):                    detailed journeys, screens, command/conversation UX, copy
+ux-design (downstream skill):                detailed journeys, screens, command/conversation UX, copy
 ```
 
 Experience Architecture is **architecture-level UX support**, not detailed UX
 design. Do **not** produce screen layouts, wireframes, exact CLI syntax, exact
 API/MCP schemas, copywriting, or implementation tasks — those belong to the
-future `ux-design` skill. Keep it compact (tables over prose).
+downstream `ux-design` skill. Keep it compact (tables over prose).
 
 ## How to consume blueprint §9
 
@@ -85,7 +85,7 @@ thesis — never change the blueprint's UX intent.
 - **23.5 Error and Recovery Model** must align with §18 Failure Handling.
 - **23.6 Human Review Technical Flow** must produce §16 audit events.
 - **23.8 Interaction Observability** routes to the §16 observability plan.
-- **23.9 UX Handoff** is the bridge to the future `ux-design` skill; list the
+- **23.9 UX Handoff** is the bridge to the downstream `ux-design` skill; list the
   architecture constraints UX must honour and the open UX questions, but do not
   answer them here.
 
