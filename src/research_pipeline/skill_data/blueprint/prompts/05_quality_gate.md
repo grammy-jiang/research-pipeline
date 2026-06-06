@@ -39,8 +39,8 @@ blueprint.
   recommendation), **product design decision** (connects / operationalizes
   / governs research-backed capabilities, with rationale), **speculative**,
   or **unsupported**.
-  - Speculative claims must move to Open Questions (§16) or Future
-    Extensions (§15).
+  - Speculative claims must move to Open Questions (§17) or Future
+    Extensions (§16).
   - Unsupported claims must be removed or marked "Design hypothesis —
     requires validation."
   - A product decision must not replace research evidence for a core claim.
@@ -58,7 +58,7 @@ Classify implementation-leaning wording using `references/borderline-cases.md`:
   structure, deployment commands, code, or implementation tickets.
 - **Warning** → `WARNING`: runtime/architecture-leaning phrasing
   (e.g. "service-deployable", "deployed as microservices", a specific
-  context-window assumption). Rephrase to its purpose or defer to §17,
+  context-window assumption). Rephrase to its purpose or defer to §18,
   unless it is a cited research-derived evaluation anchor.
 - **Research-derived exception** → keep only if cited and tied to
   evaluation (e.g. a named decoding/caching technique from a paper).
@@ -74,7 +74,7 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
   implied) by the product thesis. High-stakes/adjacent domains that appear
   only as research evidence must be Secondary/Future, not primary — flag a
   `WARNING` if such a domain appears as a primary actor or MVP requirement.
-- **MVP structure:** §14 splits the core path into **MVP-0** (smallest
+- **MVP structure:** §15 splits the core path into **MVP-0** (smallest
   demonstrable end-to-end slice) and **MVP-1** (first usable version),
   separates Safety and Evaluation baselines, and has an explicit pass/fail
   success definition.
@@ -111,6 +111,30 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
   missing from Contents.
 - A Mermaid diagram exists for both the main end-to-end workflow and the
   logical architecture.
+
+## Gate 8 — Product experience direction (§9)
+
+Check the Product Experience Direction captures UX **intent** without drifting
+into UX design. Full fail/warning conditions live in
+`references/product-experience-direction.md`; emit the eight Product Experience
+Gate rows in the self-check.
+
+- `FAIL` if any of: no primary user defined; no job-to-be-done defined; the
+  product needs user interaction but no interaction mode is selected; human
+  review is required but no human-review experience is defined; AI uncertainty
+  exists but no uncertainty/review behaviour is defined;
+  trust/control/transparency requirements are absent for an AI-heavy system; or
+  UX assumptions are not handed off to architecture.
+- `WARNING` if any of: multiple interaction modes are plausible but none is
+  primary; MCP is selected without a clear external AI-client need; Web UI is
+  selected but users are mostly technical and CLI/API may be cheaper; CLI is
+  selected but first users are non-technical; human review is deferred despite
+  high quality risk; data egress is possible but user visibility is undefined;
+  or auditability is required but user-facing audit access is undefined.
+- `FAIL` (UX over-reach) if §9 contains screen layout, wireframes, CSS/visual
+  design, exact CLI syntax/flags, exact MCP/API schemas, detailed copywriting,
+  or implementation tasks — relocate those to a later UX-design/implementation
+  stage. `standard` §9 over 1–2 pages is a `WARNING` (compress).
 
 ## Immediate-fail conditions
 
@@ -163,3 +187,11 @@ never a passive note. Example rows:
 | Thesis emphasis | WARNING | Thesis leads with a conditional mechanism | Rewrite to lead with the primary architecture | No |
 | MVP discipline | WARNING | MVP-0 still has 6 capabilities | Move routing + plugin architecture to MVP-1 | No — resolve before implementation planning |
 | Release-gate confidence | WARNING | MEDIUM-confidence control set as default gate | Downgrade to monitoring at MVP-0; gate in Phase 2 | No |
+
+Then add the **Product Experience Gate** rows (§9): Primary user identified ·
+Primary job-to-be-done defined · Primary experience thesis defined · Primary
+interaction mode selected · Trust / control / transparency needs defined ·
+Human-in-the-loop experience defined where needed · Failure / recovery
+expectations defined · UX assumptions handed off to architecture. Each carries a
+status, a concrete required action for any WARNING/FAIL, and a
+blocks-technical-design verdict (here "Blocks Architecture?" ≡ "Blocks TD?").

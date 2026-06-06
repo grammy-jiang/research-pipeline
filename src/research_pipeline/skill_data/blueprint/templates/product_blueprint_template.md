@@ -10,16 +10,17 @@
 - [6. Adopt / Adapt / Merge / Defer / Reject Decisions](#6-adopt--adapt--merge--defer--reject-decisions)
 - [7. Core Product Capabilities](#7-core-product-capabilities)
 - [8. Workflow Model](#8-workflow-model)
-- [9. Logical Architecture](#9-logical-architecture)
-- [10. Conceptual Information Model](#10-conceptual-information-model)
-- [11. Decision Policies](#11-decision-policies)
-- [12. Risk, Governance, and Safety Model](#12-risk-governance-and-safety-model)
-- [13. Evaluation Strategy](#13-evaluation-strategy)
-- [14. MVP Scope](#14-mvp-scope)
-- [15. Roadmap and Future Extensions](#15-roadmap-and-future-extensions)
-- [16. Open Questions and Validation Plan](#16-open-questions-and-validation-plan)
-- [17. Handoff Notes for Technical Design](#17-handoff-notes-for-technical-design)
-- [18. Traceability Appendix](#18-traceability-appendix)
+- [9. Product Experience Direction](#9-product-experience-direction)
+- [10. Logical Architecture](#10-logical-architecture)
+- [11. Conceptual Information Model](#11-conceptual-information-model)
+- [12. Decision Policies](#12-decision-policies)
+- [13. Risk, Governance, and Safety Model](#13-risk-governance-and-safety-model)
+- [14. Evaluation Strategy](#14-evaluation-strategy)
+- [15. MVP Scope](#15-mvp-scope)
+- [16. Roadmap and Future Extensions](#16-roadmap-and-future-extensions)
+- [17. Open Questions and Validation Plan](#17-open-questions-and-validation-plan)
+- [18. Handoff Notes for Technical Design](#18-handoff-notes-for-technical-design)
+- [19. Traceability Appendix](#19-traceability-appendix)
 - [Appendix A: Blueprint Quality-Gate Self-Check](#appendix-a-blueprint-quality-gate-self-check)
 - [Appendix B: Design Decision Register](#appendix-b-design-decision-register) *(optional)*
 
@@ -224,13 +225,83 @@ flowchart TD
 
 ---
 
-## 9. Logical Architecture
+## 9. Product Experience Direction
 
-### 9.1 System Context
+> Capture **UX intent**, not UX design. Blueprint defines the experience
+> direction; architecture defines the UX-enabling technical structure; a later
+> UX-design skill defines detailed journeys, screens, command/conversation UX,
+> and copy. Keep this section compact — 1–2 pages in `standard` output, tables
+> over prose. Do **not** include screen layout, wireframes, exact CLI syntax,
+> exact MCP/API schemas, copywriting, or implementation tasks (see
+> `references/product-experience-direction.md`).
+
+### 9.1 Primary Experience Thesis
+
+The product should feel like `<short description of the intended experience>`.
+
+### 9.2 Primary User / Operator
+
+| User / Actor | Role in Product | Experience Need |
+|---|---|---|
+| ... | ... | ... |
+
+### 9.3 Primary Job-to-Be-Done
+
+| User / Actor | Job-to-Be-Done | Success Outcome |
+|---|---|---|
+| ... | ... | ... |
+
+### 9.4 Primary Interaction Mode
+
+| Mode | MVP Stage | Rationale |
+|---|---|---|
+| CLI / Web UI / Desktop GUI / TUI / API / AI Skill / MCP / Hybrid | MVP-0 / MVP-1 / Future | ... |
+
+### 9.5 Secondary / Future Interaction Modes
+
+| Mode | Stage | Reason Deferred | Revisit Trigger |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+### 9.6 Critical Trust, Control, and Transparency Requirements
+
+| Requirement | Why It Matters | Architecture Impact |
+|---|---|---|
+| ... | ... | ... |
+
+### 9.7 Human-in-the-Loop Experience
+
+| Trigger | User Decision | Expected Product Support | MVP Stage |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+### 9.8 Failure and Recovery Expectations
+
+| Condition | User Impact | Expected Recovery Experience |
+|---|---|---|
+| ... | ... | ... |
+
+### 9.9 UX Assumptions for Architecture
+
+| Assumption | Source | Reversible? | Revisit Trigger |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+### 9.10 Product Experience Handoff to Architecture
+
+| UX Decision | Architecture Impact |
+|---|---|
+| ... | ... |
+
+---
+
+## 10. Logical Architecture
+
+### 10.1 System Context
 
 ...
 
-### 9.2 Architecture Overview
+### 10.2 Architecture Overview
 
 ```mermaid
 flowchart TD
@@ -242,31 +313,31 @@ flowchart TD
     CS --> EH[Evaluation Harness]
 ```
 
-### 9.3 Core Logical Components
+### 10.3 Core Logical Components
 
 | Component | Responsibility | Inputs | Outputs | Owns Decisions | Does Not Own |
 |---|---|---|---|---|---|
 | ... | ... | ... | ... | ... | ... |
 
-### 9.4 Control Flow
+### 10.4 Control Flow
 
 ```text
 ...
 ```
 
-### 9.5 Information Flow
+### 10.5 Information Flow
 
 ```text
 ...
 ```
 
-### 9.6 Trust and Policy Boundaries
+### 10.6 Trust and Policy Boundaries
 
 ...
 
 ---
 
-## 10. Conceptual Information Model
+## 11. Conceptual Information Model
 
 | Object | Purpose | Key Conceptual Fields | Lifecycle States | Relationships |
 |---|---|---|---|---|
@@ -274,7 +345,7 @@ flowchart TD
 
 ---
 
-## 11. Decision Policies
+## 12. Decision Policies
 
 | Policy | Purpose | Inputs | Decision Options | Default | Escalation | Traceability |
 |---|---|---|---|---|---|---|
@@ -282,7 +353,7 @@ flowchart TD
 
 ---
 
-## 12. Risk, Governance, and Safety Model
+## 13. Risk, Governance, and Safety Model
 
 | Risk | Likelihood | Impact | Mitigation | Release Gate? | Traceability |
 |---|---|---|---|---|---|
@@ -290,7 +361,7 @@ flowchart TD
 
 ---
 
-## 13. Evaluation Strategy
+## 14. Evaluation Strategy
 
 | Evaluation | Purpose | Scenario | Expected Behaviour | Success Metric | MVP Required? | Traceability |
 |---|---|---|---|---|---|---|
@@ -298,7 +369,7 @@ flowchart TD
 
 ---
 
-## 14. MVP Scope
+## 15. MVP Scope
 
 > Split the core value path into **MVP-0** (the smallest end-to-end slice
 > that demonstrates the thesis) and **MVP-1** (the first usable production
@@ -308,46 +379,46 @@ flowchart TD
 > capabilities, the MVP-0/MVP-1 split is mandatory; for a genuinely simple
 > product MVP-0 and MVP-1 may coincide; say so rather than inventing a split.
 
-### 14.1 MVP-0 — Smallest Demonstrable Core
+### 15.1 MVP-0 — Smallest Demonstrable Core
 
 The minimum end-to-end path that produces one useful outcome from one
 realistic input, for one domain.
 
 - ...
 
-### 14.2 MVP-1 — First Usable Version
+### 15.2 MVP-1 — First Usable Version
 
 The first production-hardening layer on top of MVP-0 (richer evaluation,
 optional escalation, broader coverage).
 
 - ...
 
-### 14.3 Safety Baseline
+### 15.3 Safety Baseline
 
 Non-negotiable controls required to avoid unsafe, leaking, or misleading
 output. Mark which are required already at MVP-0.
 
 - ...
 
-### 14.4 Evaluation Baseline
+### 15.4 Evaluation Baseline
 
 Minimum checks required to know whether the MVP works (mark which at MVP-0).
 
 - ...
 
-### 14.5 Explicitly Deferred from MVP
+### 15.5 Explicitly Deferred from MVP
 
 | Item | Move To | Reason |
 |---|---|---|
 | ... | Phase 2 / Phase 3 | ... |
 
-### 14.6 MVP Success Definition
+### 15.6 MVP Success Definition
 
 The MVP is successful if ... <specific, pass/fail criteria>.
 
 ---
 
-## 15. Roadmap and Future Extensions
+## 16. Roadmap and Future Extensions
 
 ### Phase 0: Product Clarification
 
@@ -371,7 +442,7 @@ The MVP is successful if ... <specific, pass/fail criteria>.
 
 ---
 
-## 16. Open Questions and Validation Plan
+## 17. Open Questions and Validation Plan
 
 | Question | Why It Matters | Validation Method | Blocks MVP? | Gap Source |
 |---|---|---|---|---|
@@ -379,7 +450,7 @@ The MVP is successful if ... <specific, pass/fail criteria>.
 
 ---
 
-## 17. Handoff Notes for Technical Design
+## 18. Handoff Notes for Technical Design
 
 This document intentionally does not choose a tech stack.
 
@@ -391,7 +462,7 @@ The next technical-design stage must decide:
 - Indexing/search strategy
 - API style
 - Agent integration mechanism
-- UI or CLI surface
+- UI or CLI surface (constrained by the §9 primary interaction mode)
 - Deployment model
 - Repository structure
 - Testing strategy
@@ -401,18 +472,19 @@ The next technical-design stage must decide:
 ### Inputs for Technical Design
 
 - Core workflows (§8)
-- Core logical components (§9)
-- Conceptual information model (§10)
-- Decision policies (§11)
-- Risk model (§12)
-- MVP boundary (§14)
-- Evaluation requirements (§13)
-- Open questions (§16)
+- Product experience direction + UX handoff (§9)
+- Core logical components (§10)
+- Conceptual information model (§11)
+- Decision policies (§12)
+- Risk model (§13)
+- MVP boundary (§15)
+- Evaluation requirements (§14)
+- Open questions (§17)
 - Unresolved ACADEMIC gaps: [list any that still apply]
 
 ---
 
-## 18. Traceability Appendix
+## 19. Traceability Appendix
 
 | Product Element | Derived From | Research Citation | Decision | Notes |
 |---|---|---|---|---|
@@ -440,6 +512,21 @@ The next technical-design stage must decide:
 | Risk honesty | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Evaluation coverage | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Downstream usefulness | PASS / WARNING / FAIL | ... | ... | Yes/No |
+
+**Product Experience Gate** (§9) — see
+`references/product-experience-direction.md` for fail/warning conditions. Here
+"Blocks Technical Design?" is the same as "Blocks Architecture?".
+
+| Gate | Status | Finding | Required Action | Blocks Technical Design? |
+|---|---|---|---|---|
+| Primary user identified | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Primary job-to-be-done defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Primary experience thesis defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Primary interaction mode selected | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Trust / control / transparency needs defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Human-in-the-loop experience defined where needed | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Failure / recovery expectations defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| UX assumptions handed off to architecture | PASS / WARNING / FAIL | ... | ... | Yes/No |
 
 Apply any **safe wording rewrite** a `WARNING` identifies *before* delivery,
 then re-run the self-check so this table reflects the post-repair document.

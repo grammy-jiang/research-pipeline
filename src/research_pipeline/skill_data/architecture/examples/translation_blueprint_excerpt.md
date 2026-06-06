@@ -2,7 +2,7 @@
 
 > Illustrative excerpt of a product blueprint used as input to the
 > `architecture` skill. Trimmed to the sections the architecture passes
-> consume. The real blueprint would contain all 18 sections.
+> consume. The real blueprint would contain all 19 sections.
 
 ## 1. Executive Product Thesis
 

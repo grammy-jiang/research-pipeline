@@ -14,16 +14,17 @@
 - [6. Adopt / Adapt / Merge / Defer / Reject Decisions](#6-adopt--adapt--merge--defer--reject-decisions)
 - [7. Core Product Capabilities](#7-core-product-capabilities)
 - [8. Workflow Model](#8-workflow-model)
-- [9. Logical Architecture](#9-logical-architecture)
-- [10. Conceptual Information Model](#10-conceptual-information-model)
-- [11. Decision Policies](#11-decision-policies)
-- [12. Risk, Governance, and Safety Model](#12-risk-governance-and-safety-model)
-- [13. Evaluation Strategy](#13-evaluation-strategy)
-- [14. MVP Scope](#14-mvp-scope)
-- [15. Roadmap and Future Extensions](#15-roadmap-and-future-extensions)
-- [16. Open Questions and Validation Plan](#16-open-questions-and-validation-plan)
-- [17. Handoff Notes for Technical Design](#17-handoff-notes-for-technical-design)
-- [18. Traceability Appendix](#18-traceability-appendix)
+- [9. Product Experience Direction](#9-product-experience-direction)
+- [10. Logical Architecture](#10-logical-architecture)
+- [11. Conceptual Information Model](#11-conceptual-information-model)
+- [12. Decision Policies](#12-decision-policies)
+- [13. Risk, Governance, and Safety Model](#13-risk-governance-and-safety-model)
+- [14. Evaluation Strategy](#14-evaluation-strategy)
+- [15. MVP Scope](#15-mvp-scope)
+- [16. Roadmap and Future Extensions](#16-roadmap-and-future-extensions)
+- [17. Open Questions and Validation Plan](#17-open-questions-and-validation-plan)
+- [18. Handoff Notes for Technical Design](#18-handoff-notes-for-technical-design)
+- [19. Traceability Appendix](#19-traceability-appendix)
 - [Appendix A: Blueprint Quality-Gate Self-Check](#appendix-a-blueprint-quality-gate-self-check)
 
 ---
@@ -70,7 +71,7 @@ deletion that cannot be verified.
 | Gap-closure rounds | 2 |
 | Latest run ID | unknown |
 | Source readiness verdict | `HAS_GAPS` |
-| Blueprint skill version | 0.2.0 |
+| Blueprint skill version | 0.5.0 |
 | Generated at | `<date>` |
 | Output detail | standard |
 | Target domain | AI coding-agent memory |
@@ -246,14 +247,91 @@ audit event. **Failure modes:** record resurfaces after deletion.
 
 ---
 
-## 9. Logical Architecture
+## 9. Product Experience Direction
 
-### 9.1 System Context
+> UX intent only — no screen layout, wireframes, exact command syntax, or
+> copy. Defines the experience direction so architecture can derive surfaces,
+> states, and review flows.
+
+### 9.1 Primary Experience Thesis
+
+The product should feel like a trustworthy, local-first memory keeper:
+automated admission by default, conservative when a write is risky, and
+transparent about what was stored, why, and what can be deleted.
+
+### 9.2 Primary User / Operator
+
+| User / Actor | Role in Product | Experience Need |
+|---|---|---|
+| AI coding agent | Reads/writes durable context | Stable read/write contract; predictable retrieval |
+| Developer | Owns and audits memory | Visibility into what was admitted/rejected; control over deletion |
+
+### 9.3 Primary Job-to-Be-Done
+
+| User / Actor | Job-to-Be-Done | Success Outcome |
+|---|---|---|
+| AI coding agent | Reuse trustworthy prior context across sessions | Relevant in-scope records returned; no poisoned writes admitted |
+
+### 9.4 Primary Interaction Mode
+
+| Mode | MVP Stage | Rationale |
+|---|---|---|
+| API / agent-facing surface | MVP-0 | Primary consumer is an agent; the value path is programmatic read/write |
+
+### 9.5 Secondary / Future Interaction Modes
+
+| Mode | Stage | Reason Deferred | Revisit Trigger |
+|---|---|---|---|
+| CLI for developer audit | MVP-1 | Not needed to prove the agent value path | Developers need to inspect/correct memory |
+| Web UI | Future | No human-facing review at MVP | Non-technical reviewers need direct access |
+
+### 9.6 Critical Trust, Control, and Transparency Requirements
+
+| Requirement | Why It Matters | Architecture Impact |
+|---|---|---|
+| Developer can see why a write was admitted/rejected | Prevents blind trust in agent memory | Requires admission-decision record + rationale |
+| Deletion must be verifiable | Trust and correctness | Requires tombstone + post-delete verification surface |
+| Scope of every record is visible | Prevents cross-scope leakage | Requires scope field exposed on retrieval results |
+
+### 9.7 Human-in-the-Loop Experience
+
+| Trigger | User Decision | Expected Product Support | MVP Stage |
+|---|---|---|---|
+| Admission flags a contradiction | Accept, reject, or reconcile | Surface the conflicting records + rationale for review | MVP-1 |
+
+### 9.8 Failure and Recovery Expectations
+
+| Condition | User Impact | Expected Recovery Experience |
+|---|---|---|
+| Admission evaluator unavailable | Writes cannot be safely gated | Fail-closed (quarantine), clear status, retry option |
+| Deletion verification fails | Record cannot be trusted as gone | Fail-closed before confirming deletion; emit audit event |
+
+### 9.9 UX Assumptions for Architecture
+
+| Assumption | Source | Reversible? | Revisit Trigger |
+|---|---|---|---|
+| First user is an agent, not a human | Thesis (primary actor = agent) | Yes | A human-review workflow becomes primary |
+| Developer audit is CLI-first | Architecture assumption (review-flagged) | Yes | Non-technical reviewers join |
+
+### 9.10 Product Experience Handoff to Architecture
+
+| UX Decision | Architecture Impact |
+|---|---|
+| Agent-facing API MVP-0 | Requires stable read/write contract + machine-readable status |
+| Admission visibility | Requires admission-decision record + rationale field |
+| Verified deletion | Requires tombstone artifact + post-delete verification operation |
+| Scope visibility | Requires scope field on every retrieval result |
+
+---
+
+## 10. Logical Architecture
+
+### 10.1 System Context
 
 Agents and developers interact through an integration surface; a workflow
 orchestrator routes proposals and queries through policy and state.
 
-### 9.2 Architecture Overview
+### 10.2 Architecture Overview
 
 ```mermaid
 flowchart TD
@@ -269,7 +347,7 @@ flowchart TD
     CS --> EH[Evaluation Harness]
 ```
 
-### 9.3 Core Logical Components
+### 10.3 Core Logical Components
 
 | Component | Responsibility | Inputs | Outputs | Owns Decisions | Does Not Own |
 |---|---|---|---|---|---|
@@ -278,27 +356,27 @@ flowchart TD
 | Scope Controller | Enforce scopes/promotion | Record, scope | Allow/deny/promote | Promotion policy | Auth backend |
 | Audit Layer | Record decisions | Events | Append-only log | Retention policy | Business logic |
 
-### 9.4 Control Flow
+### 10.4 Control Flow
 
 ```text
 Proposal → Orchestrator → Admission Controller → (Scope Controller) → Core State → Audit
 Query    → Orchestrator → Scope Controller → Retrieval Orchestrator → ranked results
 ```
 
-### 9.5 Information Flow
+### 10.5 Information Flow
 
 ```text
 Candidate → durable Memory Record (scoped) → retrievable result → tombstone on deletion
 ```
 
-### 9.6 Trust and Policy Boundaries
+### 10.6 Trust and Policy Boundaries
 
 Scope boundaries (local/project/team) are trust boundaries; promotion
 crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ---
 
-## 10. Conceptual Information Model
+## 11. Conceptual Information Model
 
 | Object | Purpose | Key Conceptual Fields | Lifecycle States | Relationships |
 |---|---|---|---|---|
@@ -310,7 +388,7 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ---
 
-## 11. Decision Policies
+## 12. Decision Policies
 
 | Policy | Purpose | Inputs | Decision Options | Default | Escalation | Traceability |
 |---|---|---|---|---|---|---|
@@ -321,7 +399,7 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ---
 
-## 12. Risk, Governance, and Safety Model
+## 13. Risk, Governance, and Safety Model
 
 | Risk | Likelihood | Impact | Mitigation | Release Gate? | Traceability |
 |---|---|---|---|---|---|
@@ -333,7 +411,7 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ---
 
-## 13. Evaluation Strategy
+## 14. Evaluation Strategy
 
 | Evaluation | Purpose | Scenario | Expected Behaviour | Success Metric | MVP Required? | Traceability |
 |---|---|---|---|---|---|---|
@@ -345,9 +423,9 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 ---
 
-## 14. MVP Scope
+## 15. MVP Scope
 
-### 14.1 MVP-0 — Smallest Demonstrable Core
+### 15.1 MVP-0 — Smallest Demonstrable Core
 
 The smallest path that proves the thesis: an agent writes a gated memory
 and retrieves it within one scope.
@@ -355,22 +433,22 @@ and retrieves it within one scope.
 - Memory Admission workflow + policy (fail-closed).
 - Hybrid Retrieval, local scope only.
 
-### 14.2 MVP-1 — First Usable Version
+### 15.2 MVP-1 — First Usable Version
 
 - Scoped records (local/project) with explicit promotion.
 - Verified deletion promoted to a first-class workflow.
 
-### 14.3 Safety Baseline
+### 15.3 Safety Baseline
 
 - Admission quarantine path for untrusted/poisoned candidates — **MVP-0**.
 - Verified deletion + tombstoning — required by **MVP-1**.
 
-### 14.4 Evaluation Baseline
+### 15.4 Evaluation Baseline
 
-- Admission-precision and scope-isolation scenarios (§13) — **MVP-0**.
+- Admission-precision and scope-isolation scenarios (§14) — **MVP-0**.
 - Post-delete re-query check (deleted records never resurface) — **MVP-1**.
 
-### 14.5 Explicitly Deferred from MVP
+### 15.5 Explicitly Deferred from MVP
 
 | Item | Move To | Reason |
 |---|---|---|
@@ -378,7 +456,7 @@ and retrieves it within one scope.
 | Hierarchical retrieval | Phase 3 | Scaling extension, not core value |
 | Team-scope multi-tenant sharing | Phase 3 | Beyond single-user proof |
 
-### 14.6 MVP Success Definition
+### 15.6 MVP Success Definition
 
 The MVP is successful if agents reuse prior context across sessions, no
 unsafe or out-of-scope write is admitted in evaluation, and every deletion
@@ -386,7 +464,7 @@ is verifiable in the audit log.
 
 ---
 
-## 15. Roadmap and Future Extensions
+## 16. Roadmap and Future Extensions
 
 - **Phase 0 — Clarification:** confirm scope model and audit needs.
 - **Phase 1 — Core MVP:** admission, hybrid retrieval, scoping, deletion.
@@ -396,7 +474,7 @@ is verifiable in the audit log.
 
 ---
 
-## 16. Open Questions and Validation Plan
+## 17. Open Questions and Validation Plan
 
 | Question | Why It Matters | Validation Method | Blocks MVP? | Gap Source |
 |---|---|---|---|---|
@@ -406,22 +484,23 @@ is verifiable in the audit log.
 
 ---
 
-## 17. Handoff Notes for Technical Design
+## 18. Handoff Notes for Technical Design
 
 This document intentionally does not choose a tech stack. The next stage
 must decide: runtime architecture, programming language, storage system,
 indexing/search strategy, API style, agent integration mechanism, UI/CLI
-surface, deployment model, repository structure, testing strategy,
-security implementation, and migration strategy.
+surface (constrained by the §9 agent-facing API primary mode), deployment
+model, repository structure, testing strategy, security implementation, and
+migration strategy.
 
-**Inputs for technical design:** workflows (§8), components (§9),
-information model (§10), policies (§11), risks (§12), MVP (§14),
-evaluations (§13), open questions (§16). **Unresolved ACADEMIC gaps still
-applying:** optimal consolidation frequency [2403.09999].
+**Inputs for technical design:** workflows (§8), product experience direction
++ UX handoff (§9), components (§10), information model (§11), policies (§12),
+risks (§13), MVP (§15), evaluations (§14), open questions (§17). **Unresolved
+ACADEMIC gaps still applying:** optimal consolidation frequency [2403.09999].
 
 ---
 
-## 18. Traceability Appendix
+## 19. Traceability Appendix
 
 | Product Element | Derived From | Research Citation | Decision | Notes |
 |---|---|---|---|---|
@@ -438,8 +517,8 @@ applying:** optimal consolidation frequency [2403.09999].
 
 | Gate | Status | Finding | Required Action | Blocks Technical Design? |
 |---|---|---|---|---|
-| Required sections + Contents present | PASS | All 18 sections + Contents. | — | No |
-| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.3.0 from manifest. | — | No |
+| Required sections + Contents present | PASS | All 19 sections + Contents. | — | No |
+| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.5.0 from manifest. | — | No |
 | Thesis emphasis (primary architecture) | PASS | Thesis leads with gated admission + scoped records + retrieval, not a conditional mechanism. | — | No |
 | Research traceability / source fidelity | PASS | Every capability cited; deletion verification cites the source-report gap. | — | No |
 | Scope control (primary scope matches thesis) | PASS | Only agent + developer are Primary; no out-of-scope actors. | — | No |
@@ -449,3 +528,17 @@ applying:** optimal consolidation frequency [2403.09999].
 | Risk honesty | PASS | Poisoning, leakage, unverifiable deletion are release gates. | — | No |
 | Evaluation coverage | PASS | ≥1 scenario per core capability; deletion + scope-isolation covered. | — | No |
 | Downstream usefulness | PASS | Two Mermaid diagrams; handoff lists what technical design must decide. | — | No |
+
+**Product Experience Gate** (§9) — "Blocks Technical Design?" ≡ "Blocks
+Architecture?".
+
+| Gate | Status | Finding | Required Action | Blocks Technical Design? |
+|---|---|---|---|---|
+| Primary user identified | PASS | Agent (primary) + developer (owner/auditor). | — | No |
+| Primary job-to-be-done defined | PASS | Reuse trustworthy prior context across sessions. | — | No |
+| Primary experience thesis defined | PASS | Trustworthy local-first memory keeper; conservative under risk. | — | No |
+| Primary interaction mode selected | PASS | Agent-facing API at MVP-0, with rationale. | — | No |
+| Trust / control / transparency needs defined | PASS | Admission rationale, verifiable deletion, scope visibility. | — | No |
+| Human-in-the-loop experience defined where needed | PASS | Contradiction review surfaced at MVP-1. | — | No |
+| Failure / recovery expectations defined | PASS | Fail-closed on evaluator/deletion-verification failure. | — | No |
+| UX assumptions handed off to architecture | WARNING | "Developer audit is CLI-first" is an architecture assumption. | Confirm CLI-first audit before architecture commits to a surface | No |

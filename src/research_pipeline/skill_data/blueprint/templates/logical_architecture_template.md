@@ -1,4 +1,4 @@
-# Logical Architecture Template (§9)
+# Logical Architecture Template (§10)
 
 The logical architecture describes **conceptual responsibilities and
 boundaries**, not implementation components. Conceptual names may sound
@@ -9,14 +9,14 @@ units.
 ## Required structure
 
 ```markdown
-## 9. Logical Architecture
+## 10. Logical Architecture
 
-### 9.1 System Context
-### 9.2 Architecture Overview   (Mermaid diagram — required)
-### 9.3 Core Logical Components (table)
-### 9.4 Control Flow
-### 9.5 Information Flow
-### 9.6 Trust and Policy Boundaries
+### 10.1 System Context
+### 10.2 Architecture Overview   (Mermaid diagram — required)
+### 10.3 Core Logical Components (table)
+### 10.4 Control Flow
+### 10.5 Information Flow
+### 10.6 Trust and Policy Boundaries
 ### (optional) Extension Points
 ```
 

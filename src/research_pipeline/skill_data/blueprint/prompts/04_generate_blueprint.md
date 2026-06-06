@@ -4,7 +4,7 @@ You are composing an implementation-neutral product blueprint.
 
 Use `templates/product_blueprint_template.md` as the skeleton. The
 document must start with a `## Contents` section containing internal
-Markdown links to all 18 sections.
+Markdown links to all 19 sections.
 
 ## Required sections (in order)
 
@@ -16,16 +16,17 @@ Markdown links to all 18 sections.
 6. Adopt / Adapt / Merge / Defer / Reject Decisions
 7. Core Product Capabilities
 8. Workflow Model
-9. Logical Architecture
-10. Conceptual Information Model
-11. Decision Policies
-12. Risk, Governance, and Safety Model
-13. Evaluation Strategy
-14. MVP Scope
-15. Roadmap and Future Extensions
-16. Open Questions and Validation Plan
-17. Handoff Notes for Technical Design
-18. Traceability Appendix
+9. Product Experience Direction
+10. Logical Architecture
+11. Conceptual Information Model
+12. Decision Policies
+13. Risk, Governance, and Safety Model
+14. Evaluation Strategy
+15. MVP Scope
+16. Roadmap and Future Extensions
+17. Open Questions and Validation Plan
+18. Handoff Notes for Technical Design
+19. Traceability Appendix
 
 ## Thesis
 
@@ -48,7 +49,35 @@ preconditions, decision gates, steps, outputs, failure modes, success
 criteria, related capabilities, and traceability. See
 `templates/workflow_template.md`.
 
-## Logical architecture (§9)
+## Product experience direction (§9)
+
+Capture **UX intent**, not UX design. This section exists so the later
+architecture stage does not invent UX assumptions. Blueprint defines the
+experience direction; architecture defines the UX-enabling technical structure;
+a later UX-design skill defines the detailed experience. Include, compactly:
+Primary Experience Thesis · Primary User / Operator · Primary Job-to-Be-Done ·
+Primary Interaction Mode (with MVP stage + rationale) · Secondary / Future
+Interaction Modes · Critical Trust, Control, and Transparency Requirements ·
+Human-in-the-Loop Experience · Failure and Recovery Expectations · UX
+Assumptions for Architecture · Product Experience Handoff to Architecture.
+
+- Keep it to **1–2 pages** in `standard` output; use tables, not long prose;
+  include only UX detail that affects architecture or MVP scope.
+- Do **not** include screen layout, button placement, CSS/styling, visual
+  hierarchy, wireframes, full user journeys, exact CLI command syntax/flags,
+  exact MCP tool schemas, exact API routes, detailed copywriting, mobile
+  navigation, a full accessibility checklist, or implementation tasks — those
+  belong to a later UX-design or implementation stage.
+- Ask a UX clarification question only when the answer materially affects
+  product direction, architecture, risk, or implementation. In automatic mode,
+  infer a reasonable default and record it in §9 "UX Assumptions for
+  Architecture"; high-impact assumptions must be review-flagged.
+
+See `references/product-experience-direction.md` for the section template,
+clarification-question format, the Product Experience Gate, and the boundary
+rule.
+
+## Logical architecture (§10)
 
 Describe conceptual responsibilities and boundaries, **not**
 implementation components. Conceptual names (e.g. "Admission Controller")
@@ -67,14 +96,15 @@ services, packages, processes, or deployable units. See
 - Additional Mermaid workflow diagrams only for complex, safety-critical,
   or high-risk workflows.
 - Markdown tables for the translation map (§5), decisions (§6), risks
-  (§12), evaluations (§13), and policies (§11).
+  (§13), evaluations (§14), and policies (§12).
 - Cite research evidence as `[arxiv_id]` or `[Author, Year]`, traceable to
   the source report's `## References`.
 - Apply the length budget for the active `output_detail` setting. For
   `standard`, prefer: ≤ 8 core capabilities, ≤ 3 workflows, ≤ 10 risks,
-  ≤ 8 evaluation scenarios, ≤ 8 decision policies, ≤ 10 open questions.
+  ≤ 8 evaluation scenarios, ≤ 8 decision policies, ≤ 10 open questions,
+  and a §9 Product Experience Direction of ≤ 1–2 pages (tables, not prose).
   Keep the main body scannable in one pass — move large tables (the full
-  §5 translation map, the §18 traceability appendix) to appendices rather
+  §5 translation map, the §19 traceability appendix) to appendices rather
   than the main flow. If content exceeds a budget, compress or switch to
   `detailed`; do not silently expand `standard` into an architecture dossier.
 - End with `## Appendix A: Blueprint Quality-Gate Self-Check` — a compact
@@ -113,7 +143,7 @@ normalise, invent, or upgrade a value.
   `unknown` for rounds.
 - Any field not explicitly available is `unknown` / `not specified`.
 
-## Scope discipline (§3, §4, §14)
+## Scope discipline (§3, §4, §15)
 
 Classify every actor, domain, and use case as Primary / Secondary /
 Future / Evidence-only / Out-of-scope.
@@ -122,12 +152,12 @@ Future / Evidence-only / Out-of-scope.
   appear as first-class users and MVP requirements.
 - High-stakes or adjacent domains that appear only as research evidence
   (e.g. legal/medical when the thesis targets technical/academic content)
-  are Secondary or Future: put them in §15 roadmap or §4 non-goals, not
+  are Secondary or Future: put them in §16 roadmap or §4 non-goals, not
   the primary actor table or MVP.
 
-## MVP scope (§14)
+## MVP scope (§15)
 
-Build §14 as MVP-0 / MVP-1 / Safety Baseline / Evaluation Baseline /
+Build §15 as MVP-0 / MVP-1 / Safety Baseline / Evaluation Baseline /
 Explicitly Deferred / Success Definition.
 
 - **MVP-0** is the smallest end-to-end slice that demonstrates the thesis
@@ -143,11 +173,11 @@ Explicitly Deferred / Success Definition.
 - List and justify safety and evaluation baselines **separately** from the
   core path, noting which are required already at MVP-0.
 - Do not translate research completeness into MVP inclusion. Anything not
-  required moves to a §15 phase with a one-line reason.
+  required moves to a §16 phase with a one-line reason.
 - `ACADEMIC`-gap items stay out of MVP unless the product's purpose is to
   validate that gap.
 
-## Release-gate discipline (§12)
+## Release-gate discipline (§13)
 
 A release gate derived from a MEDIUM- or LOW-confidence mechanism is
 justified only when the risk impact is HIGH, no cheaper baseline control

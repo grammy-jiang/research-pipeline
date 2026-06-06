@@ -1,7 +1,7 @@
 {
   "workflow_id": "blueprint",
-  "version": "0.4.0",
-  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The quality-gate stage runs metadata-integrity, thesis-emphasis, source-fidelity (incl. gap-citation fallback), scope-control, MVP-structure (MVP-0 vs MVP-1 vs safety/evaluation baselines), release-gate-confidence-consistency, implementation-neutrality (with a warning tier), and Contents/appendix-consistency checks; applies a self-repair pass for safe wording rewrites before delivery; then emits an actionable PASS/WARNING/FAIL self-check appendix (gate · status · finding · required action · blocks-technical-design) plus an optional Appendix B design-decision register for architecture handoff. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
+  "version": "0.5.0",
+  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The composed blueprint has 19 sections including §9 Product Experience Direction (UX intent only — primary user, job-to-be-done, experience thesis, interaction mode, trust/control/transparency, human-in-the-loop, failure/recovery, and a UX→architecture handoff; never wireframes, screen layout, exact CLI/MCP/API syntax, or copy). The quality-gate stage runs metadata-integrity, thesis-emphasis, source-fidelity (incl. gap-citation fallback), scope-control, MVP-structure (MVP-0 vs MVP-1 vs safety/evaluation baselines), release-gate-confidence-consistency, implementation-neutrality (with a warning tier), Contents/appendix-consistency, and a Product Experience Gate; applies a self-repair pass for safe wording rewrites before delivery; then emits an actionable PASS/WARNING/FAIL self-check appendix (gate · status · finding · required action · blocks-technical-design) plus an optional Appendix B design-decision register for architecture handoff. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend.",
   "mandatory_gates": [
     "assess-input-quality",
     "quality-gate"
@@ -104,7 +104,7 @@
     },
     {
       "id": "compose-blueprint",
-      "label": "Compose the 18-section implementation-neutral product blueprint",
+      "label": "Compose the 19-section implementation-neutral product blueprint (incl. §9 Product Experience Direction)",
       "type": "llm_task",
       "phase": "compose",
       "depends_on": ["resolve-ideas"],
@@ -116,12 +116,12 @@
       "output": {
         "path": "<topic-slug>-product-blueprint.md"
       },
-      "validation": ["all_18_sections_present", "contents_lists_all_sections_and_appendices", "mermaid_workflow_and_architecture_present", "metadata_not_invented", "thesis_emphasizes_primary_architecture", "primary_scope_matches_thesis", "mvp0_mvp1_split_present", "no_blank_citations", "release_gates_confidence_justified"],
+      "validation": ["all_19_sections_present", "product_experience_direction_present", "contents_lists_all_sections_and_appendices", "mermaid_workflow_and_architecture_present", "metadata_not_invented", "thesis_emphasizes_primary_architecture", "primary_scope_matches_thesis", "mvp0_mvp1_split_present", "no_blank_citations", "release_gates_confidence_justified"],
       "failure_policy": {"on_failure": "revise", "retries": 3}
     },
     {
       "id": "quality-gate",
-      "label": "Run the quality gates (metadata integrity, thesis emphasis, source fidelity + gap-citation fallback, scope control, MVP-0/MVP-1 structure, release-gate confidence, implementation-neutrality warning tier, Contents/appendix consistency); apply the self-repair pass for safe wording rewrites; emit the actionable self-check appendix; revise failing sections (max 3 attempts)",
+      "label": "Run the quality gates (metadata integrity, thesis emphasis, source fidelity + gap-citation fallback, scope control, MVP-0/MVP-1 structure, release-gate confidence, implementation-neutrality warning tier, Contents/appendix consistency, Product Experience Gate); apply the self-repair pass for safe wording rewrites; emit the actionable self-check appendix; revise failing sections (max 3 attempts)",
       "type": "verification",
       "phase": "compose",
       "depends_on": ["compose-blueprint"],

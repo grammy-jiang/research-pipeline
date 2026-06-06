@@ -4,16 +4,17 @@ description: >
   Convert a research synthesis report into an implementation-neutral product
   blueprint. Transforms confidence-graded findings, gap classifications,
   contradiction maps, and risk items into a product concept, target users,
-  workflow model, logical architecture, information model, decision policies,
-  MVP boundary, evaluation strategy, and technical-design handoff. Use when
+  workflow model, product experience direction, logical architecture,
+  information model, decision policies, MVP boundary, evaluation strategy, and
+  technical-design handoff. Use when
   the user has a research report and asks to "create a blueprint", "design
   the product", "turn this research into a product", "what should we build?",
   "generate a product blueprint", "convert the research to an MVP plan", or
   accepts the research-pipeline handover offer. Aliases: "product-blueprint",
   "research-blueprint", "research-to-product". Do NOT use for more literature
-  research (use `research-pipeline`), tech-stack selection, requirements with
-  user stories (use `req-analysis`), or single-paper explanation
-  (use `paper-analyzer`).
+  research (use `research-pipeline`), tech-stack selection, detailed UI/UX
+  design or wireframes, requirements with user stories (use `req-analysis`),
+  or single-paper explanation (use `paper-analyzer`).
 license: MIT
 ---
 
@@ -27,8 +28,8 @@ research findings into product-design language.
 ```text
 Research mechanisms / confidence-graded findings / gap classifications
   → product primitives → core capabilities → workflows
-  → logical architecture → MVP boundary → evaluation strategy
-  → technical-design handoff
+  → product experience direction → logical architecture
+  → MVP boundary → evaluation strategy → technical-design handoff
 ```
 
 ## When To Trigger
@@ -37,6 +38,8 @@ Research mechanisms / confidence-graded findings / gap classifications
 - "Design the product based on this research"
 - "Turn this research into a product design" / "What should we build?"
 - "Generate a product blueprint" / "Convert the research to an MVP plan"
+- "Define the product experience direction" / "Define how users should
+  experience the product" / "Define user trust/control/review expectations"
 - The aliases `product-blueprint`, `research-blueprint`, `research-to-product`
 - Accepting the `research-pipeline` handover offer at the end of its
   iterative gap-closure loop (see that skill's
@@ -48,6 +51,9 @@ Do **not** trigger for:
 
 - More research (use `research-pipeline`)
 - Technical architecture or tech-stack selection (a later tech-arch skill)
+- Detailed UI/UX design: drawing wireframes, writing screen copy, defining
+  exact CLI flags or MCP tool schemas, building frontend components (a later
+  UX-design skill). The blueprint defines UX **intent**, not detailed UX.
 - Requirements clarification with user stories (use `req-analysis`)
 - Single-paper explanation (use `paper-analyzer`)
 
@@ -92,7 +98,7 @@ filename; if no filename is available, derive a lowercase hyphenated slug
 from the product thesis. If files cannot be written, emit the full
 Markdown blueprint inline and state the recommended filename.
 
-The blueprint must contain these 18 sections, in order:
+The blueprint must contain these 19 sections, in order:
 
 1. Executive Product Thesis
 2. Source Research Interpretation
@@ -102,23 +108,24 @@ The blueprint must contain these 18 sections, in order:
 6. Adopt / Adapt / Merge / Defer / Reject Decisions
 7. Core Product Capabilities
 8. Workflow Model
-9. Logical Architecture
-10. Conceptual Information Model
-11. Decision Policies
-12. Risk, Governance, and Safety Model
-13. Evaluation Strategy
-14. MVP Scope
-15. Roadmap and Future Extensions
-16. Open Questions and Validation Plan
-17. Handoff Notes for Technical Design
-18. Traceability Appendix
+9. Product Experience Direction
+10. Logical Architecture
+11. Conceptual Information Model
+12. Decision Policies
+13. Risk, Governance, and Safety Model
+14. Evaluation Strategy
+15. MVP Scope
+16. Roadmap and Future Extensions
+17. Open Questions and Validation Plan
+18. Handoff Notes for Technical Design
+19. Traceability Appendix
 
 Use `templates/product_blueprint_template.md` as the skeleton.
 
 Formatting requirements:
 
 - A `## Contents` section at the top with internal Markdown links to all
-  18 sections.
+  19 sections.
 - At least one **Mermaid** diagram for the main end-to-end workflow.
 - At least one **Mermaid** diagram for the logical architecture.
 - Additional Mermaid workflow diagrams only for complex, safety-critical,
@@ -138,6 +145,14 @@ package/module structure.
 Do **not** produce: code, a database schema, a deployment plan,
 vendor-specific architecture, implementation tickets, or detailed coding
 tasks.
+
+Do **not** produce detailed UX design: screen layouts, wireframes, visual
+hierarchy, exact CLI command syntax/flags, exact MCP tool or API schemas,
+copywriting, or full accessibility checklists. §9 captures **UX intent** only.
+The boundary is: **blueprint defines UX intent · architecture defines the
+UX-enabling technical structure · a later UX-design skill defines the detailed
+experience · implementation-plan turns it into build tasks.** See
+`references/product-experience-direction.md`.
 
 Do **not** treat research gaps as solved without explicit validation.
 
@@ -182,12 +197,14 @@ task graph, gate names, and failure policy.
    every major idea, conservatively. Use `prompts/03_resolve_ideas.md`.
 8. **Size the MVP** — apply the Round History signal (a long round history
    with many remaining gaps, or `Readiness: HAS_GAPS`, means a speculative
-   space → heavier DEFER/REJECT pressure). Structure §14 as MVP-0 (smallest
+   space → heavier DEFER/REJECT pressure). Structure §15 as MVP-0 (smallest
    demonstrable end-to-end slice) / MVP-1 (first usable version) / Safety
    Baseline / Evaluation Baseline / Deferred; keep MVP-0 minimal and do not
    translate research completeness into MVP inclusion.
-9. **Compose** — generate the thesis, then all 18 sections with the
-   required Mermaid coverage and tables. Lead the thesis with the primary
+9. **Compose** — generate the thesis, then all 19 sections with the
+   required Mermaid coverage and tables, including §9 Product Experience
+   Direction (UX intent only; see `references/product-experience-direction.md`).
+   Lead the thesis with the primary
    research-backed architecture, not a conditional/secondary mechanism.
    Copy metadata (never invent; keep pipeline runs vs. gap-closure rounds
    separate; skill version from `manifest.json` or `unknown`). Keep primary
@@ -242,7 +259,7 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
    success criteria.
 5. **Scope control & MVP discipline** — primary actors/domains match the
    thesis (high-stakes domains seen only as evidence stay Secondary/Future);
-   §14 splits the core path into MVP-0 (smallest demonstrable) and MVP-1
+   §15 splits the core path into MVP-0 (smallest demonstrable) and MVP-1
    (first usable), separates Safety and Evaluation baselines, and has an
    explicit success definition; `ACADEMIC`-gap items are excluded unless the
    product validates that gap. Flag (do not auto-fail) an MVP-0 over 6
@@ -260,6 +277,12 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
    Contents section exists with valid links and lists every numbered section
    and every appendix present; the main end-to-end workflow and the logical
    architecture each have a Mermaid diagram.
+8. **Product Experience Gate** — §9 names a primary user, job-to-be-done,
+   experience thesis, and primary interaction mode; defines
+   trust/control/transparency needs, human-in-the-loop, and failure/recovery
+   where relevant; and hands UX assumptions off to architecture. It stays UX
+   **intent** (no wireframes, screen layout, exact CLI/MCP/API syntax, or copy).
+   Full fail/warning conditions in `references/product-experience-direction.md`.
 
 Fail immediately if any tech-stack choice, code, or implementation ticket
 appears; if either required Mermaid diagram is missing; if open research
@@ -273,12 +296,13 @@ output is an unstructured essay.
 | `references/input-mapping.md` | Mapping report sections → blueprint inputs; quality thresholds |
 | `references/gap-type-mapping.md` | Turning ACADEMIC / ENGINEERING / OUT_OF_SCOPE gaps into product actions |
 | `references/borderline-cases.md` | Deciding whether a statement is implementation-neutral |
+| `references/product-experience-direction.md` | Writing §9 UX intent; the boundary rule; clarification questions; the Product Experience Gate |
 | `references/troubleshooting.md` | Insufficient / weak / multi-domain inputs, missing sections, gate failures |
-| `templates/product_blueprint_template.md` | The 18-section output skeleton |
+| `templates/product_blueprint_template.md` | The 19-section output skeleton |
 | `templates/workflow_template.md` | Writing a workflow with full fields + Mermaid |
-| `templates/logical_architecture_template.md` | Writing §9 conceptually (not technically) |
+| `templates/logical_architecture_template.md` | Writing §10 conceptually (not technically) |
 | `templates/translation_map_template.md` | Writing §5 / §6 tables |
-| `templates/evaluation_strategy_template.md` | Writing §13 scenarios |
+| `templates/evaluation_strategy_template.md` | Writing §14 scenarios |
 
 ## Final Reminder
 

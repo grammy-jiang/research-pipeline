@@ -31,7 +31,7 @@ report before invoking `blueprint`.
 
 `weak` means there is a research question plus either mechanisms or
 evidence, but key sections are thin. Proceed, but explicitly mark each
-missing area as an assumption or an open question (§16). Do not stop.
+missing area as an assumption or an open question (§17). Do not stop.
 
 ## Multi-domain report
 

@@ -27,16 +27,16 @@ product implication.
 
 - §6 decisions: `ENGINEERING` → ADOPT/ADAPT (sized by severity);
   `ACADEMIC` → DEFER / VALIDATE.
-- §12 risk model: risks derived from `ACADEMIC` gaps must acknowledge that
+- §13 risk model: risks derived from `ACADEMIC` gaps must acknowledge that
   the research does not yet confirm the mitigation works.
-- §13 evaluation: a capability derived from an `ACADEMIC` gap needs an
+- §14 evaluation: a capability derived from an `ACADEMIC` gap needs an
   evaluation scenario that explicitly measures whether the gap assumption
   holds.
-- §14 MVP: `ACADEMIC`-gap items stay out of MVP unless the product's whole
+- §15 MVP: `ACADEMIC`-gap items stay out of MVP unless the product's whole
   purpose is to validate that gap.
-- §15 roadmap: an `ACADEMIC`-gap capability must not enter Phase 1 unless
+- §16 roadmap: an `ACADEMIC`-gap capability must not enter Phase 1 unless
   it is explicitly the product's validation purpose.
-- §16 open questions: carry forward unresolved `ACADEMIC` gaps with a
+- §17 open questions: carry forward unresolved `ACADEMIC` gaps with a
   validation method.
 
 ## Worked examples

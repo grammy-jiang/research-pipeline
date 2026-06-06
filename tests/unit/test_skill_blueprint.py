@@ -295,7 +295,7 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.4.0"
+    assert data["version"] == "0.5.0"
 
 
 # --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
@@ -427,3 +427,135 @@ def test_mvp_split_mandatory_trigger_present() -> None:
         assert "more than 4 major capabilities" in normalized, (
             f"{rel} missing MVP trigger"
         )
+
+
+# --- v0.5.0 skill: §9 Product Experience Direction (UX-intent support) ---
+
+# Files that must carry the new §9 section, in order, after Workflow Model and
+# before Logical Architecture.
+_PE_SECTION = "## 9. Product Experience Direction"
+_PE_DOCS = (
+    ("templates", "product_blueprint_template.md"),
+    ("tests", "sample_outputs", "product_blueprint_example.md"),
+)
+
+
+def test_product_experience_reference_exists_and_nonempty() -> None:
+    ref = _skill_root() / "references" / "product-experience-direction.md"
+    assert ref.exists(), "missing references/product-experience-direction.md"
+    text = ref.read_text(encoding="utf-8")
+    assert text.strip()
+    # Boundary rule and gate must be documented.
+    assert "Boundary rule" in text
+    assert "Product Experience Gate" in text
+    assert "UX intent" in text
+
+
+def test_template_and_example_have_product_experience_direction() -> None:
+    for rel in _PE_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert _PE_SECTION in text, f"{rel} missing §9 Product Experience Direction"
+        # The section heading must precede the Logical Architecture heading.
+        assert text.index(_PE_SECTION) < text.index("## 10. Logical Architecture"), (
+            f"{rel}: §9 must come before Logical Architecture"
+        )
+
+
+def test_template_and_example_are_now_19_sections() -> None:
+    """§9 insert renumbers the tail; the document must run 1..19 in order."""
+    import re
+
+    for rel in _PE_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        numbers = [int(m) for m in re.findall(r"^## (\d+)\. ", text, re.MULTILINE)]
+        assert numbers == list(range(1, 20)), f"{rel} sections not 1..19: {numbers}"
+
+
+def test_contents_lists_product_experience_direction() -> None:
+    for rel in _PE_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        contents = _contents_block(text)
+        assert "Product Experience Direction" in contents, f"{rel} Contents omits §9"
+
+
+def test_template_section_has_required_ux_subsections() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    for needle in (
+        "Primary Experience Thesis",
+        "Primary User / Operator",
+        "Primary Job-to-Be-Done",
+        "Primary Interaction Mode",
+        "Critical Trust, Control, and Transparency Requirements",
+        "Human-in-the-Loop Experience",
+        "Failure and Recovery Expectations",
+        "UX Assumptions for Architecture",
+        "Product Experience Handoff to Architecture",
+    ):
+        assert needle in template, f"§9 template missing: {needle}"
+
+
+def test_example_has_product_experience_handoff() -> None:
+    example = (
+        _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+    ).read_text(encoding="utf-8")
+    assert "Product Experience Handoff to Architecture" in example
+
+
+def test_quality_gate_has_product_experience_gate() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Product experience direction" in gate or "Product Experience Gate" in gate
+
+
+def test_template_and_example_self_check_has_product_experience_gate() -> None:
+    for rel in (
+        ("templates", "product_blueprint_template.md"),
+        ("tests", "sample_outputs", "product_blueprint_example.md"),
+    ):
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Product Experience Gate" in text, f"{rel} self-check missing PE gate"
+        assert "Primary user identified" in text, f"{rel} missing PE gate row"
+
+
+def test_compose_prompt_covers_product_experience() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Product experience direction" in prompt
+    assert "references/product-experience-direction.md" in prompt
+
+
+def test_skill_md_declares_19_sections_with_product_experience() -> None:
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    assert "19 sections" in text
+    assert "9. Product Experience Direction" in text
+
+
+def test_skill_md_forbids_detailed_ux_design() -> None:
+    """The skill must route detailed UI/UX away (it is UX intent only)."""
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8").lower()
+    assert "wireframe" in text
+    assert "ux intent" in text
+
+
+def test_skill_md_description_fits_copilot_limit() -> None:
+    """GitHub Copilot CLI rejects skills whose description exceeds 1024 chars."""
+    import re
+
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    head, _, _ = text[4:].partition("\n---\n")
+    match = re.search(r"description: >\n(.*?)\nlicense:", head, re.S)
+    assert match, "could not parse folded description block"
+    description = " ".join(line.strip() for line in match.group(1).splitlines())
+    assert len(description) <= 1024, f"description is {len(description)} chars (>1024)"
+
+
+def test_manifest_mentions_product_experience() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    assert "Product Experience" in data["description"]
+    compose = next(t for t in data["tasks"] if t["id"] == "compose-blueprint")
+    assert "product_experience_direction_present" in compose["validation"]
+    assert "all_19_sections_present" in compose["validation"]

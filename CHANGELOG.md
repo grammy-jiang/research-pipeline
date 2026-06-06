@@ -2,6 +2,53 @@
 
 All notable changes to research-pipeline.
 
+## [v0.20.0] — 2026-06-06
+
+### Added
+
+- **`blueprint` skill — Product Experience Direction (lightweight UX-intent
+  support; skill manifest 0.4.0 → 0.5.0).** The blueprint now captures enough
+  product-experience direction to keep downstream architecture and
+  implementation from inventing UX assumptions, without turning blueprint into a
+  full UX-design stage. The boundary is explicit: **blueprint defines UX intent
+  · architecture defines the UX-enabling technical structure · a later UX-design
+  skill defines the detailed experience · implementation-plan turns it into
+  build tasks.** Folded into the existing prompts/templates/example (no new
+  manifest tasks), tech/domain-neutral:
+  - **New §9 Product Experience Direction** (the output template grows from 18
+    to 19 sections; §9 sits after Workflow Model and before Logical
+    Architecture, so UX intent exists before the architecture handoff). It
+    captures, compactly (1–2 pages, tables): Primary Experience Thesis · Primary
+    User / Operator · Primary Job-to-Be-Done · Primary Interaction Mode
+    (CLI/Web/GUI/TUI/API/AI-Skill/MCP/Hybrid, with MVP stage + rationale) ·
+    Secondary / Future Interaction Modes · Critical Trust, Control, and
+    Transparency Requirements · Human-in-the-Loop Experience · Failure and
+    Recovery Expectations · UX Assumptions for Architecture · Product Experience
+    Handoff to Architecture.
+  - **Product Experience Gate** added to the quality-gate prompt and the
+    Appendix A self-check (eight rows: primary user, job-to-be-done, experience
+    thesis, interaction mode, trust/control/transparency, human-in-the-loop,
+    failure/recovery, UX handoff), with explicit FAIL and WARNING conditions.
+  - **UX-intent boundary enforced** — §9 must not contain screen layout,
+    wireframes, CSS/visual design, full user journeys, exact CLI syntax/flags,
+    exact MCP/API schemas, copywriting, mobile navigation, full accessibility
+    checklists, or implementation tasks (UX over-reach is a gate FAIL). SKILL.md
+    gains UX trigger phrases and negative triggers (detailed UI/UX → a later
+    UX-design skill); the forbidden-content checklist gains a detailed-UX
+    section.
+  - **New reference** `references/product-experience-direction.md` — the section
+    template, the boundary rule, the grill-me-style clarification-question
+    format (good vs. bad questions), the Product Experience Gate, and the output
+    budget.
+  - **Chain handoff** — the `architecture` skill's blueprint-parse prompt now
+    extracts `product_experience` (interaction mode, trust/control/transparency,
+    human-in-the-loop, failure/recovery, UX assumptions) so it preserves UX
+    intent instead of inventing it.
+  - Updates the manifest, SKILL.md, prompt 04 (generate), prompt 05
+    (quality-gate), the output template, both test checklists, and the worked
+    example (now modelling §9 + a PASS-with-warning PE-gate row), with new guard
+    tests including a Copilot description-length check.
+
 ## [v0.19.5] — 2026-06-05
 
 ### Changed

@@ -1,4 +1,4 @@
-# Evaluation Strategy Template (§13)
+# Evaluation Strategy Template (§14)
 
 The blueprint must define how to know whether the product works — without
 assuming an implementation technology and without inventing performance

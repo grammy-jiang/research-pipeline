@@ -6,7 +6,7 @@ combines the seven quality gates with the acceptance criteria.
 ## Structure
 
 - [ ] `## Contents` section with working internal links.
-- [ ] All 18 required sections present, in order:
+- [ ] All 19 required sections present, in order:
   - [ ] 1. Executive Product Thesis
   - [ ] 2. Source Research Interpretation
   - [ ] 3. Target Users and System Actors
@@ -15,16 +15,17 @@ combines the seven quality gates with the acceptance criteria.
   - [ ] 6. Adopt / Adapt / Merge / Defer / Reject Decisions
   - [ ] 7. Core Product Capabilities
   - [ ] 8. Workflow Model
-  - [ ] 9. Logical Architecture
-  - [ ] 10. Conceptual Information Model
-  - [ ] 11. Decision Policies
-  - [ ] 12. Risk, Governance, and Safety Model
-  - [ ] 13. Evaluation Strategy
-  - [ ] 14. MVP Scope
-  - [ ] 15. Roadmap and Future Extensions
-  - [ ] 16. Open Questions and Validation Plan
-  - [ ] 17. Handoff Notes for Technical Design
-  - [ ] 18. Traceability Appendix
+  - [ ] 9. Product Experience Direction
+  - [ ] 10. Logical Architecture
+  - [ ] 11. Conceptual Information Model
+  - [ ] 12. Decision Policies
+  - [ ] 13. Risk, Governance, and Safety Model
+  - [ ] 14. Evaluation Strategy
+  - [ ] 15. MVP Scope
+  - [ ] 16. Roadmap and Future Extensions
+  - [ ] 17. Open Questions and Validation Plan
+  - [ ] 18. Handoff Notes for Technical Design
+  - [ ] 19. Traceability Appendix
 
 ## Content quality
 
@@ -43,6 +44,14 @@ combines the seven quality gates with the acceptance criteria.
       diagram.
 - [ ] Complex / safety-critical / high-risk workflows have extra Mermaid
       diagrams.
+- [ ] §9 Product Experience Direction captures UX **intent**: primary user,
+      job-to-be-done, experience thesis, primary interaction mode (with MVP
+      stage + rationale), trust/control/transparency needs, human-in-the-loop
+      (where needed), failure/recovery expectations, and a UX→architecture
+      handoff.
+- [ ] §9 stays UX intent: no screen layout, wireframes, CSS/visual design,
+      exact CLI syntax/flags, exact MCP/API schemas, copywriting, or
+      implementation tasks. Compact (1–2 pages, tables) in `standard` output.
 - [ ] Conceptual information objects defined with lifecycle states.
 - [ ] Decision policies are explicit with defaults and escalation rules.
 - [ ] Risks and governance controls are explicit and realistic.
@@ -72,7 +81,7 @@ combines the seven quality gates with the acceptance criteria.
 - [ ] No citation cell is blank: gap-derived items cite
       `[Source Report: Research Gaps — <name>]`; blank only for an explicit
       internal design hypothesis.
-- [ ] §14 splits the core path into MVP-0 (smallest demonstrable) and MVP-1
+- [ ] §15 splits the core path into MVP-0 (smallest demonstrable) and MVP-1
       (first usable); a large Phase-1 system is not labelled MVP-0.
 - [ ] Release gates from MEDIUM/LOW-confidence mechanisms are justified
       (HIGH risk + no cheaper control + why-now) or downgraded.
@@ -90,6 +99,10 @@ combines the seven quality gates with the acceptance criteria.
 - [ ] An `## Appendix A: Blueprint Quality-Gate Self-Check` is present;
       every WARNING has a required action and a blocks-technical-design
       verdict; any FAIL is resolved before delivery.
+- [ ] The **Product Experience Gate** rows are present in the self-check
+      (primary user, job-to-be-done, experience thesis, interaction mode,
+      trust/control/transparency, human-in-the-loop, failure/recovery, UX
+      handoff) per `references/product-experience-direction.md`.
 - [ ] *(optional)* An `## Appendix B: Design Decision Register` is included
       for architecture handoff — reversibility + revisit trigger, not a
       duplicate of §6.

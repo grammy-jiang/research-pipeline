@@ -26,6 +26,20 @@ revised.
 - [ ] Implementation tickets, sprint tasks, or detailed coding tasks.
 - [ ] `pip install` / `npm install` / dependency lists.
 
+## Detailed UX design (forbidden in §9 — UX intent only)
+
+- [ ] Screen layout, button placement, visual hierarchy, or CSS/styling.
+- [ ] Wireframes or mockups.
+- [ ] Full end-to-end user journeys.
+- [ ] Exact CLI command syntax or flags.
+- [ ] Exact MCP tool schema or API route definitions.
+- [ ] Detailed copywriting or a full error-message catalogue.
+- [ ] Mobile navigation or a complete accessibility checklist.
+
+These belong to a later UX-design or implementation stage. §9 captures UX
+intent (who the user is, the job, the experience, the primary interaction
+mode, and what must be trusted/controlled/reviewed/recovered) — not design.
+
 ## Reasoning errors (forbidden)
 
 - [ ] An open `ACADEMIC` research gap silently treated as a solved

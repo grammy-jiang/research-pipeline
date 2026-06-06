@@ -52,7 +52,7 @@ Not every implementation-leaning phrase is a hard failure. Use four levels:
 | Level | Meaning | Example | Action |
 |---|---|---|---|
 | Allowed | Conceptual product responsibility | quality gate, domain profile, audit record, durable store | Keep |
-| Warning | Runtime / architecture / deployment leaning | "service-deployable", "deployed as microservices", a specific context-window assumption, "reachable model" | Rephrase to its purpose, or defer to §17 technical-design handoff; record as a `WARNING` in the self-check |
+| Warning | Runtime / architecture / deployment leaning | "service-deployable", "deployed as microservices", a specific context-window assumption, "reachable model" | Rephrase to its purpose, or defer to §18 technical-design handoff; record as a `WARNING` in the self-check |
 | Research-derived exception | A specific mechanism named in the research | a cited decoding/caching technique used as an evaluation anchor | Keep only if cited and tied to evaluation |
 | Forbidden | Concrete technology, vendor, or deployment product | Python, FastAPI, PostgreSQL, FAISS, AWS, Docker | `FAIL` — remove |
 
@@ -70,11 +70,11 @@ more conservative classification.
 | immutable audit log | tamper-resistant audit record |
 | CLI skill | callable workflow interface |
 | open-LLM route | lower-cost open-model route |
-| service-deployable | (state the responsibility; defer deployment to §17) |
+| service-deployable | (state the responsibility; defer deployment to §18) |
 | KV-cache | keep only if cited as a research-derived evaluation baseline |
 
 These are illustrative: rewrite to the *purpose*, or move the detail to the
-§17 technical-design handoff. Keep a research-derived term only when it is
+§18 technical-design handoff. Keep a research-derived term only when it is
 cited and tied to evaluation.
 
 ## Conceptual component names

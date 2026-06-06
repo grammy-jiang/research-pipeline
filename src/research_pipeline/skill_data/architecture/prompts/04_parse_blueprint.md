@@ -16,6 +16,12 @@ Parse and record:
 - **capabilities** — core product capabilities.
 - **workflows** — each major workflow (trigger, steps, decision gates, outputs,
   failure modes).
+- **product_experience** — the §9 Product Experience Direction and its handoff:
+  primary interaction mode, trust/control/transparency requirements,
+  human-in-the-loop experience, failure/recovery expectations, and the UX
+  assumptions handed to architecture. Treat these as UX intent the architecture
+  must preserve (surfaces, states, review/audit flows) — do not invent UX
+  assumptions the blueprint did not state.
 - **logical_architecture** — the blueprint's conceptual components and
   boundaries.
 - **conceptual_objects** — the information model objects.
