@@ -2,6 +2,58 @@
 
 All notable changes to research-pipeline.
 
+## [v0.21.0] — 2026-06-06
+
+### Added
+
+- **`blueprint` skill — Recommended Next Stages (adaptive stage-gate routing;
+  skill manifest 0.5.0 → 0.6.0).** The blueprint is now the **first adaptive
+  stage-gate router** after research extraction: instead of leaving every
+  optional downstream stage to manual choice, it evaluates the project and
+  recommends which stages should run next — with evidence, confidence, and
+  revisit triggers — without silently expanding the pipeline. Folded into the
+  existing prompts/templates/example (no new manifest tasks),
+  tech/domain-neutral:
+  - **New §19 Recommended Next Stages** (the output template grows from 19 to 20
+    sections; §19 sits after the technical-design handoff and before the
+    Traceability Appendix, which renumbers to §20). It contains a **Pipeline
+    Complexity Assessment** (seven 0–3 dimensions — user-facing complexity,
+    technical ambiguity, security/privacy risk, AI/LLM uncertainty, integration
+    complexity, human-review complexity, testing/E2E importance — with a total
+    `/ 21` and a simple/lightweight/medium/complex workflow class), a **Stage
+    Recommendations** table covering architecture-design, tech-stack-selection,
+    ux-design, security-review, test-design, architecture-update, and
+    architecture-reconciliation, a short **Recommended Pipeline**, and a
+    **Stage-Gate Decision Log**.
+  - **Controlled decision vocabulary** — every stage uses exactly one of
+    **RUN / SKIP / DEFER / ASK_USER** (no vague "maybe / consider / nice to
+    have"). Every RUN/ASK_USER needs evidence, every SKIP a reason, every DEFER
+    a revisit trigger; recommendations are overrideable defaults.
+    `architecture-design` is normally RUN; `architecture-update` and
+    `architecture-reconciliation` default to DEFER at blueprint stage (no
+    architecture document exists yet).
+  - **Adaptive Stage-Gate Recommendation Gate** added to the quality-gate prompt
+    (Gate 9) and the Appendix A self-check (seven rows: section exists,
+    controlled decisions, RUN evidence, SKIP reason, DEFER revisit trigger,
+    ASK_USER missing-info, and Product Experience Direction informs the
+    recommendations), with explicit FAIL and WARNING conditions.
+  - **Product Experience Direction integration** — §9 signals drive the routing
+    (human review → ux-design / test-design; external egress → security-review;
+    CLI-first → ux-design DEFER; future MCP → tech-stack-selection RUN/DEFER),
+    making §9 actionable rather than decorative.
+  - **New reference** `references/adaptive-stage-gate-routing.md` — the decision
+    vocabulary, per-stage RUN/SKIP/DEFER/ASK_USER rules, complexity scoring, the
+    PED-integration table, the output-discipline budget, and the gate
+    definition. SKILL.md, prompts 04/05, the template, the example, and both
+    checklists were updated; the shipped example models a realistic 16/21
+    "complex" routing recommendation.
+
+### Changed
+
+- `blueprint` SKILL.md now documents 20 sections, adds adaptive-routing trigger
+  phrases ("what should we build next?", "which design stages should we run
+  next?"), and a ninth quality gate.
+
 ## [v0.20.0] — 2026-06-06
 
 ### Added

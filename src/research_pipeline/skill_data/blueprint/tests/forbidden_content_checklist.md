@@ -51,6 +51,19 @@ mode, and what must be trusted/controlled/reviewed/recovered) — not design.
 - [ ] Invented performance numbers / benchmark figures not in the source
       report.
 
+## Adaptive routing errors (forbidden in §19)
+
+- [ ] A stage recommendation using vague wording (`maybe`, `consider`,
+      `potentially useful`, `nice to have`) instead of RUN / SKIP / DEFER /
+      ASK_USER.
+- [ ] An optional stage silently required (or every gate forced) without
+      justification.
+- [ ] A RUN decision with no supporting evidence, or an ASK_USER that does not
+      name the missing information.
+- [ ] `architecture-design` skipped without strong justification.
+- [ ] `architecture-update` / `architecture-reconciliation` recommended RUN at
+      blueprint stage (no architecture document exists yet).
+
 ## Allowed (do not flag)
 
 Conceptual responsibilities and capabilities — e.g. "durable record

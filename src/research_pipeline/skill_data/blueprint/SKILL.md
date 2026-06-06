@@ -30,7 +30,14 @@ Research mechanisms / confidence-graded findings / gap classifications
   → product primitives → core capabilities → workflows
   → product experience direction → logical architecture
   → MVP boundary → evaluation strategy → technical-design handoff
+  → recommended next stages
 ```
+
+The blueprint is also the **first adaptive stage-gate router** after research
+extraction: §19 recommends which downstream stages (architecture-design,
+tech-stack-selection, ux-design, security-review, test-design, …) should run
+next using **RUN / SKIP / DEFER / ASK_USER** — evidence-based, confidence-scored,
+and overrideable. It recommends a path; it never silently expands the pipeline.
 
 ## When To Trigger
 
@@ -40,6 +47,8 @@ Research mechanisms / confidence-graded findings / gap classifications
 - "Generate a product blueprint" / "Convert the research to an MVP plan"
 - "Define the product experience direction" / "Define how users should
   experience the product" / "Define user trust/control/review expectations"
+- "What should we build next?" / "Which design stages should we run next?" /
+  "Recommend the next stages after the blueprint"
 - The aliases `product-blueprint`, `research-blueprint`, `research-to-product`
 - Accepting the `research-pipeline` handover offer at the end of its
   iterative gap-closure loop (see that skill's
@@ -98,7 +107,7 @@ filename; if no filename is available, derive a lowercase hyphenated slug
 from the product thesis. If files cannot be written, emit the full
 Markdown blueprint inline and state the recommended filename.
 
-The blueprint must contain these 19 sections, in order:
+The blueprint must contain these 20 sections, in order:
 
 1. Executive Product Thesis
 2. Source Research Interpretation
@@ -118,14 +127,15 @@ The blueprint must contain these 19 sections, in order:
 16. Roadmap and Future Extensions
 17. Open Questions and Validation Plan
 18. Handoff Notes for Technical Design
-19. Traceability Appendix
+19. Recommended Next Stages
+20. Traceability Appendix
 
 Use `templates/product_blueprint_template.md` as the skeleton.
 
 Formatting requirements:
 
 - A `## Contents` section at the top with internal Markdown links to all
-  19 sections.
+  20 sections.
 - At least one **Mermaid** diagram for the main end-to-end workflow.
 - At least one **Mermaid** diagram for the logical architecture.
 - Additional Mermaid workflow diagrams only for complex, safety-critical,
@@ -201,9 +211,12 @@ task graph, gate names, and failure policy.
    demonstrable end-to-end slice) / MVP-1 (first usable version) / Safety
    Baseline / Evaluation Baseline / Deferred; keep MVP-0 minimal and do not
    translate research completeness into MVP inclusion.
-9. **Compose** — generate the thesis, then all 19 sections with the
+9. **Compose** — generate the thesis, then all 20 sections with the
    required Mermaid coverage and tables, including §9 Product Experience
-   Direction (UX intent only; see `references/product-experience-direction.md`).
+   Direction (UX intent only; see `references/product-experience-direction.md`)
+   and §19 Recommended Next Stages (adaptive stage-gate routing with
+   RUN / SKIP / DEFER / ASK_USER decisions; see
+   `references/adaptive-stage-gate-routing.md`).
    Lead the thesis with the primary
    research-backed architecture, not a conditional/secondary mechanism.
    Copy metadata (never invent; keep pipeline runs vs. gap-closure rounds
@@ -283,11 +296,22 @@ Pass only if ALL hold (full text in `prompts/05_quality_gate.md` and
    where relevant; and hands UX assumptions off to architecture. It stays UX
    **intent** (no wireframes, screen layout, exact CLI/MCP/API syntax, or copy).
    Full fail/warning conditions in `references/product-experience-direction.md`.
+9. **Adaptive Stage-Gate Recommendation Gate** — §19 Recommended Next Stages
+   exists with a complexity assessment and a stage-recommendation table; every
+   stage uses a controlled decision (RUN / SKIP / DEFER / ASK_USER); each RUN
+   has evidence, each SKIP a reason, each DEFER a revisit trigger, and each
+   ASK_USER the missing information; `architecture-design` is normally RUN and
+   `architecture-update` / `architecture-reconciliation` default to DEFER at
+   blueprint stage; and §9 Product Experience Direction informs the
+   UX/security/test decisions. The skill recommends — it does not silently
+   expand the pipeline. Full conditions in
+   `references/adaptive-stage-gate-routing.md`.
 
 Fail immediately if any tech-stack choice, code, or implementation ticket
 appears; if either required Mermaid diagram is missing; if open research
-gaps are silently treated as solved; if risks are omitted; or if the
-output is an unstructured essay.
+gaps are silently treated as solved; if risks are omitted; if the
+Recommended Next Stages section is missing or uses uncontrolled decision
+wording; or if the output is an unstructured essay.
 
 ## References
 
@@ -297,8 +321,9 @@ output is an unstructured essay.
 | `references/gap-type-mapping.md` | Turning ACADEMIC / ENGINEERING / OUT_OF_SCOPE gaps into product actions |
 | `references/borderline-cases.md` | Deciding whether a statement is implementation-neutral |
 | `references/product-experience-direction.md` | Writing §9 UX intent; the boundary rule; clarification questions; the Product Experience Gate |
+| `references/adaptive-stage-gate-routing.md` | Writing §19 Recommended Next Stages; decision vocabulary; per-stage rules; complexity scoring; the Adaptive Stage-Gate Recommendation Gate |
 | `references/troubleshooting.md` | Insufficient / weak / multi-domain inputs, missing sections, gate failures |
-| `templates/product_blueprint_template.md` | The 19-section output skeleton |
+| `templates/product_blueprint_template.md` | The 20-section output skeleton |
 | `templates/workflow_template.md` | Writing a workflow with full fields + Mermaid |
 | `templates/logical_architecture_template.md` | Writing §10 conceptually (not technically) |
 | `templates/translation_map_template.md` | Writing §5 / §6 tables |

@@ -6,7 +6,7 @@ combines the seven quality gates with the acceptance criteria.
 ## Structure
 
 - [ ] `## Contents` section with working internal links.
-- [ ] All 19 required sections present, in order:
+- [ ] All 20 required sections present, in order:
   - [ ] 1. Executive Product Thesis
   - [ ] 2. Source Research Interpretation
   - [ ] 3. Target Users and System Actors
@@ -25,7 +25,8 @@ combines the seven quality gates with the acceptance criteria.
   - [ ] 16. Roadmap and Future Extensions
   - [ ] 17. Open Questions and Validation Plan
   - [ ] 18. Handoff Notes for Technical Design
-  - [ ] 19. Traceability Appendix
+  - [ ] 19. Recommended Next Stages
+  - [ ] 20. Traceability Appendix
 
 ## Content quality
 
@@ -63,6 +64,14 @@ combines the seven quality gates with the acceptance criteria.
 - [ ] Future roadmap exists with deferred items justified.
 - [ ] Open questions are not hidden.
 - [ ] Handoff notes explicitly list what technical design must decide.
+- [ ] §19 Recommended Next Stages has a Pipeline Complexity Assessment (seven
+      0–3 dimensions + total /21 + workflow class) and a stage-recommendation
+      table covering architecture-design, tech-stack-selection, ux-design,
+      security-review, test-design, architecture-update, and
+      architecture-reconciliation.
+- [ ] Every stage uses only RUN / SKIP / DEFER / ASK_USER, with confidence and
+      reason; `architecture-design` is RUN unless explicitly justified; and
+      `architecture-update` / `architecture-reconciliation` default to DEFER.
 
 ## Integrity & discipline
 
@@ -103,6 +112,10 @@ combines the seven quality gates with the acceptance criteria.
       (primary user, job-to-be-done, experience thesis, interaction mode,
       trust/control/transparency, human-in-the-loop, failure/recovery, UX
       handoff) per `references/product-experience-direction.md`.
+- [ ] The **Adaptive Stage-Gate Recommendation Gate** rows are present in the
+      self-check (section exists, controlled decisions, RUN evidence, SKIP
+      reason, DEFER revisit trigger, ASK_USER missing-info, PED informs
+      recommendations) per `references/adaptive-stage-gate-routing.md`.
 - [ ] *(optional)* An `## Appendix B: Design Decision Register` is included
       for architecture handoff — reversibility + revisit trigger, not a
       duplicate of §6.

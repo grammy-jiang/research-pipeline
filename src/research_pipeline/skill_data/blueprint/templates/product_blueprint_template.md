@@ -20,7 +20,8 @@
 - [16. Roadmap and Future Extensions](#16-roadmap-and-future-extensions)
 - [17. Open Questions and Validation Plan](#17-open-questions-and-validation-plan)
 - [18. Handoff Notes for Technical Design](#18-handoff-notes-for-technical-design)
-- [19. Traceability Appendix](#19-traceability-appendix)
+- [19. Recommended Next Stages](#19-recommended-next-stages)
+- [20. Traceability Appendix](#20-traceability-appendix)
 - [Appendix A: Blueprint Quality-Gate Self-Check](#appendix-a-blueprint-quality-gate-self-check)
 - [Appendix B: Design Decision Register](#appendix-b-design-decision-register) *(optional)*
 
@@ -484,7 +485,62 @@ The next technical-design stage must decide:
 
 ---
 
-## 19. Traceability Appendix
+## 19. Recommended Next Stages
+
+> The blueprint is the first adaptive stage-gate router after research
+> extraction. Recommend which downstream stages should run next using controlled
+> decisions (**RUN / SKIP / DEFER / ASK_USER**) with evidence, confidence, and
+> revisit triggers. Do **not** silently expand the pipeline — recommendations
+> are overrideable defaults. Keep this section compact: one complexity table,
+> one recommendation table, one short pipeline, one decision log. See
+> `references/adaptive-stage-gate-routing.md`.
+
+### 19.1 Pipeline Complexity Assessment
+
+| Dimension | Score (0–3) | Reason |
+|---|---:|---|
+| User-facing complexity | ... | ... |
+| Technical ambiguity | ... | ... |
+| Security / privacy risk | ... | ... |
+| AI / LLM uncertainty | ... | ... |
+| Integration complexity | ... | ... |
+| Human-review complexity | ... | ... |
+| Testing / E2E importance | ... | ... |
+
+**Total Score:** ... / 21
+**Recommended Workflow Class:** simple (0–3) / lightweight (4–7) / medium (8–12) / complex (13+)
+
+### 19.2 Stage Recommendations
+
+| Stage | Decision | Confidence | Reason | Blocks Next Step? | Revisit Trigger |
+|---|---|---:|---|---|---|
+| architecture-design | RUN | High | ... | Yes | Always after blueprint |
+| tech-stack-selection | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
+| ux-design | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
+| security-review | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
+| test-design | RUN / SKIP / DEFER / ASK_USER | ... | ... | ... | ... |
+| architecture-update | DEFER | High | No architecture exists yet; revisit after tech-stack / UX / security changes | No | After architecture-design |
+| architecture-reconciliation | DEFER | High | Only needed if downstream design conflicts with architecture | No | When a conflict is detected |
+
+### 19.3 Recommended Pipeline
+
+```text
+research-pipeline
+  -> blueprint
+  -> architecture-design
+  -> ...
+  -> implementation-plan
+```
+
+### 19.4 Stage-Gate Decision Log
+
+| Decision | Evidence | Risk if Wrong | Revisit Trigger |
+|---|---|---|---|
+| ... | ... | ... | ... |
+
+---
+
+## 20. Traceability Appendix
 
 | Product Element | Derived From | Research Citation | Decision | Notes |
 |---|---|---|---|---|
@@ -527,6 +583,20 @@ The next technical-design stage must decide:
 | Human-in-the-loop experience defined where needed | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Failure / recovery expectations defined | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | UX assumptions handed off to architecture | PASS / WARNING / FAIL | ... | ... | Yes/No |
+
+**Adaptive Stage-Gate Recommendation Gate** (§19) — see
+`references/adaptive-stage-gate-routing.md` for fail/warning conditions. Here
+"Blocks Technical Design?" means "blocks the recommended next stage".
+
+| Gate | Status | Finding | Required Action | Blocks Technical Design? |
+|---|---|---|---|---|
+| Recommended Next Stages section exists | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Controlled decision values used (RUN / SKIP / DEFER / ASK_USER) | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| RUN decisions have evidence | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| SKIP decisions have reason | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| DEFER decisions have revisit trigger | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| ASK_USER decisions identify missing info | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Product Experience Direction informs recommendations | PASS / WARNING / FAIL | ... | ... | Yes/No |
 
 Apply any **safe wording rewrite** a `WARNING` identifies *before* delivery,
 then re-run the self-check so this table reflects the post-repair document.

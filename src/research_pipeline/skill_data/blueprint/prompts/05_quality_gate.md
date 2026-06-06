@@ -136,6 +136,27 @@ Gate rows in the self-check.
   or implementation tasks — relocate those to a later UX-design/implementation
   stage. `standard` §9 over 1–2 pages is a `WARNING` (compress).
 
+## Gate 9 — Adaptive stage-gate recommendation (§19)
+
+Check that §19 Recommended Next Stages routes the workflow without silently
+expanding it. Full fail/warning conditions live in
+`references/adaptive-stage-gate-routing.md`; emit the seven Adaptive Stage-Gate
+Recommendation Gate rows in the self-check.
+
+- `FAIL` if any of: the Recommended Next Stages section is missing; a stage
+  decision uses uncontrolled wording instead of RUN / SKIP / DEFER / ASK_USER; a
+  RUN lacks evidence; an ASK_USER does not identify the missing information;
+  `architecture-design` is skipped without strong justification; or a high-risk
+  project (complexity ≥ 13) recommends no optional gates.
+- `WARNING` if any of: `ux-design` is skipped despite human review or multiple
+  user roles; `security-review` is skipped despite external data egress;
+  `test-design` is skipped despite E2E-critical workflows;
+  `tech-stack-selection` is skipped despite multiple serious technology choices;
+  a DEFER has no revisit trigger; or `architecture-update` /
+  `architecture-reconciliation` is not DEFER at blueprint stage.
+- Confirm §9 Product Experience Direction signals are reflected in the
+  UX/security/test decisions.
+
 ## Immediate-fail conditions
 
 - Any tech-stack choice, code, or implementation ticket.
@@ -195,3 +216,10 @@ Human-in-the-loop experience defined where needed · Failure / recovery
 expectations defined · UX assumptions handed off to architecture. Each carries a
 status, a concrete required action for any WARNING/FAIL, and a
 blocks-technical-design verdict (here "Blocks Architecture?" ≡ "Blocks TD?").
+
+Then add the **Adaptive Stage-Gate Recommendation Gate** rows (§19): Recommended
+Next Stages section exists · Controlled decision values used · RUN decisions
+have evidence · SKIP decisions have reason · DEFER decisions have revisit
+trigger · ASK_USER decisions identify missing info · Product Experience
+Direction informs recommendations. Each carries a status, a required action for
+any WARNING/FAIL, and a blocks-next-stage verdict.

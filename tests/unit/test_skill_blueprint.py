@@ -3,7 +3,7 @@
 The blueprint skill is a pure prompt-driven transformation skill (no CLI/MCP
 backend). These tests validate that the bundled skill files are well-formed,
 discoverable by ``setup``, and stay faithful to the design contract:
-standard-only SKILL.md frontmatter, the 18-section output template, the five
+standard-only SKILL.md frontmatter, the 20-section output template, the five
 prompts, the references, and an implementation-neutral example output.
 """
 
@@ -295,7 +295,7 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.5.0"
+    assert data["version"] == "0.6.0"
 
 
 # --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
@@ -461,14 +461,14 @@ def test_template_and_example_have_product_experience_direction() -> None:
         )
 
 
-def test_template_and_example_are_now_19_sections() -> None:
-    """§9 insert renumbers the tail; the document must run 1..19 in order."""
+def test_template_and_example_are_now_20_sections() -> None:
+    """§19 insert renumbers the tail; the document must run 1..20 in order."""
     import re
 
     for rel in _PE_DOCS:
         text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
         numbers = [int(m) for m in re.findall(r"^## (\d+)\. ", text, re.MULTILINE)]
-        assert numbers == list(range(1, 20)), f"{rel} sections not 1..19: {numbers}"
+        assert numbers == list(range(1, 21)), f"{rel} sections not 1..20: {numbers}"
 
 
 def test_contents_lists_product_experience_direction() -> None:
@@ -528,10 +528,11 @@ def test_compose_prompt_covers_product_experience() -> None:
     assert "references/product-experience-direction.md" in prompt
 
 
-def test_skill_md_declares_19_sections_with_product_experience() -> None:
+def test_skill_md_declares_20_sections_with_product_experience() -> None:
     text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
-    assert "19 sections" in text
+    assert "20 sections" in text
     assert "9. Product Experience Direction" in text
+    assert "19. Recommended Next Stages" in text
 
 
 def test_skill_md_forbids_detailed_ux_design() -> None:
@@ -558,4 +559,124 @@ def test_manifest_mentions_product_experience() -> None:
     assert "Product Experience" in data["description"]
     compose = next(t for t in data["tasks"] if t["id"] == "compose-blueprint")
     assert "product_experience_direction_present" in compose["validation"]
-    assert "all_19_sections_present" in compose["validation"]
+    assert "all_20_sections_present" in compose["validation"]
+
+
+# --- v0.6.0 skill: §19 Recommended Next Stages (adaptive stage-gate routing) ---
+
+_RNS_SECTION = "## 19. Recommended Next Stages"
+_RNS_DOCS = (
+    ("templates", "product_blueprint_template.md"),
+    ("tests", "sample_outputs", "product_blueprint_example.md"),
+)
+_CONTROLLED_DECISIONS = ("RUN", "SKIP", "DEFER", "ASK_USER")
+
+
+def test_adaptive_routing_reference_exists_and_nonempty() -> None:
+    ref = _skill_root() / "references" / "adaptive-stage-gate-routing.md"
+    assert ref.exists(), "missing references/adaptive-stage-gate-routing.md"
+    text = ref.read_text(encoding="utf-8")
+    assert text.strip()
+    # Decision vocabulary, complexity scoring, and the gate must be documented.
+    assert "Decision vocabulary" in text
+    assert "Adaptive Stage-Gate Recommendation Gate" in text
+    for decision in _CONTROLLED_DECISIONS:
+        assert decision in text, f"routing reference missing decision: {decision}"
+
+
+def test_template_and_example_have_recommended_next_stages() -> None:
+    """§19 inserts before the (renumbered) §20 Traceability Appendix."""
+    for rel in _RNS_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert _RNS_SECTION in text, f"{rel} missing §19 Recommended Next Stages"
+        assert text.index(_RNS_SECTION) < text.index("## 20. Traceability Appendix"), (
+            f"{rel}: §19 must come before the Traceability Appendix"
+        )
+
+
+def test_contents_lists_recommended_next_stages() -> None:
+    for rel in _RNS_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        contents = _contents_block(text)
+        assert "Recommended Next Stages" in contents, f"{rel} Contents omits §19"
+
+
+def test_template_section_has_required_routing_subsections() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    for needle in (
+        "Pipeline Complexity Assessment",
+        "Stage Recommendations",
+        "Recommended Pipeline",
+        "Stage-Gate Decision Log",
+        "User-facing complexity",
+        "Technical ambiguity",
+        "Security / privacy risk",
+        "AI / LLM uncertainty",
+        "Integration complexity",
+        "Human-review complexity",
+        "Testing / E2E importance",
+    ):
+        assert needle in template, f"§19 template missing: {needle}"
+
+
+def test_routing_uses_controlled_decision_vocabulary() -> None:
+    """Template + example must surface only RUN / SKIP / DEFER / ASK_USER."""
+    for rel in _RNS_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        for decision in _CONTROLLED_DECISIONS:
+            assert decision in text, f"{rel} §19 missing decision: {decision}"
+
+
+def test_example_stage_recommendation_defaults() -> None:
+    """architecture-design RUN; architecture-update/-reconciliation DEFER."""
+    example = (
+        _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+    ).read_text(encoding="utf-8")
+    assert "| architecture-design | RUN |" in example
+    assert "| architecture-update | DEFER |" in example
+    assert "| architecture-reconciliation | DEFER |" in example
+
+
+def test_compose_prompt_covers_recommended_next_stages() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Recommended next stages" in prompt
+    assert "references/adaptive-stage-gate-routing.md" in prompt
+    for decision in _CONTROLLED_DECISIONS:
+        assert decision in prompt, f"compose prompt missing decision: {decision}"
+
+
+def test_quality_gate_has_adaptive_stage_gate() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Adaptive stage-gate recommendation" in gate
+    assert "Adaptive Stage-Gate Recommendation Gate" in gate
+
+
+def test_template_and_example_self_check_has_adaptive_stage_gate() -> None:
+    for rel in _RNS_DOCS:
+        text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
+        assert "Adaptive Stage-Gate Recommendation Gate" in text, (
+            f"{rel} self-check missing adaptive stage-gate"
+        )
+        assert "Recommended Next Stages section exists" in text, (
+            f"{rel} missing adaptive stage-gate row"
+        )
+
+
+def test_skill_md_mentions_adaptive_routing() -> None:
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    assert "RUN / SKIP / DEFER / ASK_USER" in text
+    assert "Recommended Next Stages" in text
+    assert "references/adaptive-stage-gate-routing.md" in text
+
+
+def test_manifest_mentions_recommended_next_stages() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    assert "Recommended Next Stages" in data["description"]
+    compose = next(t for t in data["tasks"] if t["id"] == "compose-blueprint")
+    assert "recommended_next_stages_present" in compose["validation"]

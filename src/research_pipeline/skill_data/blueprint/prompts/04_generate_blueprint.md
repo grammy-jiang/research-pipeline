@@ -4,7 +4,7 @@ You are composing an implementation-neutral product blueprint.
 
 Use `templates/product_blueprint_template.md` as the skeleton. The
 document must start with a `## Contents` section containing internal
-Markdown links to all 19 sections.
+Markdown links to all 20 sections.
 
 ## Required sections (in order)
 
@@ -26,7 +26,8 @@ Markdown links to all 19 sections.
 16. Roadmap and Future Extensions
 17. Open Questions and Validation Plan
 18. Handoff Notes for Technical Design
-19. Traceability Appendix
+19. Recommended Next Stages
+20. Traceability Appendix
 
 ## Thesis
 
@@ -104,7 +105,7 @@ services, packages, processes, or deployable units. See
   ≤ 8 evaluation scenarios, ≤ 8 decision policies, ≤ 10 open questions,
   and a §9 Product Experience Direction of ≤ 1–2 pages (tables, not prose).
   Keep the main body scannable in one pass — move large tables (the full
-  §5 translation map, the §19 traceability appendix) to appendices rather
+  §5 translation map, the §20 traceability appendix) to appendices rather
   than the main flow. If content exceeds a budget, compress or switch to
   `detailed`; do not silently expand `standard` into an architecture dossier.
 - End with `## Appendix A: Blueprint Quality-Gate Self-Check` — a compact
@@ -184,6 +185,41 @@ justified only when the risk impact is HIGH, no cheaper baseline control
 exists, and the blueprint states why it is required now. Otherwise
 downgrade it to a warning, an evaluation/monitoring requirement, or a
 Phase 2 release gate. State each gate's confidence and risk impact.
+
+## Recommended next stages (§19)
+
+After the technical-design handoff, recommend which downstream stages should run
+next. The blueprint is the **first adaptive stage-gate router** after research
+extraction — it must guide the workflow, not silently expand it. Generate three
+compact artifacts, all overrideable defaults (full rules in
+`references/adaptive-stage-gate-routing.md`):
+
+- **Pipeline Complexity Assessment** — score seven dimensions 0–3 (user-facing
+  complexity, technical ambiguity, security/privacy risk, AI/LLM uncertainty,
+  integration complexity, human-review complexity, testing/E2E importance); give
+  the total `/ 21` and a workflow class (simple / lightweight / medium / complex).
+- **Stage Recommendations** — one row per stage (architecture-design,
+  tech-stack-selection, ux-design, security-review, test-design,
+  architecture-update, architecture-reconciliation) with a controlled decision
+  (**RUN / SKIP / DEFER / ASK_USER**), confidence, reason, blocks-next-step, and
+  revisit trigger.
+- **Stage-Gate Decision Log** — evidence, risk-if-wrong, and revisit trigger for
+  the key decisions.
+
+Rules:
+
+- `architecture-design` is normally **RUN**; SKIP only for a trivial or no-build
+  output.
+- `architecture-update` and `architecture-reconciliation` default to **DEFER**
+  at blueprint stage (no architecture document exists yet).
+- Every RUN/ASK_USER cites blueprint evidence; every SKIP gives a reason; every
+  DEFER names a revisit trigger. No vague wording (`maybe`, `consider`,
+  `nice to have`).
+- Let §9 Product Experience Direction drive the UX/security/test decisions
+  (human review → ux-design / test-design; external egress → security-review;
+  CLI-first → ux-design DEFER; future MCP → tech-stack-selection RUN/DEFER).
+- Keep §19 compact: one complexity table, one recommendation table, one short
+  recommended pipeline, one decision log.
 
 ## Optional Appendix B — Design Decision Register
 

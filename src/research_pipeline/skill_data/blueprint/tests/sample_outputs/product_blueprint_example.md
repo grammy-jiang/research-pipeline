@@ -24,7 +24,8 @@
 - [16. Roadmap and Future Extensions](#16-roadmap-and-future-extensions)
 - [17. Open Questions and Validation Plan](#17-open-questions-and-validation-plan)
 - [18. Handoff Notes for Technical Design](#18-handoff-notes-for-technical-design)
-- [19. Traceability Appendix](#19-traceability-appendix)
+- [19. Recommended Next Stages](#19-recommended-next-stages)
+- [20. Traceability Appendix](#20-traceability-appendix)
 - [Appendix A: Blueprint Quality-Gate Self-Check](#appendix-a-blueprint-quality-gate-self-check)
 
 ---
@@ -71,7 +72,7 @@ deletion that cannot be verified.
 | Gap-closure rounds | 2 |
 | Latest run ID | unknown |
 | Source readiness verdict | `HAS_GAPS` |
-| Blueprint skill version | 0.5.0 |
+| Blueprint skill version | 0.6.0 |
 | Generated at | `<date>` |
 | Output detail | standard |
 | Target domain | AI coding-agent memory |
@@ -500,7 +501,65 @@ ACADEMIC gaps still applying:** optimal consolidation frequency [2403.09999].
 
 ---
 
-## 19. Traceability Appendix
+## 19. Recommended Next Stages
+
+> UX intent (§9), the risk model (§13), and the multi-component logical
+> architecture (§10) drive routing. Decisions are overrideable defaults. See
+> `references/adaptive-stage-gate-routing.md`.
+
+### 19.1 Pipeline Complexity Assessment
+
+| Dimension | Score (0–3) | Reason |
+|---|---:|---|
+| User-facing complexity | 2 | Agent-facing API at MVP-0; developer audit + contradiction review deferred to MVP-1 |
+| Technical ambiguity | 3 | Storage, hybrid indexing/retrieval, admission evaluator, append-only audit, and deletion verification all need decisions |
+| Security / privacy risk | 3 | Memory poisoning, cross-scope leakage, and verifiable deletion are release-gate risks |
+| AI / LLM uncertainty | 2 | Admission-evaluator judgement quality matters; evaluator unavailability is a failure mode |
+| Integration complexity | 2 | Agent-facing surface now; CLI/Web surfaces later |
+| Human-review complexity | 1 | Single contradiction-review path, deferred to MVP-1 |
+| Testing / E2E importance | 3 | Admission precision, scope isolation, and deletion verification are explicit, safety-critical scenarios |
+
+**Total Score:** 16 / 21
+**Recommended Workflow Class:** complex (13+)
+
+### 19.2 Stage Recommendations
+
+| Stage | Decision | Confidence | Reason | Blocks Next Step? | Revisit Trigger |
+|---|---|---:|---|---|---|
+| architecture-design | RUN | High | Defines AI boundary, state model, storage/retrieval, audit ledger, deletion verification, and trust boundaries (§10, §13) | Yes | Always after blueprint |
+| tech-stack-selection | RUN | High | Storage, indexing/search, embedding, audit-ledger, and evaluator-runtime choices materially shape the data layer | Yes | After architecture-design defines containers / data flow |
+| security-review | RUN | High | Poisoning, cross-scope leakage, and verifiable deletion are release gates (§13); trust boundaries need review | Yes | After architecture-design defines data flow / trust boundaries |
+| ux-design | DEFER | Medium | Primary user is an agent (API); developer audit + contradiction review are MVP-1 (§9); architecture must define states/contracts first | No | After architecture-design; before MVP-1 developer surfaces |
+| test-design | DEFER | High | E2E seeds exist (§14) but should derive from architecture contracts and deferred UX stories | No | After architecture-design / ux-design, or at implementation-plan |
+| architecture-update | DEFER | High | No architecture document exists yet | No | After tech-stack-selection or security-review changes assumptions |
+| architecture-reconciliation | DEFER | High | Only needed if downstream design conflicts with architecture | No | When a conflict is detected |
+
+### 19.3 Recommended Pipeline
+
+```text
+research-pipeline
+  -> blueprint
+  -> architecture-design
+  -> tech-stack-selection
+  -> security-review
+  -> architecture-update (if assumptions change)
+  -> ux-design (before MVP-1 developer surfaces)
+  -> test-design
+  -> implementation-plan
+```
+
+### 19.4 Stage-Gate Decision Log
+
+| Decision | Evidence | Risk if Wrong | Revisit Trigger |
+|---|---|---|---|
+| architecture-design = RUN | Multi-component state/audit/retrieval system (§10); safety-critical gating (§13) | Unstructured build; missed trust boundaries | Always after blueprint |
+| security-review = RUN | Poisoning, leakage, unverifiable deletion are release gates (§13) | Leakage/poisoning ship unmitigated | After architecture-design defines data flow |
+| ux-design = DEFER | Primary user is an agent (API); human surfaces deferred to MVP-1 (§9) | Premature UX work on deferred surfaces | After architecture-design; before MVP-1 surfaces |
+| test-design = DEFER | E2E seeds in §14 need stable architecture contracts first | Scenarios built on unstable contracts | After architecture / UX, or at implementation-plan |
+
+---
+
+## 20. Traceability Appendix
 
 | Product Element | Derived From | Research Citation | Decision | Notes |
 |---|---|---|---|---|
@@ -517,8 +576,8 @@ ACADEMIC gaps still applying:** optimal consolidation frequency [2403.09999].
 
 | Gate | Status | Finding | Required Action | Blocks Technical Design? |
 |---|---|---|---|---|
-| Required sections + Contents present | PASS | All 19 sections + Contents. | — | No |
-| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.5.0 from manifest. | — | No |
+| Required sections + Contents present | PASS | All 20 sections + Contents. | — | No |
+| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.6.0 from manifest. | — | No |
 | Thesis emphasis (primary architecture) | PASS | Thesis leads with gated admission + scoped records + retrieval, not a conditional mechanism. | — | No |
 | Research traceability / source fidelity | PASS | Every capability cited; deletion verification cites the source-report gap. | — | No |
 | Scope control (primary scope matches thesis) | PASS | Only agent + developer are Primary; no out-of-scope actors. | — | No |
@@ -542,3 +601,16 @@ Architecture?".
 | Human-in-the-loop experience defined where needed | PASS | Contradiction review surfaced at MVP-1. | — | No |
 | Failure / recovery expectations defined | PASS | Fail-closed on evaluator/deletion-verification failure. | — | No |
 | UX assumptions handed off to architecture | WARNING | "Developer audit is CLI-first" is an architecture assumption. | Confirm CLI-first audit before architecture commits to a surface | No |
+
+**Adaptive Stage-Gate Recommendation Gate** (§19) — "Blocks Technical Design?"
+means "blocks the recommended next stage".
+
+| Gate | Status | Finding | Required Action | Blocks Technical Design? |
+|---|---|---|---|---|
+| Recommended Next Stages section exists | PASS | §19 has complexity (16/21) + a stage-recommendation table. | — | No |
+| Controlled decision values used (RUN / SKIP / DEFER / ASK_USER) | PASS | All seven stages use controlled values only. | — | No |
+| RUN decisions have evidence | PASS | architecture-design / tech-stack / security-review each cite §10/§13/§9. | — | No |
+| SKIP decisions have reason | PASS | No SKIP used; all gates RUN or DEFER. | — | No |
+| DEFER decisions have revisit trigger | PASS | ux-design, test-design, architecture-update/-reconciliation each name a trigger. | — | No |
+| ASK_USER decisions identify missing info | PASS | No ASK_USER needed; the report fixes data sensitivity and the primary user. | — | No |
+| Product Experience Direction informs recommendations | PASS | Agent-first API (§9) drives ux-design DEFER; egress/leakage risk drives security-review RUN. | — | No |

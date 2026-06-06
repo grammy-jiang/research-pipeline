@@ -320,8 +320,10 @@ Four skills ship today:
 The `blueprint` skill is a pure prompt-driven transformation (no CLI/MCP
 backend): it classifies input quality, maps `ACADEMIC`/`ENGINEERING` gaps
 to validation requirements vs product requirements, resolves each idea as
-ADOPT/ADAPT/MERGE/DEFER/REJECT, and emits an 18-section blueprint that
-stays tech-stack-neutral and hands off to the `architecture` skill.
+ADOPT/ADAPT/MERGE/DEFER/REJECT, and emits a 20-section blueprint that
+stays tech-stack-neutral, recommends the next downstream stages (§19, the
+first adaptive stage-gate router, using RUN/SKIP/DEFER/ASK_USER), and hands
+off to the `architecture` skill.
 
 The `architecture` skill is also pure prompt-driven (no CLI/MCP backend) and
 continues the chain `research-pipeline → blueprint → architecture →
