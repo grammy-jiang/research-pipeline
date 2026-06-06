@@ -1,8 +1,9 @@
 name: Publish
 
 on:
-  release:
-    types: [created]
+  push:
+    tags:
+      - "v*"
   workflow_dispatch:
     inputs:
       tag:
@@ -64,17 +65,45 @@ jobs:
     permissions:
       contents: write
     steps:
+      - uses: actions/checkout@v6
+
       - name: Download distribution artifacts
         uses: actions/download-artifact@v8
         with:
           name: dist
           path: dist/
 
-      - name: Upload packages to GitHub Release
+      - name: Create or update GitHub Release with built artifacts
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          REPO: ${{ github.repository }}
+          TAG: ${{ inputs.tag || github.ref_name }}
         run: |
-          TAG="${{ github.event.release.tag_name || inputs.tag }}"
-          gh release upload "$TAG" dist/* \
-            --repo "${{ github.repository }}" \
-            --clobber
+          set -euo pipefail
+          echo "Releasing tag: $TAG"
+
+          # Extract this tag's section from CHANGELOG.md (between its heading
+          # and the next "## [" heading). Fall back to auto-generated notes.
+          awk -v tag="$TAG" '
+            $0 ~ "^## \\[" tag "\\]" { flag = 1; next }
+            flag && /^## \[/ { exit }
+            flag { print }
+          ' CHANGELOG.md > notes.md || true
+
+          if [ ! -s notes.md ]; then
+            echo "No CHANGELOG section for $TAG; using auto-generated notes."
+            NOTES_FLAG="--generate-notes"
+          else
+            NOTES_FLAG="--notes-file notes.md"
+          fi
+
+          if gh release view "$TAG" --repo "$REPO" >/dev/null 2>&1; then
+            echo "Release $TAG exists — uploading artifacts."
+            gh release upload "$TAG" dist/* --repo "$REPO" --clobber
+          else
+            echo "Creating release $TAG."
+            gh release create "$TAG" dist/* \
+              --repo "$REPO" \
+              --title "$TAG" \
+              $NOTES_FLAG
+          fi
