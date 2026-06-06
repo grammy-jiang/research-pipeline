@@ -2,6 +2,50 @@
 
 All notable changes to research-pipeline.
 
+## [v0.23.0] — 2026-06-06
+
+### Changed
+
+- **`architecture` skill — `design`/`stack` mode split (skill manifest 0.5.0 →
+  0.6.0).** Phase 1 of the architecture-skill mode-split improvement plan
+  (`docs/architecture-skill-mode-split-improvement-plan.md`). The skill becomes
+  **one skill with internal modes** instead of mixing architecture design and
+  tech-stack selection in one pass. Tech/domain-neutral; the existing
+  prompts/template/example are extended, not rewritten.
+  - **Mode resolver.** A new `prompts/00_mode_resolver.md` + a `## Modes` section
+    in SKILL.md + `references/mode-selection-guide.md` select the mode (`design`
+    / `stack` / `update` / `review` / `reconcile`) from an explicit `mode`
+    argument or automatic detection. `design` and `stack` are fully specified;
+    `update` reuses design mode's existing regenerate/patch/compare/adr-only/
+    resume machinery; `review`/`reconcile` are recognized but deferred (never
+    silently mutate an architecture).
+  - **`design` mode consumes blueprint §9 and §19.** It now reads the blueprint's
+    §9 Product Experience Direction into a new **§23 Experience Architecture**
+    section (interaction surfaces, user-visible states mapped onto the §14 state
+    model, feedback/progress, error/recovery, human-review flow, trust/
+    transparency, UX handoff — architecture-level UX support, not UX design), and
+    reflects the §19 Recommended Next Stages routing in a new **§24 Recommended
+    Next Stages and Downstream Handoffs** section (tech-stack / ux-design /
+    security-review / test-design handoffs + update/reconciliation triggers). The
+    design output grows from **25 to 27 sections**.
+  - **Provisional-tech discipline.** §7 keeps the tech stack **provisional** with
+    new §7.1 Provisional Tech Assumptions and §7.2 Tech-Stack Selection Handoff
+    sub-sections whenever §19 routes `tech-stack-selection = RUN`/`DEFER`; final
+    selection is owned by `stack` mode. Five new §26 self-check gates enforce
+    this (Product Experience Direction consumed, Experience Architecture
+    produced, Recommended Next Stages consumed, tech-stack-provisional, and
+    downstream-handoffs-present).
+  - **`stack` mode.** A separate 6-task graph (`prompts/stack_01`–`stack_06`,
+    `templates/architecture_tech_stack_template.md`,
+    `references/tech-stack-selection-guide.md`) selects the concrete technology
+    stack against the architecture — one decision per area with alternatives,
+    rationale, risk, reversibility, and architecture impact — and ends with an
+    explicit **Architecture Update Required?** verdict. It satisfies the
+    architecture and never redesigns it; on a genuine conflict it declares the
+    update instead of rewriting. Output: `<topic-slug>-architecture-tech-stack.md`.
+  - A worked `stack` example (`examples/translation_tech_stack_example.md`) is
+    added and the `design` example is updated to 27 sections.
+
 ## [v0.22.0] — 2026-06-06
 
 ### Changed

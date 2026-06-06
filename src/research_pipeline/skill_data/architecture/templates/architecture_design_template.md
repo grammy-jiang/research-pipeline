@@ -29,9 +29,11 @@
 - [20. Deployment Architecture](#20-deployment-architecture)
 - [21. Architecture Decision Records](#21-architecture-decision-records)
 - [22. Technical Risks and Trade-offs](#22-technical-risks-and-trade-offs)
-- [23. Open Questions](#23-open-questions)
-- [24. Architecture Quality-Gate Self-Check](#24-architecture-quality-gate-self-check)
-- [25. Handoff Notes for Implementation Planning](#25-handoff-notes-for-implementation-planning)
+- [23. Experience Architecture](#23-experience-architecture)
+- [24. Recommended Next Stages and Downstream Handoffs](#24-recommended-next-stages-and-downstream-handoffs)
+- [25. Open Questions](#25-open-questions)
+- [26. Architecture Quality-Gate Self-Check](#26-architecture-quality-gate-self-check)
+- [27. Handoff Notes for Implementation Planning](#27-handoff-notes-for-implementation-planning)
 
 ---
 
@@ -50,8 +52,8 @@ mechanism.>
 
 ### 1.2 Architecture Warnings Requiring Attention
 
-<Surface every §24 WARNING / PASS-with-warning row here (and in §25). If none,
-write "No open warnings." Do not let warnings live only in §24.>
+<Surface every §26 WARNING / PASS-with-warning row here (and in §27). If none,
+write "No open warnings." Do not let warnings live only in §26.>
 
 | Warning | Required Action | Blocks Implementation Planning? |
 |---|---|---|
@@ -172,6 +174,12 @@ selected update mode if an architecture document already exists.>
 
 ## 7. Recommended Tech Stack
 
+> **Provisional in `design` mode.** When the blueprint's §19 routes
+> `tech-stack-selection = RUN` or `DEFER`, this stack is provisional and final
+> selection is owned by `stack` mode — fill §7.1 and §7.2 below. Only treat the
+> stack as fixed when the blueprint/user fixed it (`tech-stack-selection = SKIP`);
+> say who fixed it. See `references/next-stages-and-handoffs-guide.md`.
+
 | Decision | Recommendation | Alternatives | Rationale | Risks | Reversible? |
 |---|---|---|---|---|---|
 | Primary language | <choice> | <alts> | <fit to blueprint> | <risk> | yes/no |
@@ -183,6 +191,28 @@ selected update mode if an architecture document already exists.>
 
 > Stacks are chosen for *this* blueprint, not as universal defaults. State the
 > decision criteria that drove each choice.
+
+### 7.1 Provisional Tech Assumptions
+
+| Area | Provisional Assumption | Reason | Must Be Confirmed In Stack Mode? |
+|---|---|---|---|
+| Runtime | <e.g. Python likely> | <reason> | Yes |
+| Storage | <e.g. embedded or server store possible> | <depends on single-user vs multi-user> | Yes |
+| LLM abstraction | <e.g. gateway or direct SDK possible> | <depends on routing + audit needs> | Yes |
+
+> Mark final technology choices that several viable options could satisfy as
+> provisional ("Must Be Confirmed In Stack Mode? = Yes") rather than locking
+> them here.
+
+### 7.2 Tech-Stack Selection Handoff
+
+| Decision Needed | Architecture Constraint | Candidate Options | Risk if Wrong |
+|---|---|---|---|
+| <e.g. Database> | <audit records, job state, registry> | <SQLite / PostgreSQL> | <concurrency, audit, deployment> |
+| <e.g. LLM provider abstraction> | <multiple providers, routing, egress logging> | <gateway / direct SDK / custom adapter> | <observability + provider lock-in> |
+
+> If `tech-stack-selection = SKIP` (stack already fixed), replace §7.1/§7.2 with
+> a one-line note naming who fixed the stack and why no handoff is needed.
 
 ## 8. System Context View
 
@@ -397,18 +427,132 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 |---|---|---|---|---|
 | <risk> | H/M/L | H/M/L | <mitigation> | <module/role> |
 
-## 23. Open Questions
+## 23. Experience Architecture
+
+> Consumes the blueprint's §9 Product Experience Direction. Translate UX
+> *intent* into UX-enabling *technical structure* — architecture-level UX
+> support, **not** detailed UX design (no screen layouts, wireframes, exact CLI
+> syntax, copy). Keep it compact; tables over prose. Depth follows the §19
+> ux-design routing. See `references/experience-architecture-guide.md`.
+
+### 23.1 UX Direction Inherited from Blueprint
+
+| Blueprint UX Decision (§9) | Architecture Interpretation |
+|---|---|
+| <UX decision> | <technical interpretation> |
+
+### 23.2 Interaction Surface Matrix
+
+| Actor | MVP Surface | Later Surface | Notes |
+|---|---|---|---|
+| <actor> | <primary surface> | <future surface> | <note> |
+
+### 23.3 User-Visible State Model
+
+| User-Visible State | Internal State (§14) | User Meaning | Allowed User Action |
+|---|---|---|---|
+| <state> | <§14 lifecycle state> | <meaning> | <action> |
+
+> Every user-visible state must map onto the canonical §14 state model. Do not
+> invent user-visible states with no internal counterpart.
+
+### 23.4 Feedback and Progress Model
+
+| Workflow Step | User Feedback | Technical Support |
+|---|---|---|
+| <step> | <what the user sees> | <how it is produced> |
+
+### 23.5 Error and Recovery Model
+
+| Error / Condition | User Sees | User Can Do | System Does (§18) |
+|---|---|---|---|
+| <error> | <message/state> | <action> | <§18 recovery> |
+
+### 23.6 Human Review Technical Flow
+
+| Trigger | Review Artifact / Surface | User Action | Audit Event (§16) |
+|---|---|---|---|
+| <trigger> | <artifact/surface> | <approve/reject/edit> | <§16 audit event> |
+
+### 23.7 Trust and Transparency Support
+
+| User Trust Need | Technical Support |
+|---|---|
+| <trust need> | <technical support> |
+
+### 23.8 Interaction Observability
+
+| Interaction Event | Signal Captured | Where (§16) |
+|---|---|---|
+| <event> | <signal> | <§16 log/metric/trace> |
+
+### 23.9 UX Handoff to UX-Design
+
+| UX Area | Architecture Constraint | Open UX Question |
+|---|---|---|
+| <area> | <constraint UX must honour> | <question for ux-design> |
+
+## 24. Recommended Next Stages and Downstream Handoffs
+
+> Consumes the blueprint's §19 Recommended Next Stages routing
+> (RUN / SKIP / DEFER / ASK_USER). Reflect the routing — do not silently expand
+> or collapse the pipeline. Keep it compact. See
+> `references/next-stages-and-handoffs-guide.md`.
+
+### 24.1 Recommended Next Stages Consumed
+
+| Stage | Blueprint §19 Decision | Architecture Response | Trigger / Depends On |
+|---|---|---|---|
+| tech-stack-selection | RUN/SKIP/DEFER/ASK_USER | <e.g. §7 kept provisional; see §7.2 handoff> | <when> |
+| ux-design | … | <e.g. §23 Experience Architecture + UX handoff produced> | … |
+| security-review | … | <e.g. §17 egress/trust made explicit> | … |
+| test-design | … | <e.g. testing architecture §19; E2E seeds noted> | … |
+| architecture-update | DEFER | <update triggers in §24.6> | … |
+| architecture-reconciliation | DEFER | <reconciliation triggers in §24.6> | … |
+
+### 24.2 Tech-Stack Selection Handoff
+
+<Pointer to §7.1/§7.2, plus any additional stack questions raised during design.
+If tech-stack-selection = SKIP, state the stack is fixed and by whom.>
+
+### 24.3 UX-Design Handoff
+
+| UX Area | Architecture Constraint | Open UX Question |
+|---|---|---|
+| <area> | <constraint> | <question> |
+
+### 24.4 Security-Review Handoff
+
+| Concern | What the Architecture Already Decided | What Security Review Must Validate |
+|---|---|---|
+| <concern> | <§17/§14/§16 decision> | <validation> |
+
+### 24.5 Test-Design / E2E Handoff
+
+| Critical Workflow | Architecture States/Contracts to Cover | Suggested E2E Scenario Seed |
+|---|---|---|
+| <workflow> | <§12/§14 elements> | <scenario seed> |
+
+### 24.6 Update and Reconciliation Triggers
+
+| Trigger | Re-opens | Mode |
+|---|---|---|
+| <e.g. stack selection changes the storage backend> | §14/§20 | update |
+| <e.g. ux-design exposes a missing state> | §14/§23 | reconcile |
+
+## 25. Open Questions
 
 | # | Question | Why It Matters | Proposed Resolution Path |
 |---|---|---|---|
 | 1 | <question> | <impact> | <how/when to resolve> |
 
-## 24. Architecture Quality-Gate Self-Check
+## 26. Architecture Quality-Gate Self-Check
 
 | Gate | Status | Finding | Required Action | Blocks Implementation? |
 |---|---|---|---|---|
 | Traceability map present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
-| All 25 sections present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| All 27 sections present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Blueprint thesis preserved | PASS / WARNING / FAIL | thesis + UX intent unchanged | <action> | yes/no |
 | Tech-stack rationale + alternatives | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
 | Traditional-vs-AI matrix present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
 | C4 context/container/dynamic present | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
@@ -421,6 +565,11 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 | AI cannot mutate state without validation | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
 | MVP-0/MVP-1 respected | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
 | Update behavior defined (if updating) | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Product Experience Direction consumed | PASS / WARNING / FAIL | blueprint §9 read into §23 | <action> | yes/no |
+| Experience Architecture produced | PASS / WARNING / FAIL | §23 surfaces/states/feedback/recovery/review/trust/UX-handoff present | <action> | yes/no |
+| Recommended Next Stages consumed | PASS / WARNING / FAIL | blueprint §19 routing reflected in §24 | <action> | yes/no |
+| Tech stack provisional when stack mode recommended | PASS / WARNING / FAIL | §7 provisional + §7.1/§7.2 when §19 tech-stack-selection RUN/DEFER (or stack fixed + noted) | <action> | yes/no |
+| Downstream handoffs present | PASS / WARNING / FAIL | §24 stack / UX / security / test handoffs present per routing | <action> | yes/no |
 | Metadata consistency | PASS / WARNING / FAIL | counts match tables; A-N/ADR/Contents refs resolve | <action> | yes/no |
 | Hybrid decision review | PASS / WARNING / FAIL | every §3 decision has source + review requirement | <action> | yes/no |
 | Technology-specific validity | PASS / WARNING / FAIL | tech claims match actual capabilities | <action> | yes/no |
@@ -433,15 +582,15 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
 | Security gate verification format | PASS / WARNING / FAIL | §17 gates are a verification table (evidence + method + blocks-release), not unchecked checkboxes | <action> | yes/no |
 | Decision evidence / provenance | PASS / WARNING / FAIL | high-impact decisions carry Decision Evidence; none labelled user-confirmed without a source | <action> | yes/no |
 | Raw source-content logging policy | PASS / WARNING / FAIL | raw source content forbidden in logs by default; redaction + log-snapshot tests required | <action> | yes/no |
-| Warning surfacing | PASS / WARNING / FAIL | every §24 warning is echoed in §1 and §25 | <action> | yes/no |
-| Architecture-stage sequencing cap | PASS / WARNING / FAIL | §25 sequencing ≤ 5 high-level constraints; no file-by-file/tickets/PR order | <action> | yes/no |
+| Warning surfacing | PASS / WARNING / FAIL | every §26 warning is echoed in §1 and §27 | <action> | yes/no |
+| Architecture-stage sequencing cap | PASS / WARNING / FAIL | §27 sequencing ≤ 5 high-level constraints; no file-by-file/tickets/PR order | <action> | yes/no |
 
 > Status legend: **PASS** (complete + consistent), **WARNING** ("PASS with
 > warning" — acceptable direction, needs cleanup; non-blocking but carries a
 > required action), **FAIL** (missing/false/misleading). Never mark a section
 > PASS when a known contradiction or residual invalid claim remains.
 
-## 25. Handoff Notes for Implementation Planning
+## 27. Handoff Notes for Implementation Planning
 
 - **Build order (suggested):** <deterministic spine first, then AI adapters,
   then evaluation harness>
@@ -454,7 +603,7 @@ Index of ADRs (full records under `adr/`, see `templates/adr_template.md`):
   proposed module namespaces for implementation planning — not mandatory
   file-by-file implementation tasks>
 
-- **Open warnings (from §24):** <echo every WARNING / PASS-with-warning row
+- **Open warnings (from §26):** <echo every WARNING / PASS-with-warning row
   here with its required action and blocking status, or "No open warnings">
 
 > Stay on the architecture side of the boundary: module boundaries, proposed

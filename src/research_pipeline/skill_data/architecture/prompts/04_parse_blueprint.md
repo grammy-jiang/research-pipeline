@@ -21,7 +21,16 @@ Parse and record:
   human-in-the-loop experience, failure/recovery expectations, and the UX
   assumptions handed to architecture. Treat these as UX intent the architecture
   must preserve (surfaces, states, review/audit flows) — do not invent UX
-  assumptions the blueprint did not state.
+  assumptions the blueprint did not state. (Drives §23 Experience Architecture.)
+- **recommended_next_stages** — the §19 Recommended Next Stages routing: the
+  RUN / SKIP / DEFER / ASK_USER decision for each of tech-stack-selection,
+  ux-design, security-review, test-design, architecture-update, and
+  architecture-reconciliation, with each stage's reason and revisit trigger.
+  Treat these as overrideable routing the architecture must reflect — do not
+  silently expand or collapse the pipeline. (Drives §7 provisional-tech
+  discipline and §24 Recommended Next Stages and Downstream Handoffs.) If the
+  blueprint has no §19, write `not present in blueprint` and default
+  tech-stack-selection to RUN (keep §7 provisional).
 - **logical_architecture** — the blueprint's conceptual components and
   boundaries.
 - **conceptual_objects** — the information model objects.

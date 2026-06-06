@@ -70,6 +70,43 @@ workflow mechanics — not as text to paste into the output:
 - Code generation, repository modification, deployment scripting, or database
   migration generation → the coding agent
 
+## Modes
+
+This is **one skill with internal modes**, not several skills. Architecture
+*design* and technology *stack selection* are related but different decision
+types, so they are separate modes. A mode resolver (`prompts/00_mode_resolver.md`,
+`references/mode-selection-guide.md`) picks the mode first, then routes to the
+matching task graph.
+
+| Mode | Status | Builds | Output |
+|------|--------|--------|--------|
+| `design` (default) | implemented | the technical architecture from a blueprint | `<topic-slug>-architecture-design.md` |
+| `stack` | implemented | the concrete technology selection from blueprint + design | `<topic-slug>-architecture-tech-stack.md` |
+| `update` | via design mode | a patched architecture after an accepted change | updated `…-architecture-design.md` |
+| `review` | recognized — deferred | read-only architecture-quality commentary | review comments |
+| `reconcile` | recognized — deferred | conflict resolution vs a downstream artifact | reconciliation note |
+
+`design` and `stack` are the two fully-specified modes (Phase 1 of the mode
+split). `update` reuses design mode's existing update-mode machinery
+(`regenerate` / `patch` / `compare` / `adr-only` / `resume`). `review` and
+`reconcile` are recognized so the vocabulary is stable but are **not yet built
+in detail** — never silently mutate an architecture in those modes.
+
+**Key discipline:** `design` mode records only *provisional* tech assumptions
+and hands the final technology choice to `stack` mode (unless the stack is
+already fixed). `stack` mode selects technologies that *satisfy* the
+architecture and must not redesign it — on a genuine conflict it emits
+`Architecture Update Required: yes` instead of rewriting the architecture.
+
+**Selection (see `references/mode-selection-guide.md`):** explicit `mode` wins;
+otherwise infer — blueprint + no architecture → `design`; "choose the tech
+stack / select frameworks / decide the database / deployment" → `stack`;
+architecture + a ux/test/security artifact exposing a mismatch → `reconcile`;
+"review / evaluate / give comments" → `review`. When ambiguous, default to
+`review` if changing an existing document is risky, default to `design` when no
+architecture exists, and ask only when the mode materially changes the output
+and cannot be inferred.
+
 ## Inputs
 
 **Required:**
@@ -79,7 +116,12 @@ workflow mechanics — not as text to paste into the output:
 
 **Optional:**
 
-- An existing `<topic-slug>-architecture-design.md` to update
+- `mode`: design / stack / update / review / reconcile (default: auto-detect,
+  see `## Modes`). `stack` mode also requires an existing
+  `<topic-slug>-architecture-design.md`.
+- An existing `<topic-slug>-architecture-design.md` to update (or to feed
+  `stack` mode)
+- An existing `<topic-slug>-architecture-tech-stack.md` from a prior `stack` run
 - `adr/ADR-*.md` from a prior run
 - `project_name`, `target_deployment` (local / server / cloud / hybrid),
   `constraints`, `excluded_scopes`
@@ -94,11 +136,25 @@ that reference. If no candidate is found, STOP and ask for the path.
 
 ## Output
 
-Primary output, co-located with the source blueprint unless told otherwise:
+`design` mode primary output, co-located with the source blueprint unless told
+otherwise:
 
 ```text
 <topic-slug>-architecture-design.md
 ```
+
+`stack` mode primary output, co-located with the architecture design:
+
+```text
+<topic-slug>-architecture-tech-stack.md
+```
+
+`stack` mode (`templates/architecture_tech_stack_template.md`) produces the
+concrete technology selection — runtime, frameworks, storage, queue, LLM/AI/MCP
+stack, observability, testing, deployment/packaging — each with alternatives,
+rationale, risk, reversibility, and architecture-impact notes, ending with an
+explicit **Architecture Update Required?** verdict. It satisfies the
+architecture; it does not redesign it.
 
 Optional ADR files under `adr/` (one per high-impact decision):
 
@@ -118,9 +174,9 @@ slugify the product name in the blueprint title; if still ambiguous, use
 `architecture-design.md` and record the naming assumption. If files cannot be
 written, emit the full Markdown inline and state the recommended filename.
 
-The architecture document must contain these 25 sections, in order, and begin
-with a `## Contents` section and an `## Update History` near the top
-(see `templates/architecture_design_template.md`):
+The `design` mode architecture document must contain these 27 sections, in
+order, and begin with a `## Contents` section and an `## Update History` near
+the top (see `templates/architecture_design_template.md`):
 
 1. Executive Architecture Summary
 2. Source Blueprint Interpretation
@@ -128,7 +184,8 @@ with a `## Contents` section and an `## Update History` near the top
 4. Architecture Goals and Constraints
 5. Solution Strategy
 6. Traditional Software vs AI-Agent Boundary
-7. Recommended Tech Stack
+7. Recommended Tech Stack (provisional — incl. Provisional Tech Assumptions and
+   Tech-Stack Selection Handoff sub-sections)
 8. System Context View
 9. Container / Runtime View
 10. Component View
@@ -144,9 +201,17 @@ with a `## Contents` section and an `## Update History` near the top
 20. Deployment Architecture
 21. Architecture Decision Records
 22. Technical Risks and Trade-offs
-23. Open Questions
-24. Architecture Quality-Gate Self-Check
-25. Handoff Notes for Implementation Planning
+23. Experience Architecture
+24. Recommended Next Stages and Downstream Handoffs
+25. Open Questions
+26. Architecture Quality-Gate Self-Check
+27. Handoff Notes for Implementation Planning
+
+Sections 23 (Experience Architecture) and 24 (Recommended Next Stages and
+Downstream Handoffs) are produced by consuming the blueprint's §9 Product
+Experience Direction and §19 Recommended Next Stages respectively (see
+`references/experience-architecture-guide.md` and
+`references/next-stages-and-handoffs-guide.md`).
 
 Formatting requirements:
 
@@ -192,14 +257,21 @@ notes for implementation planning.
 
 ## Method
 
-Follow the staged method. The 24 prompt files under `prompts/` carry the
-detailed instructions for each pass; `manifest.json` records the task graph,
-dependencies, validation gates, and failure policy. The manifest is a
-task-graph specification: it is valid as documentation for a prompt-driven
-agent and ready for a future runtime runner (see §"Manifest" in
-`tests/manifest_coverage_checklist.md`). If no runner exists, follow the
-manifest order manually.
+Follow the staged method. The prompt files under `prompts/` carry the detailed
+instructions for each pass — `00` (mode resolver) and `01`–`24` for `design`
+mode, `stack_01`–`stack_06` for `stack` mode; `manifest.json` records both task
+graphs (`tasks` for design, `stack_tasks` for stack), dependencies, validation
+gates, and failure policy. The manifest is a task-graph specification: it is
+valid as documentation for a prompt-driven agent and ready for a future runtime
+runner (see §"Manifest" in `tests/manifest_coverage_checklist.md`). If no runner
+exists, follow the manifest order manually.
 
+### `design` mode
+
+0. **Resolve mode** — pick design / stack / update / review / reconcile, then
+   route to the matching task graph (`prompts/00`,
+   `references/mode-selection-guide.md`). Steps 1–24 below are the `design`
+   graph.
 1. **Resolve input blueprint** — explicit argument → context → working-dir
    search → candidate scoring (`prompts/01`, `references/input-discovery.md`).
 2. **Detect existing architecture** — none / existing same-topic document /
@@ -211,7 +283,8 @@ manifest order manually.
    risks, interfaces, security, observability, and handoff notes (`prompts/03`).
 4. **Parse blueprint** — thesis, MVP-0/MVP-1, actors, capabilities, workflows,
    logical architecture, conceptual objects, decision policies, risks,
-   evaluation, handoff notes, decision register (`prompts/04`).
+   evaluation, handoff notes, decision register, **§9 Product Experience
+   Direction**, and **§19 Recommended Next Stages** (`prompts/04`).
 5. **Build the blueprint-to-architecture traceability map** (`prompts/05`,
    `templates/blueprint_to_architecture_map_template.md`).
 6. **Run clarification** — interactive / automatic / hybrid; ask only
@@ -221,8 +294,12 @@ manifest order manually.
 8. **Define architecture goals and constraints** — goals, functional and
    non-functional requirements, security/privacy, data/retention, cost/latency,
    team, MVP-0/MVP-1, and explicit assumptions (`prompts/08`).
-9. **Select a provisional tech stack** with rationale and alternatives,
-   marked provisional (`prompts/09`, `templates/tech_stack_decision_table.md`).
+9. **Select a provisional tech stack** with rationale and alternatives, marked
+   provisional; record **Provisional Tech Assumptions** and a **Tech-Stack
+   Selection Handoff** so final selection is owned by `stack` mode whenever the
+   blueprint's §19 routing recommends it (`prompts/09`,
+   `templates/tech_stack_decision_table.md`,
+   `references/next-stages-and-handoffs-guide.md`).
 10. **Generate the Traditional-vs-AI responsibility matrix** (`prompts/10`,
     `templates/ai_responsibility_matrix_template.md`).
 11. **Decide skill / MCP / server boundaries** — MCP only if justified
@@ -252,12 +329,39 @@ manifest order manually.
     (`prompts/20`, `templates/adr_template.md`, `references/adr_guidance.md`).
 21. **Apply rule-pack quality gates** as review checks (`prompts/21`,
     `rule-packs/`).
-22. **Generate the architecture draft**, respecting the selected update mode
-    (`prompts/22`, `templates/architecture_design_template.md`).
+22. **Generate the architecture draft**, respecting the selected update mode;
+    author **§23 Experience Architecture** (from blueprint §9) and **§24
+    Recommended Next Stages and Downstream Handoffs** (from blueprint §19)
+    (`prompts/22`, `templates/architecture_design_template.md`,
+    `references/experience-architecture-guide.md`,
+    `references/next-stages-and-handoffs-guide.md`).
 23. **Run the quality-gate self-check** (`prompts/23`).
 24. **Produce the final architecture document** with Contents, metadata,
     Update History, self-check, and handoff notes; apply update-mode rules if
     an architecture document already exists (`prompts/24`).
+
+### `stack` mode
+
+Entered when the mode resolver selects `stack` (needs a blueprint **and** an
+architecture design). Tasks `stack_01`–`stack_06`
+(`references/tech-stack-selection-guide.md`,
+`templates/architecture_tech_stack_template.md`):
+
+1. **Resolve stack inputs** — find the blueprint and the architecture design;
+   if no architecture design exists, recommend running `design` first
+   (`prompts/stack_01`).
+2. **Derive technology decision drivers** from the architecture's NFRs,
+   contracts, state model, security/egress, and AI boundary (`prompts/stack_02`).
+3. **Select the stack** — one decision row per area (runtime, frameworks,
+   storage, queue, LLM/AI/MCP, observability, testing, deployment/packaging)
+   with alternatives, rationale, risk, reversibility, and architecture impact
+   (`prompts/stack_03`).
+4. **State architecture impact and the Architecture Update Required? verdict** —
+   list affected architecture sections; never rewrite the architecture here
+   (`prompts/stack_04`).
+5. **Run the stack quality gate** (`prompts/stack_05`).
+6. **Produce the final tech-stack document** `…-architecture-tech-stack.md`
+   (`prompts/stack_06`).
 
 ## Operating Modes
 
@@ -278,13 +382,14 @@ The output fails (revise; max 3 attempts on gate passes, then surface failing
 gates and stop) if any hold — full text in `prompts/23_quality_gate_self_check.md`
 and `tests/expected_sections_checklist.md`:
 
-1. **Skill contract** — SKILL.md trigger/use contract and the 24-task manifest
-   cover the major workflow passes.
+1. **Skill contract** — SKILL.md trigger/use contract, the mode resolver, the
+   25-task design manifest (`00`–`24`), and the 6-task stack manifest cover the
+   major workflow passes.
 2. **Traceability** — a blueprint-to-architecture map exists and every major
    architecture decision traces to a blueprint section, a user clarification,
    a rule-pack decision, or an explicit recorded assumption.
 3. **Document completeness** — Contents, generation metadata, and Update
-   History are present; all 25 sections exist.
+   History are present; all 27 sections exist.
 4. **Tech stack** — every major choice has rationale, alternatives, and a
    reversibility verdict; no domain-biased default applied without
    justification.
@@ -336,7 +441,7 @@ and `tests/expected_sections_checklist.md`:
 18. **Output detail budget** — `standard` output is a concise main body +
     appendices, not a full dossier; no required section or major decision is
     dropped to meet the budget.
-19. **Self-check skepticism** — the §24 self-check uses PASS / WARNING / FAIL
+19. **Self-check skepticism** — the §26 self-check uses PASS / WARNING / FAIL
     (WARNING ≡ "PASS with warning", non-blocking but with a required action);
     a section with a known contradiction or residual invalid claim is never a
     clean PASS.
@@ -352,27 +457,47 @@ and `tests/expected_sections_checklist.md`:
 22. **Raw source-content logging** — for external-model systems, raw source
     content is forbidden in logs by default, with redaction + log-snapshot +
     provider-wrapper tests as the verification (a release-blocking §17.12 gate).
-23. **Warning surfacing** — every §24 WARNING / PASS-with-warning row is echoed
-    in §1 (Executive Summary) and §25 (Handoff Notes) with its required action
+23. **Warning surfacing** — every §26 WARNING / PASS-with-warning row is echoed
+    in §1 (Executive Summary) and §27 (Handoff Notes) with its required action
     and blocking status.
-24. **Build-sequencing cap** — §25 includes at most five high-level sequencing
+24. **Build-sequencing cap** — §27 includes at most five high-level sequencing
     constraints; file-by-file order, task tickets, PR sequences, and
     class/migration ordering belong to the implementation-plan skill.
+25. **Product Experience Direction consumed** — design mode reads the
+    blueprint's §9 and produces §23 Experience Architecture (interaction
+    surfaces, user-visible states, feedback/progress, error/recovery, human
+    review flow, trust/transparency support, UX handoff); the blueprint thesis
+    and UX intent are preserved, not changed.
+26. **Recommended Next Stages consumed** — design mode reads the blueprint's §19
+    routing and produces §24 Recommended Next Stages and Downstream Handoffs;
+    when tech-stack-selection is RUN/DEFER the tech stack stays provisional with
+    a Tech-Stack Selection Handoff, and security-review / ux-design / test-design
+    handoffs are present per their routing.
+27. **Stack-mode gates (when in `stack` mode)** — the tech-stack document
+    consumes the architecture requirements, considers alternatives, states risk
+    and reversibility, includes security/privacy implications and architecture
+    impact, and ends with an explicit **Architecture Update Required?** verdict
+    (`prompts/stack_05`).
 
 ## References
 
 | File | Load when |
 |------|-----------|
+| `references/mode-selection-guide.md` | Resolving the mode (design / stack / update / review / reconcile) |
 | `references/input-discovery.md` | Discovering/scoring a blueprint; deriving the topic slug |
 | `references/c4_model_summary.md` | Choosing and drawing C4 views; deciding component/deployment triggers |
+| `references/experience-architecture-guide.md` | Consuming blueprint §9 → §23 Experience Architecture |
+| `references/next-stages-and-handoffs-guide.md` | Consuming blueprint §19 → §24 routing + provisional-tech / downstream handoffs |
+| `references/tech-stack-selection-guide.md` | `stack` mode: selecting the concrete technology stack |
 | `references/adr_guidance.md` | Writing/superseding ADRs |
 | `references/security_trust_model_guide.md` | Trust zones, AI boundary rules, prompt-injection controls |
 | `references/observability_event_catalogue.md` | Correlation IDs, log/metric/trace/audit catalogue |
 | `references/mcp_adoption_guide.md` | Deciding skill vs MCP; the MCP adoption gate |
-| `templates/architecture_design_template.md` | The 25-section output skeleton |
+| `templates/architecture_design_template.md` | The 27-section `design` output skeleton |
+| `templates/architecture_tech_stack_template.md` | The `stack` mode output skeleton |
 | `templates/*` | Per-section skeletons (ADR, interfaces, observability, security, AI matrix, tech-stack, traceability, metadata, update history, contents) |
 | `rule-packs/*` | Boundary, data, interface, reliability, AI-boundary, observability, security review gates |
-| `examples/*` | A worked blueprint excerpt and the architecture it produces |
+| `examples/*` | A worked blueprint excerpt, the architecture, and a tech-stack example |
 
 ## Final Reminder
 

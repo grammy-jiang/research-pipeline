@@ -3,10 +3,14 @@
 The architecture skill is a pure prompt-driven transformation skill (no CLI/MCP
 backend). These tests validate that the bundled skill files are well-formed,
 discoverable by ``setup``, and stay faithful to the design contract
-(``docs/architecture-skill-implementation-plan-v0.3.1.md``): standard-only
-SKILL.md frontmatter, the 24-task manifest, the 25-section output template, the
-prompts/templates/references/rule-packs, and a complete worked example that
-itself satisfies the structural gates.
+(``docs/architecture-skill-implementation-plan-v0.3.1.md`` and
+``docs/architecture-skill-mode-split-improvement-plan.md``): standard-only
+SKILL.md frontmatter, the internal modes (``design`` / ``stack`` fully
+specified; ``update`` / ``review`` / ``reconcile`` recognized), the 25-task
+``design`` manifest and the 6-task ``stack`` manifest, the 27-section ``design``
+output template and the ``stack`` output template, the
+prompts/templates/references/rule-packs, and complete worked examples that
+themselves satisfy the structural gates.
 """
 
 from __future__ import annotations
@@ -24,6 +28,7 @@ def _skill_root() -> Path:
 
 
 REQUIRED_PROMPTS = [
+    "00_mode_resolver.md",
     "01_resolve_blueprint_input.md",
     "02_detect_existing_architecture.md",
     "03_prepare_blueprint_context.md",
@@ -50,8 +55,19 @@ REQUIRED_PROMPTS = [
     "24_final_architecture_document.md",
 ]
 
+# The 6 ``stack`` mode prompts.
+REQUIRED_STACK_PROMPTS = [
+    "stack_01_resolve_inputs.md",
+    "stack_02_technology_decision_drivers.md",
+    "stack_03_stack_selection.md",
+    "stack_04_architecture_impact_and_update.md",
+    "stack_05_stack_quality_gate.md",
+    "stack_06_final_stack_document.md",
+]
+
 REQUIRED_TEMPLATES = [
     "architecture_design_template.md",
+    "architecture_tech_stack_template.md",
     "contents_template.md",
     "generation_metadata_template.md",
     "update_history_template.md",
@@ -71,6 +87,10 @@ REQUIRED_REFERENCES = [
     "security_trust_model_guide.md",
     "observability_event_catalogue.md",
     "mcp_adoption_guide.md",
+    "mode-selection-guide.md",
+    "experience-architecture-guide.md",
+    "next-stages-and-handoffs-guide.md",
+    "tech-stack-selection-guide.md",
 ]
 
 REQUIRED_RULE_PACKS = [
@@ -86,6 +106,7 @@ REQUIRED_RULE_PACKS = [
 REQUIRED_EXAMPLES = [
     "translation_blueprint_excerpt.md",
     "translation_architecture_example.md",
+    "translation_tech_stack_example.md",
 ]
 
 REQUIRED_TEST_CHECKLISTS = [
@@ -101,7 +122,7 @@ REQUIRED_TEST_CHECKLISTS = [
     "update_behavior_checklist.md",
 ]
 
-# The 25 required output sections, by heading text.
+# The 27 required ``design`` output sections, by heading text.
 REQUIRED_SECTIONS = [
     "Executive Architecture Summary",
     "Source Blueprint Interpretation",
@@ -125,13 +146,39 @@ REQUIRED_SECTIONS = [
     "Deployment Architecture",
     "Architecture Decision Records",
     "Technical Risks and Trade-offs",
+    "Experience Architecture",
+    "Recommended Next Stages and Downstream Handoffs",
     "Open Questions",
     "Architecture Quality-Gate Self-Check",
     "Handoff Notes for Implementation Planning",
 ]
 
-# The 24 manifest task ids.
+# The 19 required ``stack`` output sections, by heading text.
+REQUIRED_STACK_SECTIONS = [
+    "Generation Metadata",
+    "Source Architecture Summary",
+    "Technology Decision Drivers",
+    "Stack Selection Summary",
+    "Runtime and Language Selection",
+    "Application Framework Selection",
+    "Storage and Data Layer Selection",
+    "Queue / Background Job Selection",
+    "LLM / AI / Agent Stack Selection",
+    "MCP / AI-Skill Integration Stack",
+    "Observability and Audit Stack",
+    "Testing Stack",
+    "Deployment and Packaging Stack",
+    "Alternatives Considered",
+    "Risk and Reversibility",
+    "ADR Candidates",
+    "Architecture Impact Notes",
+    "Architecture Update Required?",
+    "Tech Stack Quality-Gate Self-Check",
+]
+
+# The 25 ``design`` manifest task ids (``tasks``).
 REQUIRED_TASK_IDS = [
+    "mode_resolver",
     "resolve_blueprint_input",
     "detect_existing_architecture",
     "prepare_blueprint_context",
@@ -156,6 +203,16 @@ REQUIRED_TASK_IDS = [
     "architecture_draft",
     "quality_gate_self_check",
     "final_architecture_document",
+]
+
+# The 6 ``stack`` manifest task ids (``stack_tasks``).
+REQUIRED_STACK_TASK_IDS = [
+    "stack_resolve_inputs",
+    "stack_decision_drivers",
+    "stack_selection",
+    "stack_architecture_impact",
+    "stack_quality_gate",
+    "stack_final_document",
 ]
 
 
@@ -370,7 +427,7 @@ def test_manifest_quality_gate_self_check_is_its_own_task() -> None:
 # --- output template ---
 
 
-def test_output_template_has_all_25_sections_and_contents() -> None:
+def test_output_template_has_all_27_sections_and_contents() -> None:
     template = (
         _skill_root() / "templates" / "architecture_design_template.md"
     ).read_text(encoding="utf-8")
@@ -459,7 +516,7 @@ V020_GATE_NAMES = [
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.5.0"
+    assert data["version"] == "0.6.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:
@@ -627,7 +684,7 @@ def test_example_models_v030_gates() -> None:
     assert "external_allowed" in example
     for cat in ("Lifecycle states", "Operational condition flags", "Audit events"):
         assert cat in example, f"example §14 missing state category: {cat}"
-    assert "0.5.0" in example
+    assert "0.6.0" in example
 
 
 # --- v0.4.0 hardening pass (verification-table security gates, data-egress
@@ -776,3 +833,190 @@ def test_example_models_v050_pass_with_warning_and_provenance() -> None:
         assert gate in example, f"example §24 missing gate: {gate}"
     # Raw-source-content logging gate present in §17.12.
     assert "Raw source content never written to logs" in example
+
+
+# --- v0.6.0 mode-split pass (design vs stack modes; Experience Architecture;
+# Recommended Next Stages and Downstream Handoffs; provisional-tech discipline) ---
+
+# Design-mode §26 self-check gate names added by the mode split.
+V060_GATE_NAMES = [
+    "Product Experience Direction consumed",
+    "Experience Architecture produced",
+    "Recommended Next Stages consumed",
+    "Tech stack provisional when stack mode recommended",
+    "Downstream handoffs present",
+]
+
+
+def test_skill_md_documents_modes() -> None:
+    """SKILL.md must document the internal modes and the mode resolver."""
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    lowered = text.lower()
+    assert "## Modes" in text
+    for mode in ("design", "stack", "update", "review", "reconcile"):
+        assert mode in lowered, f"SKILL.md missing mode: {mode}"
+    # The two stack/design outputs are both documented.
+    assert "-architecture-tech-stack.md" in text
+    assert "-architecture-design.md" in text
+    assert "00_mode_resolver.md" in text
+
+
+def test_mode_resolver_prompt_exists_and_routes() -> None:
+    text = (_skill_root() / "prompts" / "00_mode_resolver.md").read_text(
+        encoding="utf-8"
+    )
+    lowered = text.lower()
+    for mode in ("design", "stack", "update", "review", "reconcile"):
+        assert mode in lowered, f"mode resolver missing mode: {mode}"
+    # Routes to the two implemented task graphs.
+    assert "stack_tasks" in text
+    assert "mode_resolution.json" in text
+
+
+def test_all_stack_prompt_files_exist_and_nonempty() -> None:
+    prompts_dir = _skill_root() / "prompts"
+    for name in REQUIRED_STACK_PROMPTS:
+        path = prompts_dir / name
+        assert path.exists(), f"Missing stack prompt: {name}"
+        assert path.read_text(encoding="utf-8").strip(), f"Empty stack prompt: {name}"
+
+
+def test_manifest_has_mode_resolver_entry_task() -> None:
+    """mode_resolver is the entry task; resolve_blueprint_input depends on it."""
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    tasks = {t["id"]: t for t in data["tasks"]}
+    assert "mode_resolver" in tasks
+    assert tasks["mode_resolver"]["depends_on"] == []
+    assert "mode_resolver" in tasks["resolve_blueprint_input"]["depends_on"]
+    # The design graph keeps all 25 tasks (no collapsing).
+    assert len(data["tasks"]) == len(REQUIRED_TASK_IDS)
+
+
+def test_manifest_has_stack_task_graph() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    assert "stack_tasks" in data, "manifest missing stack_tasks graph"
+    stack_ids = {t["id"] for t in data["stack_tasks"]}
+    for required in REQUIRED_STACK_TASK_IDS:
+        assert required in stack_ids, f"stack_tasks missing: {required}"
+    assert len(data["stack_tasks"]) == len(REQUIRED_STACK_TASK_IDS)
+    for gate in ("stack_quality_gate", "stack_final_document"):
+        assert gate in data["stack_mandatory_gates"], (
+            f"missing stack mandatory gate: {gate}"
+        )
+
+
+def test_manifest_stack_executors_reference_real_prompt_files() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    for task in data["stack_tasks"]:
+        executor = task["executor"]
+        assert isinstance(executor, str) and executor.startswith("prompts/")
+        assert (_skill_root() / executor).exists(), f"missing executor: {executor}"
+
+
+def test_stack_template_has_all_19_sections_and_update_verdict() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_tech_stack_template.md"
+    ).read_text(encoding="utf-8")
+    assert "## Contents" in template
+    assert "## Update History" in template
+    for section in REQUIRED_STACK_SECTIONS:
+        assert section in template, f"stack template missing section: {section}"
+    # The decision table + the link to update mode.
+    assert "Selected Technology" in template and "Reversibility" in template
+    assert "Architecture Update Required?" in template
+
+
+def test_design_template_consumes_blueprint_9_and_19() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    # Experience Architecture (§9 consumption) with its key sub-structures.
+    assert "## 23. Experience Architecture" in template
+    assert "Interaction Surface Matrix" in template
+    assert "User-Visible State Model" in template
+    assert "UX Handoff to UX-Design" in template
+    # Recommended Next Stages (§19 consumption) + the four downstream handoffs.
+    assert "## 24. Recommended Next Stages and Downstream Handoffs" in template
+    for handoff in (
+        "Tech-Stack Selection Handoff",
+        "UX-Design Handoff",
+        "Security-Review Handoff",
+        "Test-Design / E2E Handoff",
+    ):
+        assert handoff in template, f"design template missing handoff: {handoff}"
+    # Provisional-tech discipline lives in §7.
+    assert "Provisional Tech Assumptions" in template
+    assert "Must Be Confirmed In Stack Mode?" in template
+
+
+def test_template_self_check_lists_v060_gates() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_design_template.md"
+    ).read_text(encoding="utf-8")
+    for gate in V060_GATE_NAMES:
+        assert gate in template, f"template §26 missing gate: {gate}"
+
+
+def test_self_check_prompt_covers_v060_gates() -> None:
+    text = (
+        (_skill_root() / "prompts" / "23_quality_gate_self_check.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    for needle in (
+        "product experience direction consumed",
+        "recommended next stages consumed",
+        "provisional-tech discipline",
+        "downstream handoffs present",
+    ):
+        assert needle in text, f"self-check prompt missing v0.6.0 gate: {needle}"
+
+
+def test_parse_prompt_consumes_blueprint_19() -> None:
+    text = (_skill_root() / "prompts" / "04_parse_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    assert "recommended_next_stages" in text
+    assert "product_experience" in text
+
+
+def test_provisional_tech_prompt_has_handoff_discipline() -> None:
+    text = (
+        (_skill_root() / "prompts" / "09_provisional_tech_stack_selection.md")
+        .read_text(encoding="utf-8")
+        .lower()
+    )
+    assert "provisional tech assumptions" in text
+    assert "tech-stack selection handoff" in text
+    assert "stack` mode" in text or "stack mode" in text
+
+
+def test_example_models_v060_sections() -> None:
+    example = (
+        _skill_root() / "examples" / "translation_architecture_example.md"
+    ).read_text(encoding="utf-8")
+    assert "## 23. Experience Architecture" in example
+    assert "## 24. Recommended Next Stages and Downstream Handoffs" in example
+    assert "Provisional Tech Assumptions" in example
+    assert "Tech-Stack Selection Handoff" in example
+    for gate in V060_GATE_NAMES:
+        assert gate in example, f"example §26 missing gate: {gate}"
+
+
+def test_stack_example_is_complete_and_models_update_verdict() -> None:
+    example = (
+        _skill_root() / "examples" / "translation_tech_stack_example.md"
+    ).read_text(encoding="utf-8")
+    assert "## Contents" in example
+    assert "## Update History" in example
+    for section in REQUIRED_STACK_SECTIONS:
+        assert section in example, f"stack example missing section: {section}"
+    # Explicit Architecture Update Required verdict and honest tech claims.
+    assert "Architecture Update Required?" in example
+    assert "tamper-evident" in example
+    # Honours the architecture's MCP deferral.
+    assert "Defer" in example or "DEFER" in example
+    # No implementation leakage (DDL / migrations).
+    lowered = example.lower()
+    for term in ("create table", "alter table", "drop table"):
+        assert term not in lowered, f"stack example leaks DDL: {term!r}"

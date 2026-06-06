@@ -29,9 +29,11 @@
 - [20. Deployment Architecture](#20-deployment-architecture)
 - [21. Architecture Decision Records](#21-architecture-decision-records)
 - [22. Technical Risks and Trade-offs](#22-technical-risks-and-trade-offs)
-- [23. Open Questions](#23-open-questions)
-- [24. Architecture Quality-Gate Self-Check](#24-architecture-quality-gate-self-check)
-- [25. Handoff Notes for Implementation Planning](#25-handoff-notes-for-implementation-planning)
+- [23. Experience Architecture](#23-experience-architecture)
+- [24. Recommended Next Stages and Downstream Handoffs](#24-recommended-next-stages-and-downstream-handoffs)
+- [25. Open Questions](#25-open-questions)
+- [26. Architecture Quality-Gate Self-Check](#26-architecture-quality-gate-self-check)
+- [27. Handoff Notes for Implementation Planning](#27-handoff-notes-for-implementation-planning)
 
 ---
 
@@ -68,8 +70,8 @@ automation.
 | Source blueprint | `translation_blueprint_excerpt.md` |
 | Source blueprint version/hash | unknown |
 | Source blueprint generated at | unknown |
-| Architecture skill version | 0.5.0 |
-| Generated at | 2026-06-05 |
+| Architecture skill version | 0.6.0 |
+| Generated at | 2026-06-06 |
 | Operating mode | hybrid |
 | Clarification count | 3 |
 | Assumptions made | 4 |
@@ -80,7 +82,7 @@ automation.
 
 | Date | Source Blueprint | Architecture Version | Change Type | Affected Sections | Notes |
 |---|---|---|---|---|---|
-| 2026-06-05 | `translation_blueprint_excerpt.md` | 0.5.0 | initial | all | First architecture from blueprint |
+| 2026-06-06 | `translation_blueprint_excerpt.md` | 0.6.0 | initial | all | First architecture from blueprint (design mode; 27 sections) |
 
 ## 2. Source Blueprint Interpretation
 
@@ -183,6 +185,27 @@ to translation; (3) metadata/artifact storage split; (4) append-only audit;
 | Agent orchestration | None — deterministic worker | Agent framework | One bounded AI call needs no agent runtime | — | yes |
 | MCP strategy | Defer (ADR-0006) | Adopt now | No reusable multi-client surface yet | Re-add later if needed | yes |
 | Deployment | Single-tenant server | Serverless | Long-running, stateful jobs | — | yes |
+
+> **Provisional** in design mode: the blueprint's §19 routes
+> `tech-stack-selection = RUN`, so the rows above are provisional and final
+> selection is owned by `stack` mode (see §7.1/§7.2 and §24.2).
+
+### 7.1 Provisional Tech Assumptions
+
+| Area | Provisional Assumption | Reason | Must Be Confirmed In Stack Mode? |
+|---|---|---|---|
+| Runtime | Python 3.12 likely | LLM ecosystem + team familiarity | Yes |
+| Metadata store | SQLite or PostgreSQL | depends on single-tenant MVP vs multi-tenant scale | Yes |
+| Durable queue | embedded vs broker (e.g. table-backed vs Redis/RabbitMQ) | depends on deployment + throughput | Yes |
+| LLM provider abstraction | adapter interface; provider undecided | depends on routing + egress-logging requirements | Yes |
+
+### 7.2 Tech-Stack Selection Handoff
+
+| Decision Needed | Architecture Constraint | Candidate Options | Risk if Wrong |
+|---|---|---|---|
+| Metadata store | Strong consistency for state + tamper-evident audit; single→multi-tenant path | SQLite / PostgreSQL | Concurrency, audit durability, deployment model |
+| Durable queue | Resumable long jobs; idempotent retry | Table-backed queue / Redis / RabbitMQ | Operational overhead vs resumability guarantees |
+| LLM provider | Multiple providers; data-egress logging; redaction | Provider A / B / self-hosted | Observability, egress compliance, provider lock-in |
 
 ## 8. System Context View
 
@@ -513,19 +536,147 @@ shown in §9.
 | Prompt injection via documents | M | M | Evidence-not-instruction; injection fixtures | Security |
 | Long jobs exhaust resources | M | L | Segment-level checkpointing + resume | Worker |
 
-## 23. Open Questions
+## 23. Experience Architecture
+
+> Consumes the blueprint's §9 Product Experience Direction. Architecture-level UX
+> support only — not detailed UX design. Depth follows the §19 ux-design routing
+> (DEFER → produce this + a UX handoff, but no journeys/screens).
+
+### 23.1 UX Direction Inherited from Blueprint
+
+| Blueprint UX Decision (§9) | Architecture Interpretation |
+|---|---|
+| Operator submits a document and trusts the result is auditable | Every result carries a correlation ID linking to its §16 audit trail |
+| Low-confidence work must be reviewable, not silently auto-accepted | Reviewer escalation is a first-class user-visible state (MVP-1) |
+| The product should feel like a deterministic backbone, not an autonomous agent | The AI step is invisible to the operator except as per-segment confidence |
+
+### 23.2 Interaction Surface Matrix
+
+| Actor | MVP Surface | Later Surface | Notes |
+|---|---|---|---|
+| Operator | CLI + thin HTTP API (MVP-0) | Web UI (future) | Batch submit + status poll |
+| Reviewer | Review queue/API (MVP-1) | Web review console (future) | Approve / reject / edit a segment |
+
+### 23.3 User-Visible State Model
+
+| User-Visible State | Internal State (§14) | User Meaning | Allowed User Action |
+|---|---|---|---|
+| Queued | `queued` | Accepted, not started | Cancel |
+| Translating | `running` | In progress | Poll status |
+| Needs review | `running` + `awaiting_review` flag | Low-confidence segments await a reviewer | Open review queue |
+| Completed | `completed` | Result ready + audit available | Download, read audit |
+| Failed | `failed` | Could not complete | Read failure reason, resubmit |
+
+### 23.4 Feedback and Progress Model
+
+| Workflow Step | User Feedback | Technical Support |
+|---|---|---|
+| Submit | Job ID + correlation ID | §12 API contract |
+| Translating | % segments complete | per-segment state in §14 |
+| Needs review | "N segments awaiting review" | `awaiting_review` condition flag |
+| Completed | Result + audit link | §16 audit trail |
+
+### 23.5 Error and Recovery Model
+
+| Error / Condition | User Sees | User Can Do | System Does (§18) |
+|---|---|---|---|
+| Provider failure | "Retrying / delayed" | Wait or cancel | Retry w/ backoff; fallback per §18 |
+| Long job interrupted | No data loss; resumes | Poll | Segment-level checkpoint + resume |
+| Reviewer timeout | "Awaiting review" persists | Reassign | Hold state; no silent auto-accept |
+
+### 23.6 Human Review Technical Flow
+
+| Trigger | Review Artifact / Surface | User Action | Audit Event (§16) |
+|---|---|---|---|
+| Segment confidence < threshold | Review queue entry (segment + proposal) | Approve / reject / edit | `review_requested`, `review_decided` |
+
+### 23.7 Trust and Transparency Support
+
+| User Trust Need | Technical Support |
+|---|---|
+| "Why did it translate it this way?" | Per-segment audit: input ref, model, proposal, gate result |
+| "Was my document sent to a third party?" | §17.9 data-egress record surfaced with the result |
+| "Nothing changed silently" | Append-only, tamper-evident audit (§13/§17) |
+
+### 23.8 Interaction Observability
+
+| Interaction Event | Signal Captured | Where (§16) |
+|---|---|---|
+| Job submitted | `job_submitted` + correlation ID | audit + metric |
+| Review decided | `review_decided` + actor | audit |
+| Result downloaded | `result_read` | log |
+
+### 23.9 UX Handoff to UX-Design
+
+| UX Area | Architecture Constraint | Open UX Question |
+|---|---|---|
+| Review console | Must emit `review_decided` audit events; segment-scoped | Inline vs side-by-side diff? (ux-design) |
+| Status surface | Reads §14 lifecycle states + `awaiting_review` flag only | How to present partial completion? (ux-design) |
+
+## 24. Recommended Next Stages and Downstream Handoffs
+
+> Consumes the blueprint's §19 Recommended Next Stages routing. Reflects the
+> routing; does not expand the pipeline.
+
+### 24.1 Recommended Next Stages Consumed
+
+| Stage | Blueprint §19 Decision | Architecture Response | Trigger / Depends On |
+|---|---|---|---|
+| tech-stack-selection | RUN | §7 kept provisional; §7.1/§7.2 handoff produced | After this architecture |
+| ux-design | DEFER | §23 Experience Architecture + UX handoff (23.9) produced; no journeys/screens | After tech-stack-selection |
+| security-review | RUN | §17 data egress / trust boundary / audit made explicit | After this architecture |
+| test-design | DEFER | §19 testing architecture + E2E seeds noted (24.5) | After ux-design |
+| architecture-update | DEFER | Update triggers in §24.6 | After a downstream decision changes |
+| architecture-reconciliation | DEFER | Reconciliation triggers in §24.6 | When a downstream conflict is found |
+
+### 24.2 Tech-Stack Selection Handoff
+
+Final stack is owned by `stack` mode — see §7.1 Provisional Tech Assumptions and
+§7.2 Tech-Stack Selection Handoff (metadata store, durable queue, LLM provider).
+
+### 24.3 UX-Design Handoff
+
+| UX Area | Architecture Constraint | Open UX Question |
+|---|---|---|
+| Review console | Segment-scoped; must emit `review_decided` audit | Diff presentation? |
+| Status surface | Reads §14 states + `awaiting_review` only | Partial-completion display? |
+
+### 24.4 Security-Review Handoff
+
+| Concern | What the Architecture Already Decided | What Security Review Must Validate |
+|---|---|---|
+| Data egress | `external_allowed` (assumption), §17.9 table, redaction + no raw source in logs | Confirm policy + provider DPA before production |
+| Prompt injection | Evidence-not-instruction; injection fixtures (§19) | Coverage of injection corpus |
+
+### 24.5 Test-Design / E2E Handoff
+
+| Critical Workflow | Architecture States/Contracts to Cover | Suggested E2E Scenario Seed |
+|---|---|---|
+| Translate + gate + audit | §14 lifecycle; §12.4 adapter contract | Single doc end-to-end, low-confidence segment escalates |
+| Reviewer decision | `awaiting_review` → `completed`; review audit | Reviewer approves an escalated segment |
+
+### 24.6 Update and Reconciliation Triggers
+
+| Trigger | Re-opens | Mode |
+|---|---|---|
+| Stack mode selects a server DB / broker queue | §14/§20 | update |
+| ux-design exposes a missing user-visible state | §14/§23 | reconcile |
+| Security review changes the egress policy | §3/§17 | update |
+
+## 25. Open Questions
 
 | # | Question | Why It Matters | Proposed Resolution Path |
 |---|---|---|---|
 | 1 | One provider or multiple at MVP-1? | Cost/quality + adapter complexity | Evaluate after MVP-0 quality data |
 | 2 | Reviewer SLA / timeout policy? | Affects job state + UX | Define with localization team before MVP-1 |
 
-## 24. Architecture Quality-Gate Self-Check
+## 26. Architecture Quality-Gate Self-Check
 
 | Gate | Status | Finding | Required Action | Blocks Implementation? |
 |---|---|---|---|---|
 | Traceability map present | PASS | Map produced (intermediate) | — | no |
-| All 25 sections present | PASS | All present | — | no |
+| All 27 sections present | PASS | All present | — | no |
+| Blueprint thesis preserved | PASS | Deterministic-spine thesis + UX intent unchanged | — | no |
 | Tech-stack rationale + alternatives | PASS | §7 complete | — | no |
 | Traditional-vs-AI matrix present | PASS | §6 complete | — | no |
 | C4 context/container/dynamic present | PASS | §8/§9/§15 | — | no |
@@ -538,22 +689,27 @@ shown in §9.
 | AI cannot mutate state without validation | PASS | Gate before commit | — | no |
 | MVP-0/MVP-1 respected | PASS | §4.8 honors blueprint | — | no |
 | Update behavior defined (if updating) | PASS | Initial document | — | no |
+| Product Experience Direction consumed | PASS | blueprint §9 read into §23 (surfaces, states, review, trust) | — | no |
+| Experience Architecture produced | PASS | §23.1–23.9 present; user-visible states map onto §14 | — | no |
+| Recommended Next Stages consumed | PASS | blueprint §19 routing reflected in §24 | — | no |
+| Tech stack provisional when stack mode recommended | PASS | §19 tech-stack-selection = RUN; §7 provisional + §7.1/§7.2 handoff | — | no |
+| Downstream handoffs present | PASS | §24 tech-stack / UX / security / test handoffs present per routing | — | no |
 | Metadata consistency | PASS | Clarification count 3 = §3 rows (3); assumptions 4 = §4.9 rows (4); ADR/Contents refs resolve | — | no |
 | Hybrid decision review | PASS | Both §3 decisions carry a source + review requirement | — | no |
 | Technology-specific validity | PASS | Append-only audit framed as application-enforced + hash-chain tamper-evident, not DB-grant-enforced (§13) | — | no |
 | Probe/evaluator availability | PASS | n/a — no model-backed evaluators/probes in this design | — | no |
-| Architecture-vs-implementation boundary | PASS | §25 names layers, not file paths; no tickets/code/migrations | — | no |
+| Architecture-vs-implementation boundary | PASS | §27 names layers, not file paths; no tickets/code/migrations | — | no |
 | Residual invalid-claim scan | PASS | Whole-doc scan: audit framed app-enforced + tamper-evident (§13/§17); no DB-grant wording anywhere | — | no |
-| Data egress / external model use | WARNING | `external_allowed` is an architecture assumption (not user-confirmed); §17.9 table present, distinct from provider abstraction | Confirm with user + review provider DPA before production (surfaced in §1.2/§25) | no |
+| Data egress / external model use | WARNING | `external_allowed` is an architecture assumption (not user-confirmed); §17.9 table present, distinct from provider abstraction | Confirm with user + review provider DPA before production (surfaced in §1.2/§27) | no |
 | State-semantics consistency | PASS | All state/condition terms resolve to the §14 canonical model (lifecycle vs condition flag vs audit event) | — | no |
 | Standard-vs-detailed budget | PASS | Concise main body; heavy ADR bodies live under `adr/` | — | no |
 | Security gate verification format | PASS | §17.12 is a verification table (evidence + method + blocks-release); no unchecked checkboxes; audit gate worded app-enforced + tamper-evident | — | no |
 | Decision evidence / provenance | PASS | every §3 row carries Decision Evidence; data-egress = architecture_assumption (not labelled user-confirmed) | — | no |
 | Raw source-content logging policy | PASS | §17.9 forbids raw source in logs (No); §17.12 has a log-snapshot + provider-wrapper redaction gate | — | no |
-| Warning surfacing | PASS | the data-egress WARNING is echoed in §1.2 and §25 | — | no |
-| Architecture-stage sequencing cap | PASS | §25 build order is 4 high-level constraints; no file-by-file/tickets/PR order | — | no |
+| Warning surfacing | PASS | the data-egress WARNING is echoed in §1.2 and §27 | — | no |
+| Architecture-stage sequencing cap | PASS | §27 build order is 4 high-level constraints; no file-by-file/tickets/PR order | — | no |
 
-## 25. Handoff Notes for Implementation Planning
+## 27. Handoff Notes for Implementation Planning
 
 - **Build order:** deterministic spine (intake→segment→route→gate→audit→assembly)
   first; then the translation adapter; then the evaluation harness; reviewer
@@ -571,6 +727,6 @@ shown in §9.
   names are proposed module namespaces for implementation planning, not
   file-by-file tasks. No task tickets, code, or migrations are emitted here —
   those are the implementation-plan skill's job.
-- **Open warnings (from §24):** Data egress is an architecture assumption
+- **Open warnings (from §26):** Data egress is an architecture assumption
   (`external_allowed`), not user-confirmed — confirm with the user and review
   the provider DPA before production. Non-blocking for implementation planning.

@@ -1,7 +1,7 @@
 {
   "workflow_id": "architecture",
-  "version": "0.5.0",
-  "description": "Blueprint-to-architecture design: resolve blueprint input → detect existing architecture → prepare context → parse → traceability map → clarify → solution strategy → goals/constraints → provisional tech stack → traditional-vs-AI boundary → skill/MCP decision → tech-stack/boundary coherence → C4 views → interface contracts → data contracts → security/trust boundaries → observability/audit → failure handling → testing/evaluation → ADRs → rule-pack review → draft → quality-gate self-check → final document. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. The manifest is valid as documentation for a prompt-driven agent and ready for a future runtime runner; if no runner exists, follow the task order manually. detect_existing_architecture is consumed by prepare_blueprint_context, solution_strategy, adrs, architecture_draft, and final_architecture_document so update behavior is respected end-to-end. v0.2.0 quality pass: the quality_gate_self_check now also enforces metadata consistency (counts match tables; A-N/ADR/Contents references resolve), hybrid-mode decision-review classification (decision source + review requirement), technology-specific validity (no enforcement claims the chosen tech does not provide), evaluator/probe availability policy, and the architecture-vs-implementation boundary (proposed namespaces, not file-by-file tasks). v0.3.0 hardening pass: a mandatory data-egress / external-model-use decision when external models are used; a document-wide residual invalid-claim scan (technology-inconsistent wording beyond the tech-stack section); explicit self-check skepticism using PASS / WARNING / FAIL (WARNING = directionally acceptable but needs cleanup, never a silent PASS over a known contradiction); a state-semantics consistency check (lifecycle states vs operational condition flags vs audit events resolve to the canonical §14 state machine); and an output detail budget so 'standard' stays a concise main body + appendices rather than a full dossier. v0.4.0 hardening pass: §17 security quality gates are rendered as a verification table (Security Gate | Required Implementation Evidence | Verification Method | Blocks Release?), never as ambiguous unchecked checkboxes; the residual invalid-claim scan now explicitly covers security-gate and checklist rows (not just prose), which is where leftover technology-inconsistent wording tends to hide; and the data-egress decision is expanded into a dedicated Data Egress / External Model Use table (content-leaves-boundary, which providers, redaction, logs-may-contain-source, domain-plugin-override) whenever external models are used. v0.5.0 hardening pass: high-impact decisions carry Decision Evidence (controlled provenance values) and are never labelled user-confirmed without an explicit confirmation source; raw source content is forbidden in logs by default for external-model systems (redaction + log-snapshot/provider-wrapper verification required); WARNING / PASS-with-warning gates are surfaced into the Executive Summary and Handoff, not just the §24 self-check; the standard output budget carries concrete targets; and architecture-stage build sequencing is capped at five high-level constraints (detailed task ordering belongs to the implementation-plan skill).",
+  "version": "0.6.0",
+  "description": "Blueprint-to-architecture design with internal modes. mode_resolver picks the mode (design / stack / update / review / reconcile) and routes to a task graph; design and stack are the two fully-specified modes (Phase 1 of the mode split), update reuses design mode's update machinery, and review/reconcile are recognized but deferred. design tasks: resolve blueprint input → detect existing architecture → prepare context → parse (incl. blueprint §9 Product Experience Direction + §19 Recommended Next Stages) → traceability map → clarify → solution strategy → goals/constraints → provisional tech stack (+ provisional tech assumptions + tech-stack selection handoff) → traditional-vs-AI boundary → skill/MCP decision → tech-stack/boundary coherence → C4 views → interface contracts → data contracts → security/trust boundaries → observability/audit → failure handling → testing/evaluation → ADRs → rule-pack review → draft (incl. Experience Architecture + Recommended Next Stages and Downstream Handoffs) → quality-gate self-check → final document. stack_tasks: resolve stack inputs → technology decision drivers → stack selection → architecture impact + update verdict → stack quality gate → final stack document (<topic-slug>-architecture-tech-stack.md). Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. The manifest is valid as documentation for a prompt-driven agent and ready for a future runtime runner; if no runner exists, follow the task order manually. detect_existing_architecture is consumed by prepare_blueprint_context, solution_strategy, adrs, architecture_draft, and final_architecture_document so update behavior is respected end-to-end. v0.2.0 quality pass: the quality_gate_self_check now also enforces metadata consistency (counts match tables; A-N/ADR/Contents references resolve), hybrid-mode decision-review classification (decision source + review requirement), technology-specific validity (no enforcement claims the chosen tech does not provide), evaluator/probe availability policy, and the architecture-vs-implementation boundary (proposed namespaces, not file-by-file tasks). v0.3.0 hardening pass: a mandatory data-egress / external-model-use decision when external models are used; a document-wide residual invalid-claim scan (technology-inconsistent wording beyond the tech-stack section); explicit self-check skepticism using PASS / WARNING / FAIL (WARNING = directionally acceptable but needs cleanup, never a silent PASS over a known contradiction); a state-semantics consistency check (lifecycle states vs operational condition flags vs audit events resolve to the canonical §14 state machine); and an output detail budget so 'standard' stays a concise main body + appendices rather than a full dossier. v0.4.0 hardening pass: §17 security quality gates are rendered as a verification table (Security Gate | Required Implementation Evidence | Verification Method | Blocks Release?), never as ambiguous unchecked checkboxes; the residual invalid-claim scan now explicitly covers security-gate and checklist rows (not just prose), which is where leftover technology-inconsistent wording tends to hide; and the data-egress decision is expanded into a dedicated Data Egress / External Model Use table (content-leaves-boundary, which providers, redaction, logs-may-contain-source, domain-plugin-override) whenever external models are used. v0.5.0 hardening pass: high-impact decisions carry Decision Evidence (controlled provenance values) and are never labelled user-confirmed without an explicit confirmation source; raw source content is forbidden in logs by default for external-model systems (redaction + log-snapshot/provider-wrapper verification required); WARNING / PASS-with-warning gates are surfaced into the Executive Summary and Handoff, not just the §24 self-check; the standard output budget carries concrete targets; and architecture-stage build sequencing is capped at five high-level constraints (detailed task ordering belongs to the implementation-plan skill). v0.6.0 mode-split pass: the skill becomes one skill with internal modes. A mode_resolver entry task selects design / stack / update / review / reconcile (design and stack are fully specified; update reuses design's update machinery; review/reconcile are recognized but deferred). design mode now explicitly consumes the blueprint's §9 Product Experience Direction (producing an Experience Architecture section) and §19 Recommended Next Stages (producing a Recommended Next Stages and Downstream Handoffs section with tech-stack / ux-design / security-review / test-design handoffs), and keeps the tech stack provisional — with a Provisional Tech Assumptions table and a Tech-Stack Selection Handoff — whenever stack-mode selection is recommended. A separate stack_tasks graph selects the concrete technology stack against the architecture, ending with an explicit Architecture Update Required verdict, and writes <topic-slug>-architecture-tech-stack.md. The design output grows from 25 to 27 sections (adds Experience Architecture and Recommended Next Stages and Downstream Handoffs).",
   "mandatory_gates": [
     "rule_pack_review",
     "quality_gate_self_check",
@@ -9,9 +9,25 @@
   ],
   "tasks": [
     {
-      "id": "resolve_blueprint_input",
+      "id": "mode_resolver",
       "type": "llm",
       "depends_on": [],
+      "executor": "prompts/00_mode_resolver.md",
+      "output": "intermediate/mode_resolution.json",
+      "validation": "valid_mode_selected_or_user_question",
+      "failure_policy": "default_to_design_if_no_architecture_else_ask",
+      "routes_to": {
+        "design": "tasks",
+        "update": "tasks",
+        "stack": "stack_tasks",
+        "review": "review_readonly",
+        "reconcile": "reconcile_blocked"
+      }
+    },
+    {
+      "id": "resolve_blueprint_input",
+      "type": "llm",
+      "depends_on": ["mode_resolver"],
       "executor": "prompts/01_resolve_blueprint_input.md",
       "output": "intermediate/input_resolution.json",
       "validation": "blueprint_found_or_user_question",
@@ -224,6 +240,66 @@
       "validation": "architecture_quality_gates_pass_and_update_history_present",
       "failure_policy": "revise_max_3_then_stop"
     }
+  ],
+  "stack_tasks": [
+    {
+      "id": "stack_resolve_inputs",
+      "type": "llm",
+      "depends_on": ["mode_resolver"],
+      "executor": "prompts/stack_01_resolve_inputs.md",
+      "output": "intermediate/stack_inputs.json",
+      "validation": "blueprint_and_architecture_design_found_or_user_question",
+      "failure_policy": "stop_if_no_architecture_design"
+    },
+    {
+      "id": "stack_decision_drivers",
+      "type": "llm",
+      "depends_on": ["stack_resolve_inputs"],
+      "executor": "prompts/stack_02_technology_decision_drivers.md",
+      "output": "intermediate/stack_decision_drivers.md",
+      "validation": "architecture_requirements_consumed_as_drivers",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "stack_selection",
+      "type": "llm",
+      "depends_on": ["stack_decision_drivers"],
+      "executor": "prompts/stack_03_stack_selection.md",
+      "output": "intermediate/stack_selection.md",
+      "validation": "every_area_has_alternatives_rationale_risk_reversibility",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "stack_architecture_impact",
+      "type": "llm",
+      "depends_on": ["stack_selection"],
+      "executor": "prompts/stack_04_architecture_impact_and_update.md",
+      "output": "intermediate/stack_architecture_impact.md",
+      "validation": "architecture_impact_and_update_required_explicit",
+      "failure_policy": "revise"
+    },
+    {
+      "id": "stack_quality_gate",
+      "type": "llm",
+      "depends_on": ["stack_architecture_impact"],
+      "executor": "prompts/stack_05_stack_quality_gate.md",
+      "output": "intermediate/stack_quality_gate.md",
+      "validation": "no_failed_stack_quality_gates",
+      "failure_policy": "revise_max_3_then_stop"
+    },
+    {
+      "id": "stack_final_document",
+      "type": "llm",
+      "depends_on": ["stack_selection", "stack_architecture_impact", "stack_quality_gate"],
+      "executor": "prompts/stack_06_final_stack_document.md",
+      "output": "<topic-slug>-architecture-tech-stack.md",
+      "validation": "stack_quality_gates_pass_and_architecture_update_verdict_present",
+      "failure_policy": "revise_max_3_then_stop"
+    }
+  ],
+  "stack_mandatory_gates": [
+    "stack_quality_gate",
+    "stack_final_document"
   ],
   "failure_policy_defaults": {
     "no_blueprint": "stop_if_no_blueprint",

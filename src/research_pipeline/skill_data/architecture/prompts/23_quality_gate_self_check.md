@@ -1,7 +1,7 @@
 # Prompt 23 — Quality-Gate Self-Check
 
 You are auditing the draft against the architecture quality gates and emitting
-the actionable §24 self-check.
+the actionable §26 self-check.
 
 ## Inputs
 
@@ -27,6 +27,10 @@ the actionable §24 self-check.
 [ ] Every conceptual component converted to a service without rationale.
 [ ] Existing-architecture update behavior undefined when a file already exists.
 [ ] Handoff notes for implementation planning are missing.
+[ ] Blueprint thesis or UX intent changed (not preserved).
+[ ] Product Experience Direction (blueprint §9) ignored / no §23 Experience Architecture.
+[ ] Recommended Next Stages (blueprint §19) ignored / no §24 routing + handoffs.
+[ ] Final tech stack locked despite §19 recommending tech-stack-selection RUN/DEFER.
 ```
 
 ## v0.2.0 quality-control gates (also evaluate these)
@@ -61,7 +65,7 @@ the actionable §24 self-check.
 ## v0.3.0 hardening gates (also evaluate these)
 
 6. **Residual invalid-claim scan** — scan the *whole* document (not just the
-   tech-stack section): §17 security gates, §13/§14 data, §24 checklist rows,
+   tech-stack section): §17 security gates, §13/§14 data, §26 checklist rows,
    ADRs. FAIL/WARNING on any technology-inconsistent claim — e.g. borrowing one
    technology's permission/enforcement/immutability/provider-neutrality wording
    for a different chosen technology (an embedded file-based store described
@@ -107,16 +111,40 @@ the actionable §24 self-check.
     "No", with redaction + log-snapshot + provider-wrapper tests as the
     verification method (a §17.12 release-blocking gate). Operator configuration
     alone is insufficient.
-14. **Warning surfacing** — FAIL if any §24 WARNING / PASS-with-warning row is
-    not also summarized in §1 (Executive Summary) and §25 (Handoff Notes) with
+14. **Warning surfacing** — FAIL if any §26 WARNING / PASS-with-warning row is
+    not also summarized in §1 (Executive Summary) and §27 (Handoff Notes) with
     its required action and blocking status.
-15. **Architecture-stage sequencing cap** — WARNING if §25 build sequencing
+15. **Architecture-stage sequencing cap** — WARNING if §27 build sequencing
     exceeds five high-level constraints; FAIL if it contains file-by-file order,
     task tickets, a PR sequence, or detailed class/migration ordering (that is
     the implementation-plan skill's job).
 
+## v0.6.0 mode-split gates (also evaluate these)
+
+16. **Product Experience Direction consumed** — FAIL if the blueprint has a §9
+    Product Experience Direction but the architecture has no §23 Experience
+    Architecture (or §23 ignores §9). §23 must cover interaction surfaces,
+    user-visible states (mapped onto §14), feedback/progress, error/recovery
+    (aligned with §18), human-review flow (with §16 audit events),
+    trust/transparency, and a UX handoff — architecture-level UX support only,
+    not detailed UX design. PASS as n/a only if the blueprint has no §9.
+17. **Recommended Next Stages consumed** — FAIL if the blueprint has a §19
+    Recommended Next Stages but the architecture has no §24 reflecting that
+    routing (per-stage RUN/SKIP/DEFER/ASK_USER, with stack / UX / security / test
+    handoffs and update/reconciliation triggers). WARNING if §24 invents stages
+    the blueprint did not route. PASS as n/a only if the blueprint has no §19.
+18. **Provisional-tech discipline** — FAIL if §19 recommends
+    tech-stack-selection (RUN/DEFER) but the architecture locks a final
+    framework/database/cloud/AI-orchestration/MCP-SDK choice (where several
+    viable options exist) instead of keeping §7 provisional with §7.1 Provisional
+    Tech Assumptions + §7.2 Tech-Stack Selection Handoff. PASS as fixed only if
+    tech-stack-selection = SKIP and the stack-fixed source is named.
+19. **Downstream handoffs present** — FAIL if a §19 stage routed RUN/DEFER lacks
+    its §24 handoff (Tech-Stack Selection / UX-Design / Security-Review /
+    Test-Design). Blueprint thesis and UX intent must be preserved, not changed.
+
 When running gate 6 (residual invalid-claim scan), scan the §17 security gates,
-§24 checklist rows, and ADRs character-by-character for borrowed-technology
+§26 checklist rows, and ADRs character-by-character for borrowed-technology
 wording — not just the §7 prose. If a gate is currently a checkbox, rewriting it
 as a verification table (gate 10) is the moment to fix the wording.
 
@@ -138,23 +166,27 @@ Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
 
 ## Instructions
 
-1. Evaluate every gate (the FAIL list, the five v0.2.0 gates, and the v0.3.0 /
-   v0.4.0 gates) against the draft; record PASS / WARNING / FAIL with a finding,
-   a required action, and a blocks-implementation verdict.
-2. Emit the §24 table (Gate · Status · Finding · Required Action · Blocks
+1. Evaluate every gate (the FAIL list, the five v0.2.0 gates, the v0.3.0 /
+   v0.4.0 gates, and the four v0.6.0 mode-split gates) against the draft; record
+   PASS / WARNING / FAIL with a finding, a required action, and a
+   blocks-implementation verdict.
+2. Emit the §26 table (Gate · Status · Finding · Required Action · Blocks
    Implementation?), including rows for: Metadata consistency, Hybrid decision
    review, Technology-specific validity, Probe/evaluator availability,
    Architecture-vs-implementation boundary, Residual invalid-claim scan, Data
    egress / external model use, State-semantics consistency,
    Standard-vs-detailed budget, Security gate verification format, Decision
    evidence / provenance, Raw source-content logging policy, Warning surfacing,
-   and Architecture-stage sequencing cap.
+   Architecture-stage sequencing cap, and the v0.6.0 rows — Product Experience
+   Direction consumed, Experience Architecture produced, Recommended Next Stages
+   consumed, Tech stack provisional when stack mode recommended, and Downstream
+   handoffs present.
 3. If any gate FAILs, return the specific failing gates so prompt 24 can revise.
    Every WARNING must carry a concrete required action, not a passive note.
 
 ## Output
 
-`intermediate/quality_gate_self_check.md` → populates §24.
+`intermediate/quality_gate_self_check.md` → populates §26.
 
 ## Validation / failure policy
 

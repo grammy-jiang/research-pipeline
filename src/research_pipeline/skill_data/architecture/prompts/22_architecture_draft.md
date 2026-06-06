@@ -8,15 +8,33 @@ artifacts.
 - All `intermediate/*` artifacts (strategy, goals, tech stack, matrix, C4,
   contracts, data, security, observability, failure, testing, ADRs, rule-pack
   review).
+- `intermediate/blueprint_parse.json` (the `product_experience` §9 facts and the
+  `recommended_next_stages` §19 routing).
 - `intermediate/existing_architecture_status.json` (update mode).
-- `templates/architecture_design_template.md` (the 25-section skeleton).
+- `templates/architecture_design_template.md` (the 27-section skeleton),
+  `references/experience-architecture-guide.md`,
+  `references/next-stages-and-handoffs-guide.md`.
 
 ## Instructions
 
-1. Compose all 25 sections in order, starting with `## Contents` and
+1. Compose all 27 sections in order, starting with `## Contents` and
    `## Update History` near the top.
 2. Fill §1 generation metadata by copying known values; use `unknown` where a
    value is unavailable. Never invent metadata.
+2a. **Author §23 Experience Architecture** from `product_experience` (blueprint
+   §9): UX direction inherited, interaction surface matrix, user-visible state
+   model (mapped onto the §14 canonical states), feedback/progress model, error/
+   recovery model (aligned with §18), human-review technical flow (producing §16
+   audit events), trust/transparency support, interaction observability (routed
+   to §16), and the UX handoff. Architecture-level UX support only — no screen
+   layouts, wireframes, exact CLI syntax, or copy. Depth follows the §19
+   ux-design routing (`references/experience-architecture-guide.md`).
+2b. **Author §24 Recommended Next Stages and Downstream Handoffs** from
+   `recommended_next_stages` (blueprint §19): reflect each stage's
+   RUN/SKIP/DEFER/ASK_USER decision; pointer to the §7.2 Tech-Stack Selection
+   Handoff; UX / security-review / test-design handoffs per their routing; and
+   update/reconciliation triggers. Do not invent stages the blueprint did not
+   route (`references/next-stages-and-handoffs-guide.md`).
 3. Respect the update mode:
    - `regenerate` → rebuild the whole document; append an Update History row.
    - `patch` → change only the affected sections; append an Update History row
@@ -26,14 +44,16 @@ artifacts.
    - `resume` → continue from previously unresolved questions.
 4. Include the required Mermaid C4 views (context, container, dynamic) and the
    Traditional-vs-AI matrix and tech-stack table.
-5. **Respect the output detail budget.** All 25 sections are always present, but
+5. **Respect the output detail budget.** All 27 sections are always present, but
    match their depth to `output_detail`:
    - `standard` (default): keep the main body concise and decision-focused.
      Concrete targets — Executive Summary ≤ 1 page; tech-stack table ≤ ~15
      decisions; interface contracts = core contracts only; data contracts =
      core entities only; security = trust zones + major controls; observability
      = required IDs/logs/metrics/traces summary; testing = strategy + key tests;
-     ADRs = a summary table in the body. Move heavy material (full schemas,
+     §23 Experience Architecture and §24 Recommended Next Stages = compact tables
+     (≤ ~1 page each); ADRs = a summary table in the body. Move heavy material
+     (full schemas,
      extended risk/threat tables, full test matrices, full ADR bodies, full
      log/metric catalogue) into appendices or `adr/` files. The result is a
      concise main body + appendices, not a full dossier. If it still reads like
@@ -42,12 +62,12 @@ artifacts.
      test matrices may live in the main body.
    - `concise`: tighten further; keep every major decision visible.
    Never drop a required section or a major decision to meet the budget.
-6. **Surface warnings.** After the §24 self-check, collect every `WARNING` /
+6. **Surface warnings.** After the §26 self-check, collect every `WARNING` /
    `PASS with warning` row and copy a short
    "Architecture Warnings Requiring Attention" summary
    (Warning · Required Action · Blocks Implementation Planning?) into
-   **§1 Executive Architecture Summary** and **§25 Handoff Notes**.
-   Warnings must not live only in §24 — a downstream implementation-plan agent
+   **§1 Executive Architecture Summary** and **§27 Handoff Notes**.
+   Warnings must not live only in §26 — a downstream implementation-plan agent
    reading the handoff must see them. If there are no warnings, say so briefly.
 
 ## Output

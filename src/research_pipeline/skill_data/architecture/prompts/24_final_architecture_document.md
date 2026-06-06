@@ -12,7 +12,7 @@ You are producing the final architecture document and writing it to disk.
 1. Apply any revisions required by the self-check (max 3 attempts; after 3
    failures, surface the failing gates and stop — do not deliver an
    unvalidated architecture).
-2. Embed the §24 self-check table in the document.
+2. Embed the §26 self-check table in the document.
 3. Ensure `## Contents` links every numbered section and that `## Update
    History` has the correct row appended for this run (initial for new
    documents; a new row for updates — never delete prior rows).
@@ -21,25 +21,25 @@ You are producing the final architecture document and writing it to disk.
    §4.9 row count; every `A-N`, ADR, Contents, and section reference resolves;
    no metadata is invented. Fix any mismatch (do not deliver inconsistent
    metadata).
-5. **Label proposed namespaces, not file paths:** if §25 lists package/module
+5. **Label proposed namespaces, not file paths:** if §27 lists package/module
    names, introduce them as "proposed module namespaces for implementation
    planning, not mandatory file-by-file implementation tasks." Do not emit task
    tickets, code patches, migration scripts, or file-by-file steps — those
    belong to the implementation-plan skill.
-5a. **Cap build sequencing:** §25 may include at most **five** high-level
+5a. **Cap build sequencing:** §27 may include at most **five** high-level
    sequencing constraints (e.g. "build the deterministic spine before AI
    adapters", "freeze core contracts first", "implement audit before state
    transitions"). A detailed build plan, file-by-file order, PR sequence, or
    class/migration ordering must be removed or deferred to the implementation-plan
    skill.
-5b. **Surface warnings:** ensure every §24 WARNING / PASS-with-warning row is
-   echoed in §1 and §25 with its required action and blocking status.
+5b. **Surface warnings:** ensure every §26 WARNING / PASS-with-warning row is
+   echoed in §1 and §27 with its required action and blocking status.
 6. Write the document to `<topic-slug>-architecture-design.md`, co-located with
    the blueprint unless another output directory was specified. Write ADR files
    under `adr/`. In `compare` mode, emit the diff review instead of overwriting.
 7. If files cannot be written, output the full Markdown inline and state the
    recommended filename(s).
-8. End by pointing at the implementation-plan skill as the next stage (§25
+8. End by pointing at the implementation-plan skill as the next stage (§27
    handoff notes).
 
 ## Output

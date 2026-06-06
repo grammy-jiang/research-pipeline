@@ -327,16 +327,27 @@ off to the `architecture` skill.
 
 The `architecture` skill is also pure prompt-driven (no CLI/MCP backend) and
 continues the chain `research-pipeline → blueprint → architecture →
-implementation-plan`. It discovers/parses a product blueprint, builds a
+implementation-plan`. It is **one skill with internal modes** (a mode resolver
+picks the mode): `design` and `stack` are fully specified; `update` reuses
+design mode's update machinery; `review`/`reconcile` are recognized but
+deferred. `design` mode discovers/parses a product blueprint (including its §9
+Product Experience Direction and §19 Recommended Next Stages), builds a
 blueprint-to-architecture traceability map, runs a tech-stack/AI-boundary
-co-design loop, and emits a 25-section architecture document with C4 views, a
-Traditional-vs-AI responsibility matrix, interface and data contracts,
+co-design loop, and emits a 27-section architecture *design* document
+(`<topic-slug>-architecture-design.md`) with C4 views, a Traditional-vs-AI
+responsibility matrix, an Experience Architecture section, a Recommended Next
+Stages and Downstream Handoffs section, interface and data contracts,
 security/trust boundaries, observability/audit, ADRs, and
-implementation-planning handoff notes. It selects a tech stack with rationale
-but never writes code or implementation tasks, keeps durable state under
-deterministic control (AI output is validated before any state change), adopts
-MCP only when justified, and supports regenerate/patch/compare/adr-only/resume
-update modes with an `## Update History`.
+implementation-planning handoff notes — keeping the tech stack **provisional**
+when stack-mode selection is recommended. `stack` mode then selects the concrete
+technology stack against that architecture and writes
+`<topic-slug>-architecture-tech-stack.md`, ending with an explicit *Architecture
+Update Required?* verdict (it satisfies the architecture, never redesigns it).
+The skill selects a tech stack with rationale but never writes code or
+implementation tasks, keeps durable state under deterministic control (AI output
+is validated before any state change), adopts MCP only when justified, and
+supports regenerate/patch/compare/adr-only/resume update modes with an
+`## Update History`.
 
 The skills are structured per Anthropic's Skill-Building Guide (explicit
 trigger phrases, standard-only `name`/`description`/`license` frontmatter,
