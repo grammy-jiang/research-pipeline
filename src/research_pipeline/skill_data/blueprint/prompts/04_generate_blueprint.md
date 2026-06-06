@@ -261,3 +261,24 @@ Contents.
 - Do **not** treat unresolved research gaps as solved.
 - Make the document actionable for a later technical-design skill without
   requiring it to re-read the original papers.
+
+## Cross-Skill Artifact Contract Compliance
+
+Comply with the Cross-Skill Artifact Contract (`references/artifact-contract.md`).
+The output document must expose the contract fields using the controlled
+vocabulary:
+
+- **Generation Metadata** including `Artifact Type` (a registry value) and a
+  stable `Topic Slug` (carried unchanged across the pipeline).
+- **Source Artifacts Consumed** (what was read and how it was used).
+- **Resolved Input Artifacts** when inputs were auto-discovered (else
+  `NOT_APPLICABLE — all input artifacts were explicitly supplied by the user`).
+- A **decision register** (controlled status values), **assumptions** kept
+  separate from decisions, **open questions** assigned to a next stage, and a
+  **Recommended Next Stage** (RUN / SKIP / DEFER / ASK_USER).
+- A **Quality-Gate Self-Check** that includes the **Cross-Skill Artifact
+  Contract Gate**.
+
+If a section already exists under this skill's own heading, align it to the
+contract (a Contract Field Map is fine) rather than duplicating. Mark any
+not-applicable field `NOT_APPLICABLE — <reason>`; never omit it.

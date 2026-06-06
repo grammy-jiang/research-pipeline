@@ -38,6 +38,10 @@
 
 | Field | Value |
 |---|---|
+| Artifact Type | architecture_tech_stack |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | architecture |
 | Source blueprint | `<filename or unknown>` |
 | Source architecture design | `<filename>` |
 | Source architecture version | `<version/hash or unknown>` |
@@ -59,6 +63,38 @@
 
 > New documents include the initial row. Updates append a new row. Never delete
 > prior rows. Change Type ∈ {initial, regenerate, patch, compare}.
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`).
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| architecture_design | `<path>` | yes | Requirements, NFRs, AI boundary, state model |
+| product_blueprint | `<path or —>` | no | MVP scope and constraints |
+
+### Resolved Input Artifacts
+
+| Candidate | Selected? | Confidence | Reason |
+|---|---:|---:|---|
+| `<path>-architecture-design.md` | yes | High | Exact topic slug and expected title |
+
+> `NOT_APPLICABLE — all input artifacts were explicitly supplied by the user.`
+> when the user passed every file.
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1 |
+| Decision Register | §4 Stack Selection Summary (status per choice) |
+| Assumptions | §3 Technology Decision Drivers / §15 Risk and Reversibility |
+| Open Questions | §18 Architecture Update Required? + §17 Architecture Impact Notes |
+| Recommended Next Stage | §18 Architecture Update Required? (→ `architecture --mode update`) |
+| Quality-Gate Self-Check | §19 (incl. the Cross-Skill Artifact Contract Gate) |
 
 ## 2. Source Architecture Summary
 
@@ -207,3 +243,17 @@ the input to `update` mode. Keep it as notes, not an architecture rewrite.>
 > alternatives considered; selected technologies contradict architecture
 > constraints; security/privacy implications ignored; architecture impact
 > missing.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | <finding> | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | <finding> | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | <finding> | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | <finding> | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL | <finding> | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | <finding> | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | <finding> | <action> |
+
+> See `references/artifact-contract.md`.

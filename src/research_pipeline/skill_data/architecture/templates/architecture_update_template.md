@@ -30,6 +30,10 @@
 
 | Field | Value |
 |---|---|
+| Artifact Type | architecture_update |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | architecture |
 | Source architecture | `<filename>` |
 | Source architecture version | `<version/hash or unknown>` |
 | Architecture skill version | `<from manifest.json version or unknown>` |
@@ -38,6 +42,31 @@
 | Update sources | `<filenames>` |
 | Overwrites architecture by default? | No (update note + optional proposed draft) |
 | Architecture Update History row to append | `<date · update · affected sections · note>` |
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`).
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| architecture_design | `<path>` | yes | The architecture being updated |
+| architecture_tech_stack | `<path or —>` | no | Accepted update source (Update Required = Yes) |
+| architecture_reconciliation | `<path or —>` | no | Accepted patch recommendations |
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1 |
+| Resolved Input Artifacts | §3 Update Source Documents |
+| Decision Register | §4 Accepted Decisions Applied |
+| Assumptions | §9 Compatibility Check (invariants) |
+| Open Questions | §10 Remaining Open Questions |
+| Recommended Next Stage | §8 Updated Handoffs (re-review / implementation-plan) |
+| Quality-Gate Self-Check | §11 (incl. the Cross-Skill Artifact Contract Gate) |
 
 ## 2. Source Architecture
 
@@ -134,3 +163,17 @@ the applied decisions.>
 > Status legend: PASS / WARNING / FAIL. The update note never overwrites the
 > architecture design by default; an overwrite requires an explicit request, a
 > listed change set, an appended Update History row, and recoverability.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | <finding> | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | <finding> | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | <finding> | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | <finding> | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL | §4 decisions vs §9 invariants | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | §10 | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | §8 | <action> |
+
+> See `references/artifact-contract.md`.

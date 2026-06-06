@@ -36,6 +36,10 @@
 
 | Field | Value |
 |---|---|
+| Artifact Type | architecture_review |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | architecture |
 | Reviewed architecture | `<filename>` |
 | Architecture version | `<version/hash or unknown>` |
 | Architecture skill version | `<from manifest.json version or unknown>` |
@@ -45,6 +49,33 @@
 | Implementation-plan ready? | yes / no / with-changes |
 
 > Review is **non-mutating** — it does not edit the architecture document.
+> This §1 block is the contract's **Generation Metadata** for an
+> `architecture_review` artifact.
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`).
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| architecture_design | `<path>` | yes | Primary review target |
+| product_blueprint | `<path or —>` | no | Blueprint fidelity check |
+| ux_design | `<path or —>` | no | UX readiness / reconciliation check |
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1 Review Metadata |
+| Resolved Input Artifacts | §2 Documents Reviewed |
+| Decision Register | NOT_APPLICABLE — review evaluates, it does not decide |
+| Assumptions | §3 Executive Assessment / per-area notes |
+| Open Questions | §15/§16 Blocking Issues / Warnings |
+| Recommended Next Stage | §18 Recommended Next Actions |
+| Quality-Gate Self-Check | §19 (incl. the Cross-Skill Artifact Contract Gate) |
 
 ## 2. Documents Reviewed
 
@@ -182,3 +213,17 @@ implementation planning?>
 
 > Status legend: PASS / WARNING / FAIL. Never PASS a section with a known
 > contradiction. Review must not silently rewrite the architecture.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | <finding> | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | <finding> | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | <finding> | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | <finding> | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL / NOT_APPLICABLE | review evaluates; no decisions | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | <finding> | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | §18 | <action> |
+
+> See `references/artifact-contract.md`.

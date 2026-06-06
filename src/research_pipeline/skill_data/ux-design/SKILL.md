@@ -254,6 +254,7 @@ E2E scenario seeds are missing. / Architecture feedback section is absent.
 
 | File | Load when |
 |------|-----------|
+| `references/artifact-contract.md` | The Cross-Skill Artifact Contract the UX-design output must satisfy |
 | `references/ux-question-bank.md` | Choosing high-impact clarification questions; input discovery + ranking |
 | `references/surface-ux-guide.md` | Writing §12 surface-specific UX (CLI / Web / TUI / AI-Skill / MCP / API) |
 | `references/e2e-scenario-seed-guide.md` | Turning user stories + acceptance criteria into §20 E2E seeds |

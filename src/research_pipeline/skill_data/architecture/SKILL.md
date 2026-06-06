@@ -537,6 +537,7 @@ and `tests/expected_sections_checklist.md`:
 
 | File | Load when |
 |------|-----------|
+| `references/artifact-contract.md` | The Cross-Skill Artifact Contract every mode output must satisfy |
 | `references/mode-selection-guide.md` | Resolving the mode (design / stack / update / review / reconcile) |
 | `references/input-discovery.md` | Discovering/scoring a blueprint; deriving the topic slug |
 | `references/c4_model_summary.md` | Choosing and drawing C4 views; deciding component/deployment triggers |

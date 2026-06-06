@@ -555,7 +555,7 @@ V020_GATE_NAMES = [
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.7.0"
+    assert data["version"] == "0.8.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:

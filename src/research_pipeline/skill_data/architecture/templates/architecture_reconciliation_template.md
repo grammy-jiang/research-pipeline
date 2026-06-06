@@ -30,6 +30,10 @@
 
 | Field | Value |
 |---|---|
+| Artifact Type | architecture_reconciliation |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | architecture |
 | Source architecture | `<filename>` |
 | Source architecture version | `<version/hash or unknown>` |
 | Architecture skill version | `<from manifest.json version or unknown>` |
@@ -38,6 +42,32 @@
 | Feedback sources | `<filenames>` |
 | Patches architecture by default? | No (reconciliation note → handoff to update) |
 | Architecture Update Required? | Yes / No |
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`).
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| architecture_design | `<path>` | yes | The architecture being reconciled |
+| ux_design | `<path or —>` | no | Primary feedback (Architecture Feedback section) |
+| security_review | `<path or —>` | no | Architecture-impacting findings |
+| test_design | `<path or —>` | no | Impossible / uncovered scenarios |
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1 |
+| Resolved Input Artifacts | §3 Feedback Documents Consumed |
+| Decision Register | §7 Recommended Architecture Changes (proposed; accepted by `update`) |
+| Assumptions | §6 UX / Test / Security Impact Analysis |
+| Open Questions | §4 Conflict Summary (open conflicts) |
+| Recommended Next Stage | §9 Architecture Update Required? + §10 Handoff |
+| Quality-Gate Self-Check | §11 (incl. the Cross-Skill Artifact Contract Gate) |
 
 ## 2. Source Architecture
 
@@ -118,3 +148,17 @@ that no architecture change is needed and why.>
 
 > Status legend: PASS / WARNING / FAIL. Reconcile never patches the architecture
 > by default — it recommends, and `update` mode applies the accepted changes.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | <finding> | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | <finding> | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | <finding> | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | <finding> | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL | §7 recommendations vs §6 analysis | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | §4 / §9 | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | §9 Architecture Update Required? | <action> |
+
+> See `references/artifact-contract.md`.

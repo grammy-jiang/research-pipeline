@@ -380,6 +380,19 @@ Feedback section** that recommends `architecture --mode reconcile` when UX
 exposes architecture gaps. It never re-decides architecture or the tech stack,
 never writes executable tests, and never produces pixel-level visual design.
 
+The design-chain skills (`blueprint`, `architecture`, `ux-design`) share a
+**Cross-Skill Artifact Contract** (`references/artifact-contract.md`, shipped
+identically inside each skill since skills install independently). It
+standardizes the document interface — a controlled artifact-type registry, a
+stable `Topic Slug`, Generation Metadata, Source Artifacts Consumed, Resolved
+Input Artifacts (when discovery is used), decision register / assumptions /
+open-questions separation, a Recommended Next Stage, and a per-skill
+Quality-Gate Self-Check that includes a **Cross-Skill Artifact Contract Gate** —
+so each Markdown document is both a human report and a machine-readable handoff
+artifact, and downstream skills reliably consume upstream outputs.
+`implementation-plan` / `security-review` / `test-design` will adopt the same
+contract when built.
+
 The skills are structured per Anthropic's Skill-Building Guide (explicit
 trigger phrases, standard-only `name`/`description`/`license` frontmatter,
 progressive disclosure into `references/`). `research-pipeline` core

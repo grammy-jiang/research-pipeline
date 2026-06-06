@@ -2,6 +2,45 @@
 
 All notable changes to research-pipeline.
 
+## [v0.26.0] — 2026-06-07
+
+### Added
+
+- **Cross-Skill Artifact Contract** across the `blueprint`, `architecture`, and
+  `ux-design` skills (blueprint skill 0.7.0 → 0.8.0, architecture 0.7.0 → 0.8.0,
+  ux-design 0.1.0 → 0.2.0). A shared standard so every generated document is both
+  a human report **and** a machine-readable handoff artifact, preventing pipeline
+  drift / artifact mismatch / unstable topic slugs as the skill graph grows.
+  - **`references/artifact-contract.md`** — the canonical contract (artifact-type
+    registry, stable-topic-slug rules, filename rules, required Generation
+    Metadata, Source/Resolved artifacts, decision register, assumptions, open
+    questions, recommended next stage, quality-gate, controlled vocabulary,
+    per-skill requirements). Skills install independently (each is symlinked to
+    its own dir), so the file ships **identically inside each of the three
+    skills**; a guard test asserts the copies stay byte-identical.
+  - **Templates aligned (7):** the blueprint, the five architecture mode
+    templates (design / tech-stack / update / reconciliation / review), and the
+    ux-design template now carry `Artifact Type` + stable `Topic Slug` metadata,
+    an unnumbered **`## Cross-Skill Artifact Contract`** block (Source Artifacts
+    Consumed, Resolved Input Artifacts where discovery is used, and a Contract
+    Field Map that points at each skill's existing decision/assumption/
+    open-question/next-stage sections — alignment, not duplication), and a
+    **Cross-Skill Artifact Contract Gate** in every self-check. No existing
+    section numbering changed.
+  - **Prompts:** the seven main generation / final-document prompts now instruct
+    contract compliance with the controlled vocabulary; each SKILL.md References
+    table lists `artifact-contract.md`.
+  - **Guard tests:** `tests/unit/test_artifact_contract.py` enforces the contract
+    structurally (templates include Generation Metadata / Topic Slug / Source
+    Artifacts Consumed / Recommended Next Stage / Quality-Gate Self-Check; the
+    five architecture mode templates include Resolved Input Artifacts; every
+    self-check includes the contract gate; every skill references the contract;
+    the contract file carries the registry + controlled vocabulary; the three
+    copies are identical).
+  - Worked examples are dated pre-contract snapshots and adopt the contract on
+    next regeneration; `implementation-plan` / `security-review` / `test-design`
+    will comply from day one.
+
 ## [v0.25.0] — 2026-06-07
 
 ### Added

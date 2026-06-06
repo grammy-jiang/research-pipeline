@@ -323,6 +323,7 @@ wording; or if the output is an unstructured essay.
 
 | File | Load when |
 |------|-----------|
+| `references/artifact-contract.md` | The Cross-Skill Artifact Contract the blueprint output must satisfy |
 | `references/input-mapping.md` | Mapping report sections → blueprint inputs; quality thresholds |
 | `references/gap-type-mapping.md` | Turning ACADEMIC / ENGINEERING / OUT_OF_SCOPE gaps into product actions |
 | `references/borderline-cases.md` | Deciding whether a statement is implementation-neutral |

@@ -41,6 +41,11 @@
 
 | Field | Value |
 |---|---|
+| Artifact Type | ux_design |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | ux-design |
+| Mode | NOT_APPLICABLE |
 | Source architecture design | `<filename>` |
 | Source architecture version | `<version/hash or unknown>` |
 | Source blueprint | `<filename or unknown>` |
@@ -61,6 +66,39 @@
 
 > New documents include the initial row. Updates append a new row. Never delete
 > prior rows. Change Type ∈ {initial, regenerate, patch, resume}.
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`).
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| architecture_design | `<path>` | yes | Surfaces, state model, contracts, review flow, egress |
+| product_blueprint | `<path or —>` | no | §9 Product Experience Direction (UX intent) |
+| architecture_tech_stack | `<path or —>` | no | Stack constraints (read-only) |
+
+### Resolved Input Artifacts
+
+| Candidate | Selected? | Confidence | Reason |
+|---|---:|---:|---|
+| `<path>-architecture-design.md` | yes | High | Exact topic slug and expected title |
+
+> `NOT_APPLICABLE — all input artifacts were explicitly supplied by the user.`
+> when the user passed every file.
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1 |
+| Decision Register | §8 UX Decision Summary |
+| Assumptions | §9 UX Assumptions |
+| Open Questions | §22 Handoff Notes (open UX questions) |
+| Recommended Next Stage | §21 Architecture Feedback (reconcile decision) + §22 |
+| Quality-Gate Self-Check | Appendix A (incl. the Cross-Skill Artifact Contract Gate) |
 
 ## 2. Source Architecture Interpretation
 
@@ -320,3 +358,17 @@ Scenario: <happy path>
 > warning" — acceptable direction, needs cleanup; non-blocking but carries a
 > required action), **FAIL** (missing/false/out-of-scope). Never mark a section
 > PASS when a known gap remains.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | <finding> | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | <finding> | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | <finding> | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | <finding> | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL | §8 decisions vs §9 assumptions | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | §22 | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | §21 / §22 | <action> |
+
+> See `references/artifact-contract.md`.

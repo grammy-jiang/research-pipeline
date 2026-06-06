@@ -63,6 +63,11 @@ write "No open warnings." Do not let warnings live only in §26.>
 
 | Field | Value |
 |---|---|
+| Artifact Type | architecture_design |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | architecture |
+| Mode | design |
 | Source blueprint | `<filename>` |
 | Source blueprint version/hash | `<hash or timestamp or unknown>` |
 | Source blueprint generated at | `<date or unknown>` |
@@ -86,6 +91,39 @@ write "No open warnings." Do not let warnings live only in §26.>
 > New documents include the initial row. Updates append a new row. Never
 > delete prior rows. Change Type ∈ {initial, regenerate, patch, adr-only,
 > resume, compare}.
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`). This document is a machine-readable
+> handoff artifact, not only a report.
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| product_blueprint | `<path>` | yes | Product thesis, MVP scope, §9 Product Experience Direction, §19 routing |
+| research_report | `<path or —>` | no | Background evidence |
+
+### Resolved Input Artifacts
+
+| Candidate | Selected? | Confidence | Reason |
+|---|---:|---:|---|
+| `<path>-product-blueprint.md` | yes | High | Exact topic slug and expected title |
+
+> `NOT_APPLICABLE — all input artifacts were explicitly supplied by the user.`
+> when the user passed every file.
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1.x |
+| Decision Register | §3 Clarification Summary (Source · Decision Evidence · status) |
+| Assumptions | §4.9 Explicit Assumptions |
+| Open Questions | §25 Open Questions |
+| Recommended Next Stage | §24 Recommended Next Stages and Downstream Handoffs |
+| Quality-Gate Self-Check | §26 (incl. the Cross-Skill Artifact Contract Gate) |
 
 ## 2. Source Blueprint Interpretation
 
@@ -589,6 +627,18 @@ If tech-stack-selection = SKIP, state the stack is fixed and by whom.>
 > warning" — acceptable direction, needs cleanup; non-blocking but carries a
 > required action), **FAIL** (missing/false/misleading). Never mark a section
 > PASS when a known contradiction or residual invalid claim remains.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | §1.x | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | matches the pipeline slug | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | Source Artifacts Consumed present | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | Resolved Input Artifacts present | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL | §3 decisions vs §4.9 assumptions | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | §25 / §24 | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | §24 | <action> |
 
 ## 27. Handoff Notes for Implementation Planning
 

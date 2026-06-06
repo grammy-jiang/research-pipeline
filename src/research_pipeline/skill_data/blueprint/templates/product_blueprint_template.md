@@ -89,6 +89,11 @@ mechanism, not the product identity — do not let it dominate the thesis.
 
 | Field | Value |
 |---|---|
+| Artifact Type | product_blueprint |
+| Topic Slug | `<stable-pipeline-slug>` |
+| Project Name | `<Project Name>` |
+| Skill Name | blueprint |
+| Mode | NOT_APPLICABLE |
 | Source report | `<filename>` |
 | Source report date | `<date or unknown>` |
 | Pipeline runs integrated | `<N or unknown>` |
@@ -99,6 +104,36 @@ mechanism, not the product identity — do not let it dominate the thesis.
 | Generated at | `<date>` |
 | Output detail | concise / standard / detailed |
 | Target domain | `<domain>` |
+
+---
+
+## Cross-Skill Artifact Contract
+
+> Conforms to the Cross-Skill Artifact Contract
+> (`references/artifact-contract.md`).
+
+### Source Artifacts Consumed
+
+| Artifact Role | Path | Required? | How Used |
+|---|---|---:|---|
+| research_report | `<filename>` | yes | Findings, gaps, contradictions, risks → product primitives |
+
+### Resolved Input Artifacts
+
+`NOT_APPLICABLE — the blueprint consumes an explicitly supplied research report;
+it does not auto-discover sibling artifacts. (Record candidates here if discovery
+is added.)`
+
+### Contract Field Map
+
+| Contract Field | Where in this document |
+|---|---|
+| Generation Metadata | §1.6 |
+| Decision Register | §6 Adopt / Adapt / Merge / Defer / Reject Decisions |
+| Assumptions | §17 Open Questions and Validation Plan / §9 UX Assumptions for Architecture |
+| Open Questions | §17 Open Questions and Validation Plan |
+| Recommended Next Stage | §19 Recommended Next Stages |
+| Quality-Gate Self-Check | Appendix A (incl. the Cross-Skill Artifact Contract Gate) |
 
 ---
 
@@ -643,6 +678,20 @@ Apply any **safe wording rewrite** a `WARNING` identifies *before* delivery,
 then re-run the self-check so this table reflects the post-repair document.
 A `WARNING` should remain only when it needs human or downstream technical
 judgement.
+
+### Cross-Skill Artifact Contract Gate
+
+| Gate | Status | Finding | Required Action |
+|---|---|---|---|
+| Generation metadata present (Artifact Type + Topic Slug) | PASS / WARNING / FAIL | <finding> | <action> |
+| Topic slug present and stable | PASS / WARNING / FAIL | <finding> | <action> |
+| Source artifacts listed | PASS / WARNING / FAIL | §1.6 / Source Artifacts Consumed | <action> |
+| Resolved input artifacts recorded (when discovery is used) | PASS / WARNING / FAIL / NOT_APPLICABLE | blueprint consumes a supplied report | <action> |
+| Decisions and assumptions separated | PASS / WARNING / FAIL | §6 decisions vs §17 open questions | <action> |
+| Open questions assigned to a next stage | PASS / WARNING / FAIL | §17 / §19 | <action> |
+| Recommended next stage present | PASS / WARNING / FAIL | §19 Recommended Next Stages | <action> |
+
+> See `references/artifact-contract.md`.
 
 ---
 

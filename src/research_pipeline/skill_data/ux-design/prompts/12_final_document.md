@@ -46,3 +46,24 @@ You are assembling and writing the final UX design document.
 - Gate: all 22 sections + Appendix A present, with Contents and Update History;
   §5/§6 separated; §21 present.
 - Failure policy: `revise_max_3_then_stop`.
+
+## Cross-Skill Artifact Contract Compliance
+
+Comply with the Cross-Skill Artifact Contract (`references/artifact-contract.md`).
+The output document must expose the contract fields using the controlled
+vocabulary:
+
+- **Generation Metadata** including `Artifact Type` (a registry value) and a
+  stable `Topic Slug` (carried unchanged across the pipeline).
+- **Source Artifacts Consumed** (what was read and how it was used).
+- **Resolved Input Artifacts** when inputs were auto-discovered (else
+  `NOT_APPLICABLE — all input artifacts were explicitly supplied by the user`).
+- A **decision register** (controlled status values), **assumptions** kept
+  separate from decisions, **open questions** assigned to a next stage, and a
+  **Recommended Next Stage** (RUN / SKIP / DEFER / ASK_USER).
+- A **Quality-Gate Self-Check** that includes the **Cross-Skill Artifact
+  Contract Gate**.
+
+If a section already exists under this skill's own heading, align it to the
+contract (a Contract Field Map is fine) rather than duplicating. Mark any
+not-applicable field `NOT_APPLICABLE — <reason>`; never omit it.
