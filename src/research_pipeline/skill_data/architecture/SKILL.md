@@ -80,32 +80,32 @@ matching task graph.
 
 | Mode | Status | Builds | Output |
 |------|--------|--------|--------|
-| `design` (default) | implemented | the technical architecture from a blueprint | `<topic-slug>-architecture-design.md` |
+| `design` | implemented | the technical architecture from a blueprint | `<topic-slug>-architecture-design.md` |
 | `stack` | implemented | the concrete technology selection from blueprint + design | `<topic-slug>-architecture-tech-stack.md` |
-| `update` | via design mode | a patched architecture after an accepted change | updated `…-architecture-design.md` |
-| `review` | recognized — deferred | read-only architecture-quality commentary | review comments |
-| `reconcile` | recognized — deferred | conflict resolution vs a downstream artifact | reconciliation note |
+| `review` | implemented | a non-mutating quality evaluation (score + blocking/warning/polish) | `<topic-slug>-architecture-review.md` |
+| `update` | implemented | applies accepted decisions into an update note | `<topic-slug>-architecture-update.md` |
+| `reconcile` | implemented | findings + minimal patch plan from downstream feedback | `<topic-slug>-architecture-reconciliation.md` |
 
-`design` and `stack` are the two fully-specified modes (Phase 1 of the mode
-split). `update` reuses design mode's existing update-mode machinery
-(`regenerate` / `patch` / `compare` / `adr-only` / `resume`). `review` and
-`reconcile` are recognized so the vocabulary is stable but are **not yet built
-in detail** — never silently mutate an architecture in those modes.
+All five modes are implemented. `review` / `update` / `reconcile` operate on an
+**existing** architecture and share an artifact resolver
+(`prompts/resolve_artifacts.md`, `references/artifact-discovery-guide.md`) that —
+when the user passes no filenames — discovers the most relevant prior outputs by
+topic slug, requires the architecture design, and emits a Resolved Input
+Artifacts table into every output.
 
-**Key discipline:** `design` mode records only *provisional* tech assumptions
-and hands the final technology choice to `stack` mode (unless the stack is
-already fixed). `stack` mode selects technologies that *satisfy* the
-architecture and must not redesign it — on a genuine conflict it emits
-`Architecture Update Required: yes` instead of rewriting the architecture.
+**Key discipline:** `design` records only *provisional* tech assumptions and
+hands the final choice to `stack` (unless the stack is fixed). `stack` selects
+technologies that *satisfy* the architecture — on a genuine conflict it emits
+`Architecture Update Required: yes` rather than rewriting it. **No silent
+mutation:** `review` never mutates the architecture; `reconcile` never patches it
+by default; `update` never overwrites the design document by default.
 
 **Selection (see `references/mode-selection-guide.md`):** explicit `mode` wins;
-otherwise infer — blueprint + no architecture → `design`; "choose the tech
-stack / select frameworks / decide the database / deployment" → `stack`;
-architecture + a ux/test/security artifact exposing a mismatch → `reconcile`;
-"review / evaluate / give comments" → `review`. When ambiguous, default to
-`review` if changing an existing document is risky, default to `design` when no
-architecture exists, and ask only when the mode materially changes the output
-and cannot be inferred.
+otherwise infer — blueprint + no architecture → `design`; "choose the tech stack"
+→ `stack`; "review / evaluate / score" → `review`; "apply this stack/decision" →
+`update`; "ux/test/security found gaps / reconcile" → `reconcile`. **Bare
+`architecture` with an existing architecture defaults to `review`** (non-mutating,
+safest — never `update`); `design` only when no architecture exists.
 
 ## Inputs
 
@@ -155,6 +155,24 @@ stack, observability, testing, deployment/packaging — each with alternatives,
 rationale, risk, reversibility, and architecture-impact notes, ending with an
 explicit **Architecture Update Required?** verdict. It satisfies the
 architecture; it does not redesign it.
+
+`review` / `update` / `reconcile` mode outputs, co-located with the architecture:
+
+```text
+<topic-slug>-architecture-review.md           (review — 19 sections, non-mutating)
+<topic-slug>-architecture-update.md           (update — 11 sections, update note)
+<topic-slug>-architecture-reconciliation.md   (reconcile — 11 sections, findings + handoff)
+```
+
+`review` (`templates/architecture_review_template.md`) scores the architecture on
+a 10-point scale and classifies issues as blocking / warning / polish without
+changing it. `update` (`templates/architecture_update_template.md`) applies
+already-accepted decisions into an update note without overwriting the design by
+default. `reconcile` (`templates/architecture_reconciliation_template.md`) turns
+downstream feedback (primarily a ux-design Architecture Feedback section) into
+findings, a minimal patch plan, and an **Architecture Update Required?** verdict
+without patching the architecture by default. Each embeds a Resolved Input
+Artifacts table from the shared resolver.
 
 Optional ADR files under `adr/` (one per high-impact decision):
 
@@ -363,6 +381,33 @@ architecture design). Tasks `stack_01`–`stack_06`
 6. **Produce the final tech-stack document** `…-architecture-tech-stack.md`
    (`prompts/stack_06`).
 
+### `review` / `update` / `reconcile` modes
+
+These three operate on an **existing** architecture and share the artifact
+resolver (`prompts/resolve_artifacts.md`,
+`references/artifact-discovery-guide.md`): when no filenames are passed, it
+discovers prior outputs by topic slug, **requires** the architecture design
+(STOP if missing), and emits a Resolved Input Artifacts table. They never mutate
+the architecture design by default.
+
+- **`review`** (`review_tasks`; `references/architecture-review-guide.md`,
+  `templates/architecture_review_template.md`): resolve artifacts → assess +
+  score (10-point breakdown) + classify blocking/warning/polish + recommended
+  next actions → write `…-architecture-review.md`. **Non-mutating.**
+- **`update`** (`update_tasks`; `references/architecture-update-guide.md`,
+  `templates/architecture_update_template.md`): resolve artifacts → apply the
+  accepted update source (tech-stack with `Architecture Update Required? = Yes`,
+  accepted reconciliation, security-review, newer blueprint, or explicit user
+  decision — **not** ux-design directly) → write `…-architecture-update.md`.
+  **No default overwrite** of the design.
+- **`reconcile`** (`reconcile_tasks`;
+  `references/architecture-reconciliation-guide.md`,
+  `templates/architecture_reconciliation_template.md`): resolve artifacts →
+  detect conflicts/gaps from downstream feedback (primarily a ux-design
+  Architecture Feedback section) → write `…-architecture-reconciliation.md` with
+  an `Architecture Update Required?` verdict + handoff to `update`. **No default
+  patch.**
+
 ## Operating Modes
 
 - **Interactive** — high ambiguity, or a decision affecting cost, privacy,
@@ -478,6 +523,15 @@ and `tests/expected_sections_checklist.md`:
     and reversibility, includes security/privacy implications and architecture
     impact, and ends with an explicit **Architecture Update Required?** verdict
     (`prompts/stack_05`).
+28. **Review / update / reconcile gates + no silent mutation** — each operates on
+    a resolved architecture (STOP if missing) and embeds a Resolved Input
+    Artifacts table. `review` is non-mutating, scores are justified, and issues
+    are classified blocking/warning/polish. `update` applies only accepted
+    decisions, lists changed sections, preserves the rest, and **does not
+    overwrite** the design by default. `reconcile` traces findings to downstream
+    artifacts, separates conflicts from enhancements, recommends minimal changes,
+    states the **Architecture Update Required?** verdict, and **does not patch**
+    by default (see the per-mode guides).
 
 ## References
 
@@ -489,12 +543,20 @@ and `tests/expected_sections_checklist.md`:
 | `references/experience-architecture-guide.md` | Consuming blueprint §9 → §23 Experience Architecture |
 | `references/next-stages-and-handoffs-guide.md` | Consuming blueprint §19 → §24 routing + provisional-tech / downstream handoffs |
 | `references/tech-stack-selection-guide.md` | `stack` mode: selecting the concrete technology stack |
+| `references/artifact-discovery-guide.md` | review / update / reconcile: discovering prior outputs by topic slug |
+| `references/architecture-review-guide.md` | `review` mode: scoring + blocking/warning/polish classification |
+| `references/architecture-update-guide.md` | `update` mode: applying accepted decisions into an update note |
+| `references/architecture-reconciliation-guide.md` | `reconcile` mode: downstream feedback → findings + update verdict |
 | `references/adr_guidance.md` | Writing/superseding ADRs |
 | `references/security_trust_model_guide.md` | Trust zones, AI boundary rules, prompt-injection controls |
 | `references/observability_event_catalogue.md` | Correlation IDs, log/metric/trace/audit catalogue |
 | `references/mcp_adoption_guide.md` | Deciding skill vs MCP; the MCP adoption gate |
 | `templates/architecture_design_template.md` | The 27-section `design` output skeleton |
 | `templates/architecture_tech_stack_template.md` | The `stack` mode output skeleton |
+| `templates/architecture_review_template.md` | The `review` mode output skeleton |
+| `templates/architecture_update_template.md` | The `update` mode output skeleton |
+| `templates/architecture_reconciliation_template.md` | The `reconcile` mode output skeleton |
+| `prompts/resolve_artifacts.md` | Shared artifact resolver for review / update / reconcile |
 | `templates/*` | Per-section skeletons (ADR, interfaces, observability, security, AI matrix, tech-stack, traceability, metadata, update history, contents) |
 | `rule-packs/*` | Boundary, data, interface, reliability, AI-boundary, observability, security review gates |
 | `examples/*` | A worked blueprint excerpt, the architecture, and a tech-stack example |

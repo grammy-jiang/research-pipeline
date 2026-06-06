@@ -2,6 +2,51 @@
 
 All notable changes to research-pipeline.
 
+## [v0.25.0] — 2026-06-07
+
+### Added
+
+- **`architecture` skill — `review` / `update` / `reconcile` modes (skill
+  manifest 0.6.0 → 0.7.0).** The three remaining modes are now fully implemented
+  (previously recognized-but-deferred), completing the architecture lifecycle:
+  `design → stack → update → ux-design → reconcile → review → implementation-plan`.
+  - **Shared artifact resolver** (`prompts/resolve_artifacts.md`,
+    `references/artifact-discovery-guide.md`). When the user passes no filenames,
+    all three modes auto-discover the most relevant prior skill/mode outputs from
+    the working dir / `docs` / `design` / `artifacts` by topic slug + candidate
+    scoring (filename suffix, section markers, recency), require the architecture
+    design (STOP with a clear message if missing), ASK_USER on ambiguity, and
+    embed a **Resolved Input Artifacts** table in every output.
+  - **`review`** — evaluates architecture quality **without changing it**: a
+    10-point score breakdown with justifications, blocking/warning/polish issue
+    classification, readiness assessments, and recommended next actions →
+    `<topic-slug>-architecture-review.md` (19 sections). It is the safe default
+    when bare `architecture` is invoked and an architecture already exists.
+  - **`update`** — applies **already-accepted** decisions (priority source: a
+    tech-stack with *Architecture Update Required? = Yes*, then accepted
+    reconciliation, security-review, newer blueprint, explicit user decision;
+    **never** ux-design directly) into `<topic-slug>-architecture-update.md` (11
+    sections) — an update note that **does not overwrite** the design document by
+    default.
+  - **`reconcile`** — turns downstream feedback (primarily a ux-design
+    *Architecture Feedback* section) into findings, a missing-architecture-support
+    map, a minimal patch plan, and an explicit **Architecture Update Required?**
+    verdict + handoff to `update` → `<topic-slug>-architecture-reconciliation.md`
+    (11 sections). It **does not patch** the architecture by default and does not
+    blindly accept a downstream artifact that contradicts the blueprint.
+  - **No-silent-mutation rule** across all three modes; three new task graphs
+    (`review_tasks` / `update_tasks` / `reconcile_tasks`) + mandatory gates; the
+    mode resolver and mode-selection guide updated (bare `architecture` +
+    existing architecture → `review`, never `update`); three templates, four
+    references, three worked translation-system examples that chain off the
+    existing stack (`Architecture Update Required? = Yes`) and ux-design
+    (Architecture Feedback) examples; and Phase-5 guard tests.
+
+### Changed
+
+- AGENTS.md: the `architecture` skill is now described as **five implemented
+  modes**.
+
 ## [v0.24.0] — 2026-06-07
 
 ### Added

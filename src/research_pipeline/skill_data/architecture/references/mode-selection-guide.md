@@ -52,31 +52,46 @@ artifact continuity.
   conflict, it emits `Architecture Update Required: yes` with reason + affected
   sections, and stops short of rewriting the architecture (that is `update`).
 
-### `update` (implemented via design mode)
+### `review` (implemented)
 
-- **Purpose:** patch an existing architecture after an accepted decision changes
-  (selected stack, changed blueprint, accepted user decision, security finding).
-- **Mechanism:** reuse design mode's existing update-mode machinery —
-  `regenerate` / `patch` / `compare` / `adr-only` / `resume` (see `prompts/02`
-  and `tests/update_behavior_checklist.md`). Append an Update History row;
-  supersede ADRs rather than overwriting them. Update mode applies *known
-  accepted changes*; it is not open-ended critique.
+- **Purpose:** evaluate architecture quality without changing it. Output:
+  `<topic-slug>-architecture-review.md` (`review_tasks`,
+  `references/architecture-review-guide.md`).
+- **Owns:** a 10-point score breakdown with justifications; blocking / warning /
+  polish issue classification; readiness assessments (blueprint fidelity, PED
+  preservation, next-stages consumption, security/egress, observability, tech
+  stack, UX-design readiness, implementation-plan readiness); recommended next
+  actions.
+- **Key rule:** **non-mutating** — it never rewrites or patches the architecture.
 
-### `review` (recognized — deferred)
+### `update` (implemented)
 
-- **Purpose:** evaluate architecture quality without changing it.
-- **Status:** recognized so the vocabulary is stable, but not yet a dedicated
-  mode. For now, produce **read-only** commentary by applying the design
-  quality-gate lens (`prompts/23`) to the existing document. It must not
-  silently rewrite the architecture.
+- **Purpose:** apply already-accepted decisions into the architecture. Output:
+  `<topic-slug>-architecture-update.md` (an update note; optionally a proposed
+  `…-architecture-design.updated.md`) — `update_tasks`,
+  `references/architecture-update-guide.md`.
+- **Owns:** Accepted Decisions Applied; Sections Requiring Update; Architecture
+  Patch Summary; updated ADRs/decision register; updated handoffs; a
+  compatibility check; the update quality gate.
+- **Key rule:** apply only **accepted** decisions (priority source: a tech-stack
+  with `Architecture Update Required? = Yes`, then accepted reconciliation,
+  security-review, newer blueprint, explicit user decision — **never** ux-design
+  directly). **Does not overwrite** `…-architecture-design.md` by default.
 
-### `reconcile` (recognized — deferred)
+### `reconcile` (implemented)
 
-- **Purpose:** resolve conflicts between architecture and a downstream artifact
-  (ux-design / test-design / security-review / implementation-plan feedback).
-- **Status:** conflict-driven and deferred — it should run only when a
-  downstream artifact exposes a real mismatch or gap. Until built, explain the
-  precondition and offer `review`. Do not fabricate a downstream artifact.
+- **Purpose:** resolve conflicts/gaps between the architecture and a downstream
+  artifact (ux-design / test-design / security-review / implementation-plan
+  feedback). Output: `<topic-slug>-architecture-reconciliation.md`
+  (`reconcile_tasks`, `references/architecture-reconciliation-guide.md`).
+- **Owns:** a findings table (severity + traceable source); missing-architecture-
+  support mapping; a minimal patch plan; the `Architecture Update Required?`
+  verdict + handoff to `update`.
+- **Key rule:** conflict-driven; runs only when a downstream artifact exposes a
+  real mismatch (primarily a ux-design Architecture Feedback section). **Does not
+  patch** the architecture by default; it recommends, and `update` applies the
+  accepted changes. Do not blindly accept a downstream artifact that contradicts
+  the blueprint.
 
 ## Selection logic
 
@@ -95,16 +110,18 @@ architecture --mode reconcile   <architecture-design.md> <ux-design.md>
 | Situation | Mode |
 |---|---|
 | blueprint input, no architecture exists | `design` |
-| blueprint input, architecture exists, accepted change to apply | `update` |
-| blueprint input, architecture exists, no specific change | `review` |
 | "choose the tech stack / select frameworks / decide database / deployment" | `stack` |
-| architecture + ux/test/security findings exposing a mismatch | `reconcile` |
-| "review / evaluate / give comments" on an architecture | `review` |
+| "review / evaluate / score" / "is this ready for implementation?" | `review` |
+| "update architecture based on this stack/decision" / "apply this stack" | `update` |
+| architecture + ux/test/security findings exposing a mismatch / "reconcile" | `reconcile` |
+| bare `architecture` and an architecture already exists | `review` (safest) |
 
 ### Ambiguity
 
-- Default to `review` when changing an existing document would be risky.
-- Default to `design` when no architecture exists.
+- **Bare `architecture` with an existing architecture defaults to `review`** —
+  it is non-mutating and safest. Do **not** default to `update`.
+- Default to `design` only when no architecture exists.
+- Prefer the non-mutating mode when changing an existing document would be risky.
 - Ask the user only when the mode materially changes the output and cannot be
   inferred from the request or the artifacts present.
 

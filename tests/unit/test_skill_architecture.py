@@ -3,14 +3,15 @@
 The architecture skill is a pure prompt-driven transformation skill (no CLI/MCP
 backend). These tests validate that the bundled skill files are well-formed,
 discoverable by ``setup``, and stay faithful to the design contract
-(``docs/architecture-skill-implementation-plan-v0.3.1.md`` and
-``docs/architecture-skill-mode-split-improvement-plan.md``): standard-only
-SKILL.md frontmatter, the internal modes (``design`` / ``stack`` fully
-specified; ``update`` / ``review`` / ``reconcile`` recognized), the 25-task
-``design`` manifest and the 6-task ``stack`` manifest, the 27-section ``design``
-output template and the ``stack`` output template, the
+(``docs/architecture-skill-mode-split-improvement-plan.md`` and
+``docs/architecture-remaining-modes-implementation-plan.md``): standard-only
+SKILL.md frontmatter, the five implemented internal modes (``design`` / ``stack``
+/ ``review`` / ``update`` / ``reconcile``), the 25-task ``design`` manifest, the
+6-task ``stack`` manifest, the 3-task ``review`` / ``update`` / ``reconcile``
+graphs sharing an artifact resolver, the 27-section ``design`` output template
+and the stack/review/update/reconcile templates, the
 prompts/templates/references/rule-packs, and complete worked examples that
-themselves satisfy the structural gates.
+themselves satisfy the structural gates (including the no-silent-mutation rule).
 """
 
 from __future__ import annotations
@@ -68,6 +69,9 @@ REQUIRED_STACK_PROMPTS = [
 REQUIRED_TEMPLATES = [
     "architecture_design_template.md",
     "architecture_tech_stack_template.md",
+    "architecture_review_template.md",
+    "architecture_update_template.md",
+    "architecture_reconciliation_template.md",
     "contents_template.md",
     "generation_metadata_template.md",
     "update_history_template.md",
@@ -91,6 +95,10 @@ REQUIRED_REFERENCES = [
     "experience-architecture-guide.md",
     "next-stages-and-handoffs-guide.md",
     "tech-stack-selection-guide.md",
+    "artifact-discovery-guide.md",
+    "architecture-review-guide.md",
+    "architecture-update-guide.md",
+    "architecture-reconciliation-guide.md",
 ]
 
 REQUIRED_RULE_PACKS = [
@@ -107,6 +115,37 @@ REQUIRED_EXAMPLES = [
     "translation_blueprint_excerpt.md",
     "translation_architecture_example.md",
     "translation_tech_stack_example.md",
+    "translation_architecture_review_example.md",
+    "translation_architecture_update_example.md",
+    "translation_architecture_reconciliation_example.md",
+]
+
+# The shared resolver + the 6 review/update/reconcile mode prompts.
+REQUIRED_MODE_PROMPTS = [
+    "resolve_artifacts.md",
+    "review_02_assess.md",
+    "review_03_final_document.md",
+    "update_02_apply_decisions.md",
+    "update_03_final_document.md",
+    "reconcile_02_detect_conflicts.md",
+    "reconcile_03_final_document.md",
+]
+
+# Task ids for the three remaining-mode graphs.
+REVIEW_TASK_IDS = [
+    "review_resolve_artifacts",
+    "review_assess",
+    "review_final_document",
+]
+UPDATE_TASK_IDS = [
+    "update_resolve_artifacts",
+    "update_apply_decisions",
+    "update_final_document",
+]
+RECONCILE_TASK_IDS = [
+    "reconcile_resolve_artifacts",
+    "reconcile_detect_conflicts",
+    "reconcile_final_document",
 ]
 
 REQUIRED_TEST_CHECKLISTS = [
@@ -516,7 +555,7 @@ V020_GATE_NAMES = [
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.6.0"
+    assert data["version"] == "0.7.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:
@@ -1020,3 +1059,155 @@ def test_stack_example_is_complete_and_models_update_verdict() -> None:
     lowered = example.lower()
     for term in ("create table", "alter table", "drop table"):
         assert term not in lowered, f"stack example leaks DDL: {term!r}"
+
+
+# --- v0.7.0 remaining-modes pass (review / update / reconcile + shared resolver;
+# Phase-5 guard checks) ---
+
+
+def test_mode_resolver_marks_all_modes_implemented() -> None:
+    """The resolver no longer defers review/reconcile and routes to their graphs."""
+    text = (_skill_root() / "prompts" / "00_mode_resolver.md").read_text(
+        encoding="utf-8"
+    )
+    lowered = text.lower()
+    assert "all five modes are implemented" in lowered
+    assert "recognized — deferred" not in text
+    assert "deferred" not in lowered
+    # Routes to the three new graphs.
+    for graph in ("review_tasks", "update_tasks", "reconcile_tasks"):
+        assert graph in text, f"mode resolver missing routing to {graph}"
+    # Bare architecture + existing architecture defaults to review (not update).
+    assert "review" in lowered and "safest" in lowered
+
+
+def test_shared_resolver_prompt_and_guide() -> None:
+    prompt = (_skill_root() / "prompts" / "resolve_artifacts.md").read_text(
+        encoding="utf-8"
+    )
+    guide = (_skill_root() / "references" / "artifact-discovery-guide.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in ("Resolved Input Artifacts", "topic", "ASK_USER"):
+        assert needle in prompt, f"resolver prompt missing: {needle}"
+    # Required-architecture fail-fast (message may be line-wrapped).
+    assert "No architecture design document" in prompt
+    assert "architecture --mode design" in prompt
+    assert "Resolved Input Artifacts" in guide
+    assert "Candidate scoring" in guide or "candidate" in guide.lower()
+
+
+def test_all_mode_prompt_files_exist_and_nonempty() -> None:
+    prompts_dir = _skill_root() / "prompts"
+    for name in REQUIRED_MODE_PROMPTS:
+        path = prompts_dir / name
+        assert path.exists(), f"Missing mode prompt: {name}"
+        assert path.read_text(encoding="utf-8").strip(), f"Empty mode prompt: {name}"
+
+
+def test_manifest_has_review_update_reconcile_graphs() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    for graph, ids, gate in (
+        ("review_tasks", REVIEW_TASK_IDS, "review_mandatory_gates"),
+        ("update_tasks", UPDATE_TASK_IDS, "update_mandatory_gates"),
+        ("reconcile_tasks", RECONCILE_TASK_IDS, "reconcile_mandatory_gates"),
+    ):
+        assert graph in data, f"manifest missing graph: {graph}"
+        graph_ids = {t["id"] for t in data[graph]}
+        for required in ids:
+            assert required in graph_ids, f"{graph} missing task: {required}"
+        assert len(data[graph]) == len(ids)
+        assert gate in data, f"manifest missing {gate}"
+        # The final document is the mandatory gate.
+        assert any("final_document" in g for g in data[gate])
+        # Each graph starts from the shared resolver and depends on mode_resolver.
+        first = data[graph][0]
+        assert first["executor"] == "prompts/resolve_artifacts.md"
+        assert "mode_resolver" in first["depends_on"]
+
+
+def test_manifest_mode_graph_executors_exist() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    for graph in ("review_tasks", "update_tasks", "reconcile_tasks"):
+        for task in data[graph]:
+            executor = task["executor"]
+            assert executor.startswith("prompts/")
+            assert (_skill_root() / executor).exists(), f"missing executor: {executor}"
+
+
+def test_review_template_has_score_and_issue_classes() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_review_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Score Breakdown" in template
+    # Blocking / Warning / Polish are separate sections.
+    for section in ("Blocking Issues", "Warnings", "Polish Improvements"):
+        assert section in template, f"review template missing: {section}"
+    assert "Review Quality-Gate Self-Check" in template
+    # Non-mutating discipline stated.
+    assert "non-mutating" in template.lower()
+
+
+def test_update_template_has_accepted_decisions_and_no_overwrite() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_update_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Accepted Decisions Applied" in template
+    assert "Sections Requiring Update" in template
+    assert "Update Quality-Gate Self-Check" in template
+    # No default overwrite of the design document.
+    lowered = template.lower()
+    assert "does not overwrite" in lowered or "not overwrite" in lowered
+
+
+def test_reconcile_template_has_findings_and_update_verdict() -> None:
+    template = (
+        _skill_root() / "templates" / "architecture_reconciliation_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Conflict Summary" in template
+    assert "Missing Architecture Support" in template
+    assert "Architecture Update Required?" in template
+    assert "Reconciliation Quality-Gate Self-Check" in template
+    # No default patch.
+    lowered = template.lower()
+    assert "does not patch" in lowered or "not patch" in lowered
+
+
+def test_no_mode_silently_mutates_architecture() -> None:
+    """The no-silent-mutation rule is explicit in each mode's prompt/template."""
+    review = (_skill_root() / "prompts" / "review_03_final_document.md").read_text(
+        encoding="utf-8"
+    )
+    update = (_skill_root() / "prompts" / "update_03_final_document.md").read_text(
+        encoding="utf-8"
+    )
+    reconcile = (
+        _skill_root() / "prompts" / "reconcile_03_final_document.md"
+    ).read_text(encoding="utf-8")
+    assert "non-mutating" in review.lower() or "do not edit" in review.lower()
+    assert "do not overwrite" in update.lower()
+    assert "do not" in reconcile.lower() and "patch" in reconcile.lower()
+
+
+def test_remaining_mode_examples_model_the_discipline() -> None:
+    ex_dir = _skill_root() / "examples"
+    review = (ex_dir / "translation_architecture_review_example.md").read_text(
+        encoding="utf-8"
+    )
+    update = (ex_dir / "translation_architecture_update_example.md").read_text(
+        encoding="utf-8"
+    )
+    reconcile = (
+        ex_dir / "translation_architecture_reconciliation_example.md"
+    ).read_text(encoding="utf-8")
+    # Review: score breakdown + classified issues + Resolved Input Artifacts.
+    assert "Score Breakdown" in review and "Resolved Input Artifacts" in review
+    assert "Blocking Issues" in review and "non-mutating" in review.lower()
+    # Update: accepted decisions, changed sections, no overwrite of the design.
+    assert "Accepted Decisions Applied" in update
+    assert "not" in update.lower() and "overwrit" in update.lower()
+    assert "Resolved Input Artifacts" in update
+    # Reconcile: findings traceable, Architecture Update Required verdict, no patch.
+    assert "Architecture Update Required?" in reconcile
+    assert "did **not** patch" in reconcile or "not patch" in reconcile.lower()
+    assert "Resolved Input Artifacts" in reconcile

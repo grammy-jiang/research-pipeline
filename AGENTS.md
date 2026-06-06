@@ -328,10 +328,10 @@ off to the `architecture` skill.
 
 The `architecture` skill is also pure prompt-driven (no CLI/MCP backend) and
 continues the chain `research-pipeline → blueprint → architecture →
-implementation-plan`. It is **one skill with internal modes** (a mode resolver
-picks the mode): `design` and `stack` are fully specified; `update` reuses
-design mode's update machinery; `review`/`reconcile` are recognized but
-deferred. `design` mode discovers/parses a product blueprint (including its §9
+implementation-plan`. It is **one skill with five internal modes** (a mode
+resolver picks the mode and routes to the matching task graph): `design`,
+`stack`, `review`, `update`, and `reconcile`. `design` mode discovers/parses a
+product blueprint (including its §9
 Product Experience Direction and §19 Recommended Next Stages), builds a
 blueprint-to-architecture traceability map, runs a tech-stack/AI-boundary
 co-design loop, and emits a 27-section architecture *design* document
@@ -344,10 +344,24 @@ when stack-mode selection is recommended. `stack` mode then selects the concrete
 technology stack against that architecture and writes
 `<topic-slug>-architecture-tech-stack.md`, ending with an explicit *Architecture
 Update Required?* verdict (it satisfies the architecture, never redesigns it).
-The skill selects a tech stack with rationale but never writes code or
-implementation tasks, keeps durable state under deterministic control (AI output
-is validated before any state change), adopts MCP only when justified, and
-supports regenerate/patch/compare/adr-only/resume update modes with an
+The `review`, `update`, and `reconcile` modes operate on an **existing**
+architecture and share an artifact resolver that — when the user passes no
+filenames — discovers the most relevant prior outputs by topic slug, requires the
+architecture design, and embeds a Resolved Input Artifacts table in every output.
+`review` scores the architecture (10-point breakdown) and classifies issues as
+blocking/warning/polish without changing it (`…-architecture-review.md`); `update`
+applies already-accepted decisions (e.g. a tech-stack that declared
+*Architecture Update Required? = Yes*) into an update note
+(`…-architecture-update.md`); `reconcile` turns downstream feedback (primarily a
+ux-design Architecture Feedback section) into findings, a minimal patch plan, and
+an *Architecture Update Required?* verdict (`…-architecture-reconciliation.md`).
+**No silent mutation:** review never mutates, reconcile never patches by default,
+update never overwrites the design by default, and bare `architecture` with an
+existing architecture defaults to the non-mutating `review`. The skill selects a
+tech stack with rationale but never writes code or implementation tasks, keeps
+durable state under deterministic control (AI output is validated before any
+state change), adopts MCP only when justified, and supports
+regenerate/patch/compare/adr-only/resume design-update behaviour with an
 `## Update History`.
 
 The `ux-design` skill is also pure prompt-driven (no CLI/MCP backend) and

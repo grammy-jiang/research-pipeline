@@ -9,18 +9,19 @@ graph.
 
 | Mode | Status | Builds | Output |
 |------|--------|--------|--------|
-| `design` (default) | implemented | the technical architecture from a blueprint | `<topic-slug>-architecture-design.md` |
+| `design` (default for a new blueprint) | implemented | the technical architecture from a blueprint | `<topic-slug>-architecture-design.md` |
 | `stack` | implemented | the concrete technology selection from a blueprint + architecture design | `<topic-slug>-architecture-tech-stack.md` |
-| `update` | implemented via design mode | a patched architecture after an accepted change | updated `…-architecture-design.md` (or an update note) |
-| `review` | recognized — deferred | read-only architecture-quality commentary (no rewrite) | review comments (inline) |
-| `reconcile` | recognized — deferred | conflict resolution vs a downstream artifact (ux/test/security) | reconciliation note (inline) |
+| `review` (default when an architecture already exists) | implemented | a non-mutating quality evaluation (score + blocking/warning/polish) | `<topic-slug>-architecture-review.md` |
+| `update` | implemented | applies accepted decisions into an update note (no default overwrite) | `<topic-slug>-architecture-update.md` |
+| `reconcile` | implemented | findings + minimal patch plan from downstream feedback (no default patch) | `<topic-slug>-architecture-reconciliation.md` |
 
-`design` and `stack` are the two fully-specified modes (this is Phase 1 of the
-mode split). `update` reuses design mode's existing update-mode machinery
-(`regenerate` / `patch` / `compare` / `adr-only` / `resume`, see `prompts/02`).
-`review` and `reconcile` are recognized so the vocabulary is stable, but are
-**not yet built in detail** — handle them per "Deferred modes" below; never
-silently mutate an architecture in those modes.
+All five modes are implemented. `design` builds from a blueprint; `stack` selects
+the technology; `review` / `update` / `reconcile` operate on an **existing**
+architecture and share an artifact resolver (`prompts/resolve_artifacts.md`,
+`references/artifact-discovery-guide.md`) that discovers prior outputs by topic
+slug when the user passes no filenames. **No-silent-mutation rule:** `review`
+never mutates the architecture; `reconcile` never patches it by default; `update`
+never overwrites the design document by default.
 
 ## Inputs
 
@@ -36,28 +37,31 @@ silently mutate an architecture in those modes.
 1. **Explicit wins.** If a mode argument is given and valid, use it.
 2. **Otherwise infer** (see `references/mode-selection-guide.md`):
    - blueprint present, no architecture exists → `design`.
-   - blueprint present, an architecture already exists → `update` if the request
-     names an accepted change to apply, else `review` (do not silently
-     regenerate a document that already exists).
    - "choose the tech stack" / "select frameworks" / "decide the database" /
      "pick the deployment stack" → `stack`.
-   - architecture + a ux-design / test-design / security-review artifact that
-     exposes a mismatch → `reconcile`.
-   - "review this architecture" / "evaluate" / "give comments" → `review`.
-3. **Ambiguity policy:** default to `review` when changing an existing document
-   would be risky; default to `design` when no architecture exists; ask the user
-   only when the mode materially changes the output and cannot be inferred.
-4. **Stack-mode precondition:** `stack` needs both a blueprint and an
-   architecture design. If no `…-architecture-design.md` is found, say so and
-   recommend running `design` first (or run `design` first if the user asked for
-   the whole chain).
-5. **Deferred modes:** if the resolved mode is `review` or `reconcile`, state
-   that it is recognized but not yet a dedicated mode, then either (a) for
-   `review`, produce **read-only** commentary by applying the design
-   quality-gate lens (`prompts/23`) to the existing architecture without
-   rewriting it, or (b) for `reconcile`, explain that it needs a specific
-   downstream artifact and a detected conflict, and offer `review` instead. Do
-   not fabricate a downstream artifact.
+   - "review / evaluate / score this architecture" / "is this ready for
+     implementation?" → `review`.
+   - "update architecture based on this stack/decision" / "apply this stack to
+     the architecture" → `update`.
+   - "UX/test/security found architecture gaps" / "reconcile UX and
+     architecture" → `reconcile`.
+   - **Bare `architecture` with an existing architecture → `review`** (the safest
+     non-mutating default; do **not** default to `update` or silently regenerate
+     `design`).
+3. **Ambiguity policy:** prefer the non-mutating mode (`review`) when changing an
+   existing document would be risky; default to `design` only when no
+   architecture exists; ask the user only when the mode materially changes the
+   output and cannot be inferred.
+4. **Preconditions:** `stack` needs a blueprint **and** an architecture design.
+   `review` / `update` / `reconcile` each need an **architecture design**
+   (required) — if none is found, STOP with *"No architecture design document
+   found. Run `architecture --mode design` first, or pass the architecture
+   document explicitly."* Additionally, `update` needs an accepted update source
+   (a tech-stack with `Architecture Update Required? = Yes`, an accepted
+   reconciliation, a security-review, a newer blueprint, or explicit user
+   decision text — **not** ux-design directly), and `reconcile` needs a downstream
+   feedback artifact (primarily a ux-design with an Architecture Feedback
+   section). The shared resolver (`prompts/resolve_artifacts.md`) discovers these.
 
 ## Output
 
@@ -68,19 +72,24 @@ silently mutate an architecture in those modes.
   "mode": "design | stack | update | review | reconcile",
   "explicit": true,
   "reason": "<why this mode>",
-  "deferred": false,
-  "next_task_graph": "design_tasks | stack_tasks | review_readonly | reconcile_blocked",
+  "next_task_graph": "tasks | stack_tasks | review_tasks | update_tasks | reconcile_tasks",
   "preconditions_met": true,
-  "notes": ["<e.g. stack mode requires an architecture design; none found>"]
+  "notes": ["<e.g. update requires an accepted update source; none found>"]
 }
 ```
 
-- `mode == design` (or `update`) → continue with `prompts/01` onward.
-- `mode == stack` → continue with the `stack_tasks` graph (`prompts/stack_01`
-  onward).
+- `mode == design` → continue with the design `tasks` graph (`prompts/01` onward).
+- `mode == stack` → continue with the `stack_tasks` graph (`prompts/stack_01`).
+- `mode == review` → continue with the `review_tasks` graph (`prompts/resolve_artifacts.md`
+  → `prompts/review_02_assess.md` → `prompts/review_03_final_document.md`).
+- `mode == update` → continue with the `update_tasks` graph (`prompts/resolve_artifacts.md`
+  → `prompts/update_02_apply_decisions.md` → `prompts/update_03_final_document.md`).
+- `mode == reconcile` → continue with the `reconcile_tasks` graph (`prompts/resolve_artifacts.md`
+  → `prompts/reconcile_02_detect_conflicts.md` → `prompts/reconcile_03_final_document.md`).
 
 ## Validation / failure policy
 
-- Gate: a valid mode is selected, or a precise question is posed to the user;
-  stack mode confirms its architecture-design precondition.
-- Failure policy: `default_to_design_if_no_architecture_else_ask`.
+- Gate: a valid mode is selected, or a precise question is posed to the user; the
+  selected mode's preconditions (architecture design for review/update/reconcile;
+  blueprint + design for stack) are confirmed.
+- Failure policy: `default_to_review_if_architecture_exists_else_design_or_ask`.
