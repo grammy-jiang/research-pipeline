@@ -1,8 +1,19 @@
 # E2E Scenario Seed Template
 
-Use this Gherkin-style skeleton for §20. A **seed** is human-readable and
-declarative — it is **not** an executable test (no step definitions, code
-assertions, fixtures, or runner config).
+Use this skeleton for §20. A **seed** is human-readable and declarative — it is
+**not** an executable test (no step definitions, code assertions, fixtures, or
+runner config).
+
+**Phase:** MVP-0 / MVP-1 / Phase 2 / Phase 3 / Future
+**Surface:** CLI / API / Web / MCP / AI Skill / filesystem / audit store
+**Release Gate:** blocks MVP-0 / blocks MVP-1 / regression / optional
+**Deterministic:** yes / no
+**Requires Real LLM:** yes / no
+**CI Suitable:** yes / no
+**Required Fixtures:** <fixture list, or none>
+**Must Mock:** <what to mock, e.g. LLM provider, clock; or none>
+**Required Architecture Contracts:** <§12 contracts this seed exercises, or none>
+**Required Implementation Components:** <module/component names needed, or none>
 
 ```gherkin
 Feature: <capability under test>
@@ -17,6 +28,17 @@ Scenario: <happy / alternative / failure scenario name>
 ```
 
 ## Worked shape (illustration, not a recommendation)
+
+**Phase:** MVP-0
+**Surface:** CLI + filesystem
+**Release Gate:** blocks MVP-0
+**Deterministic:** yes
+**Requires Real LLM:** no
+**CI Suitable:** yes
+**Required Fixtures:** short academic paper fixture, fake LLM provider
+**Must Mock:** LLM provider, clock
+**Required Architecture Contracts:** submit-job CLI contract, audit-write contract
+**Required Implementation Components:** job-intake, worker, audit-writer
 
 ```gherkin
 Feature: Translation job submission

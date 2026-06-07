@@ -35,6 +35,18 @@ artifacts.
    Handoff; UX / security-review / test-design handoffs per their routing; and
    update/reconciliation triggers. Do not invent stages the blueprint did not
    route (`references/next-stages-and-handoffs-guide.md`).
+2c. **Cross-Section Consistency Pass.** After drafting §23 and §24, verify:
+   - Every user-facing MVP operation in §23 exists in §12 Interface Contracts.
+   - Every user-visible state in §23.3/§23.4 maps onto a §14 lifecycle state,
+     condition flag, or audit event.
+   - Every human-review action in §23.6 has a §12 contract, §14 state
+     transition, §16 audit event, and §18 failure behaviour.
+   - Every progress item in §23.4 has an observability event in §16.
+   - §24 handoff tables mention only operations already formalized in the
+     architecture body or explicitly marked deferred/future.
+   Log any gap found as an open question in §25 and as a warning in §27, so
+   downstream skills (ux-design, implementation-plan) find the gap in one place
+   rather than discovering it too late.
 3. Respect the update mode:
    - `regenerate` → rebuild the whole document; append an Update History row.
    - `patch` → change only the affected sections; append an Update History row

@@ -26,6 +26,12 @@ Emit the Appendix A table:
 | Human-review UX defined where needed | PASS / WARNING / FAIL | ... | ... | yes/no |
 | E2E scenario seeds generated | PASS / WARNING / FAIL | ... | ... | yes/no |
 | Architecture feedback section present | PASS / WARNING / FAIL | ... | ... | yes/no |
+| Every user story has a phase tag | PASS / WARNING / FAIL | ... | ... | yes/no |
+| Every E2E seed has phase metadata | PASS / WARNING / FAIL | ... | ... | yes/no |
+| Every E2E seed has testability metadata | PASS / WARNING / FAIL | ... | ... | yes/no |
+| MVP-0 seeds are distinguishable from MVP-1/future seeds | PASS / WARNING / FAIL | ... | ... | yes/no |
+| CI-suitable tests are identifiable | PASS / WARNING / FAIL | ... | ... | yes/no |
+| Release-gating tests are marked | PASS / WARNING / FAIL | ... | ... | yes/no |
 ```
 
 ## Fail conditions (any → FAIL)
@@ -36,6 +42,11 @@ Target users are undefined. / Primary surface is undefined.
 No user stories exist. / Failure/recovery flows are missing.
 Human review exists in the architecture but no human-review UX is defined.
 E2E scenario seeds are missing. / Architecture feedback section is absent.
+No E2E seeds have phase tags.
+MVP-0 stories cannot be distinguished from MVP-1/future stories.
+E2E seeds lack enough information for implementation-plan to create test tasks.
+A release-blocking E2E seed is not marked as a release gate.
+No CI-suitable MVP-0 E2E seed exists for the core happy path.
 ```
 
 ## Warning conditions (→ WARNING)
@@ -47,6 +58,12 @@ MCP exposed without a clear agent user.
 Web UI deferred despite frequent human review.
 Acceptance criteria are vague. / E2E scenarios are not testable.
 Architecture feedback is incomplete.
+Too many E2E seeds are marked MVP-0.
+Too many E2E seeds require real LLM calls.
+CI suitability is unclear for one or more seeds.
+Fixtures or mocks are not specified for a seed.
+Release gate status is vague.
+An E2E seed depends on an architecture contract not yet materialized.
 ```
 
 ## Out-of-scope scan (→ FAIL)

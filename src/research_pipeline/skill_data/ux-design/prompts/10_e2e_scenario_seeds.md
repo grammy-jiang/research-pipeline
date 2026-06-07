@@ -32,6 +32,28 @@ acceptance criteria. Later stages convert seeds into executable tests.
    where possible (note the intended surfaces).
 4. State the seed → test pipeline once: UX user story → acceptance criteria →
    E2E scenario seed → implementation-plan test task → executable test.
+5. Add **testability metadata** as a header block before each Gherkin scenario:
+
+   ```markdown
+   **Phase:** MVP-0 / MVP-1 / Phase 2 / Phase 3 / Future
+   **Surface:** CLI / API / Web / MCP / AI Skill / filesystem / audit store
+   **Release Gate:** blocks MVP-0 / blocks MVP-1 / regression / optional
+   **Deterministic:** yes / no
+   **Requires Real LLM:** yes / no
+   **CI Suitable:** yes / no
+   **Required Fixtures:** <fixture list, or none>
+   **Must Mock:** <what to mock, e.g. LLM provider, clock; or none>
+   **Required Architecture Contracts:** <§12 contract references, or none>
+   **Required Implementation Components:** <module/component names, or none>
+   ```
+
+   Rules: every MVP-0 seed must be CI Suitable = yes unless a real LLM call is
+   structurally required. Justify every "Requires Real LLM = yes" in the metadata.
+6. Emit a **Testability Summary Table** at the end of §20:
+
+   | E2E Seed | Phase | Surface | Deterministic? | Real LLM? | CI Suitable? | Release Gate |
+   |---|---|---|---|---|---|---|
+   | <E2E-XX Name> | <phase> | <surface> | yes/no | yes/no | yes/no | <gate> |
 
 ## Output
 
@@ -40,5 +62,7 @@ acceptance criteria. Later stages convert seeds into executable tests.
 ## Validation / failure policy
 
 - Gate: testable Gherkin-style seeds exist for the primary path, key failures,
-  and testable user-visible states; no executable test code is emitted.
+  and testable user-visible states; no executable test code is emitted; every
+  seed has phase and testability metadata; at least one MVP-0 CI-suitable seed
+  exists for the core happy path.
 - Failure policy: `revise`.

@@ -4,7 +4,12 @@ Use this skeleton for every major user story in §10. A story is **testable** �
 its acceptance criteria are observable and its E2E seeds are derivable.
 
 ```markdown
-## User Story: <Story Name>
+## User Story US-X: <Story Name>
+
+**Phase:** MVP-0 / MVP-1 / Phase 2 / Phase 3 / Future
+**Primary Surface:** CLI / API / Web / MCP / AI Skill / filesystem
+**Release Gate:** blocks MVP-0 / blocks MVP-1 / regression / optional
+**Depends On:** <architecture contracts / stack decisions / previous stories>
 
 **As a:** <role>
 **I want:** <goal>
@@ -39,9 +44,11 @@ its acceptance criteria are observable and its E2E seeds are derivable.
 
 ## Rules
 
-- Every major story includes **all** of: preconditions, main flow, alternative
-  flows, failure/recovery flows, user-visible states, acceptance criteria, E2E
-  scenario seeds.
+- Every major story includes **all** of: phase metadata, preconditions, main
+  flow, alternative flows, failure/recovery flows, user-visible states,
+  acceptance criteria, E2E scenario seeds.
+- **Phase metadata is required.** Use MVP-0 only for stories that block the
+  minimum end-to-end working product. Phase controls implementation-plan scope.
 - **User-Visible States must resolve to the architecture state model.** If a
   story needs a state the architecture lacks, do not invent it — record it as
   architecture feedback (§21).

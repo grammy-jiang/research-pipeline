@@ -640,6 +640,16 @@ If tech-stack-selection = SKIP, state the stack is fixed and by whom.>
 | Open questions assigned to a next stage | PASS / WARNING / FAIL | §25 / §24 | <action> |
 | Recommended next stage present | PASS / WARNING / FAIL | §24 | <action> |
 
+### Cross-Section Consistency Gate
+
+| Check | Status | Finding | Required Action | Blocks Handoff? |
+|---|---|---|---|---|
+| Experience operations map to interface contracts | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| User-visible states map to §14 state model | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Human-review actions have contracts, transitions, and audit events | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Progress feedback maps to observability events | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+| Handoff sections reference only formalized or deferred surfaces | PASS / WARNING / FAIL | <finding> | <action> | yes/no |
+
 ## 27. Handoff Notes for Implementation Planning
 
 - **Build order (suggested):** <deterministic spine first, then AI adapters,

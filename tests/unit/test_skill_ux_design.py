@@ -235,7 +235,7 @@ def test_all_test_checklist_files_exist_and_nonempty() -> None:
 def test_manifest_parses_and_has_expected_shape() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
     assert data["workflow_id"] == "ux-design"
-    assert data["version"] == "0.2.0"
+    assert data["version"] == "0.3.0"
     task_ids = {task["id"] for task in data["tasks"]}
     for required in REQUIRED_TASK_IDS:
         assert required in task_ids, f"manifest missing task: {required}"

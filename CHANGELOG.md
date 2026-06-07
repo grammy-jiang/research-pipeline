@@ -2,6 +2,45 @@
 
 All notable changes to research-pipeline.
 
+## [v0.28.0] — 2026-06-07
+
+### Added
+
+- **`architecture` skill — Cross-Section Consistency Gate (skill manifest 0.9.0 → 1.0.0).**
+  Prevents downstream stages from discovering architecture gaps too late by adding
+  a Cross-Section Consistency Pass inside `architecture --mode design`.
+  - **`prompts/22_architecture_draft.md`** — adds step 2c: Cross-Section
+    Consistency Pass verifying (i) every MVP operation in §23 exists in §12,
+    (ii) every user-visible state in §23.3/§23.4 maps onto §14, (iii) every
+    human-review action in §23.6 has a §12 contract + §14 transition + §16 audit
+    event + §18 failure behaviour, (iv) every progress item in §23.4 has a §16
+    observability event, (v) §24 handoffs reference only formalized or deferred
+    operations. Gaps logged in §25 and §27.
+  - **`prompts/23_quality_gate_self_check.md`** — adds five v0.9.0 cross-section
+    consistency gates (20–24); updates Instructions to include them in the §26
+    table.
+  - **`templates/architecture_design_template.md`** — adds
+    `### Cross-Section Consistency Gate` sub-table to §26.
+  - **`SKILL.md`** — adds quality gate 29.
+  - **`manifest.json`** — bumped to 1.0.0.
+
+- **`ux-design` skill — MVP phase and testability metadata (skill manifest 0.2.0 → 0.3.0).**
+  Enables `implementation-plan` to convert E2E seeds into concrete test tasks
+  without guessing and to scope MVP-0 correctly.
+  - **`prompts/07_user_stories.md`** — requires phase/release-gate header on
+    every story (Phase, Primary Surface, Release Gate, Depends On); updates
+    validation gate.
+  - **`prompts/10_e2e_scenario_seeds.md`** — requires testability metadata block
+    on every seed and a Testability Summary Table in §20; updates validation gate.
+  - **`templates/e2e-scenario-template.md`** — adds testability metadata fields
+    to skeleton and worked example.
+  - **`templates/user-story-template.md`** — adds phase + release-gate fields;
+    updates Rules.
+  - **`prompts/13_quality_gate_self_check.md`** — adds six gate rows, five fail
+    conditions, six warning conditions.
+  - **`SKILL.md`** — adds quality gate 11.
+  - **`manifest.json`** — bumped to 0.3.0.
+
 ## [v0.27.0] — 2026-06-07
 
 ### Added

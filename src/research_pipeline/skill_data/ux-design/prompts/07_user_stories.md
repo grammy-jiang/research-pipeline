@@ -38,6 +38,26 @@ story is structured and testable.
    Gherkin-style seeds are expanded in prompt 10.
 6. Keep stories at the experience level — no exact CLI flags, API schemas, or
    visual layout.
+7. Add **phase and release-gate metadata** to every story header, using these
+   controlled values:
+
+   ```markdown
+   **Phase:** MVP-0 / MVP-1 / Phase 2 / Phase 3 / Future
+   **Primary Surface:** CLI / API / Web / MCP / AI Skill / filesystem
+   **Release Gate:** blocks MVP-0 / blocks MVP-1 / regression / optional
+   **Depends On:** <architecture contracts / stack decisions / previous stories>
+   ```
+
+   | Phase | Meaning |
+   |---|---|
+   | MVP-0 | Minimum slice required to prove the core end-to-end workflow |
+   | MVP-1 | Next capability layer (e.g. human review, AI wrapper, extended CLI) |
+   | Phase 2 | Larger capability expansion |
+   | Phase 3 | Integration expansion (MCP / multi-agent / external surfaces) |
+   | Future | Not planned for near-term implementation |
+
+   Every story must have a phase. Do not mark a story MVP-0 unless it is truly
+   required for the minimum working product.
 
 ## Output
 
@@ -47,6 +67,6 @@ acceptance criteria, §20 E2E seeds).
 ## Validation / failure policy
 
 - Gate: each major story has preconditions, main + alternative + failure/recovery
-  flows, user-visible states (resolving to the state model), and testable
-  acceptance criteria.
+  flows, user-visible states (resolving to the state model), testable acceptance
+  criteria, and a phase / release-gate header.
 - Failure policy: `revise`.

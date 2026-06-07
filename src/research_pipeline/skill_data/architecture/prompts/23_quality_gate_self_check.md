@@ -148,6 +148,35 @@ When running gate 6 (residual invalid-claim scan), scan the §17 security gates,
 wording — not just the §7 prose. If a gate is currently a checkbox, rewriting it
 as a verification table (gate 10) is the moment to fix the wording.
 
+## v0.9.0 cross-section consistency gates (also evaluate these)
+
+20. **Experience operations → interface contracts** — FAIL if any user-facing
+    operation mentioned in §23 Experience Architecture (commands, AI skill
+    invocations, review actions, MCP surfaces) lacks a corresponding formal
+    interface contract in §12. Every MVP operation must have a defined
+    command / API / tool contract (options, exit codes, output contract). Future /
+    deferred surfaces must be explicitly marked deferred, not described as MVP.
+21. **User-visible states → state model** — FAIL if any user-visible state in
+    §23.3 (User-Visible State Model) or §23.4 (Feedback and Progress Model) does
+    not resolve to the canonical §14 state model (lifecycle state, operational
+    condition flag, or audit event). Do not introduce user-visible states with no
+    §14 counterpart.
+22. **Human-review actions → contracts + transitions + audit** — FAIL if any
+    human-review path described in §23.6 (Human Review Technical Flow) lacks:
+    (a) a formal command/API/tool contract in §12; (b) a state transition in §14;
+    (c) an audit event in §16; (d) failure/error behaviour in §18. Each review
+    action (approve / reject / revise) must have all four components. WARNING if
+    any component is present but incomplete.
+23. **Progress feedback → observability events** — FAIL if any user-visible
+    progress item in §23.4 lacks a corresponding observability event in §16 (e.g.
+    a `chunk_translated`, `reviewer_round_completed`, or `qa_gate_evaluated`
+    event). Every testable progress item must have an observable signal.
+24. **Handoff sections → formal architecture** — FAIL if §24 handoff tables
+    (§24.3 UX-Design Handoff, §24.5 Test-Design / E2E Handoff) mention any
+    operation or surface that is neither formally specified in the architecture
+    body nor explicitly marked deferred/future. Handoff sections must not
+    introduce informal requirements absent from the architecture.
+
 ## Self-check skepticism (status discipline)
 
 Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
@@ -167,9 +196,9 @@ Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
 ## Instructions
 
 1. Evaluate every gate (the FAIL list, the five v0.2.0 gates, the v0.3.0 /
-   v0.4.0 gates, and the four v0.6.0 mode-split gates) against the draft; record
-   PASS / WARNING / FAIL with a finding, a required action, and a
-   blocks-implementation verdict.
+   v0.4.0 gates, the four v0.6.0 mode-split gates, and the five v0.9.0
+   cross-section consistency gates) against the draft; record PASS / WARNING /
+   FAIL with a finding, a required action, and a blocks-implementation verdict.
 2. Emit the §26 table (Gate · Status · Finding · Required Action · Blocks
    Implementation?), including rows for: Metadata consistency, Hybrid decision
    review, Technology-specific validity, Probe/evaluator availability,
@@ -177,10 +206,13 @@ Status values are **PASS / WARNING / FAIL** (WARNING ≡ "PASS with warning").
    egress / external model use, State-semantics consistency,
    Standard-vs-detailed budget, Security gate verification format, Decision
    evidence / provenance, Raw source-content logging policy, Warning surfacing,
-   Architecture-stage sequencing cap, and the v0.6.0 rows — Product Experience
+   Architecture-stage sequencing cap, the v0.6.0 rows — Product Experience
    Direction consumed, Experience Architecture produced, Recommended Next Stages
    consumed, Tech stack provisional when stack mode recommended, and Downstream
-   handoffs present.
+   handoffs present — and the v0.9.0 rows — Experience operations → interface
+   contracts, User-visible states → state model, Human-review actions →
+   contracts + transitions + audit, Progress feedback → observability events,
+   and Handoff sections → formal architecture.
 3. If any gate FAILs, return the specific failing gates so prompt 24 can revise.
    Every WARNING must carry a concrete required action, not a passive note.
 

@@ -575,6 +575,16 @@ and `tests/expected_sections_checklist.md`:
     artifacts, separates conflicts from enhancements, recommends minimal changes,
     states the **Architecture Update Required?** verdict, and **does not patch**
     by default (see the per-mode guides).
+29. **Cross-section consistency** — §23 Experience Architecture, §14 state
+    model, §12 interface contracts, §16 observability events, §18 failure
+    handling, and §24 handoffs are internally consistent: every user-facing MVP
+    operation in §23 appears in §12; every user-visible state in §23.3/§23.4
+    maps to §14; every human-review action in §23.6 has a §12 contract, §14
+    transition, §16 audit event, and §18 failure behaviour; every testable
+    progress item in §23.4 has an observability event in §16; and §24 handoffs
+    mention no operation absent from the architecture body unless explicitly
+    deferred. Gaps found during the cross-section consistency pass are logged in
+    §25 and §27 so downstream skills find them early.
 
 ## References
 

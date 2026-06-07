@@ -227,6 +227,14 @@ full text in `prompts/13_quality_gate_self_check.md` and
    users without mitigation, or MCP exposed without a clear agent user.
 10. **No out-of-scope output** — no executable tests, no architecture/tech-stack
     decisions, no pixel-level layout / CSS / final copy / exact CLI flags.
+11. **Phase and testability metadata** — every user story has a phase tag
+    (MVP-0 / MVP-1 / Phase 2 / Phase 3 / Future), primary surface, release gate,
+    and depends-on; every E2E seed carries a testability metadata block (phase,
+    surface, release gate, deterministic, requires real LLM, CI suitable,
+    required fixtures, must mock, required architecture contracts, required
+    implementation components); §20 ends with a Testability Summary Table;
+    implementation-plan can convert E2E seeds into concrete test tasks without
+    guessing.
 
 ### Fail Conditions
 
@@ -236,6 +244,10 @@ Target users are undefined. / Primary surface is undefined.
 No user stories exist. / Failure/recovery flows are missing.
 Human review exists in architecture but no human-review UX is defined.
 E2E scenario seeds are missing. / Architecture feedback section is absent.
+No E2E seeds have phase tags.
+MVP-0 stories cannot be distinguished from MVP-1/future stories.
+E2E seeds lack enough information for implementation-plan to create test tasks.
+No CI-suitable MVP-0 E2E seed exists for the core happy path.
 ```
 
 ## Anti-Patterns (do NOT)
