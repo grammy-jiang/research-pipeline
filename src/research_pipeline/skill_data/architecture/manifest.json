@@ -1,7 +1,7 @@
 {
   "workflow_id": "architecture",
-  "version": "0.8.0",
-  "description": "Blueprint-to-architecture design with internal modes. mode_resolver picks the mode (design / stack / update / review / reconcile) and routes to a task graph; all five modes are implemented (design and stack from a blueprint; review / update / reconcile operate on an existing architecture and share an artifact resolver). design tasks: resolve blueprint input → detect existing architecture → prepare context → parse (incl. blueprint §9 Product Experience Direction + §19 Recommended Next Stages) → traceability map → clarify → solution strategy → goals/constraints → provisional tech stack (+ provisional tech assumptions + tech-stack selection handoff) → traditional-vs-AI boundary → skill/MCP decision → tech-stack/boundary coherence → C4 views → interface contracts → data contracts → security/trust boundaries → observability/audit → failure handling → testing/evaluation → ADRs → rule-pack review → draft (incl. Experience Architecture + Recommended Next Stages and Downstream Handoffs) → quality-gate self-check → final document. stack_tasks: resolve stack inputs → technology decision drivers → stack selection → architecture impact + update verdict → stack quality gate → final stack document (<topic-slug>-architecture-tech-stack.md). Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. The manifest is valid as documentation for a prompt-driven agent and ready for a future runtime runner; if no runner exists, follow the task order manually. detect_existing_architecture is consumed by prepare_blueprint_context, solution_strategy, adrs, architecture_draft, and final_architecture_document so update behavior is respected end-to-end. v0.2.0 quality pass: the quality_gate_self_check now also enforces metadata consistency (counts match tables; A-N/ADR/Contents references resolve), hybrid-mode decision-review classification (decision source + review requirement), technology-specific validity (no enforcement claims the chosen tech does not provide), evaluator/probe availability policy, and the architecture-vs-implementation boundary (proposed namespaces, not file-by-file tasks). v0.3.0 hardening pass: a mandatory data-egress / external-model-use decision when external models are used; a document-wide residual invalid-claim scan (technology-inconsistent wording beyond the tech-stack section); explicit self-check skepticism using PASS / WARNING / FAIL (WARNING = directionally acceptable but needs cleanup, never a silent PASS over a known contradiction); a state-semantics consistency check (lifecycle states vs operational condition flags vs audit events resolve to the canonical §14 state machine); and an output detail budget so 'standard' stays a concise main body + appendices rather than a full dossier. v0.4.0 hardening pass: §17 security quality gates are rendered as a verification table (Security Gate | Required Implementation Evidence | Verification Method | Blocks Release?), never as ambiguous unchecked checkboxes; the residual invalid-claim scan now explicitly covers security-gate and checklist rows (not just prose), which is where leftover technology-inconsistent wording tends to hide; and the data-egress decision is expanded into a dedicated Data Egress / External Model Use table (content-leaves-boundary, which providers, redaction, logs-may-contain-source, domain-plugin-override) whenever external models are used. v0.5.0 hardening pass: high-impact decisions carry Decision Evidence (controlled provenance values) and are never labelled user-confirmed without an explicit confirmation source; raw source content is forbidden in logs by default for external-model systems (redaction + log-snapshot/provider-wrapper verification required); WARNING / PASS-with-warning gates are surfaced into the Executive Summary and Handoff, not just the §24 self-check; the standard output budget carries concrete targets; and architecture-stage build sequencing is capped at five high-level constraints (detailed task ordering belongs to the implementation-plan skill). v0.6.0 mode-split pass: the skill becomes one skill with internal modes. A mode_resolver entry task selects design / stack / update / review / reconcile (design and stack are fully specified; update reuses design's update machinery; review/reconcile are recognized but deferred). design mode now explicitly consumes the blueprint's §9 Product Experience Direction (producing an Experience Architecture section) and §19 Recommended Next Stages (producing a Recommended Next Stages and Downstream Handoffs section with tech-stack / ux-design / security-review / test-design handoffs), and keeps the tech stack provisional — with a Provisional Tech Assumptions table and a Tech-Stack Selection Handoff — whenever stack-mode selection is recommended. A separate stack_tasks graph selects the concrete technology stack against the architecture, ending with an explicit Architecture Update Required verdict, and writes <topic-slug>-architecture-tech-stack.md. The design output grows from 25 to 27 sections (adds Experience Architecture and Recommended Next Stages and Downstream Handoffs). v0.7.0 remaining-modes pass: review, update, and reconcile become fully implemented modes (no longer recognized-but-deferred). All three share an artifact resolver (prompts/resolve_artifacts.md, references/artifact-discovery-guide.md) that, when the user passes no filenames, discovers the most relevant prior skill/mode outputs by topic slug + candidate scoring, requires the architecture design, and emits a Resolved Input Artifacts table embedded in every output. review_tasks evaluate architecture quality without mutating it (10-point score breakdown + blocking/warning/polish classification + recommended next actions -> <topic-slug>-architecture-review.md). update_tasks apply already-accepted decisions (priority source: a tech-stack with Architecture Update Required = Yes, then accepted reconciliation, security-review, newer blueprint, explicit user decision; never ux-design directly) into an update note (<topic-slug>-architecture-update.md) without overwriting the design by default. reconcile_tasks compare the architecture with downstream feedback (primarily a ux-design Architecture Feedback section) to produce findings, a minimal patch plan, and an Architecture Update Required? verdict (<topic-slug>-architecture-reconciliation.md) without patching by default. No-silent-mutation rule: review never mutates, reconcile never patches by default, update never overwrites the design by default; bare `architecture` with an existing architecture defaults to review (safest). v0.8.0 cross-skill-artifact-contract pass: every mode template conforms to the shared Cross-Skill Artifact Contract (references/artifact-contract.md) — Generation Metadata carries Artifact Type + a stable Topic Slug; a Cross-Skill Artifact Contract block exposes Source Artifacts Consumed, Resolved Input Artifacts (when discovery is used), and a Contract Field Map; and every self-check includes a Cross-Skill Artifact Contract Gate. The final-document prompts instruct contract compliance using the controlled vocabulary (artifact types, decision status, stage decision, confidence, quality-gate status).",
+  "version": "0.9.0",
+  "description": "Blueprint-to-architecture design with internal modes. mode_resolver picks the mode (design / stack / update / review / reconcile / materialize) and routes to a task graph; all six modes are implemented. design and stack build from a blueprint; review / update / reconcile operate on an existing architecture and share an artifact resolver; materialize consolidates accepted update notes into one canonical architecture document. design tasks: resolve blueprint input → detect existing architecture → prepare context → parse (incl. blueprint §9 Product Experience Direction + §19 Recommended Next Stages) → traceability map → clarify → solution strategy → goals/constraints → provisional tech stack (+ provisional tech assumptions + tech-stack selection handoff) → traditional-vs-AI boundary → skill/MCP decision → tech-stack/boundary coherence → C4 views → interface contracts → data contracts → security/trust boundaries → observability/audit → failure handling → testing/evaluation → ADRs → rule-pack review → draft (incl. Experience Architecture + Recommended Next Stages and Downstream Handoffs) → quality-gate self-check → final document. stack_tasks: resolve stack inputs → technology decision drivers → stack selection → architecture impact + update verdict → stack quality gate → final stack document (<topic-slug>-architecture-tech-stack.md). materialize_tasks: discover and order accepted inputs → apply patches + detect conflicts → final canonical documents (<topic-slug>-architecture-design.vX.Y.Z.md + artifact registry + open-question ledger). Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. The manifest is valid as documentation for a prompt-driven agent and ready for a future runtime runner; if no runner exists, follow the task order manually. v0.2.0–v0.8.0: see prior description for quality, hardening, mode-split, remaining-modes, and cross-skill-artifact-contract passes. v0.9.0 materialize pass: adds materialize mode (materialize_tasks: materialize_02_discover_and_order → materialize_03_apply_patches → materialize_04_final_document). Materialize discovers the base architecture and all accepted update notes by topic slug, validates acceptance criteria, orders by version/update history, checks six conflict classes (SECTION_CONFLICT / PATCH_TARGET_MISSING / TEXT_ANCHOR_GONE / CONTRACT_CONFLICT / SUPERSESSION_CONFLICT / BREAKING_CHANGE_UNRESOLVED — all BLOCKING), applies accepted patches section-by-section without inventing new decisions, removes resolved provisional wording, updates ADRs/open questions/handoffs, and produces a 30-section canonical architecture (27 original + Applied Updates + Superseded Patch Notes + Implementation-Plan Readiness) plus an artifact registry and an open-question ledger. Stops on any BLOCKING conflict and writes a materialization-blocked report. Also v0.9.0: update mode grows from 11 to 13 sections — adds §5 Patch Manifest (machine-readable YAML with update-type taxonomy: NONE / NOTE_ONLY / ADR_ONLY / CONTRACT_PATCH / SECURITY_PATCH / OBSERVABILITY_PATCH / STRUCTURAL_PATCH / BREAKING_CHANGE) and §12 Feedback Closure Matrix (tracking which downstream feedback items are resolved by which patches). Skill version metadata must use UNKNOWN — resolver could not determine this value instead of bare unknown; quality gate warns on any UNKNOWN field.",
   "mandatory_gates": [
     "rule_pack_review",
     "quality_gate_self_check",
@@ -18,10 +18,11 @@
       "failure_policy": "default_to_design_if_no_architecture_else_ask",
       "routes_to": {
         "design": "tasks",
-        "update": "tasks",
+        "update": "update_tasks",
         "stack": "stack_tasks",
-        "review": "review_readonly",
-        "reconcile": "reconcile_blocked"
+        "review": "review_tasks",
+        "reconcile": "reconcile_tasks",
+        "materialize": "materialize_tasks"
       }
     },
     {
@@ -396,6 +397,39 @@
   ],
   "reconcile_mandatory_gates": [
     "reconcile_final_document"
+  ],
+  "materialize_tasks": [
+    {
+      "id": "materialize_discover_and_order",
+      "type": "llm",
+      "depends_on": ["mode_resolver"],
+      "executor": "prompts/materialize_02_discover_and_order.md",
+      "output": "intermediate/materialize_discovery.json",
+      "validation": "base_architecture_found_and_accepted_updates_ordered",
+      "failure_policy": "stop_if_no_base_architecture"
+    },
+    {
+      "id": "materialize_apply_patches",
+      "type": "llm",
+      "depends_on": ["materialize_discover_and_order"],
+      "executor": "prompts/materialize_03_apply_patches.md",
+      "output": "intermediate/materialize_applied.md",
+      "validation": "no_blocking_conflicts_and_all_accepted_updates_applied",
+      "failure_policy": "stop_and_write_blocked_report_on_conflict"
+    },
+    {
+      "id": "materialize_final_document",
+      "type": "llm",
+      "depends_on": ["materialize_apply_patches"],
+      "executor": "prompts/materialize_04_final_document.md",
+      "output": "<topic-slug>-architecture-design.vX.Y.Z.md",
+      "validation": "canonical_architecture_produced_with_30_sections_and_quality_gate_passes",
+      "failure_policy": "revise_max_3_then_stop"
+    }
+  ],
+  "materialize_mandatory_gates": [
+    "materialize_apply_patches",
+    "materialize_final_document"
   ],
   "failure_policy_defaults": {
     "no_blueprint": "stop_if_no_blueprint",

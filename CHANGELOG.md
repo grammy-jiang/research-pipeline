@@ -2,6 +2,78 @@
 
 All notable changes to research-pipeline.
 
+## [v0.27.0] — 2026-06-07
+
+### Added
+
+- **`architecture` skill — `materialize` mode (skill manifest 0.8.0 → 0.9.0).**
+  Adds `architecture --mode materialize` to consolidate the base architecture
+  design plus all accepted update notes into one canonical implementation-ready
+  source of truth before `implementation-plan`.
+  - **`prompts/materialize_02_discover_and_order.md`** — discovers the base
+    architecture by topic slug, discovers and validates accepted update notes
+    (acceptance criteria: `Artifact Type = architecture_update`, quality-gate
+    PASS, no unresolved blocking conflicts), sorts by version/update history,
+    builds a section-level patch plan, flags preliminary conflicts.
+  - **`prompts/materialize_03_apply_patches.md`** — checks six BLOCKING conflict
+    classes (SECTION_CONFLICT, PATCH_TARGET_MISSING, TEXT_ANCHOR_GONE,
+    CONTRACT_CONFLICT, SUPERSESSION_CONFLICT, BREAKING_CHANGE_UNRESOLVED); on
+    any conflict writes a materialization-blocked report and stops; otherwise
+    applies patches in order, removes resolved provisional wording, updates ADRs
+    / open questions / handoffs.
+  - **`prompts/materialize_04_final_document.md`** — produces the 30-section
+    canonical architecture (27 original + Applied Updates + Superseded Patch
+    Notes + Implementation-Plan Readiness), the artifact registry, and the
+    open-question ledger; runs the Materialization Quality-Gate Self-Check.
+  - **`templates/architecture_canonical_template.md`** — 30-section canonical
+    architecture skeleton with Applied Updates, Superseded Patch Notes, and
+    Implementation-Plan Readiness sections; `Artifact Type = architecture_canonical`.
+  - **`templates/artifact_registry_template.md`** — artifact registry skeleton
+    (Current Canonical Artifacts + Superseded / Historical Artifacts + Pipeline
+    Stage Summary) telling downstream agents which files to read and which are
+    audit history.
+  - **`templates/open_question_ledger_template.md`** — open-question ledger
+    skeleton centralizing all open questions with source, owner stage, blocking
+    status, and required resolution action.
+  - **`templates/materialization_blocked_template.md`** — blocked report skeleton
+    emitted when a BLOCKING conflict prevents safe materialization.
+  - **`references/materialization-guide.md`** — full guide: when to use, what it
+    owns / must not own, accepted-update discovery rules, conflict classes, output
+    files, quality-gate fail/warn conditions.
+  - **`references/patch-manifest-guide.md`** — Patch Manifest YAML format guide
+    and update-type taxonomy (NONE / NOTE_ONLY / ADR_ONLY / CONTRACT_PATCH /
+    SECURITY_PATCH / OBSERVABILITY_PATCH / STRUCTURAL_PATCH / BREAKING_CHANGE).
+  - **`references/artifact-registry-guide.md`** — artifact registry purpose,
+    controlled status values, artifact role vocabulary, and rules.
+  - **`references/open-question-ledger-guide.md`** — ledger purpose, ID prefix
+    convention, status and owner-stage values, blocking-status values.
+  - Mode resolver (`prompts/00_mode_resolver.md`) updated: adds `materialize`
+    to the mode table and routing JSON; adds explicit materialize triggers and
+    negative triggers; updates preconditions for six modes.
+  - Mode-selection guide (`references/mode-selection-guide.md`) updated: adds
+    `materialize` mode description, selection logic, negative triggers, and
+    downstream flow showing full pipeline through materialize to
+    `implementation-plan`.
+- **`architecture --mode update` metadata improvements (skill manifest 0.8.0 → 0.9.0).**
+  Update mode output grows from 11 to 13 sections:
+  - **§5 Patch Manifest** — machine-readable YAML consumed by `materialize`;
+    every accepted decision maps to a patch entry with target section, operation,
+    patch type, and implementation-blocking flag.
+  - **§12 Feedback Closure Matrix** — tracks which downstream feedback items
+    (ux-design Architecture Feedback, security-review findings) are resolved by
+    which patches; `NOT_APPLICABLE` when no downstream feedback was applied.
+  - **Patch-Type Taxonomy** added to Generation Metadata §1; multi-type allowed.
+  - **Skill version metadata** — `UNKNOWN — resolver could not determine this
+    value` replaces bare `unknown`; quality gate warns on any UNKNOWN field.
+  - `prompts/update_02_apply_decisions.md` and `update_03_final_document.md`
+    updated to instruct producing §5, §12, and classified patch types.
+  - `references/architecture-update-guide.md` updated with taxonomy table,
+    Feedback Closure Matrix guidance, and 13-section quality gate.
+  - `SKILL.md` updated: six-mode table, references table, `materialize` mode
+    description, method section with `materialize_tasks` task graph.
+  - `manifest.json` version 0.8.0 → 0.9.0; `materialize_tasks` task graph and
+    `materialize_mandatory_gates` added; mode resolver routing updated.
+
 ## [v0.26.0] — 2026-06-07
 
 ### Added

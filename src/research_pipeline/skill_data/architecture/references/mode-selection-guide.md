@@ -15,7 +15,7 @@ breaks artifact continuity. One skill with modes gives a simple user-facing
 name, clear internal responsibility separation, less duplication, and easier
 artifact continuity.
 
-## The five modes
+## The six modes
 
 ### `design` (implemented, default)
 
@@ -93,16 +93,36 @@ artifact continuity.
   accepted changes. Do not blindly accept a downstream artifact that contradicts
   the blueprint.
 
+### `materialize` (implemented)
+
+- **Purpose:** consolidate the base architecture and all accepted update notes into
+  one canonical architecture document ready for `implementation-plan`. Outputs:
+  `<topic-slug>-architecture-design.vX.Y.Z.md`, `<topic-slug>-artifact-registry.md`,
+  `<topic-slug>-open-question-ledger.md` (`materialize_tasks`,
+  `references/materialization-guide.md`).
+- **Owns:** discovering the base architecture; discovering accepted update notes;
+  ordering updates by version; checking patch applicability; detecting conflicts;
+  applying accepted patches into the correct sections; removing resolved
+  provisional wording; updating ADRs, open questions, and handoffs; producing
+  the canonical architecture; producing the artifact registry; producing the
+  open-question ledger; declaring implementation-plan readiness.
+- **Must not own:** creating new architecture decisions; choosing a new tech stack;
+  resolving contradictory patches by guessing; changing the blueprint thesis;
+  performing implementation planning.
+- **Key rule:** merge, do not design. Stop on conflicts and report — do not guess
+  the resolution. See `references/materialization-guide.md`.
+
 ## Selection logic
 
 ### Explicit mode
 
 ```text
-architecture --mode design     <blueprint.md>
-architecture --mode stack       <architecture-design.md>
-architecture --mode update      <architecture-design.md> <architecture-tech-stack.md>
-architecture --mode review      <architecture-design.md>
-architecture --mode reconcile   <architecture-design.md> <ux-design.md>
+architecture --mode design       <blueprint.md>
+architecture --mode stack        <architecture-design.md>
+architecture --mode update       <architecture-design.md> <architecture-tech-stack.md>
+architecture --mode review       <architecture-design.md>
+architecture --mode reconcile    <architecture-design.md> <ux-design.md>
+architecture --mode materialize  [<architecture-design.md>] [<update-notes...>]
 ```
 
 ### Automatic detection
@@ -114,16 +134,31 @@ architecture --mode reconcile   <architecture-design.md> <ux-design.md>
 | "review / evaluate / score" / "is this ready for implementation?" | `review` |
 | "update architecture based on this stack/decision" / "apply this stack" | `update` |
 | architecture + ux/test/security findings exposing a mismatch / "reconcile" | `reconcile` |
+| "materialize / merge / consolidate accepted updates / canonical architecture / prepare for implementation-plan" | `materialize` |
 | bare `architecture` and an architecture already exists | `review` (safest) |
 
 ### Ambiguity
 
 - **Bare `architecture` with an existing architecture defaults to `review`** —
-  it is non-mutating and safest. Do **not** default to `update`.
+  it is non-mutating and safest. Do **not** default to `update` or `materialize`.
 - Default to `design` only when no architecture exists.
 - Prefer the non-mutating mode when changing an existing document would be risky.
 - Ask the user only when the mode materially changes the output and cannot be
   inferred from the request or the artifacts present.
+
+### Materialize negative triggers
+
+Do NOT use `materialize` for:
+
+```text
+reviewing architecture quality → use review
+choosing tech stack → use stack
+creating new architecture design → use design
+reconciling conflicts → use reconcile
+making new design decisions
+writing implementation tasks
+applying a single accepted update → use update
+```
 
 ## Downstream flow
 
@@ -132,8 +167,12 @@ blueprint
   -> architecture --mode design
   -> architecture --mode stack
   -> architecture --mode update      (if stack decisions change the architecture)
+  -> security-review
+  -> architecture --mode update      (if security findings change the architecture)
   -> ux-design
   -> architecture --mode reconcile   (if UX exposes gaps)
+  -> architecture --mode update      (apply reconciliation findings)
+  -> architecture --mode materialize (consolidate into canonical source of truth)
   -> implementation-plan
 ```
 
@@ -141,3 +180,7 @@ The `ux-design` skill consumes this architecture's `design` output (its
 Experience Architecture section and UX-Design Handoff) and emits
 `<topic-slug>-ux-design.md`. If `ux-design` exposes architecture gaps, it records
 them as architecture feedback and recommends `architecture --mode reconcile`.
+
+`architecture --mode materialize` runs after all update/reconcile cycles are
+complete and before `implementation-plan`. It consolidates all accepted update
+notes into one canonical architecture document with a versioned filename.

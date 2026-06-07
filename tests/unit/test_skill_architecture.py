@@ -555,7 +555,7 @@ V020_GATE_NAMES = [
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.8.0"
+    assert data["version"] == "0.9.0"
 
 
 def test_self_check_prompt_covers_new_gates() -> None:
@@ -1071,7 +1071,7 @@ def test_mode_resolver_marks_all_modes_implemented() -> None:
         encoding="utf-8"
     )
     lowered = text.lower()
-    assert "all five modes are implemented" in lowered
+    assert "all six modes are implemented" in lowered
     assert "recognized — deferred" not in text
     assert "deferred" not in lowered
     # Routes to the three new graphs.

@@ -11,28 +11,36 @@ write only the **update note** — do not overwrite the architecture design.
 
 ## Instructions
 
-1. Compose all 11 sections in order, starting with `## Contents`. Fill §1
-   Generation Metadata (source architecture, update sources, skill version, and
-   the Update History row to append to the architecture); do not invent metadata.
+1. Compose all 13 sections in order (see `templates/architecture_update_template.md`),
+   starting with `## Contents`. Fill §1 Generation Metadata (source architecture,
+   update sources, skill version, patch type, and the Update History row to append
+   to the architecture); do not invent metadata. Write `UNKNOWN — resolver could
+   not determine this value` for any unavailable field; never write bare `unknown`.
 2. Embed the **Resolved Input Artifacts** table in §3.
-3. **Run the §11 Update Quality-Gate Self-Check** and embed it. Gates:
+3. Include **§5 Patch Manifest** — a YAML block produced by the apply pass. If
+   the apply pass could not determine a full manifest, emit a WARNING entry for
+   `patch_manifest_present` in §13 quality gate.
+4. Include **§12 Feedback Closure Matrix** — when this update applies feedback
+   from a downstream artifact. Mark `NOT_APPLICABLE` with a reason otherwise.
+5. **Run the §13 Update Quality-Gate Self-Check** and embed it. Gates:
    source-architecture-found, update-source-found, only-accepted-decisions-applied,
-   changed-sections-listed, unaffected-sections-preserved, ADRs/decision-register-
-   updated, update-history-updated, downstream-handoffs-still-valid. PASS /
-   WARNING / FAIL; never PASS over a known gap.
-4. **Fail conditions** (→ revise, max 3 then surface and stop): no architecture
+   patch-manifest-present, changed-sections-listed, unaffected-sections-preserved,
+   ADRs/decision-register-updated, update-history-updated, downstream-handoffs-
+   still-valid, feedback-closure-matrix-present (when applicable), skill-version-
+   metadata-known. PASS / WARNING / FAIL; never PASS over a known gap.
+6. **Fail conditions** (→ revise, max 3 then surface and stop): no architecture
    document; no update source; speculative-only source; ux findings applied
    directly without reconciliation; an overwrite of major decisions without
    evidence; no changed sections listed.
-5. **Output discipline (no silent mutation):** write
+7. **Output discipline (no silent mutation):** write
    `<topic-slug>-architecture-update.md` by default. Optionally also write a
    proposed `<topic-slug>-architecture-design.updated.md`. **Do not overwrite**
    `<topic-slug>-architecture-design.md` unless the user explicitly asked, the
    change set is listed, the architecture's Update History row is appended, and
    the previous architecture is recoverable. If files cannot be written, output
    the Markdown inline and state the recommended filename(s).
-6. End by stating whether anything else should run (e.g. re-`review` after the
-   update, or `implementation-plan`).
+8. End by stating whether anything else should run (e.g. `architecture --mode
+   materialize` after all updates are applied, re-`review`, or `implementation-plan`).
 
 ## Output
 
@@ -40,8 +48,9 @@ write only the **update note** — do not overwrite the architecture design.
 
 ## Validation / failure policy
 
-- Gate: all 11 sections present with Contents; the §11 self-check passes; the
-  architecture design is not overwritten by default.
+- Gate: all 13 sections present with Contents; §5 Patch Manifest present (or
+  WARNING); §12 Feedback Closure Matrix present or NOT_APPLICABLE; the §13
+  self-check passes; the architecture design is not overwritten by default.
 - Failure policy: `revise_max_3_then_stop`.
 
 ## Cross-Skill Artifact Contract Compliance

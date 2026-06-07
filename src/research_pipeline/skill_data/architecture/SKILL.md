@@ -85,25 +85,30 @@ matching task graph.
 | `review` | implemented | a non-mutating quality evaluation (score + blocking/warning/polish) | `<topic-slug>-architecture-review.md` |
 | `update` | implemented | applies accepted decisions into an update note | `<topic-slug>-architecture-update.md` |
 | `reconcile` | implemented | findings + minimal patch plan from downstream feedback | `<topic-slug>-architecture-reconciliation.md` |
+| `materialize` | implemented | merges base architecture + accepted update notes into one canonical document | `<topic-slug>-architecture-design.vX.Y.Z.md` |
 
-All five modes are implemented. `review` / `update` / `reconcile` operate on an
+All six modes are implemented. `review` / `update` / `reconcile` operate on an
 **existing** architecture and share an artifact resolver
 (`prompts/resolve_artifacts.md`, `references/artifact-discovery-guide.md`) that —
 when the user passes no filenames — discovers the most relevant prior outputs by
 topic slug, requires the architecture design, and emits a Resolved Input
-Artifacts table into every output.
+Artifacts table into every output. `materialize` consolidates all accepted
+update notes into a canonical implementation-ready architecture document and
+additionally produces an artifact registry and an open-question ledger.
 
 **Key discipline:** `design` records only *provisional* tech assumptions and
 hands the final choice to `stack` (unless the stack is fixed). `stack` selects
 technologies that *satisfy* the architecture — on a genuine conflict it emits
 `Architecture Update Required: yes` rather than rewriting it. **No silent
 mutation:** `review` never mutates the architecture; `reconcile` never patches it
-by default; `update` never overwrites the design document by default.
+by default; `update` never overwrites the design document by default; `materialize`
+stops on conflicts and does not guess resolutions.
 
 **Selection (see `references/mode-selection-guide.md`):** explicit `mode` wins;
 otherwise infer — blueprint + no architecture → `design`; "choose the tech stack"
 → `stack`; "review / evaluate / score" → `review`; "apply this stack/decision" →
-`update`; "ux/test/security found gaps / reconcile" → `reconcile`. **Bare
+`update`; "ux/test/security found gaps / reconcile" → `reconcile`; "merge / consolidate
+/ canonical / prepare for implementation-plan" → `materialize`. **Bare
 `architecture` with an existing architecture defaults to `review`** (non-mutating,
 safest — never `update`); `design` only when no architecture exists.
 
@@ -116,8 +121,8 @@ safest — never `update`); `design` only when no architecture exists.
 
 **Optional:**
 
-- `mode`: design / stack / update / review / reconcile (default: auto-detect,
-  see `## Modes`). `stack` mode also requires an existing
+- `mode`: design / stack / update / review / reconcile / materialize (default:
+  auto-detect, see `## Modes`). `stack` mode also requires an existing
   `<topic-slug>-architecture-design.md`.
 - An existing `<topic-slug>-architecture-design.md` to update (or to feed
   `stack` mode)
@@ -160,8 +165,22 @@ architecture; it does not redesign it.
 
 ```text
 <topic-slug>-architecture-review.md           (review — 19 sections, non-mutating)
-<topic-slug>-architecture-update.md           (update — 11 sections, update note)
+<topic-slug>-architecture-update.md           (update — 13 sections, update note)
 <topic-slug>-architecture-reconciliation.md   (reconcile — 11 sections, findings + handoff)
+```
+
+`materialize` mode outputs:
+
+```text
+<topic-slug>-architecture-design.vX.Y.Z.md   (canonical architecture — 30 sections)
+<topic-slug>-artifact-registry.md             (pipeline artifact registry)
+<topic-slug>-open-question-ledger.md          (centralized open questions)
+```
+
+On conflict block:
+
+```text
+<topic-slug>-architecture-materialization-blocked.md
 ```
 
 `review` (`templates/architecture_review_template.md`) scores the architecture on
@@ -398,7 +417,8 @@ the architecture design by default.
   `templates/architecture_update_template.md`): resolve artifacts → apply the
   accepted update source (tech-stack with `Architecture Update Required? = Yes`,
   accepted reconciliation, security-review, newer blueprint, or explicit user
-  decision — **not** ux-design directly) → write `…-architecture-update.md`.
+  decision — **not** ux-design directly) → write `…-architecture-update.md`
+  (13 sections including Patch Manifest, Feedback Closure Matrix).
   **No default overwrite** of the design.
 - **`reconcile`** (`reconcile_tasks`;
   `references/architecture-reconciliation-guide.md`,
@@ -407,6 +427,29 @@ the architecture design by default.
   Architecture Feedback section) → write `…-architecture-reconciliation.md` with
   an `Architecture Update Required?` verdict + handoff to `update`. **No default
   patch.**
+
+### `materialize` mode
+
+`materialize` mode (`materialize_tasks`; `references/materialization-guide.md`,
+`templates/architecture_canonical_template.md`) consolidates the base
+architecture with all accepted update notes into one canonical implementation-
+ready source of truth. Task graph:
+
+1. **Discover and order inputs** — find the base architecture by topic slug;
+   discover accepted update notes; validate acceptance criteria; sort by version /
+   update history; build a section-level patch plan (`prompts/materialize_02`).
+2. **Apply patches and detect conflicts** — check all conflict classes (section,
+   contract, patch-target-missing, text-anchor-gone, supersession,
+   breaking-change); on any BLOCKING conflict stop and write
+   `…-architecture-materialization-blocked.md`; otherwise apply patches in order,
+   remove resolved provisional wording, update ADRs/open-questions/handoffs
+   (`prompts/materialize_03`).
+3. **Produce final canonical documents** — write the canonical architecture (30
+   sections: 27 original + Applied Updates + Superseded Patch Notes +
+   Implementation-Plan Readiness), the artifact registry, and the open-question
+   ledger; run the materialization quality gate (`prompts/materialize_04`).
+
+**Key rule:** merge only; do not create new decisions; stop on conflicts.
 
 ## Operating Modes
 
@@ -548,15 +591,23 @@ and `tests/expected_sections_checklist.md`:
 | `references/architecture-review-guide.md` | `review` mode: scoring + blocking/warning/polish classification |
 | `references/architecture-update-guide.md` | `update` mode: applying accepted decisions into an update note |
 | `references/architecture-reconciliation-guide.md` | `reconcile` mode: downstream feedback → findings + update verdict |
+| `references/materialization-guide.md` | `materialize` mode: merging base + accepted update notes |
+| `references/patch-manifest-guide.md` | `update` mode: Patch Manifest format and update-type taxonomy |
+| `references/artifact-registry-guide.md` | `materialize` mode: artifact registry format and rules |
+| `references/open-question-ledger-guide.md` | `materialize` mode: open-question ledger format and rules |
 | `references/adr_guidance.md` | Writing/superseding ADRs |
 | `references/security_trust_model_guide.md` | Trust zones, AI boundary rules, prompt-injection controls |
 | `references/observability_event_catalogue.md` | Correlation IDs, log/metric/trace/audit catalogue |
 | `references/mcp_adoption_guide.md` | Deciding skill vs MCP; the MCP adoption gate |
 | `templates/architecture_design_template.md` | The 27-section `design` output skeleton |
+| `templates/architecture_canonical_template.md` | The 30-section `materialize` output skeleton |
 | `templates/architecture_tech_stack_template.md` | The `stack` mode output skeleton |
 | `templates/architecture_review_template.md` | The `review` mode output skeleton |
-| `templates/architecture_update_template.md` | The `update` mode output skeleton |
+| `templates/architecture_update_template.md` | The `update` mode output skeleton (13 sections) |
 | `templates/architecture_reconciliation_template.md` | The `reconcile` mode output skeleton |
+| `templates/artifact_registry_template.md` | The artifact registry output skeleton |
+| `templates/open_question_ledger_template.md` | The open-question ledger output skeleton |
+| `templates/materialization_blocked_template.md` | The materialization-blocked report skeleton |
 | `prompts/resolve_artifacts.md` | Shared artifact resolver for review / update / reconcile |
 | `templates/*` | Per-section skeletons (ADR, interfaces, observability, security, AI matrix, tech-stack, traceability, metadata, update history, contents) |
 | `rule-packs/*` | Boundary, data, interface, reliability, AI-boundary, observability, security review gates |

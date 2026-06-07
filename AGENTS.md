@@ -328,20 +328,19 @@ off to the `architecture` skill.
 
 The `architecture` skill is also pure prompt-driven (no CLI/MCP backend) and
 continues the chain `research-pipeline → blueprint → architecture →
-implementation-plan`. It is **one skill with five internal modes** (a mode
+implementation-plan`. It is **one skill with six internal modes** (a mode
 resolver picks the mode and routes to the matching task graph): `design`,
-`stack`, `review`, `update`, and `reconcile`. `design` mode discovers/parses a
-product blueprint (including its §9
-Product Experience Direction and §19 Recommended Next Stages), builds a
-blueprint-to-architecture traceability map, runs a tech-stack/AI-boundary
-co-design loop, and emits a 27-section architecture *design* document
-(`<topic-slug>-architecture-design.md`) with C4 views, a Traditional-vs-AI
-responsibility matrix, an Experience Architecture section, a Recommended Next
-Stages and Downstream Handoffs section, interface and data contracts,
-security/trust boundaries, observability/audit, ADRs, and
-implementation-planning handoff notes — keeping the tech stack **provisional**
-when stack-mode selection is recommended. `stack` mode then selects the concrete
-technology stack against that architecture and writes
+`stack`, `review`, `update`, `reconcile`, and `materialize`. `design` mode
+discovers/parses a product blueprint (including its §9 Product Experience
+Direction and §19 Recommended Next Stages), builds a blueprint-to-architecture
+traceability map, runs a tech-stack/AI-boundary co-design loop, and emits a
+27-section architecture *design* document (`<topic-slug>-architecture-design.md`)
+with C4 views, a Traditional-vs-AI responsibility matrix, an Experience
+Architecture section, a Recommended Next Stages and Downstream Handoffs section,
+interface and data contracts, security/trust boundaries, observability/audit,
+ADRs, and implementation-planning handoff notes — keeping the tech stack
+**provisional** when stack-mode selection is recommended. `stack` mode then
+selects the concrete technology stack against that architecture and writes
 `<topic-slug>-architecture-tech-stack.md`, ending with an explicit *Architecture
 Update Required?* verdict (it satisfies the architecture, never redesigns it).
 The `review`, `update`, and `reconcile` modes operate on an **existing**
@@ -351,18 +350,28 @@ architecture design, and embeds a Resolved Input Artifacts table in every output
 `review` scores the architecture (10-point breakdown) and classifies issues as
 blocking/warning/polish without changing it (`…-architecture-review.md`); `update`
 applies already-accepted decisions (e.g. a tech-stack that declared
-*Architecture Update Required? = Yes*) into an update note
-(`…-architecture-update.md`); `reconcile` turns downstream feedback (primarily a
+*Architecture Update Required? = Yes*) into a 13-section update note
+(`…-architecture-update.md`) that now includes a machine-readable **§5 Patch
+Manifest** (update-type taxonomy: NONE / NOTE_ONLY / ADR_ONLY / CONTRACT_PATCH /
+SECURITY_PATCH / OBSERVABILITY_PATCH / STRUCTURAL_PATCH / BREAKING_CHANGE) and a
+**§12 Feedback Closure Matrix** (tracking which downstream feedback items are
+resolved by which patches); `reconcile` turns downstream feedback (primarily a
 ux-design Architecture Feedback section) into findings, a minimal patch plan, and
 an *Architecture Update Required?* verdict (`…-architecture-reconciliation.md`).
-**No silent mutation:** review never mutates, reconcile never patches by default,
-update never overwrites the design by default, and bare `architecture` with an
-existing architecture defaults to the non-mutating `review`. The skill selects a
-tech stack with rationale but never writes code or implementation tasks, keeps
-durable state under deterministic control (AI output is validated before any
-state change), adopts MCP only when justified, and supports
-regenerate/patch/compare/adr-only/resume design-update behaviour with an
-`## Update History`.
+`materialize` consolidates the base architecture and all accepted update notes
+into one canonical 30-section implementation-ready document
+(`<topic-slug>-architecture-design.vX.Y.Z.md`), plus an artifact registry
+(`<topic-slug>-artifact-registry.md`) and a centralized open-question ledger
+(`<topic-slug>-open-question-ledger.md`); it checks six BLOCKING conflict classes
+before applying any patch and stops with a conflict report if any is found —
+never guessing resolutions. **No silent mutation:** review never mutates, reconcile
+never patches by default, update never overwrites the design by default, materialize
+stops on conflicts and does not guess, and bare `architecture` with an existing
+architecture defaults to the non-mutating `review`. The skill selects a tech stack
+with rationale but never writes code or implementation tasks, keeps durable state
+under deterministic control (AI output is validated before any state change),
+adopts MCP only when justified, and supports regenerate/patch/compare/adr-only/
+resume design-update behaviour with an `## Update History`.
 
 The `ux-design` skill is also pure prompt-driven (no CLI/MCP backend) and
 continues the chain `research-pipeline → blueprint → architecture → ux-design →
