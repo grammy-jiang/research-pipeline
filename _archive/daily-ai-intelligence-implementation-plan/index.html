@@ -1,0 +1,3958 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers — plus a daily AI intelligence briefing system.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/_archive/daily-ai-intelligence-implementation-plan/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Daily AI Intelligence Implementation Plan - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("../..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#daily-ai-intelligence-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href="../.." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Daily AI Intelligence Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href="../.." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../.." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../architecture.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture (legacy)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-001-uv-build-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 uv build tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-002-pydantic-domain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 Pydantic models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-003-stage-based-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Stage-based pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-004-conversion-backend-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 Conversion registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-005-sqlite-persistent-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-005 SQLite state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-006-fastmcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-006 FastMCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-007-multi-tier-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Multi-tier memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../adr/ADR-008-briefing-vs-academic-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 Dual pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../operations-runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feasibility-judgment-from-the-review" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feasibility judgment from the review
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#updated-design-principles" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updated design principles
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#comparison-with-the-current-repository" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Comparison with the current repository
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#packaging-skill-and-mcp-strategy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Packaging, skill, and MCP strategy
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Packaging, skill, and MCP strategy">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#recommendation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommendation
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#why-not-mix-it-into-the-existing-research-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Why not mix it into the existing research skill?
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#mcp-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        MCP layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#skill-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Skill layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#target-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Target architecture
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#data-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Data models
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Data models">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#intelligenceevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        IntelligenceEvent
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#stable-id-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Stable ID policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#briefingcluster" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BriefingCluster
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#topicmemory" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TopicMemory
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#topicdossier" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        TopicDossier
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#feedbackevent" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        FeedbackEvent
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-class-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source class policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#source-registry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source registry
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Source registry">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#briefingsourceconfig" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        BriefingSourceConfig
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#initial-mvp-watchlist-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Initial MVP watchlist policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-source-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub source boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#rssatom-adapter-boundary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        RSS/Atom adapter boundary
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#http-politeness-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        HTTP politeness policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#ranking-and-hype-penalty" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Ranking and hype penalty
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Ranking and hype penalty">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deterministic-ranking-inputs" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic ranking inputs
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-a-ranking-formula" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase A ranking formula
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-a-llm-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase A LLM policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hype-penalty-applies-when" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hype penalty applies when
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#memory-and-obsidian-knowledge-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory and Obsidian knowledge graph
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Memory and Obsidian knowledge graph">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#memory-tiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Memory tiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#topic-lifecycle-logic" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Topic lifecycle logic
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#obsidian-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Obsidian output
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#report-formats-and-templates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Report formats and templates
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Report formats and templates">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#daily-brief-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily brief template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#low-signal-day-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Low-signal day policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#hot-topic-dossier-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Hot-topic dossier template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#weekly-synthesis-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Weekly synthesis template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#monthly-retrospective-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Monthly retrospective template
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#source-note-template" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Source note template
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#feedback-and-preference-learning" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Feedback and preference learning
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Feedback and preference learning">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#explicit-feedback-first" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Explicit feedback first
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#behavioral-feedback-later" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Behavioral feedback later
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reviewable-memory-promotion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reviewable memory promotion
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#harness-engineered-briefing-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Harness-engineered briefing workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Harness-engineered briefing workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#briefing-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Briefing stages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#tool-dag" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Tool DAG
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#telemetry" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Telemetry
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#verification-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Verification gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#budget-and-privacy-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Budget and privacy rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#repository-architecture-and-dependency-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Repository architecture and dependency policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#phase-a-artifact-and-cli-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase A artifact and CLI contracts
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#testing-and-coverage-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Testing and coverage policy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-roadmap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation roadmap
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation roadmap">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#agent-execution-contract-for-every-phase" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Agent execution contract for every phase
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-a-thin-daily-report-with-minimal-governance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase A - Thin daily report with minimal governance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-b-memory-and-fatigue" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase B - Memory and fatigue
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-c-obsidian-archive" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase C - Obsidian archive
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-d-explicit-feedback-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase D - Explicit feedback loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-e-hot-topic-dossiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase E - Hot-topic dossiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-f-source-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase F - Source expansion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#phase-g-harness-hardening-and-agent-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Phase G - Harness hardening and agent workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#suggested-first-implementation-slice" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Suggested first implementation slice
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#non-goals-for-the-first-version" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Non-goals for the first version
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="daily-ai-intelligence-implementation-plan">Daily AI Intelligence Implementation Plan<a class="headerlink" href="#daily-ai-intelligence-implementation-plan" title="Permanent link">&para;</a></h1>
+<h2 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h2>
+<p>Build a private daily AI intelligence system on top of <code>research-pipeline</code> that
+collects sanctioned AI-related signals, remembers topic history, produces a short
+daily briefing, optionally prepares deeper hot-topic reports, archives knowledge
+into Obsidian, and improves ranking from explicit feedback.</p>
+<p>This should <strong>not</strong> replace the existing academic-paper research workflow. The
+current pipeline remains the serious evidence/literature-review engine. The new
+work should add a parallel <strong>briefing pipeline</strong> that reuses shared
+infrastructure where appropriate: source adapters, workspace storage, SQLite
+patterns, telemetry, report rendering, validation, memory, KG primitives, and
+harness-engineered workflow ideas.</p>
+<h2 id="feasibility-judgment-from-the-review">Feasibility judgment from the review<a class="headerlink" href="#feasibility-judgment-from-the-review" title="Permanent link">&para;</a></h2>
+<p>The review's main point is correct: the architecture direction is strong, but
+the first implementation slice was too large. The current repository has enough
+infrastructure to build a thin daily briefing workflow, but it is still
+paper-centric and does not yet have a generic event model, GitHub/RSS/HN source
+adapters, briefing storage, Obsidian export, or briefing-specific MCP tools.</p>
+<p>Therefore, the execution strategy should be:</p>
+<ol>
+<li>Build the smallest reliable daily Markdown brief first.</li>
+<li>Prove the report is worth reading.</li>
+<li>Add memory/fatigue only after the thin brief exists.</li>
+<li>Add Obsidian after report shape and topic IDs are stable.</li>
+<li>Add explicit feedback before behavioral feedback.</li>
+<li>Add dossiers after daily brief quality is stable.</li>
+<li>Add noisy/social sources last.</li>
+</ol>
+<p>After the v3 review updates in this document, <strong>freeze Phase A</strong>. New ideas
+should go into later-phase notes or future considerations, not into Phase A. The
+next useful action is to convert Phase A into implementation tickets and start
+building the thin daily report.</p>
+<h2 id="updated-design-principles">Updated design principles<a class="headerlink" href="#updated-design-principles" title="Permanent link">&para;</a></h2>
+<ol>
+<li><strong>Thin daily brief first</strong></li>
+<li>The MVP should prove that the system can produce a useful 20-minute morning
+     report.</li>
+<li>Do not start with a dashboard, full KG, behavioral tracking, or multi-source
+     social ingestion.</li>
+<li>
+<p>Enforce an editorial budget from the beginning.</p>
+</li>
+<li>
+<p><strong>Memory-first architecture, incremental implementation</strong></p>
+</li>
+<li>The design should reserve stable IDs, topic IDs, and memory hooks early.</li>
+<li>Complex lifecycle logic should wait until repeated-topic pain appears in
+     real briefings.</li>
+<li>
+<p>Durable topic merges, aliases, and preference promotions must be reviewable
+     and reversible.</p>
+</li>
+<li>
+<p><strong>Primary artifacts over social chatter</strong></p>
+</li>
+<li>Prefer official docs, release notes, GitHub releases, repositories, papers,
+     benchmarks, demos, specs, and packages.</li>
+<li>Treat HN, Reddit, Bluesky, and X as discussion/corroboration layers, not as
+     the backbone.</li>
+<li>
+<p>Social-only items should usually move to weekly synthesis unless they link
+     to primary artifacts.</p>
+</li>
+<li>
+<p><strong>Agent-readable reports</strong></p>
+</li>
+<li>Reports should be easy for a human to read and easy for an AI agent to parse.</li>
+<li>Use stable IDs, YAML frontmatter, clear section names, evidence tables,
+     bounded bullets, and explicit machine-readable summaries.</li>
+<li>
+<p>Avoid clever prose that hides source, novelty, confidence, or actionability.</p>
+</li>
+<li>
+<p><strong>Harness engineering for quality</strong></p>
+</li>
+<li>Treat the briefing system as a governed runtime, not a summarizer prompt.</li>
+<li>Put policy in deterministic layers: source registry, schemas, allowlists,
+     budgets, verification gates, telemetry, and audit logs.</li>
+<li>LLM calls should happen after source governance, deduplication, ranking, and
+     evidence-pack construction.</li>
+</ol>
+<h2 id="comparison-with-the-current-repository">Comparison with the current repository<a class="headerlink" href="#comparison-with-the-current-repository" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Current implementation</th>
+<th>Reuse</th>
+<th>Missing work</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Academic sources</td>
+<td>arXiv, Scholar, Semantic Scholar, OpenAlex, DBLP, Hugging Face daily papers</td>
+<td>Reuse paper adapters and candidate models for paper events</td>
+<td>Map paper candidates into a broader event model</td>
+</tr>
+<tr>
+<td>Daily watch</td>
+<td><code>watch</code> command for arXiv saved queries</td>
+<td>Reuse state-file and cron-friendly pattern</td>
+<td>Generalize to multi-source polling and source cadence</td>
+</tr>
+<tr>
+<td>HTTP/retry/rate limit</td>
+<td>Shared <code>requests</code> session, retry, rate limit helpers</td>
+<td>Reuse for new source adapters</td>
+<td>Add source-specific policies and quotas</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>Workspace dirs, JSONL manifests, SQLite global paper index</td>
+<td>Reuse layout and SQLite style</td>
+<td>Add briefing run layout and event/topic stores</td>
+</tr>
+<tr>
+<td>Reports</td>
+<td>Markdown/HTML report commands and templates</td>
+<td>Reuse rendering/export concepts</td>
+<td>Add daily, dossier, weekly, monthly templates</td>
+</tr>
+<tr>
+<td>Memory/KG</td>
+<td>Existing memory and KG components are paper/claim-oriented</td>
+<td>Reuse concepts and low-level storage patterns</td>
+<td>Add event/topic/source graph and Obsidian export</td>
+</tr>
+<tr>
+<td>Feedback</td>
+<td>Existing feedback is paper accept/reject</td>
+<td>Reuse explicit-feedback idea</td>
+<td>Add cluster/topic/source feedback events</td>
+</tr>
+<tr>
+<td>MCP workflow</td>
+<td>Existing MCP server and workflow are academic-paper oriented</td>
+<td>Reuse implementation patterns</td>
+<td>Add namespaced briefing tools without confusing paper tools</td>
+</tr>
+<tr>
+<td>Skill</td>
+<td>Existing skill is academic-paper research</td>
+<td>Keep it separate</td>
+<td>Add a dedicated daily-intelligence skill</td>
+</tr>
+</tbody>
+</table>
+<h2 id="packaging-skill-and-mcp-strategy">Packaging, skill, and MCP strategy<a class="headerlink" href="#packaging-skill-and-mcp-strategy" title="Permanent link">&para;</a></h2>
+<h3 id="recommendation">Recommendation<a class="headerlink" href="#recommendation" title="Permanent link">&para;</a></h3>
+<p>Use the <strong>same Python package and same CLI binary</strong>, but keep the daily briefing
+workflow separate at the user/agent-facing layer.</p>
+<p>Do this:</p>
+<ul>
+<li>Add CLI commands under a new command group: <code>research-pipeline brief ...</code>.</li>
+<li>Add MCP tools to the existing server, but namespace them as <code>brief_*</code>.</li>
+<li>Add a <strong>separate bundled skill</strong> named something like
+  <code>daily-ai-intelligence</code>.</li>
+<li>Reuse shared infrastructure from <code>research_pipeline</code>, but keep briefing code in
+  a separate package namespace such as <code>research_pipeline/briefing/</code>.</li>
+</ul>
+<p>Do <strong>not</strong> create a separate Python package or MCP server for the MVP unless
+security, deployment, or source-policy isolation later requires it.</p>
+<h3 id="why-not-mix-it-into-the-existing-research-skill">Why not mix it into the existing research skill?<a class="headerlink" href="#why-not-mix-it-into-the-existing-research-skill" title="Permanent link">&para;</a></h3>
+<p>The existing <code>research-pipeline</code> skill is optimized for academic literature
+reviews: query planning, paper screening, PDF download/conversion, evidence
+extraction, gap closure, and structured synthesis. Daily intelligence has a
+different trigger, cadence, report shape, risk profile, and success metric.</p>
+<p>Mixing both into one skill would confuse agents:</p>
+<ul>
+<li>A request for "daily AI brief" should not trigger PDF download/conversion.</li>
+<li>A request for "literature review" should not trigger RSS/GitHub polling.</li>
+<li>Daily reports value brevity and novelty; research reports value depth and
+  evidence completeness.</li>
+<li>Daily intelligence needs source governance and memory/fatigue; academic
+  synthesis needs paper evidence and gap closure.</li>
+</ul>
+<h3 id="mcp-layout">MCP layout<a class="headerlink" href="#mcp-layout" title="Permanent link">&para;</a></h3>
+<p>Use one server process initially:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>research-pipeline mcp serve
+</code></pre></div>
+<p>Add briefing tools with explicit names:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>brief_poll_sources</code></td>
+<td>Poll configured briefing sources and write raw/normalized events</td>
+</tr>
+<tr>
+<td><code>brief_rank_events</code></td>
+<td>Deduplicate, cluster, and rank events</td>
+</tr>
+<tr>
+<td><code>brief_generate_daily</code></td>
+<td>Generate the daily Markdown/HTML brief</td>
+</tr>
+<tr>
+<td><code>brief_validate_report</code></td>
+<td>Verify length, links, sections, duplicates, and evidence</td>
+</tr>
+<tr>
+<td><code>brief_export_obsidian</code></td>
+<td>Export daily/topic notes to the configured vault</td>
+</tr>
+<tr>
+<td><code>brief_record_feedback</code></td>
+<td>Record explicit feedback on cluster/topic/source</td>
+</tr>
+<tr>
+<td><code>brief_generate_dossier</code></td>
+<td>Generate one selected hot-topic dossier</td>
+</tr>
+<tr>
+<td><code>brief_weekly_synthesis</code></td>
+<td>Generate weekly trend memo</td>
+</tr>
+</tbody>
+</table>
+<p>Keep tool descriptions explicit that these are <strong>technical intelligence</strong> tools,
+not academic-paper research tools. Use MCP annotations carefully:</p>
+<ul>
+<li>Polling tools are open-world/networked.</li>
+<li>Ranking and validation tools are local and deterministic.</li>
+<li>Obsidian export writes only to configured archive paths.</li>
+<li>Feedback writes only to the local feedback store.</li>
+</ul>
+<h3 id="skill-layout">Skill layout<a class="headerlink" href="#skill-layout" title="Permanent link">&para;</a></h3>
+<p>Add a separate bundled skill:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>src/research_pipeline/skill_data/daily-ai-intelligence/
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>  SKILL.md
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>  config.toml
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a>  references/
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>    command-reference.md
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a>    source-policy.md
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>    report-templates.md
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a>    feedback-loop.md
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a>    troubleshooting.md
+</code></pre></div>
+<p>Skill trigger examples:</p>
+<ul>
+<li>"Generate today's AI intelligence brief"</li>
+<li>"Run the daily AI briefing"</li>
+<li>"Check AI agent/coding-agent updates today"</li>
+<li>"Prepare my MCP/Copilot/Claude Code daily brief"</li>
+<li>"Create a weekly AI tooling trend memo"</li>
+</ul>
+<p>Skill non-triggers:</p>
+<ul>
+<li>"Do a literature review"</li>
+<li>"Find papers and synthesize them"</li>
+<li>"Download and convert these PDFs"</li>
+<li>"Expand citations"</li>
+</ul>
+<p>Agent guidance:</p>
+<ul>
+<li>Use <code>brief_*</code> MCP tools or <code>research-pipeline brief ...</code> commands.</li>
+<li>Never send raw unclustered source dumps to cloud models.</li>
+<li>Use only ranked evidence packs for synthesis.</li>
+<li>Keep daily reports short.</li>
+<li>Record explicit feedback after user review.</li>
+<li>For deep paper-only questions, hand off to the existing academic
+  <code>research-pipeline</code> skill.</li>
+</ul>
+<h2 id="target-architecture">Target architecture<a class="headerlink" href="#target-architecture" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>flowchart TD
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a>    Sources[&quot;Allowed sources&lt;br/&gt;GitHub releases · RSS/docs · later papers/HN&quot;] --&gt; Poll[&quot;Poll&quot;]
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>    Poll --&gt; VerifyRaw[&quot;Verify raw source records&quot;]
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>    VerifyRaw --&gt; Normalize[&quot;Normalize to IntelligenceEvent&quot;]
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a>    Normalize --&gt; Dedup[&quot;Exact dedup and cluster&quot;]
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a>    Dedup --&gt; Rank[&quot;Deterministic ranking&quot;]
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a>    Rank --&gt; Brief[&quot;Daily Markdown brief&quot;]
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a>    Brief --&gt; Validate[&quot;Validate brief&quot;]
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a>    Validate --&gt; Archive[&quot;Local archive / later Obsidian&quot;]
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a>    Archive --&gt; Feedback[&quot;Explicit feedback&quot;]
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a>    Feedback --&gt; Preferences[&quot;Reviewable preference updates&quot;]
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a>    Preferences --&gt; Rank
+</code></pre></div>
+<p>Later phases add topic memory, Obsidian graph notes, dossiers, expanded sources,
+and richer MCP workflow orchestration.</p>
+<h2 id="data-models">Data models<a class="headerlink" href="#data-models" title="Permanent link">&para;</a></h2>
+<h3 id="intelligenceevent"><code>IntelligenceEvent</code><a class="headerlink" href="#intelligenceevent" title="Permanent link">&para;</a></h3>
+<p>Use this as the common normalized record for releases, docs, RSS items, papers,
+HN posts, and later social/discussion items.</p>
+<p>Required source fields:</p>
+<ul>
+<li><code>event_id</code></li>
+<li><code>source_name</code></li>
+<li><code>source_type</code></li>
+<li><code>source_policy</code></li>
+<li><code>item_type</code></li>
+<li><code>canonical_url</code></li>
+<li><code>title</code></li>
+<li><code>retrieved_at</code></li>
+<li><code>collection_method</code></li>
+<li><code>content_hash</code></li>
+<li><code>dedup_key</code></li>
+</ul>
+<p>Optional source fields:</p>
+<ul>
+<li><code>author_or_org</code></li>
+<li><code>published_at</code></li>
+<li><code>updated_at</code></li>
+<li><code>source_native_id</code></li>
+<li><code>identifiers</code></li>
+<li><code>summary_hint</code></li>
+<li><code>excerpt</code></li>
+</ul>
+<p>Derived fields:</p>
+<ul>
+<li><code>topics</code></li>
+<li><code>relevance_score</code></li>
+<li><code>novelty_score</code></li>
+<li><code>artifact_links</code></li>
+<li><code>inferred_entities</code></li>
+<li><code>ranking_explanation</code></li>
+<li><code>confidence</code></li>
+<li><code>evidence_type</code></li>
+</ul>
+<p>Retention-sensitive fields:</p>
+<ul>
+<li><code>raw_metadata</code></li>
+<li><code>raw_social_text</code></li>
+<li><code>comments</code></li>
+<li><code>discussion_threads</code></li>
+<li><code>author_profile_metadata</code></li>
+</ul>
+<p>Policy:</p>
+<ul>
+<li>Do not require derived or retention-sensitive fields in the MVP.</li>
+<li>Store minimal raw data for sources with policy/privacy risk.</li>
+<li>Keep full raw payloads only when source terms and local privacy policy allow it.</li>
+</ul>
+<h3 id="stable-id-policy">Stable ID policy<a class="headerlink" href="#stable-id-policy" title="Permanent link">&para;</a></h3>
+<p>Phase A IDs must be deterministic so deduplication, memory, feedback, and tests
+do not drift across runs.</p>
+<p>Use these rules unless a later migration explicitly changes them:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>event_id =
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  stable hash of source_id + source_native_id when source_native_id exists,
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>  otherwise stable hash of source_id + canonical_url
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>content_hash =
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>  stable hash of normalized title + canonical_url + published_at + summary_hint
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>dedup_key =
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>  strongest available key in order:
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>    source_native_id
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>    canonical_url
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    repo/tag for GitHub release events
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>    RSS/Atom guid/id
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    normalized title
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>cluster_id =
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>  stable hash of primary dedup_key
+</code></pre></div>
+<p>Normalize titles, URLs, and timestamps before hashing. Keep the hash algorithm
+fixed in code and include migration notes if it ever changes.</p>
+<h3 id="briefingcluster"><code>BriefingCluster</code><a class="headerlink" href="#briefingcluster" title="Permanent link">&para;</a></h3>
+<p>Clusters one underlying event across one or more records.</p>
+<p>Fields:</p>
+<ul>
+<li><code>cluster_id</code></li>
+<li><code>title</code></li>
+<li><code>primary_event_id</code></li>
+<li><code>event_ids</code></li>
+<li><code>topic_ids</code></li>
+<li><code>canonical_urls</code></li>
+<li><code>first_seen_at</code></li>
+<li><code>last_seen_at</code></li>
+<li><code>source_classes</code></li>
+<li><code>primary_artifact_present</code></li>
+<li><code>novelty_score</code></li>
+<li><code>authority_score</code></li>
+<li><code>engineering_usefulness_score</code></li>
+<li><code>personal_interest_score</code></li>
+<li><code>hype_penalty</code></li>
+<li><code>rank_score</code></li>
+<li><code>ranking_explanation</code></li>
+</ul>
+<h3 id="topicmemory"><code>TopicMemory</code><a class="headerlink" href="#topicmemory" title="Permanent link">&para;</a></h3>
+<p>Tracks durable topic state across days. Implement after the thin daily report.</p>
+<p>Fields:</p>
+<ul>
+<li><code>topic_id</code></li>
+<li><code>name</code></li>
+<li><code>aliases</code></li>
+<li><code>first_seen_at</code></li>
+<li><code>last_seen_at</code></li>
+<li><code>status</code>: <code>new</code>, <code>active</code>, <code>cooling</code>, <code>dormant</code>, <code>resurfaced</code></li>
+<li><code>summary</code></li>
+<li><code>key_entities</code></li>
+<li><code>canonical_clusters</code></li>
+<li><code>obsidian_note</code></li>
+<li><code>interest_score</code></li>
+<li><code>fatigue_score</code></li>
+<li><code>last_reported_at</code></li>
+<li><code>report_count_7d</code></li>
+<li><code>report_count_30d</code></li>
+</ul>
+<p>Rules:</p>
+<ul>
+<li>A new <code>TopicMemory</code> entry may be created automatically.</li>
+<li>Aliases, durable merges, and long-term preference changes require review.</li>
+<li>Topic splits and merges must be reversible.</li>
+<li>Model-suggested aliases should be stored as suggestions before promotion.</li>
+</ul>
+<h3 id="topicdossier"><code>TopicDossier</code><a class="headerlink" href="#topicdossier" title="Permanent link">&para;</a></h3>
+<p>Prepared single-topic report linked from the daily brief. Implement after daily
+brief quality is stable.</p>
+<p>Fields:</p>
+<ul>
+<li><code>dossier_id</code></li>
+<li><code>topic_id</code></li>
+<li><code>cluster_ids</code></li>
+<li><code>title</code></li>
+<li><code>why_it_matters</code></li>
+<li><code>what_changed</code></li>
+<li><code>prior_context</code></li>
+<li><code>evidence_timeline</code></li>
+<li><code>linked_artifacts</code></li>
+<li><code>open_questions</code></li>
+<li><code>try_next</code></li>
+<li><code>obsidian_note</code></li>
+</ul>
+<h3 id="feedbackevent"><code>FeedbackEvent</code><a class="headerlink" href="#feedbackevent" title="Permanent link">&para;</a></h3>
+<p>Captures explicit and, later, weak behavioral preference signals.</p>
+<p>Fields:</p>
+<ul>
+<li><code>feedback_id</code></li>
+<li><code>timestamp</code></li>
+<li><code>target_type</code>: <code>event</code>, <code>cluster</code>, <code>topic</code>, <code>source</code>, <code>dossier</code></li>
+<li><code>target_id</code></li>
+<li><code>signal_type</code></li>
+<li><code>strength</code></li>
+<li><code>reason</code></li>
+<li><code>context</code></li>
+</ul>
+<p>MVP explicit signals:</p>
+<ul>
+<li><code>keep</code></li>
+<li><code>hide</code></li>
+<li><code>more_like_this</code></li>
+<li><code>less_like_this</code></li>
+<li><code>too_noisy</code></li>
+<li><code>already_known</code></li>
+<li><code>not_actionable</code></li>
+</ul>
+<p>Later behavioral signals:</p>
+<ul>
+<li><code>opened_link</code></li>
+<li><code>opened_dossier</code></li>
+<li><code>saved_item</code></li>
+<li><code>read_time</code></li>
+<li><code>topic_note_edited</code></li>
+</ul>
+<p>Behavioral feedback must remain weak evidence unless repeated and confirmed.</p>
+<h2 id="source-class-policy">Source class policy<a class="headerlink" href="#source-class-policy" title="Permanent link">&para;</a></h2>
+<p>Every source and event should have a source class:</p>
+<table>
+<thead>
+<tr>
+<th>Source class</th>
+<th>Examples</th>
+<th>Ranking posture</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Primary artifact</td>
+<td>Official doc, release note, spec change, package, benchmark, demo</td>
+<td>Strongly prefer</td>
+</tr>
+<tr>
+<td>Academic source</td>
+<td>arXiv, OpenAlex, Semantic Scholar, Crossref</td>
+<td>Prefer when relevant</td>
+</tr>
+<tr>
+<td>Implementation source</td>
+<td>GitHub repo, release, changelog, package registry</td>
+<td>Strongly prefer</td>
+</tr>
+<tr>
+<td>Technical discussion</td>
+<td>HN thread with technical links, curated forum thread</td>
+<td>Allow if useful</td>
+</tr>
+<tr>
+<td>Social signal</td>
+<td>Reddit, Bluesky, X</td>
+<td>Weak unless corroborated</td>
+</tr>
+<tr>
+<td>Media/news</td>
+<td>News article, broad media</td>
+<td>Low priority</td>
+</tr>
+<tr>
+<td>Newsletter</td>
+<td>Sanctioned/curated newsletter feed</td>
+<td>Medium if trusted</td>
+</tr>
+<tr>
+<td>Video/audio</td>
+<td>YouTube, podcasts</td>
+<td>Weekly context, not daily backbone</td>
+</tr>
+</tbody>
+</table>
+<p>Daily inclusion should normally require a primary artifact or implementation
+artifact. Social-only clusters should be suppressed or moved to weekly synthesis
+unless corroborated.</p>
+<h2 id="source-registry">Source registry<a class="headerlink" href="#source-registry" title="Permanent link">&para;</a></h2>
+<p>The source registry is the first governance layer. No source should be polled
+unless it has an explicit registry entry. This prevents source ingestion from
+becoming ad hoc as more feeds, APIs, and social sources are added.</p>
+<h3 id="briefingsourceconfig"><code>BriefingSourceConfig</code><a class="headerlink" href="#briefingsourceconfig" title="Permanent link">&para;</a></h3>
+<p>Fields:</p>
+<ul>
+<li><code>source_id</code></li>
+<li><code>source_name</code></li>
+<li><code>source_class</code></li>
+<li><code>access_method</code>: <code>github_releases</code>, <code>rss_atom</code>, <code>arxiv</code>, <code>api</code>, <code>manual</code></li>
+<li><code>official_url</code></li>
+<li><code>auth_required</code></li>
+<li><code>rate_limit_policy</code></li>
+<li><code>cadence</code></li>
+<li><code>retention_policy</code></li>
+<li><code>allowed_raw_storage</code></li>
+<li><code>trust_weight</code></li>
+<li><code>noise_weight</code></li>
+<li><code>enabled</code></li>
+<li><code>last_reviewed_at</code></li>
+<li><code>max_events_per_run</code></li>
+<li><code>tags</code></li>
+</ul>
+<p>Phase A must support only:</p>
+<ul>
+<li><code>github_releases</code></li>
+<li><code>rss_atom</code></li>
+<li>optionally <code>manual</code> for hand-curated URLs during calibration</li>
+</ul>
+<p>Manual source means a local config entry containing a title, URL, source class,
+and optional <code>summary_hint</code>. It does not mean browser scraping, pasted
+social-media dumps, copied comment threads, or a bypass around source policy.
+Manual items must still pass normalization, deduplication, ranking, validation,
+and report-budget checks.</p>
+<p>Do not add browser scraping. Do not add a source because it is merely
+interesting. Add it only when the registry entry defines access, cadence,
+retention, and expected value.</p>
+<h3 id="initial-mvp-watchlist-policy">Initial MVP watchlist policy<a class="headerlink" href="#initial-mvp-watchlist-policy" title="Permanent link">&para;</a></h3>
+<p>The MVP should start with a small curated source list, not an open feed universe.
+Use only sources with clean sanctioned access. GitHub releases are feasible via
+the GitHub API or release feeds. RSS/Atom is feasible with the existing
+<code>requests</code> and <code>lxml</code> dependencies.</p>
+<p>Candidate categories:</p>
+<table>
+<thead>
+<tr>
+<th>Category</th>
+<th>Phase A rule</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OpenAI docs/changelog</td>
+<td>Include only if a stable RSS/feed/API or manually reviewed source exists</td>
+</tr>
+<tr>
+<td>Anthropic docs/changelog</td>
+<td>Include only if a stable RSS/feed/API or manually reviewed source exists</td>
+</tr>
+<tr>
+<td>GitHub Copilot changelog/docs</td>
+<td>Include if a stable feed or release source exists</td>
+</tr>
+<tr>
+<td>Microsoft developer AI/blog feeds</td>
+<td>Include selected official RSS feeds only</td>
+</tr>
+<tr>
+<td>Google/Gemini developer updates</td>
+<td>Include selected official RSS feeds only</td>
+</tr>
+<tr>
+<td>Model Context Protocol docs/spec/repos</td>
+<td>Prefer GitHub releases/repo feeds and official spec update feeds</td>
+</tr>
+<tr>
+<td>Selected local/coding-agent repos</td>
+<td>Include only explicitly whitelisted repos</td>
+</tr>
+<tr>
+<td>arXiv/Hugging Face/HN</td>
+<td>Not Phase A unless manually requested; add in Phase F</td>
+</tr>
+</tbody>
+</table>
+<p>Phase A discussion items are allowed only if they come from already-allowed
+official/RSS sources. HN, Reddit, Bluesky, and X are not part of Phase A.</p>
+<h3 id="github-source-boundary">GitHub source boundary<a class="headerlink" href="#github-source-boundary" title="Permanent link">&para;</a></h3>
+<p>Phase A supports <strong>GitHub releases only</strong>.</p>
+<p>Future GitHub source types may include:</p>
+<ul>
+<li>tags</li>
+<li>PRs</li>
+<li>issues</li>
+<li>discussions</li>
+<li>changelog files</li>
+<li>README/spec changes</li>
+<li>examples directory changes</li>
+</ul>
+<p>Each future GitHub source type requires its own source registry policy, cadence,
+retention rule, offline fixtures, and noise evaluation. Do not silently expand
+the GitHub adapter from releases into general repository surveillance.</p>
+<h3 id="rssatom-adapter-boundary">RSS/Atom adapter boundary<a class="headerlink" href="#rssatom-adapter-boundary" title="Permanent link">&para;</a></h3>
+<p>The Phase A RSS/Atom adapter should support a conservative subset:</p>
+<ul>
+<li>channel/feed title</li>
+<li>item/entry title</li>
+<li>link</li>
+<li>guid/id</li>
+<li>pubDate/updated/published</li>
+<li>summary/description when available</li>
+</ul>
+<p>Malformed feeds should fail per source, not fail the whole daily run. The adapter
+should emit a telemetry event and continue polling other enabled sources.</p>
+<h3 id="http-politeness-policy">HTTP politeness policy<a class="headerlink" href="#http-politeness-policy" title="Permanent link">&para;</a></h3>
+<p>Source adapters should:</p>
+<ul>
+<li>set a clear <code>User-Agent</code></li>
+<li>use <code>ETag</code> / <code>If-None-Match</code> when available</li>
+<li>use <code>Last-Modified</code> / <code>If-Modified-Since</code> when available</li>
+<li>cache responses where source policy allows</li>
+<li>isolate per-source failures</li>
+<li>never retry aggressively</li>
+</ul>
+<p>In Phase A, keep caching small and explicit: store <code>etag</code>, <code>last_modified</code>,
+<code>retrieved_at</code>, <code>status_code</code>, and either <code>body_hash</code> or <code>body_path</code>. Do not build
+a general HTTP cache framework until source behavior proves it is needed.</p>
+<h2 id="ranking-and-hype-penalty">Ranking and hype penalty<a class="headerlink" href="#ranking-and-hype-penalty" title="Permanent link">&para;</a></h2>
+<h3 id="deterministic-ranking-inputs">Deterministic ranking inputs<a class="headerlink" href="#deterministic-ranking-inputs" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Topic/watchlist match.</li>
+<li>Source class and authority.</li>
+<li>Presence of primary artifact.</li>
+<li>Novelty versus recent archive.</li>
+<li>Engineering usefulness.</li>
+<li>Implementation availability.</li>
+<li>Cross-source confirmation.</li>
+<li>Explicit feedback preferences.</li>
+<li>Fatigue score.</li>
+<li>Hype penalty.</li>
+</ul>
+<h3 id="phase-a-ranking-formula">Phase A ranking formula<a class="headerlink" href="#phase-a-ranking-formula" title="Permanent link">&para;</a></h3>
+<p>Start with a deterministic, inspectable score:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>rank_score =
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>  source_class_weight
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>+ trust_weight
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>- noise_weight
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a>+ primary_artifact_bonus
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>+ watchlist_match_bonus
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>- hype_penalty
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>- duplicate_penalty
+</code></pre></div>
+<p>Phase A should not use hidden LLM judgment for ranking. Later phases may add:</p>
+<ul>
+<li>novelty</li>
+<li>fatigue</li>
+<li>memory context</li>
+<li>explicit feedback</li>
+<li>cross-source confirmation</li>
+</ul>
+<p>Use deterministic tie-breaking whenever <code>rank_score</code> ties:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>rank_score desc
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>source_class_weight desc
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>published_at desc
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>trust_weight desc
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>title asc
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>event_id asc
+</code></pre></div>
+<p>This tie-breaker order is part of the Phase A test contract. It prevents report
+churn when source order or JSONL read order changes.</p>
+<h3 id="phase-a-llm-policy">Phase A LLM policy<a class="headerlink" href="#phase-a-llm-policy" title="Permanent link">&para;</a></h3>
+<p>Phase A report generation should be template-based and extractive by default.
+LLM summarization is disabled unless explicitly enabled by configuration.</p>
+<p>If LLM summarization is enabled:</p>
+<ul>
+<li>send only ranked evidence packs, never raw unclustered source dumps</li>
+<li>keep source URLs and evidence labels attached to every generated item</li>
+<li>validate the final report with the same deterministic validator</li>
+<li>treat the LLM text as presentation, not as a source of new facts</li>
+</ul>
+<h3 id="hype-penalty-applies-when">Hype penalty applies when<a class="headerlink" href="#hype-penalty-applies-when" title="Permanent link">&para;</a></h3>
+<ul>
+<li>No primary artifact exists.</li>
+<li>Only social discussion exists.</li>
+<li>Benchmark claim lacks reproducible data.</li>
+<li>Source uses vague superlatives without evidence.</li>
+<li>No code, paper, release note, documentation, demo, or spec is linked.</li>
+<li>Same claim appears across low-quality reposts.</li>
+</ul>
+<h2 id="memory-and-obsidian-knowledge-graph">Memory and Obsidian knowledge graph<a class="headerlink" href="#memory-and-obsidian-knowledge-graph" title="Permanent link">&para;</a></h2>
+<h3 id="memory-tiers">Memory tiers<a class="headerlink" href="#memory-tiers" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Tier</th>
+<th>Lifetime</th>
+<th>Store</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Working memory</td>
+<td>One daily run</td>
+<td>run workspace JSON/JSONL</td>
+<td>Today's events, clusters, rank decisions</td>
+</tr>
+<tr>
+<td>Episodic memory</td>
+<td>Days/weeks</td>
+<td>SQLite plus archived JSONL</td>
+<td>Topic appearances, daily reports, feedback</td>
+</tr>
+<tr>
+<td>Semantic memory</td>
+<td>Long-term</td>
+<td>KG plus Obsidian notes</td>
+<td>Durable topics, entities, source relationships</td>
+</tr>
+</tbody>
+</table>
+<h3 id="topic-lifecycle-logic">Topic lifecycle logic<a class="headerlink" href="#topic-lifecycle-logic" title="Permanent link">&para;</a></h3>
+<p>The daily brief should eventually know whether a topic is:</p>
+<ul>
+<li><strong>New</strong>: no prior memory or materially different from prior clusters.</li>
+<li><strong>Active</strong>: appeared recently and has new primary evidence.</li>
+<li><strong>Cooling</strong>: recent attention but no meaningful new evidence today.</li>
+<li><strong>Dormant</strong>: absent for a configured window.</li>
+<li><strong>Resurfaced</strong>: dormant topic has new evidence and should link to prior history.</li>
+</ul>
+<p>Report policy:</p>
+<ul>
+<li>Mention <code>new</code>, <code>active with new evidence</code>, and <code>resurfaced</code>.</li>
+<li>Suppress <code>cooling</code> unless useful for weekly synthesis.</li>
+<li>Penalize high-fatigue topics unless new evidence is strong.</li>
+<li>Link to prior Obsidian notes when a topic resurfaces.</li>
+</ul>
+<h3 id="obsidian-output">Obsidian output<a class="headerlink" href="#obsidian-output" title="Permanent link">&para;</a></h3>
+<p>Suggested vault layout:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>AI-Intelligence/
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>  Daily/
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>    2026-04-27.md
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a>  Topics/
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>    mcp-agent-protocol.md
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>    claude-code.md
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a>    coding-agent-evals.md
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>  Dossiers/
+<a id="__codelineno-6-9" name="__codelineno-6-9" href="#__codelineno-6-9"></a>    2026-04-27-claude-code-new-release.md
+<a id="__codelineno-6-10" name="__codelineno-6-10" href="#__codelineno-6-10"></a>  Sources/
+<a id="__codelineno-6-11" name="__codelineno-6-11" href="#__codelineno-6-11"></a>    github-anthropics-claude-code.md
+<a id="__codelineno-6-12" name="__codelineno-6-12" href="#__codelineno-6-12"></a>    openai-docs.md
+<a id="__codelineno-6-13" name="__codelineno-6-13" href="#__codelineno-6-13"></a>  Weekly/
+<a id="__codelineno-6-14" name="__codelineno-6-14" href="#__codelineno-6-14"></a>    2026-W18.md
+<a id="__codelineno-6-15" name="__codelineno-6-15" href="#__codelineno-6-15"></a>  Monthly/
+<a id="__codelineno-6-16" name="__codelineno-6-16" href="#__codelineno-6-16"></a>    2026-04.md
+</code></pre></div>
+<p>Each note should include YAML frontmatter and stable IDs so AI agents can parse
+it without relying on prose.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nn">---</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="nt">type</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">daily-brief</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="nt">date</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">2026-04-27</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="nt">brief_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">brief_2026_04_27</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nt">topics</span><span class="p">:</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;[[claude-code]]&quot;</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;[[mcp-agent-protocol]]&quot;</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="nt">clusters</span><span class="p">:</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">cluster_abc123</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="nt">sources</span><span class="p">:</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">github</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">openai-docs</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="nt">agent_summary</span><span class="p">:</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span><span class="nt">item_count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">8</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="w">  </span><span class="nt">link_count</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">12</span>
+<a id="__codelineno-7-16" name="__codelineno-7-16" href="#__codelineno-7-16"></a><span class="w">  </span><span class="nt">has_suppressed_section</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">true</span>
+<a id="__codelineno-7-17" name="__codelineno-7-17" href="#__codelineno-7-17"></a><span class="nn">---</span>
+</code></pre></div>
+<h2 id="report-formats-and-templates">Report formats and templates<a class="headerlink" href="#report-formats-and-templates" title="Permanent link">&para;</a></h2>
+<p>Reports should be dual-use: readable by a human, structured enough for AI agents.
+Use predictable headings, stable IDs, short paragraphs, evidence tables, and
+frontmatter. Every report should have an <code>Agent Read Map</code> section near the top.</p>
+<h3 id="daily-brief-template">Daily brief template<a class="headerlink" href="#daily-brief-template" title="Permanent link">&para;</a></h3>
+<p>Target:</p>
+<ul>
+<li>900-1,400 words.</li>
+<li>6-10 primary items on active days.</li>
+<li>Fewer than 15 links.</li>
+<li>Max 3 papers.</li>
+<li>Max 3 GitHub/release items.</li>
+<li>Max 2 discussion items.</li>
+<li>Max 1 speculative/hype item.</li>
+</ul>
+<h3 id="low-signal-day-policy">Low-signal day policy<a class="headerlink" href="#low-signal-day-policy" title="Permanent link">&para;</a></h3>
+<p>The system must not pad the daily brief.</p>
+<p>If fewer than 6 high-quality primary items exist, generate a shorter low-signal
+brief with:</p>
+<ul>
+<li>Executive Signal</li>
+<li>0-5 Top Items</li>
+<li>No Material Updates section</li>
+<li>Watchlist Quiet section</li>
+<li>Follow-up Queue if useful</li>
+</ul>
+<p>A low-signal day is valid output, not a pipeline failure. The end-to-end offline
+tests must cover both "low-signal day" and "no material updates found today".</p>
+<p>Template:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>---
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>type: daily-brief
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>date: YYYY-MM-DD
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a>brief_id: brief_YYYY_MM_DD
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>status: draft|validated
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>item_count: 0
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a>link_count: 0
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>source_mix:
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>  github: 0
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a>  rss: 0
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>  papers: 0
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a><span class="gu">  discussion: 0</span>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="gu">---</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>
+<a id="__codelineno-8-15" name="__codelineno-8-15" href="#__codelineno-8-15"></a><span class="gh"># Daily AI Intelligence Brief — YYYY-MM-DD</span>
+<a id="__codelineno-8-16" name="__codelineno-8-16" href="#__codelineno-8-16"></a>
+<a id="__codelineno-8-17" name="__codelineno-8-17" href="#__codelineno-8-17"></a><span class="gu">## Agent Read Map</span>
+<a id="__codelineno-8-18" name="__codelineno-8-18" href="#__codelineno-8-18"></a>
+<a id="__codelineno-8-19" name="__codelineno-8-19" href="#__codelineno-8-19"></a>| Field | Value |
+<a id="__codelineno-8-20" name="__codelineno-8-20" href="#__codelineno-8-20"></a>|---|---|
+<a id="__codelineno-8-21" name="__codelineno-8-21" href="#__codelineno-8-21"></a>| Primary purpose | 20-minute daily technical brief |
+<a id="__codelineno-8-22" name="__codelineno-8-22" href="#__codelineno-8-22"></a>| Best sections for action | Executive Signal, Top Items, Follow-up Queue |
+<a id="__codelineno-8-23" name="__codelineno-8-23" href="#__codelineno-8-23"></a>| Machine targets | cluster IDs, topic IDs, evidence URLs, feedback IDs |
+<a id="__codelineno-8-24" name="__codelineno-8-24" href="#__codelineno-8-24"></a>
+<a id="__codelineno-8-25" name="__codelineno-8-25" href="#__codelineno-8-25"></a><span class="gu">## Executive Signal</span>
+<a id="__codelineno-8-26" name="__codelineno-8-26" href="#__codelineno-8-26"></a>
+<a id="__codelineno-8-27" name="__codelineno-8-27" href="#__codelineno-8-27"></a><span class="k">-</span><span class="w"> </span>3-5 bullets on what materially changed.
+<a id="__codelineno-8-28" name="__codelineno-8-28" href="#__codelineno-8-28"></a>
+<a id="__codelineno-8-29" name="__codelineno-8-29" href="#__codelineno-8-29"></a><span class="gu">## Top Items</span>
+<a id="__codelineno-8-30" name="__codelineno-8-30" href="#__codelineno-8-30"></a>
+<a id="__codelineno-8-31" name="__codelineno-8-31" href="#__codelineno-8-31"></a>If this is a low-signal day, use 0-5 items and do not add filler.
+<a id="__codelineno-8-32" name="__codelineno-8-32" href="#__codelineno-8-32"></a>
+<a id="__codelineno-8-33" name="__codelineno-8-33" href="#__codelineno-8-33"></a><span class="gu">### 1. &lt;Title&gt; `{cluster_id}`</span>
+<a id="__codelineno-8-34" name="__codelineno-8-34" href="#__codelineno-8-34"></a>
+<a id="__codelineno-8-35" name="__codelineno-8-35" href="#__codelineno-8-35"></a>| Field | Value |
+<a id="__codelineno-8-36" name="__codelineno-8-36" href="#__codelineno-8-36"></a>|---|---|
+<a id="__codelineno-8-37" name="__codelineno-8-37" href="#__codelineno-8-37"></a>| Topic | <span class="sb">`topic_id`</span> / [[topic-note]] |
+<a id="__codelineno-8-38" name="__codelineno-8-38" href="#__codelineno-8-38"></a>| Source class | primary artifact / implementation source / academic source |
+<a id="__codelineno-8-39" name="__codelineno-8-39" href="#__codelineno-8-39"></a>| Novelty | new / active / resurfaced |
+<a id="__codelineno-8-40" name="__codelineno-8-40" href="#__codelineno-8-40"></a>| Confidence | high / medium / low |
+<a id="__codelineno-8-41" name="__codelineno-8-41" href="#__codelineno-8-41"></a>| Suggested action | read / try / watch / ignore |
+<a id="__codelineno-8-42" name="__codelineno-8-42" href="#__codelineno-8-42"></a>
+<a id="__codelineno-8-43" name="__codelineno-8-43" href="#__codelineno-8-43"></a><span class="gs">**What changed:**</span> ...
+<a id="__codelineno-8-44" name="__codelineno-8-44" href="#__codelineno-8-44"></a>
+<a id="__codelineno-8-45" name="__codelineno-8-45" href="#__codelineno-8-45"></a><span class="gs">**Why it matters:**</span> ...
+<a id="__codelineno-8-46" name="__codelineno-8-46" href="#__codelineno-8-46"></a>
+<a id="__codelineno-8-47" name="__codelineno-8-47" href="#__codelineno-8-47"></a><span class="gs">**Evidence:**</span> [<span class="nt">source title</span>](<span class="na">url</span>)
+<a id="__codelineno-8-48" name="__codelineno-8-48" href="#__codelineno-8-48"></a>
+<a id="__codelineno-8-49" name="__codelineno-8-49" href="#__codelineno-8-49"></a><span class="gs">**Agent note:**</span> one machine-friendly sentence about why this item was included.
+<a id="__codelineno-8-50" name="__codelineno-8-50" href="#__codelineno-8-50"></a>
+<a id="__codelineno-8-51" name="__codelineno-8-51" href="#__codelineno-8-51"></a><span class="gu">## Papers Worth Scanning</span>
+<a id="__codelineno-8-52" name="__codelineno-8-52" href="#__codelineno-8-52"></a>
+<a id="__codelineno-8-53" name="__codelineno-8-53" href="#__codelineno-8-53"></a>0-3 paper items only.
+<a id="__codelineno-8-54" name="__codelineno-8-54" href="#__codelineno-8-54"></a>
+<a id="__codelineno-8-55" name="__codelineno-8-55" href="#__codelineno-8-55"></a><span class="gu">## Repos / Releases Worth Opening</span>
+<a id="__codelineno-8-56" name="__codelineno-8-56" href="#__codelineno-8-56"></a>
+<a id="__codelineno-8-57" name="__codelineno-8-57" href="#__codelineno-8-57"></a>0-3 implementation items only.
+<a id="__codelineno-8-58" name="__codelineno-8-58" href="#__codelineno-8-58"></a>
+<a id="__codelineno-8-59" name="__codelineno-8-59" href="#__codelineno-8-59"></a><span class="gu">## Discussions Worth Watching</span>
+<a id="__codelineno-8-60" name="__codelineno-8-60" href="#__codelineno-8-60"></a>
+<a id="__codelineno-8-61" name="__codelineno-8-61" href="#__codelineno-8-61"></a>0-2 discussion items only; prefer discussions with primary links.
+<a id="__codelineno-8-62" name="__codelineno-8-62" href="#__codelineno-8-62"></a>
+<a id="__codelineno-8-63" name="__codelineno-8-63" href="#__codelineno-8-63"></a><span class="gu">## Follow-up Queue</span>
+<a id="__codelineno-8-64" name="__codelineno-8-64" href="#__codelineno-8-64"></a>
+<a id="__codelineno-8-65" name="__codelineno-8-65" href="#__codelineno-8-65"></a>3-5 concrete links or tasks.
+<a id="__codelineno-8-66" name="__codelineno-8-66" href="#__codelineno-8-66"></a>
+<a id="__codelineno-8-67" name="__codelineno-8-67" href="#__codelineno-8-67"></a><span class="gu">## Suppressed / Not Reported</span>
+<a id="__codelineno-8-68" name="__codelineno-8-68" href="#__codelineno-8-68"></a>
+<a id="__codelineno-8-69" name="__codelineno-8-69" href="#__codelineno-8-69"></a>Short list of repeated, low-novelty, or hype-heavy topics.
+<a id="__codelineno-8-70" name="__codelineno-8-70" href="#__codelineno-8-70"></a>
+<a id="__codelineno-8-71" name="__codelineno-8-71" href="#__codelineno-8-71"></a><span class="gu">## No Material Updates</span>
+<a id="__codelineno-8-72" name="__codelineno-8-72" href="#__codelineno-8-72"></a>
+<a id="__codelineno-8-73" name="__codelineno-8-73" href="#__codelineno-8-73"></a>Use this section on no-news days. State that no primary artifact passed the daily
+<a id="__codelineno-8-74" name="__codelineno-8-74" href="#__codelineno-8-74"></a>inclusion threshold.
+<a id="__codelineno-8-75" name="__codelineno-8-75" href="#__codelineno-8-75"></a>
+<a id="__codelineno-8-76" name="__codelineno-8-76" href="#__codelineno-8-76"></a><span class="gu">## Watchlist Quiet</span>
+<a id="__codelineno-8-77" name="__codelineno-8-77" href="#__codelineno-8-77"></a>
+<a id="__codelineno-8-78" name="__codelineno-8-78" href="#__codelineno-8-78"></a>Use this section to list high-priority watched sources that had no material
+<a id="__codelineno-8-79" name="__codelineno-8-79" href="#__codelineno-8-79"></a>updates, if useful.
+<a id="__codelineno-8-80" name="__codelineno-8-80" href="#__codelineno-8-80"></a>
+<a id="__codelineno-8-81" name="__codelineno-8-81" href="#__codelineno-8-81"></a><span class="gu">## Feedback Targets</span>
+<a id="__codelineno-8-82" name="__codelineno-8-82" href="#__codelineno-8-82"></a>
+<a id="__codelineno-8-83" name="__codelineno-8-83" href="#__codelineno-8-83"></a>| Target | ID | Suggested feedback command |
+<a id="__codelineno-8-84" name="__codelineno-8-84" href="#__codelineno-8-84"></a>|---|---|---|
+<a id="__codelineno-8-85" name="__codelineno-8-85" href="#__codelineno-8-85"></a>| Item title | cluster_id | <span class="sb">`research-pipeline brief feedback --cluster cluster_id --signal keep`</span> |
+</code></pre></div>
+<h3 id="hot-topic-dossier-template">Hot-topic dossier template<a class="headerlink" href="#hot-topic-dossier-template" title="Permanent link">&para;</a></h3>
+<p>Purpose: deeper reading for one selected topic. Do not generate automatically in
+the MVP. Later, generate at most one per day, then at most three.</p>
+<p>Requirements:</p>
+<ul>
+<li>Must have at least one primary artifact.</li>
+<li>Must cite all major claims.</li>
+<li>Must include prior context from topic memory when available.</li>
+<li>Must stay focused on one topic.</li>
+</ul>
+<p>Template:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>---
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>type: topic-dossier
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>date: YYYY-MM-DD
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a>dossier_id: dossier_YYYY_MM_DD_slug
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>topic_id: topic_slug
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>cluster_ids:
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="w">  </span><span class="k">-</span><span class="w"> </span>cluster_id
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="gu">status: draft|validated</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="gu">---</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="gh"># Hot Topic Dossier — &lt;Topic&gt;</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="gu">## Agent Read Map</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a>| Field | Value |
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a>|---|---|
+<a id="__codelineno-9-17" name="__codelineno-9-17" href="#__codelineno-9-17"></a>| Use when | User wants depth beyond daily brief |
+<a id="__codelineno-9-18" name="__codelineno-9-18" href="#__codelineno-9-18"></a>| Core question | What changed and what should we do with it? |
+<a id="__codelineno-9-19" name="__codelineno-9-19" href="#__codelineno-9-19"></a>| Evidence standard | Primary artifact required |
+<a id="__codelineno-9-20" name="__codelineno-9-20" href="#__codelineno-9-20"></a>
+<a id="__codelineno-9-21" name="__codelineno-9-21" href="#__codelineno-9-21"></a><span class="gu">## One-paragraph Summary</span>
+<a id="__codelineno-9-22" name="__codelineno-9-22" href="#__codelineno-9-22"></a>
+<a id="__codelineno-9-23" name="__codelineno-9-23" href="#__codelineno-9-23"></a>Brief, direct summary.
+<a id="__codelineno-9-24" name="__codelineno-9-24" href="#__codelineno-9-24"></a>
+<a id="__codelineno-9-25" name="__codelineno-9-25" href="#__codelineno-9-25"></a><span class="gu">## What Changed</span>
+<a id="__codelineno-9-26" name="__codelineno-9-26" href="#__codelineno-9-26"></a>
+<a id="__codelineno-9-27" name="__codelineno-9-27" href="#__codelineno-9-27"></a>Concrete changes only.
+<a id="__codelineno-9-28" name="__codelineno-9-28" href="#__codelineno-9-28"></a>
+<a id="__codelineno-9-29" name="__codelineno-9-29" href="#__codelineno-9-29"></a><span class="gu">## Why It Matters Technically</span>
+<a id="__codelineno-9-30" name="__codelineno-9-30" href="#__codelineno-9-30"></a>
+<a id="__codelineno-9-31" name="__codelineno-9-31" href="#__codelineno-9-31"></a>Engineering implications, compatibility, evaluation, workflow, cost, or risk.
+<a id="__codelineno-9-32" name="__codelineno-9-32" href="#__codelineno-9-32"></a>
+<a id="__codelineno-9-33" name="__codelineno-9-33" href="#__codelineno-9-33"></a><span class="gu">## Prior Context</span>
+<a id="__codelineno-9-34" name="__codelineno-9-34" href="#__codelineno-9-34"></a>
+<a id="__codelineno-9-35" name="__codelineno-9-35" href="#__codelineno-9-35"></a>Links to previous daily briefs, topic notes, and related clusters.
+<a id="__codelineno-9-36" name="__codelineno-9-36" href="#__codelineno-9-36"></a>
+<a id="__codelineno-9-37" name="__codelineno-9-37" href="#__codelineno-9-37"></a><span class="gu">## Evidence Timeline</span>
+<a id="__codelineno-9-38" name="__codelineno-9-38" href="#__codelineno-9-38"></a>
+<a id="__codelineno-9-39" name="__codelineno-9-39" href="#__codelineno-9-39"></a>| Date | Evidence | Source class | Note |
+<a id="__codelineno-9-40" name="__codelineno-9-40" href="#__codelineno-9-40"></a>|---|---|---|---|
+<a id="__codelineno-9-41" name="__codelineno-9-41" href="#__codelineno-9-41"></a>
+<a id="__codelineno-9-42" name="__codelineno-9-42" href="#__codelineno-9-42"></a><span class="gu">## Artifacts To Open</span>
+<a id="__codelineno-9-43" name="__codelineno-9-43" href="#__codelineno-9-43"></a>
+<a id="__codelineno-9-44" name="__codelineno-9-44" href="#__codelineno-9-44"></a>Docs, releases, repos, papers, benchmarks, demos, packages.
+<a id="__codelineno-9-45" name="__codelineno-9-45" href="#__codelineno-9-45"></a>
+<a id="__codelineno-9-46" name="__codelineno-9-46" href="#__codelineno-9-46"></a><span class="gu">## What To Try / Watch / Ignore</span>
+<a id="__codelineno-9-47" name="__codelineno-9-47" href="#__codelineno-9-47"></a>
+<a id="__codelineno-9-48" name="__codelineno-9-48" href="#__codelineno-9-48"></a>Actionable next steps.
+<a id="__codelineno-9-49" name="__codelineno-9-49" href="#__codelineno-9-49"></a>
+<a id="__codelineno-9-50" name="__codelineno-9-50" href="#__codelineno-9-50"></a><span class="gu">## Open Questions</span>
+<a id="__codelineno-9-51" name="__codelineno-9-51" href="#__codelineno-9-51"></a>
+<a id="__codelineno-9-52" name="__codelineno-9-52" href="#__codelineno-9-52"></a>Bounded unanswered questions.
+<a id="__codelineno-9-53" name="__codelineno-9-53" href="#__codelineno-9-53"></a>
+<a id="__codelineno-9-54" name="__codelineno-9-54" href="#__codelineno-9-54"></a><span class="gu">## Agent Notes</span>
+<a id="__codelineno-9-55" name="__codelineno-9-55" href="#__codelineno-9-55"></a>
+<a id="__codelineno-9-56" name="__codelineno-9-56" href="#__codelineno-9-56"></a>Machine-readable bullets: topic IDs, source IDs, confidence, missing evidence.
+</code></pre></div>
+<h3 id="weekly-synthesis-template">Weekly synthesis template<a class="headerlink" href="#weekly-synthesis-template" title="Permanent link">&para;</a></h3>
+<p>Purpose: trend memo, not seven daily briefs stapled together.</p>
+<p>Target:</p>
+<ul>
+<li>1,500-2,500 words.</li>
+<li>5-8 major themes.</li>
+<li>Max 25 links.</li>
+</ul>
+<p>Sections:</p>
+<ul>
+<li>Agent Read Map.</li>
+<li>What changed this week.</li>
+<li>Themes that strengthened.</li>
+<li>Themes that weakened.</li>
+<li>Repos/protocols/vendors with durable movement.</li>
+<li>Papers that translated into code.</li>
+<li>What was noise.</li>
+<li>Watchlist updates.</li>
+<li>Feedback and source-quality notes.</li>
+</ul>
+<h3 id="monthly-retrospective-template">Monthly retrospective template<a class="headerlink" href="#monthly-retrospective-template" title="Permanent link">&para;</a></h3>
+<p>Purpose: durable signal and preference calibration.</p>
+<p>Target:</p>
+<ul>
+<li>2,000-3,500 words.</li>
+<li>5-10 durable trends.</li>
+</ul>
+<p>Sections:</p>
+<ul>
+<li>Agent Read Map.</li>
+<li>Durable trends.</li>
+<li>Key repos/releases/papers.</li>
+<li>Missed signals.</li>
+<li>Noisy sources.</li>
+<li>Topic fatigue review.</li>
+<li>Source-quality review.</li>
+<li>Personal watchlist updates.</li>
+<li>Memory promotions requiring review.</li>
+</ul>
+<h3 id="source-note-template">Source note template<a class="headerlink" href="#source-note-template" title="Permanent link">&para;</a></h3>
+<p>Purpose: make source reliability inspectable.</p>
+<p>Fields:</p>
+<ul>
+<li>Source name.</li>
+<li>Source class.</li>
+<li>Access method.</li>
+<li>Policy notes.</li>
+<li>Cadence.</li>
+<li>Historical usefulness.</li>
+<li>Noise patterns.</li>
+<li>Current weight.</li>
+<li>Last reviewed date.</li>
+</ul>
+<h2 id="feedback-and-preference-learning">Feedback and preference learning<a class="headerlink" href="#feedback-and-preference-learning" title="Permanent link">&para;</a></h2>
+<h3 id="explicit-feedback-first">Explicit feedback first<a class="headerlink" href="#explicit-feedback-first" title="Permanent link">&para;</a></h3>
+<p>Add CLI commands before behavioral tracking:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--cluster<span class="w"> </span>&lt;ID&gt;<span class="w"> </span>--signal<span class="w"> </span>more-like-this
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--topic<span class="w"> </span>&lt;ID&gt;<span class="w"> </span>--signal<span class="w"> </span>too-noisy
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--source<span class="w"> </span>&lt;ID&gt;<span class="w"> </span>--signal<span class="w"> </span>less-like-this
+</code></pre></div>
+<p>Preference changes must be auditable and reversible.</p>
+<h3 id="behavioral-feedback-later">Behavioral feedback later<a class="headerlink" href="#behavioral-feedback-later" title="Permanent link">&para;</a></h3>
+<p>Behavioral signals can be added after explicit feedback works:</p>
+<ul>
+<li>Dossier opened.</li>
+<li>Link clicked or copied.</li>
+<li>Topic note edited.</li>
+<li>Daily item saved.</li>
+<li>Item ignored repeatedly.</li>
+<li>Read-time proxy from a local UI or Obsidian plugin.</li>
+</ul>
+<p>Rules:</p>
+<ul>
+<li>Behavioral feedback never directly changes durable ranking alone.</li>
+<li>Treat behavioral signals as weak evidence.</li>
+<li>Promote only repeated, reviewed patterns.</li>
+</ul>
+<h3 id="reviewable-memory-promotion">Reviewable memory promotion<a class="headerlink" href="#reviewable-memory-promotion" title="Permanent link">&para;</a></h3>
+<p>Good durable rule:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>Down-rank HN-only benchmark drama unless there is a linked repo, paper, or vendor doc.
+</code></pre></div>
+<p>Bad durable rule:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>I like agent topics.
+</code></pre></div>
+<p>Only promote a rule when it has:</p>
+<ol>
+<li>A concrete trigger condition.</li>
+<li>A ranking or filtering procedure.</li>
+<li>An observable effect.</li>
+<li>A rollback path.</li>
+<li>A review record.</li>
+</ol>
+<h2 id="harness-engineered-briefing-workflow">Harness-engineered briefing workflow<a class="headerlink" href="#harness-engineered-briefing-workflow" title="Permanent link">&para;</a></h2>
+<h3 id="briefing-stages">Briefing stages<a class="headerlink" href="#briefing-stages" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>flowchart TD
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    Plan[&quot;Plan source schedule&quot;]
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>    Poll[&quot;Poll allowed sources&quot;]
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>    VerifyRaw[&quot;Verify raw records&quot;]
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    Normalize[&quot;Normalize events&quot;]
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>    Dedup[&quot;Dedup and cluster&quot;]
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>    Rank[&quot;Rank&quot;]
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    Brief[&quot;Generate daily brief&quot;]
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a>    VerifyReport[&quot;Verify report&quot;]
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a>    Archive[&quot;Archive locally / Obsidian&quot;]
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a>    Feedback[&quot;Collect explicit feedback&quot;]
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a>    Plan --&gt; Poll --&gt; VerifyRaw --&gt; Normalize --&gt; Dedup --&gt; Rank
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a>    Rank --&gt; Brief --&gt; VerifyReport --&gt; Archive --&gt; Feedback
+</code></pre></div>
+<p>Later phases insert memory lookup, dossier generation, weekly synthesis, and
+Obsidian KG updates.</p>
+<h3 id="tool-dag">Tool DAG<a class="headerlink" href="#tool-dag" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Node</th>
+<th>Allowed capabilities</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Plan</td>
+<td>Read config and previous local state</td>
+</tr>
+<tr>
+<td>Poll</td>
+<td>Network only to source allowlist</td>
+</tr>
+<tr>
+<td>Normalize</td>
+<td>Read raw events, write normalized JSONL</td>
+</tr>
+<tr>
+<td>Dedup</td>
+<td>Read normalized events, write clusters</td>
+</tr>
+<tr>
+<td>Rank</td>
+<td>Read clusters and preferences, write ranked clusters</td>
+</tr>
+<tr>
+<td>Synthesize</td>
+<td>Local/cloud model only on ranked evidence packs</td>
+</tr>
+<tr>
+<td>Verify</td>
+<td>Deterministic checks only</td>
+</tr>
+<tr>
+<td>Archive</td>
+<td>Write only configured archive paths</td>
+</tr>
+<tr>
+<td>Feedback</td>
+<td>Write only to local feedback store</td>
+</tr>
+</tbody>
+</table>
+<h3 id="telemetry">Telemetry<a class="headerlink" href="#telemetry" title="Permanent link">&para;</a></h3>
+<p>Reuse the repository's three-surface telemetry idea:</p>
+<ul>
+<li>Cognitive: model prompts/responses, ranking rationales, synthesis decisions.</li>
+<li>Operational: source polling counts, errors, latency, artifact counts.</li>
+<li>Contextual: token budgets, memory hits, prior-topic links, feedback applied.</li>
+</ul>
+<p>Write append-only JSONL per daily run:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a>workspace/briefings/YYYY-MM-DD/telemetry.jsonl
+</code></pre></div>
+<h3 id="verification-gates">Verification gates<a class="headerlink" href="#verification-gates" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>Verification</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Raw records</td>
+<td>Parseable JSONL, allowed source, canonical URL, retrieved timestamp</td>
+</tr>
+<tr>
+<td>Normalized events</td>
+<td>Schema-valid <code>IntelligenceEvent</code>, required fields present</td>
+</tr>
+<tr>
+<td>Clusters</td>
+<td>Duplicate titles detected, exact dedup keys stable</td>
+</tr>
+<tr>
+<td>Ranking</td>
+<td>Score fields present, top-N budget enforced, hype penalty present</td>
+</tr>
+<tr>
+<td>Daily brief</td>
+<td>6-10 primary items on active days or valid low-signal/no-news output, 900-1,400 words on active days, fewer than 15 links, required sections</td>
+</tr>
+<tr>
+<td>Links</td>
+<td>External links syntactically valid; optional live check when network allowed</td>
+</tr>
+<tr>
+<td>Factuality</td>
+<td>Important claims map to evidence URLs or are marked inference/speculation</td>
+</tr>
+<tr>
+<td>Dossiers</td>
+<td>Primary artifact exists, evidence links resolve, claims carry evidence/inference labels</td>
+</tr>
+<tr>
+<td>Obsidian export</td>
+<td>Frontmatter valid, wiki-links stable, paths inside allowlist</td>
+</tr>
+</tbody>
+</table>
+<p>Factuality rule:</p>
+<ul>
+<li>Generated summaries must distinguish <code>supported_fact</code>, <code>inference</code>, and
+  <code>speculation_or_watch_item</code>.</li>
+<li>Every important factual claim should map to at least one evidence URL.</li>
+<li>If no evidence URL exists, the report must explicitly label the statement as an
+  inference or speculation.</li>
+<li>A deterministic verifier can check labels and links; it should not claim to
+  prove that no unsupported claim exists.</li>
+</ul>
+<h3 id="budget-and-privacy-rules">Budget and privacy rules<a class="headerlink" href="#budget-and-privacy-rules" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Send only ranked evidence packs to cloud models.</li>
+<li>Keep raw archives, feedback, reading behavior, and Obsidian notes local-first.</li>
+<li>Redact secrets and private paths from telemetry.</li>
+<li>Cache only allowed public/source metadata.</li>
+<li>Set hard budgets for source calls, LLM tokens, dossier count, and report length.</li>
+</ul>
+<h2 id="repository-architecture-and-dependency-policy">Repository architecture and dependency policy<a class="headerlink" href="#repository-architecture-and-dependency-policy" title="Permanent link">&para;</a></h2>
+<p>Respect the current repository architecture:</p>
+<ul>
+<li>Put implementation under <code>src/research_pipeline/briefing/</code>.</li>
+<li>Put CLI handlers under <code>src/research_pipeline/cli/cmd_brief.py</code> or a small
+  <code>cli/briefing/</code> package if the command group grows.</li>
+<li>Register the Typer command group in <code>src/research_pipeline/cli/app.py</code>.</li>
+<li>Add Pydantic domain models either under <code>src/research_pipeline/briefing/models.py</code>
+  for briefing-only models, or under <code>src/research_pipeline/models/</code> only if the
+  model becomes broadly shared.</li>
+<li>Keep MCP schemas in <code>src/research_pipeline/mcp_server/schemas.py</code> and tool
+  wrappers in <code>src/research_pipeline/mcp_server/tools.py</code> when adding <code>brief_*</code>
+  tools.</li>
+<li>Keep bundled skill data under
+  <code>src/research_pipeline/skill_data/daily-ai-intelligence/</code>.</li>
+<li>Put unit tests in <code>tests/unit/test_briefing_&lt;module&gt;.py</code> or
+  <code>tests/unit/test_&lt;module&gt;.py</code> following existing naming style.</li>
+</ul>
+<p>Use existing dependencies by default:</p>
+<table>
+<thead>
+<tr>
+<th>Need</th>
+<th>Default choice</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>HTTP</td>
+<td><code>requests</code> via existing session helpers</td>
+</tr>
+<tr>
+<td>XML/RSS/Atom parsing</td>
+<td><code>lxml</code></td>
+</tr>
+<tr>
+<td>Data schemas</td>
+<td>Pydantic v2</td>
+</tr>
+<tr>
+<td>CLI</td>
+<td>Typer</td>
+</tr>
+<tr>
+<td>Storage</td>
+<td>JSONL plus <code>sqlite3</code></td>
+</tr>
+<tr>
+<td>Paths</td>
+<td><code>pathlib.Path</code></td>
+</tr>
+<tr>
+<td>Logging</td>
+<td><code>logging</code>, never <code>print()</code> for operational output</td>
+</tr>
+<tr>
+<td>Retry/rate limit</td>
+<td>existing <code>infra.retry</code> and <code>infra.rate_limit</code> patterns</td>
+</tr>
+<tr>
+<td>Markdown rendering</td>
+<td>existing report/template patterns before adding new deps</td>
+</tr>
+</tbody>
+</table>
+<p>Do not add <code>feedparser</code>, GitHub SDKs, schedulers, vector databases, or UI
+frameworks in Phase A unless the existing dependencies cannot satisfy a concrete
+requirement. Prefer small adapters built on <code>requests</code> and <code>lxml</code>.</p>
+<h2 id="phase-a-artifact-and-cli-contracts">Phase A artifact and CLI contracts<a class="headerlink" href="#phase-a-artifact-and-cli-contracts" title="Permanent link">&para;</a></h2>
+<p>Phase A should use one stable run layout so CLI behavior, tests, debugging, and
+agent inspection all point at the same files.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>workspace/briefings/YYYY-MM-DD/
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>  source_registry_snapshot.json
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a>  raw/
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>    &lt;source_id&gt;.jsonl
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a>  normalized/
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>    events.jsonl
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a>  clusters/
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>    clusters.jsonl
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>  ranked/
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a>    ranked_clusters.jsonl
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>  reports/
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>    daily.md
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>  validation/
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>    validation.json
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>  telemetry.jsonl
+</code></pre></div>
+<p>Command contracts:</p>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Input</th>
+<th>Output</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>brief poll</code></td>
+<td>source registry</td>
+<td><code>source_registry_snapshot.json</code>, <code>raw/*.jsonl</code>, <code>normalized/events.jsonl</code>, <code>telemetry.jsonl</code></td>
+</tr>
+<tr>
+<td><code>brief rank</code></td>
+<td><code>normalized/events.jsonl</code></td>
+<td><code>clusters/clusters.jsonl</code>, <code>ranked/ranked_clusters.jsonl</code></td>
+</tr>
+<tr>
+<td><code>brief generate-daily</code></td>
+<td><code>ranked/ranked_clusters.jsonl</code></td>
+<td><code>reports/daily.md</code></td>
+</tr>
+<tr>
+<td><code>brief validate</code></td>
+<td><code>reports/daily.md</code>, <code>ranked/ranked_clusters.jsonl</code></td>
+<td><code>validation/validation.json</code></td>
+</tr>
+<tr>
+<td><code>brief run</code></td>
+<td>source registry</td>
+<td>all Phase A artifacts, in command-contract order</td>
+</tr>
+</tbody>
+</table>
+<p>Exit-code policy:</p>
+<table>
+<thead>
+<tr>
+<th>Code</th>
+<th>Meaning</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>0</td>
+<td>Success</td>
+</tr>
+<tr>
+<td>1</td>
+<td>Validation failed</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Source polling failed but partial output exists</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Configuration or source registry error</td>
+</tr>
+<tr>
+<td>4</td>
+<td>Unexpected internal error</td>
+</tr>
+</tbody>
+</table>
+<p>MCP tools should mirror these contracts after the CLI stabilizes. Until then,
+Phase A implementation should focus on the CLI and filesystem artifacts.</p>
+<h2 id="testing-and-coverage-policy">Testing and coverage policy<a class="headerlink" href="#testing-and-coverage-policy" title="Permanent link">&para;</a></h2>
+<p>Testing is part of the harness, not an afterthought. Every implementation phase
+must have a DryRUN prediction before code changes and deterministic verification
+after code changes.</p>
+<p>DryRUN means the implementing agent must list:</p>
+<ul>
+<li>files expected to be added or modified</li>
+<li>public CLI/API/MCP/skill surfaces expected to change</li>
+<li>test fixtures to be created</li>
+<li>validation commands to run</li>
+<li>positive, negative, and edge failure cases expected to be handled</li>
+<li>predicted outputs, exceptions, database effects, and telemetry events</li>
+</ul>
+<p>Coverage targets:</p>
+<ul>
+<li><strong>Core deterministic briefing modules:</strong> at least 95% line coverage.</li>
+<li><strong>Source adapters:</strong> 85-90% line coverage is acceptable when offline fixtures
+  cover normal, malformed, empty, duplicate, rate-limited, and policy-denied
+  cases.</li>
+<li><strong>Other new modules:</strong> at least 90% line coverage.</li>
+<li>Coverage gaps must be justified in code review.</li>
+</ul>
+<p>Core deterministic modules include:</p>
+<ul>
+<li>event models and validation</li>
+<li>source registry</li>
+<li>normalization</li>
+<li>deduplication</li>
+<li>ranking</li>
+<li>report generation</li>
+<li>report validation</li>
+<li>feedback weighting when implemented</li>
+<li>topic memory when implemented</li>
+</ul>
+<p>Source adapter modules include:</p>
+<ul>
+<li>GitHub releases adapter</li>
+<li>RSS/Atom adapter</li>
+<li>future HN, paper, Reddit, Bluesky, X, YouTube, and podcast adapters</li>
+</ul>
+<p>Test levels:</p>
+<table>
+<thead>
+<tr>
+<th>Level</th>
+<th>Required coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td>Normal input, boundary input, malformed input, missing fields, exceptions, empty source results, duplicate records, policy-denied sources</td>
+</tr>
+<tr>
+<td>Integration offline</td>
+<td>Adapter fixtures, registry-to-poll flow, poll-to-report flow, validation failures, SQLite persistence</td>
+</tr>
+<tr>
+<td>End-to-end offline</td>
+<td>User scenarios: first daily run, no-news day, duplicate source event, noisy/hype item suppressed, report validation failure, explicit feedback changes ranking</td>
+</tr>
+<tr>
+<td>Live/network</td>
+<td>Optional and marked live; never required for normal CI</td>
+</tr>
+</tbody>
+</table>
+<p>Default validation commands for implementation work:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_briefing_*.py<span class="w"> </span>-xvs<span class="w"> </span>--cov<span class="o">=</span>src/research_pipeline/briefing<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>format<span class="w"> </span>.
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>src/
+</code></pre></div>
+<p>When integration tests exist:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/integration_offline/<span class="w"> </span>-xvs
+</code></pre></div>
+<p>Do not rely only on snapshots. Snapshot-style expected reports are useful, but
+tests must also assert schema fields, links, counts, section presence, ranking
+scores, and validation errors.</p>
+<h2 id="implementation-roadmap">Implementation roadmap<a class="headerlink" href="#implementation-roadmap" title="Permanent link">&para;</a></h2>
+<p>Each phase below follows the harness guide, but the harness grows progressively.
+Not all files, modules, MCP tools, skills, or workflow-state components exist at
+the beginning. Do not pretend later harness layers are available in earlier
+phases. Add only the minimum deterministic wrapper needed for the current phase,
+then strengthen it when the phase adds new risk.</p>
+<ul>
+<li><strong>L0 supply chain:</strong> use existing pinned dependencies; avoid new dependencies.</li>
+<li><strong>L1 telemetry:</strong> emit JSONL records for important operational decisions.</li>
+<li><strong>L2 manifests/context:</strong> make configuration explicit and reviewable.</li>
+<li><strong>L4 governance:</strong> use allowlists, path scopes, budgets, and source policies.</li>
+<li><strong>L5 verification:</strong> add deterministic verifiers before trusting outputs.</li>
+<li><strong>L7 evaluation:</strong> define measurable success criteria.</li>
+<li><strong>Memory promotion:</strong> promote only reviewed, reversible, causal rules.</li>
+</ul>
+<h3 id="agent-execution-contract-for-every-phase">Agent execution contract for every phase<a class="headerlink" href="#agent-execution-contract-for-every-phase" title="Permanent link">&para;</a></h3>
+<p>For every implementation step, a GitHub Copilot or other AI agent should know:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Requirement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Current phase</td>
+<td>Name the phase and why this step belongs there</td>
+</tr>
+<tr>
+<td>Target</td>
+<td>State the one behavior or artifact being added</td>
+</tr>
+<tr>
+<td>Existing surfaces</td>
+<td>List files/modules that already exist and can be reused</td>
+</tr>
+<tr>
+<td>New surfaces</td>
+<td>List files/modules that will be created by this step</td>
+</tr>
+<tr>
+<td>Harness available now</td>
+<td>Use only harness pieces already built in this or prior phases</td>
+</tr>
+<tr>
+<td>Verification</td>
+<td>Name the exact unit/integration/e2e tests and validators</td>
+</tr>
+<tr>
+<td>Stop condition</td>
+<td>Stop when the target behavior passes deterministic checks</td>
+</tr>
+<tr>
+<td>Non-goals</td>
+<td>Do not pull later-phase functionality into the current step</td>
+</tr>
+</tbody>
+</table>
+<p>The implementation order inside a phase should follow this task-level tool DAG:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a>flowchart TD
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>    Scope[&quot;Scope step&lt;br/&gt;read plan and existing files&quot;]
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>    Dry[&quot;DryRUN&lt;br/&gt;predict files, commands, cases&quot;]
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a>    Test[&quot;Write or update tests/fixtures&quot;]
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a>    Edit[&quot;Implement scoped code&quot;]
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>    Verify[&quot;Run targeted checks&quot;]
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    Review[&quot;Review diff and telemetry&quot;]
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>    Scope --&gt; Dry --&gt; Test --&gt; Edit --&gt; Verify --&gt; Review
+<a id="__codelineno-18-10" name="__codelineno-18-10" href="#__codelineno-18-10"></a>    Verify -- fail --&gt; Edit
+</code></pre></div>
+<p>Rules:</p>
+<ul>
+<li>No network calls in tests except explicit live tests.</li>
+<li>No write outside planned paths.</li>
+<li>No source expansion without a registry entry.</li>
+<li>No later-phase modules unless the phase explicitly creates them.</li>
+<li>If verification fails, treat the verifier as authoritative until proven wrong.</li>
+</ul>
+<h3 id="phase-a-thin-daily-report-with-minimal-governance">Phase A - Thin daily report with minimal governance<a class="headerlink" href="#phase-a-thin-daily-report-with-minimal-governance" title="Permanent link">&para;</a></h3>
+<p>Goal: prove the brief is worth reading.</p>
+<p>Deliverables:</p>
+<ul>
+<li>Basic source registry.</li>
+<li>Source allowlist.</li>
+<li>Per-source cadence.</li>
+<li>Per-source maximum event count.</li>
+<li>Fixed Phase A artifact layout under <code>workspace/briefings/YYYY-MM-DD/</code>.</li>
+<li>Source registry snapshot per run.</li>
+<li>GitHub releases adapter.</li>
+<li>RSS/Atom adapter for official docs/blogs/changelogs.</li>
+<li>HTTP politeness state for ETag/Last-Modified when supported.</li>
+<li><code>IntelligenceEvent</code> model with required source/audit fields.</li>
+<li>Stable ID generation for events, content hashes, dedup keys, and clusters.</li>
+<li>Raw JSONL output per source.</li>
+<li>JSONL output for normalized events.</li>
+<li>Exact dedup by canonical URL, repo/tag, RSS GUID, and normalized title.</li>
+<li>Simple deterministic ranking with tie-breakers.</li>
+<li>Source class and hype penalty.</li>
+<li>Template/extractive Markdown daily brief.</li>
+<li>Basic telemetry for source counts, errors, and run duration.</li>
+<li>Basic validation:</li>
+<li>word count</li>
+<li>link count</li>
+<li>item count</li>
+<li>required sections</li>
+<li>duplicate titles</li>
+<li>evidence links present</li>
+<li>low-signal/no-news day accepted when item count is below target</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Create <code>src/research_pipeline/briefing/</code>.</li>
+<li>Add <code>models.py</code> with <code>IntelligenceEvent</code>, <code>BriefingSourceConfig</code>,
+   <code>SourceClass</code>, <code>AccessMethod</code>, and <code>BriefingRunMetadata</code>.</li>
+<li>Add <code>registry.py</code> to load and validate source registry configuration.</li>
+<li>Add <code>sources/base.py</code> with a small <code>BriefingSource</code> protocol.</li>
+<li>Add <code>sources/github_releases.py</code> using <code>requests</code>; parse release API/feed
+   responses into <code>IntelligenceEvent</code>. Phase A supports releases only; tags,
+   issues, PRs, discussions, changelog file diffs, and README/spec changes are
+   future source types.</li>
+<li>Add <code>sources/rss_atom.py</code> using <code>requests</code> and <code>lxml</code>; support common RSS and
+   Atom fields without adding dependencies. Malformed feeds fail per source and
+   do not fail the whole run.</li>
+<li>Add <code>normalize.py</code> for stable <code>event_id</code>, <code>content_hash</code>, <code>dedup_key</code>, and
+   <code>cluster_id</code> inputs.</li>
+<li>Add <code>dedup.py</code> for exact URL/repo-tag/RSS GUID/title dedup.</li>
+<li>Add <code>rank.py</code> for deterministic ranking from source class, trust/noise
+   weights, primary artifact presence, watchlist match, duplicate penalty, and
+   hype penalty, with deterministic tie-breakers.</li>
+<li>Add <code>report.py</code> to render the daily Markdown template.</li>
+<li>Add <code>validate.py</code> for deterministic report/event checks.</li>
+<li>Add <code>cli/cmd_brief.py</code> with <code>brief poll</code>, <code>brief rank</code>,
+     <code>brief generate-daily</code>, <code>brief validate</code>, and <code>brief run</code>.</li>
+<li>Register the command group in <code>cli/app.py</code>.</li>
+<li>Add unit tests before implementation for each core module.</li>
+<li>Add an offline end-to-end fixture with GitHub release JSON and RSS/Atom XML.</li>
+<li>Add low-signal and no-news-day fixtures.</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Tool DAG: poll may use network only for registry-allowed sources; report
+  generation reads only ranked JSONL.</li>
+<li>DryRUN: before implementation, list expected files, CLI commands, fixtures,
+  validation commands, failure cases, and telemetry events.</li>
+<li>Verification: report is not accepted unless validation passes.</li>
+<li>Telemetry: write <code>workspace/briefings/YYYY-MM-DD/telemetry.jsonl</code>.</li>
+<li>Budget: enforce source count, event count, item count, link count, word count.</li>
+<li>HTTP politeness: use clear User-Agent, conditional request headers, conservative
+  caching where permitted, and non-aggressive retries.</li>
+<li>LLM use: disabled by default; if explicitly enabled, send only ranked evidence
+  packs and still run deterministic validation.</li>
+</ul>
+<p>Do not include:</p>
+<ul>
+<li>Obsidian graph.</li>
+<li>Hot-topic dossiers.</li>
+<li>Feedback learning.</li>
+<li>Behavioral tracking.</li>
+<li>Full knowledge graph.</li>
+<li>X, Reddit, Bluesky, Hacker News.</li>
+<li>Full workflow engine.</li>
+<li>Cloud summarization of raw source dumps.</li>
+<li>Hidden LLM judgment in ranking or default report generation.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>For 10 consecutive weekdays, the system produces a Markdown brief under 1,400
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>words, with 6-10 ranked items on active days or a valid shorter low-signal brief,
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>fewer than 15 links, no obvious duplicates, no filler items, and at least 70% of
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a>primary items marked useful by explicit review.
+</code></pre></div>
+<p>Usefulness review:</p>
+<p>After each daily brief, manually label each primary item as:</p>
+<ul>
+<li><code>useful</code></li>
+<li><code>neutral</code></li>
+<li><code>not_useful</code></li>
+<li><code>already_known</code></li>
+<li><code>noisy</code></li>
+<li><code>wrong_cadence</code></li>
+</ul>
+<p>Compute:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>usefulness = useful / total_primary_items
+</code></pre></div>
+<h3 id="phase-b-memory-and-fatigue">Phase B - Memory and fatigue<a class="headerlink" href="#phase-b-memory-and-fatigue" title="Permanent link">&para;</a></h3>
+<p>Goal: stop repetition.</p>
+<p>Deliverables:</p>
+<ul>
+<li><code>TopicMemory</code>.</li>
+<li><code>last_reported_at</code>.</li>
+<li><code>report_count_7d</code>.</li>
+<li><code>report_count_30d</code>.</li>
+<li>Fatigue penalty.</li>
+<li>Resurfaced-topic detection.</li>
+<li>Prior-topic references in the daily brief.</li>
+<li>Reviewable topic alias and merge suggestions.</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Add <code>topic_memory.py</code> with <code>TopicMemory</code> and lifecycle classification.</li>
+<li>Add SQLite-backed <code>TopicMemoryStore</code> using <code>sqlite3</code>, following existing store
+   patterns.</li>
+<li>Add <code>memory_lookup.py</code> to retrieve recent clusters by topic ID, title tokens,
+   and explicit links.</li>
+<li>Extend ranking to apply fatigue penalty and resurfaced-topic boost.</li>
+<li>Extend report template to show prior context only when it changes inclusion.</li>
+<li>Add review queue for model- or heuristic-suggested aliases.</li>
+<li>Add validation that no durable alias/merge is applied without a review record.</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Existing harness at phase start: Phase A registry, telemetry, ranking, report
+  validation, low-signal handling, and offline fixtures.</li>
+<li>New harness introduced: memory write audit records and alias/merge review gate.</li>
+<li>Memory is evidence, not truth: re-check current evidence before ranking.</li>
+<li>Durable aliases and merges require review.</li>
+<li>Every memory write must include trigger, effect, and rollback metadata.</li>
+<li>Add regression fixtures for false merges and topic splits.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a>The system can suppress repeated low-novelty topics and correctly flag
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>resurfaced topics without irreversible automatic topic merges.
+</code></pre></div>
+<h3 id="phase-c-obsidian-archive">Phase C - Obsidian archive<a class="headerlink" href="#phase-c-obsidian-archive" title="Permanent link">&para;</a></h3>
+<p>Goal: make output searchable and reviewable.</p>
+<p>Deliverables:</p>
+<ul>
+<li>Daily notes.</li>
+<li>Topic notes.</li>
+<li>Source notes.</li>
+<li>YAML frontmatter.</li>
+<li>Wiki-links and backlinks.</li>
+<li>Stable local paths.</li>
+<li>Agent-readable <code>Agent Read Map</code> in every note.</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Add <code>obsidian.py</code> with path allowlist validation.</li>
+<li>Add Markdown writers for daily, topic, and source notes.</li>
+<li>Generate YAML frontmatter with stable IDs and source/topic/cluster links.</li>
+<li>Preserve wiki-links exactly; do not convert them to Markdown links.</li>
+<li>Add validators for frontmatter, required headings, and path safety.</li>
+<li>Add fixtures for existing notes to verify idempotent updates.</li>
+<li>Add CLI <code>brief export-obsidian</code>.</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Existing harness at phase start: Phase A/B validation plus topic memory audit.</li>
+<li>New harness introduced: archive path allowlist and note ID/frontmatter checks.</li>
+<li>Archive writes only under configured vault path.</li>
+<li>No generated note may overwrite unrelated human notes without explicit
+  matching frontmatter ID.</li>
+<li>Documentation-only playbook applies: preserve wiki-links and report exactly
+  which notes changed.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a>Daily reports and topic notes are archived consistently with valid links,
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>stable IDs, and useful metadata.
+</code></pre></div>
+<h3 id="phase-d-explicit-feedback-loop">Phase D - Explicit feedback loop<a class="headerlink" href="#phase-d-explicit-feedback-loop" title="Permanent link">&para;</a></h3>
+<p>Goal: improve relevance.</p>
+<p>Deliverables:</p>
+<ul>
+<li>CLI feedback command.</li>
+<li>Feedback event store.</li>
+<li>Weekly preference update.</li>
+<li>Source/topic weight adjustment.</li>
+<li>Negative preferences.</li>
+<li>Rollback mechanism.</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Add <code>feedback.py</code> models and <code>FeedbackStore</code>.</li>
+<li>Add CLI <code>brief feedback --cluster/--topic/--source --signal ...</code>.</li>
+<li>Add manual review labels from Phase A as first-class feedback records.</li>
+<li>Add <code>preference_update.py</code> to compute reversible source/topic adjustments.</li>
+<li>Store each adjustment with before/after weights and rollback metadata.</li>
+<li>Add weekly report section for feedback and source-quality notes.</li>
+<li>Add tests for insufficient feedback, conflicting feedback, rollback, and
+   malformed target IDs.</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Existing harness at phase start: archive, topic memory, source registry, and
+  daily report validation.</li>
+<li>New harness introduced: preference adjustment audit and rollback checks.</li>
+<li>Explicit feedback only in this phase.</li>
+<li>No behavioral signal changes ranking in Phase D.</li>
+<li>Preference promotion follows memory promotion rules: trigger, procedure,
+  observable effect, rollback, owner/review record.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>Explicit feedback can audibly and reversibly change future ranking.
+</code></pre></div>
+<h3 id="phase-e-hot-topic-dossiers">Phase E - Hot-topic dossiers<a class="headerlink" href="#phase-e-hot-topic-dossiers" title="Permanent link">&para;</a></h3>
+<p>Goal: support deeper reading.</p>
+<p>Deliverables:</p>
+<ul>
+<li>Single-topic dossier template.</li>
+<li>Evidence timeline.</li>
+<li>Prior context.</li>
+<li>"What changed".</li>
+<li>"Why it matters".</li>
+<li>"What to try next".</li>
+<li>Manual dossier generation first.</li>
+<li>Later: max 1 automatic dossier per day, then max 3.</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Add <code>dossier.py</code> renderer using the dossier template.</li>
+<li>Add manual CLI <code>brief dossier --cluster &lt;ID&gt;</code> before automatic selection.</li>
+<li>Require at least one primary artifact before generating a dossier.</li>
+<li>Add evidence timeline extraction from cluster events and topic memory.</li>
+<li>Add factuality labels for supported facts, inferences, and watch items.</li>
+<li>Add dossier validation for required sections, evidence URLs, and link counts.</li>
+<li>Add tests for primary-artifact absence, missing evidence links, repeated topic
+   context, and long-report rejection.</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Existing harness at phase start: feedback audit, memory audit, archive
+  validation, and report validation.</li>
+<li>New harness introduced: dossier factuality/evidence validation.</li>
+<li>Dossier generation reads only one selected cluster plus relevant topic memory.</li>
+<li>It must not expand into a general literature review; hand off to the academic
+  skill for paper-only deep research.</li>
+<li>Automatic dossiers remain disabled until manual dossiers are useful.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>The system can generate one high-quality dossier from primary evidence without
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>bloating the daily brief.
+</code></pre></div>
+<h3 id="phase-f-source-expansion">Phase F - Source expansion<a class="headerlink" href="#phase-f-source-expansion" title="Permanent link">&para;</a></h3>
+<p>Goal: increase coverage without increasing noise.</p>
+<p>Add selectively:</p>
+<ul>
+<li>Hacker News.</li>
+<li>Hugging Face Papers.</li>
+<li>Existing arXiv adapter mapped into events.</li>
+<li>OpenAlex enrichment.</li>
+<li>Semantic Scholar enrichment.</li>
+<li>Crossref enrichment.</li>
+<li>Targeted Reddit.</li>
+<li>Targeted Bluesky.</li>
+<li>X only under strict budget and corroboration requirements.</li>
+<li>YouTube/podcast context for weekly synthesis, not daily briefing.</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Add one source class at a time.</li>
+<li>Require a source registry entry before implementation.</li>
+<li>Add offline fixtures before enabling the source.</li>
+<li>Add source-specific retention policy and rate-limit tests.</li>
+<li>Add ranking impact evaluation using held-out daily brief fixtures.</li>
+<li>Keep source disabled by default until it improves explicit feedback without
+   increasing noise.</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Existing harness at phase start: source registry, HTTP politeness, ranking
+  evaluation, feedback, and report validation.</li>
+<li>New harness introduced: per-source enablement evaluation and side-by-side
+  report comparison.</li>
+<li>No automatic source expansion.</li>
+<li>Network remains allowlisted.</li>
+<li>New source adapters are treated as untrusted until parsed and validated.</li>
+<li>Compare reports with and without the new source before enabling.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a>New sources improve explicit feedback without increasing report length or noise.
+</code></pre></div>
+<h3 id="phase-g-harness-hardening-and-agent-workflows">Phase G - Harness hardening and agent workflows<a class="headerlink" href="#phase-g-harness-hardening-and-agent-workflows" title="Permanent link">&para;</a></h3>
+<p>Goal: make the pipeline replayable, auditable, and agent-safe.</p>
+<p>Deliverables:</p>
+<ul>
+<li>Briefing workflow state machine.</li>
+<li>Stage verifiers.</li>
+<li>Telemetry JSONL.</li>
+<li>Source/network allowlist.</li>
+<li>Report validation gates.</li>
+<li>Budget enforcement.</li>
+<li>Held-out evaluation set for ranking and report quality.</li>
+<li>Namespaced MCP tools.</li>
+<li>Dedicated daily-intelligence skill.</li>
+</ul>
+<p>Implementation steps:</p>
+<ol>
+<li>Add briefing workflow state model only after CLI workflow stabilizes.</li>
+<li>Add <code>brief_*</code> MCP schemas and tools mirroring stable CLI commands.</li>
+<li>Add resources for daily brief, ranked clusters, telemetry, and validation
+   results.</li>
+<li>Add a separate <code>daily-ai-intelligence</code> skill with trigger/non-trigger rules.</li>
+<li>Add skill references for command usage, source policy, report templates, and
+   feedback loop.</li>
+<li>Add workflow telemetry and replay/diagnosis documentation.</li>
+<li>Add held-out agent evaluation tasks:</li>
+<li>run a thin daily brief</li>
+<li>validate a malformed report</li>
+<li>record feedback</li>
+<li>export Obsidian notes</li>
+<li>refuse unsupported source expansion</li>
+<li>hand off paper-only request to academic skill</li>
+</ol>
+<p>Harness controls:</p>
+<ul>
+<li>Existing harness at phase start: stable CLI workflow, validation, telemetry,
+  feedback audit, source registry, and source expansion gates.</li>
+<li>New harness introduced: MCP/skill tool-scope governance and held-out agent
+  evaluation tasks.</li>
+<li>Namespaced MCP tools prevent confusion with paper-research tools.</li>
+<li>Tool annotations must reflect network/write behavior.</li>
+<li>Agent-facing skill must say when not to trigger.</li>
+<li>Harness changes are evaluated by holding model/runtime fixed and comparing
+  traces, not only final output.</li>
+</ul>
+<p>Done when:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>An AI agent can run, inspect, validate, and summarize a briefing workflow using
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>briefing-specific tools without confusing it with the academic research workflow.
+</code></pre></div>
+<h2 id="suggested-first-implementation-slice">Suggested first implementation slice<a class="headerlink" href="#suggested-first-implementation-slice" title="Permanent link">&para;</a></h2>
+<p>Start with this narrower vertical slice:</p>
+<ol>
+<li>Add <code>research_pipeline/briefing/</code> package.</li>
+<li>Add <code>IntelligenceEvent</code> with required source/audit fields and optional derived
+   fields.</li>
+<li>Add <code>BriefingSourceConfig</code> source registry with allowlist, cadence, retention,
+   and per-source maximum event count.</li>
+<li>Add GitHub releases adapter.</li>
+<li>Add RSS/Atom adapter.</li>
+<li>Write raw, normalized, cluster, ranked, report, validation, and telemetry
+   artifacts to the fixed Phase A artifact layout.</li>
+<li>Generate stable <code>event_id</code>, <code>content_hash</code>, <code>dedup_key</code>, and <code>cluster_id</code>
+   values.</li>
+<li>Deduplicate by canonical URL, repo/tag, RSS GUID, and normalized title.</li>
+<li>Implement simple deterministic ranking with source class, hype penalty, and
+   tie-breakers.</li>
+<li>Generate one template/extractive Markdown daily brief.</li>
+<li>Validate report length, link count, item count, required sections, duplicate
+    titles, and evidence-link presence.</li>
+<li>Emit basic telemetry for source counts, errors, and run duration.</li>
+<li>Support low-signal/no-news days without padding the report.</li>
+<li>Use HTTP politeness metadata for ETag/Last-Modified and clear User-Agent.</li>
+<li>Keep LLM summarization disabled unless explicitly configured, and never send
+    raw unclustered source dumps.</li>
+</ol>
+<p>Phase A implementation tickets:</p>
+<ol>
+<li>Add briefing package skeleton and models.</li>
+<li>Add source registry loader and validation.</li>
+<li>Add GitHub releases adapter with fixtures.</li>
+<li>Add RSS/Atom adapter with fixtures.</li>
+<li>Add normalization and stable ID generation.</li>
+<li>Add exact deduplication.</li>
+<li>Add deterministic ranking and tie-breakers.</li>
+<li>Add Markdown daily report renderer.</li>
+<li>Add report/event validator.</li>
+<li>Add CLI command group and fixed artifact layout.</li>
+<li>Add telemetry JSONL.</li>
+<li>Add offline end-to-end tests for normal, low-signal, and no-news days.</li>
+</ol>
+<p>This slice intentionally delays:</p>
+<ul>
+<li>Dossiers.</li>
+<li>Obsidian graph.</li>
+<li>Behavioral feedback.</li>
+<li>KG ingestion.</li>
+<li>Complex topic lifecycle.</li>
+<li>HN/X/Reddit/Bluesky.</li>
+<li>Cloud summarization of raw source dumps.</li>
+</ul>
+<h2 id="non-goals-for-the-first-version">Non-goals for the first version<a class="headerlink" href="#non-goals-for-the-first-version" title="Permanent link">&para;</a></h2>
+<ul>
+<li>No browser scraping.</li>
+<li>No X integration.</li>
+<li>No full social firehose.</li>
+<li>No dashboard.</li>
+<li>No complex vector database unless local search starts failing.</li>
+<li>No cloud model calls on raw unclustered source dumps.</li>
+<li>No automatic topic merges.</li>
+<li>No automatic promotion of vague preferences into durable memory.</li>
+<li>No automatic source expansion. New sources require source registry entry,
+  cadence, retention policy, and review.</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "../..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

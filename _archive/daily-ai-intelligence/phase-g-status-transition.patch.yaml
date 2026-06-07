@@ -1,0 +1,17 @@
+# Apply without deleting A/B/C/D/E/F ticket records.
+
+current_phase: G
+current_ticket: G01_workflow_state_model
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D: {status: complete}
+  E: {status: complete}
+  F: {status: complete}
+  G:
+    name: "Harness hardening and agent workflows"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-g-gate"
+    tickets: "<copy G01-G09 from phase-g-status-addendum.yaml>"

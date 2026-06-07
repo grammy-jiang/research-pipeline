@@ -1,0 +1,138 @@
+current_phase: E
+current_ticket: E01_dossier_models
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D: {status: complete}
+  E:
+    name: "Hot-topic dossiers"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-e-gate"
+    tickets:
+      E01_dossier_models:
+        status: pending
+        title: "Add dossier models and factuality labels"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E01_dossier_models.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E01_dossier_models.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_models.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_models.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E02_dossier_renderer:
+        status: pending
+        title: "Add single-topic dossier renderer"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E02_dossier_renderer.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E02_dossier_renderer.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_renderer.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_renderer.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E03_dossier_cli_manual:
+        status: pending
+        title: "Add manual CLI command brief dossier --cluster"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E03_dossier_cli_manual.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E03_dossier_cli_manual.md"
+        owned_files:
+          - "src/research_pipeline/cli/cmd_brief.py"
+          - "tests/unit/test_briefing_cli_dossier.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_cli_dossier.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E04_primary_artifact_gate:
+        status: pending
+        title: "Require primary artifact before dossier generation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E04_primary_artifact_gate.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E04_primary_artifact_gate.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_primary_artifact.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_primary_artifact.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E05_evidence_timeline:
+        status: pending
+        title: "Add evidence timeline from cluster events and topic memory"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E05_evidence_timeline.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E05_evidence_timeline.md"
+        owned_files:
+          - "src/research_pipeline/briefing/dossier_timeline.py"
+          - "tests/unit/test_briefing_dossier_timeline.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_timeline.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E06_dossier_validation:
+        status: pending
+        title: "Add dossier validation for sections, evidence URLs, and length"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E06_dossier_validation.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E06_dossier_validation.md"
+        owned_files:
+          - "src/research_pipeline/briefing/validate_dossier.py"
+          - "tests/unit/test_briefing_validate_dossier.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_validate_dossier.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E07_dossier_archive_linking:
+        status: pending
+        title: "Link manual dossier output to daily brief and optional archive path"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E07_dossier_archive_linking.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E07_dossier_archive_linking.md"
+        owned_files:
+          - "src/research_pipeline/briefing/report.py"
+          - "src/research_pipeline/briefing/dossier.py"
+          - "tests/unit/test_briefing_dossier_linking.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_dossier_linking.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      E08_dossier_offline_e2e:
+        status: pending
+        title: "Add offline dossier e2e tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/E08_dossier_offline_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/E08_dossier_offline_e2e.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_e_dossier_e2e.py"
+          - "tests/fixtures/briefing/e2e/dossier_manual/"
+          - "tests/fixtures/briefing/e2e/dossier_no_primary_artifact/"
+          - "tests/fixtures/briefing/e2e/dossier_long_rejection/"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_e_dossier_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+  F: {status: blocked_until_E_done}
+  G: {status: blocked_until_F_done}

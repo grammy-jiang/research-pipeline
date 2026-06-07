@@ -1,0 +1,162 @@
+current_phase: G
+current_ticket: G01_workflow_state_model
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D: {status: complete}
+  E: {status: complete}
+  F: {status: complete}
+  G:
+    name: "Harness hardening and agent workflows"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-g-gate"
+    tickets:
+      G01_workflow_state_model:
+        status: pending
+        title: "Add briefing workflow state model"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G01_workflow_state_model.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G01_workflow_state_model.md"
+        owned_files:
+          - "src/research_pipeline/briefing/workflow_state.py"
+          - "tests/unit/test_briefing_workflow_state.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_workflow_state.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G02_stage_verifiers:
+        status: pending
+        title: "Add stage verifier registry"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G02_stage_verifiers.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G02_stage_verifiers.md"
+        owned_files:
+          - "src/research_pipeline/briefing/workflow_verification.py"
+          - "tests/unit/test_briefing_workflow_verification.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_workflow_verification.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G03_mcp_schemas:
+        status: pending
+        title: "Add namespaced brief_* MCP schemas"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G03_mcp_schemas.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G03_mcp_schemas.md"
+        owned_files:
+          - "src/research_pipeline/mcp_server/schemas.py"
+          - "tests/unit/test_mcp_briefing_schemas.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_mcp_briefing_schemas.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G04_mcp_tools:
+        status: pending
+        title: "Add namespaced brief_* MCP tools"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G04_mcp_tools.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G04_mcp_tools.md"
+        owned_files:
+          - "src/research_pipeline/mcp_server/tools.py"
+          - "tests/unit/test_mcp_briefing_tools.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_mcp_briefing_tools.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G05_mcp_resources:
+        status: pending
+        title: "Add MCP resources for briefing artifacts"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G05_mcp_resources.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G05_mcp_resources.md"
+        owned_files:
+          - "src/research_pipeline/mcp_server/resources.py"
+          - "tests/unit/test_mcp_briefing_resources.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_mcp_briefing_resources.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G06_daily_intelligence_skill:
+        status: pending
+        title: "Add bundled daily-ai-intelligence skill"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G06_daily_intelligence_skill.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G06_daily_intelligence_skill.md"
+        owned_files:
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/SKILL.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/config.toml"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/command-reference.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/source-policy.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/report-templates.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/feedback-loop.md"
+          - "src/research_pipeline/skill_data/daily-ai-intelligence/references/troubleshooting.md"
+          - "tests/unit/test_skill_daily_ai_intelligence.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_skill_daily_ai_intelligence.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G07_tool_scope_governance:
+        status: pending
+        title: "Add MCP and skill tool-scope governance"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G07_tool_scope_governance.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G07_tool_scope_governance.md"
+        owned_files:
+          - "src/research_pipeline/briefing/tool_governance.py"
+          - "tests/unit/test_briefing_tool_governance.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_tool_governance.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G08_held_out_agent_evals:
+        status: pending
+        title: "Add held-out agent evaluation tasks"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G08_held_out_agent_evals.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G08_held_out_agent_evals.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_g_agent_evals.py"
+          - "tests/fixtures/briefing/e2e/agent_eval/run_daily_brief/"
+          - "tests/fixtures/briefing/e2e/agent_eval/validate_malformed_report/"
+          - "tests/fixtures/briefing/e2e/agent_eval/record_feedback/"
+          - "tests/fixtures/briefing/e2e/agent_eval/export_obsidian/"
+          - "tests/fixtures/briefing/e2e/agent_eval/refuse_unsupported_source/"
+          - "tests/fixtures/briefing/e2e/agent_eval/paper_request_handoff/"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_g_agent_evals.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      G09_replay_diagnosis_and_final_gate:
+        status: pending
+        title: "Add replay diagnosis docs and final all-phase gate"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/G09_replay_diagnosis_and_final_gate.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/G09_replay_diagnosis_and_final_gate.md"
+        owned_files:
+          - "docs/daily-ai-intelligence/replay-diagnosis.md"
+          - "docs/daily-ai-intelligence/final-acceptance-gate.md"
+          - "tests/integration_offline/test_briefing_phase_g_replay_diagnosis.py"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_g_replay_diagnosis.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing src/research_pipeline/mcp_server tests/"
+          - "uv run mypy src/"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null

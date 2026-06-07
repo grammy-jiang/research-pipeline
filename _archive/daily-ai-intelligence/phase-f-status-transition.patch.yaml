@@ -1,0 +1,17 @@
+# Apply without deleting A/B/C/D/E ticket records.
+
+current_phase: F
+current_ticket: F01_source_expansion_governance
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D: {status: complete}
+  E: {status: complete}
+  F:
+    name: "Source expansion"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-f-gate"
+    tickets: "<copy F01-F09 from phase-f-status-addendum.yaml>"
+  G: {status: blocked_until_F_done}
