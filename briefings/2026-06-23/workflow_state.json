@@ -1,0 +1,17 @@
+{
+  "artifact_paths": {
+    "daily_report": "workspace/briefings/2026-06-23/reports/daily.md",
+    "events": "workspace/briefings/2026-06-23/normalized/events.jsonl",
+    "ranked_clusters": "workspace/briefings/2026-06-23/ranked/ranked_clusters.jsonl",
+    "validation": "workspace/briefings/2026-06-23/validation/validation.json"
+  },
+  "completed_stages": [
+    "polled",
+    "ranked",
+    "generated",
+    "validated"
+  ],
+  "current_stage": "validated",
+  "last_error": "",
+  "run_date": "2026-06-23"
+}
