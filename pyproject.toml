@@ -142,7 +142,7 @@ module = ["research_pipeline.mcp_server.*"]
 ignore_errors = true
 
 [[tool.mypy.overrides]]
-module = ["fitz", "pymupdf", "pymupdf4llm"]
+module = ["fitz", "pymupdf", "pymupdf.*", "pymupdf4llm", "docling", "docling.*", "torch", "torch.*", "transformers", "transformers.*", "adapters"]
 follow_imports = "skip"
 ignore_missing_imports = true
 
@@ -155,7 +155,7 @@ markers = [
 [tool.ruff]
 line-length = 88
 target-version = "py312"
-extend-exclude = ["docs"]  # doc-build utility scripts, not package code
+extend-exclude = ["docs"] # doc-build utility scripts, not package code
 
 [tool.ruff.format]
 docstring-code-format = true
