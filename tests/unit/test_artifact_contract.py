@@ -1,10 +1,11 @@
-"""Structural guard tests for the Cross-Skill Artifact Contract (blueprint / producer side).
+"""Structural guard tests for the Cross-Skill Artifact Contract (producer side).
 
-The contract (`references/artifact-contract.md`, shipped inside the blueprint skill) standardizes
-the document interface for the design chain so each generated Markdown is both a human report and a
-machine-readable handoff artifact. The downstream consumers (``architecture``, ``ux-design``) now
-live in the separate ``design-pipeline`` repo; their template/prompt conformance is tested there.
-This file validates the blueprint (producer) side that remains in research-pipeline.
+The contract (`references/artifact-contract.md`, shipped inside the blueprint skill)
+standardizes the document interface for the design chain so each generated Markdown is
+both a human report and a machine-readable handoff artifact. The downstream consumers
+(``architecture``, ``ux-design``) now live in the separate ``design-pipeline`` repo;
+their template/prompt conformance is tested there. This file validates the blueprint
+(producer) side that remains in research-pipeline.
 """
 
 from __future__ import annotations
@@ -49,7 +50,7 @@ def test_contract_file_has_registry_and_vocabulary() -> None:
     text = (
         _skill_data() / "blueprint" / "references" / "artifact-contract.md"
     ).read_text(encoding="utf-8")
-    # Artifact type registry (the contract defines the whole chain, incl. downstream consumers).
+    # Artifact type registry (the contract defines the whole chain, incl. consumers).
     for t in (
         "product_blueprint",
         "architecture_design",
@@ -75,7 +76,9 @@ def test_contract_file_has_registry_and_vocabulary() -> None:
 def test_templates_include_generation_metadata() -> None:
     for skill, name in _all_priority_templates():
         text = _template_text(skill, name)
-        assert "Generation Metadata" in text, f"{skill}/{name} lacks Generation Metadata"
+        assert "Generation Metadata" in text, (
+            f"{skill}/{name} lacks Generation Metadata"
+        )
 
 
 def test_templates_include_artifact_type() -> None:
