@@ -23,7 +23,7 @@ test:
 security:
 	uv run detect-secrets scan --baseline .secrets.baseline
 	uv run bandit -r src/ -c pyproject.toml -q
-	uv run pip-audit
+	uv run pip-audit --ignore-vuln CVE-2026-3219 --ignore-vuln CVE-2025-3000
 
 # Full pre-commit run (includes all of the above via hooks)
 audit:

@@ -89,7 +89,7 @@ class DoclingBackend(ConverterBackend):
             )
 
         try:
-            from docling.document_converter import (  # type: ignore[import-not-found]
+            from docling.document_converter import (
                 DocumentConverter,
             )
 
