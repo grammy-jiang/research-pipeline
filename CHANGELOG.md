@@ -2,6 +2,23 @@
 
 All notable changes to research-pipeline.
 
+## [v0.29.0] — 2026-06-29
+
+### Changed
+
+- **Extracted the `architecture` and `ux-design` skills to the separate `design-pipeline` repo.**
+  research-pipeline now ships the `research-pipeline`, `blueprint`, and `daily-ai-intelligence`
+  skills; the downstream product-design stages (blueprint → architecture → ux-design) live in
+  their own repo. The chain is unchanged: skills install side-by-side into `~/.claude/skills/`
+  and hand off via artifact files; the artifact-contract in `blueprint/references/` is the interface.
+
+### Removed
+
+- `skill_data/architecture/`, `skill_data/ux-design/` and their `tests/unit/test_skill_*.py`.
+- Architecture-skill design/improvement notes under `docs/`.
+- `tests/unit/test_artifact_contract.py` trimmed to the blueprint (producer) side; downstream
+  template/prompt conformance now lives in design-pipeline.
+
 ## [v0.28.0] — 2026-06-07
 
 ### Added

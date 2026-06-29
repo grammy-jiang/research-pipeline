@@ -1,10 +1,10 @@
-"""Structural guard tests for the Cross-Skill Artifact Contract.
+"""Structural guard tests for the Cross-Skill Artifact Contract (blueprint / producer side).
 
-The contract (`references/artifact-contract.md`, shipped inside each skill)
-standardizes the document interface across the design-chain skills so each
-generated Markdown is both a human report and a machine-readable handoff
-artifact. These are simple text-based tests over the bundled skill templates,
-references, and prompts (see ``docs`` cross-skill-artifact-contract plan §22).
+The contract (`references/artifact-contract.md`, shipped inside the blueprint skill) standardizes
+the document interface for the design chain so each generated Markdown is both a human report and a
+machine-readable handoff artifact. The downstream consumers (``architecture``, ``ux-design``) now
+live in the separate ``design-pipeline`` repo; their template/prompt conformance is tested there.
+This file validates the blueprint (producer) side that remains in research-pipeline.
 """
 
 from __future__ import annotations
@@ -18,24 +18,13 @@ def _skill_data() -> Path:
     return Path(research_pipeline.__file__).parent / "skill_data"
 
 
-# Skills that produce artifacts and must carry the contract.
-CONTRACT_SKILLS = ["blueprint", "architecture", "ux-design"]
+# The artifact-producing skill that remains in this repo and must carry the contract.
+CONTRACT_SKILLS = ["blueprint"]
 
 # Priority artifact-producing templates per skill (contract §19).
 PRIORITY_TEMPLATES = {
     "blueprint": ["product_blueprint_template.md"],
-    "architecture": [
-        "architecture_design_template.md",
-        "architecture_tech_stack_template.md",
-        "architecture_update_template.md",
-        "architecture_reconciliation_template.md",
-        "architecture_review_template.md",
-    ],
-    "ux-design": ["ux-design-template.md"],
 }
-
-# The five architecture mode templates must record Resolved Input Artifacts.
-ARCHITECTURE_MODE_TEMPLATES = PRIORITY_TEMPLATES["architecture"]
 
 
 def _template_text(skill: str, name: str) -> str:
@@ -56,23 +45,11 @@ def test_contract_file_present_in_every_skill() -> None:
         assert path.read_text(encoding="utf-8").strip()
 
 
-def test_contract_files_are_identical() -> None:
-    """The canonical contract is duplicated per-skill; the copies must match."""
-    texts = {
-        skill: (
-            _skill_data() / skill / "references" / "artifact-contract.md"
-        ).read_text(encoding="utf-8")
-        for skill in CONTRACT_SKILLS
-    }
-    distinct = set(texts.values())
-    assert len(distinct) == 1, "artifact-contract.md copies have drifted out of sync"
-
-
 def test_contract_file_has_registry_and_vocabulary() -> None:
     text = (
-        _skill_data() / "architecture" / "references" / "artifact-contract.md"
+        _skill_data() / "blueprint" / "references" / "artifact-contract.md"
     ).read_text(encoding="utf-8")
-    # Artifact type registry.
+    # Artifact type registry (the contract defines the whole chain, incl. downstream consumers).
     for t in (
         "product_blueprint",
         "architecture_design",
@@ -98,9 +75,7 @@ def test_contract_file_has_registry_and_vocabulary() -> None:
 def test_templates_include_generation_metadata() -> None:
     for skill, name in _all_priority_templates():
         text = _template_text(skill, name)
-        assert "Generation Metadata" in text, (
-            f"{skill}/{name} lacks Generation Metadata"
-        )
+        assert "Generation Metadata" in text, f"{skill}/{name} lacks Generation Metadata"
 
 
 def test_templates_include_artifact_type() -> None:
@@ -120,14 +95,6 @@ def test_templates_include_source_artifacts_consumed() -> None:
         text = _template_text(skill, name)
         assert "Source Artifacts Consumed" in text, (
             f"{skill}/{name} lacks Source Artifacts Consumed"
-        )
-
-
-def test_architecture_mode_templates_include_resolved_inputs() -> None:
-    for name in ARCHITECTURE_MODE_TEMPLATES:
-        text = _template_text("architecture", name)
-        assert "Resolved Input Artifacts" in text, (
-            f"architecture/{name} lacks Resolved Input Artifacts"
         )
 
 
@@ -170,15 +137,9 @@ def test_skills_reference_artifact_contract() -> None:
 
 
 def test_generation_prompts_require_contract_compliance() -> None:
-    """The main generation / final-document prompts instruct contract compliance."""
+    """The main blueprint generation prompt instructs contract compliance."""
     prompts = [
         _skill_data() / "blueprint" / "prompts" / "04_generate_blueprint.md",
-        _skill_data() / "architecture" / "prompts" / "22_architecture_draft.md",
-        _skill_data() / "architecture" / "prompts" / "stack_06_final_stack_document.md",
-        _skill_data() / "architecture" / "prompts" / "review_03_final_document.md",
-        _skill_data() / "architecture" / "prompts" / "update_03_final_document.md",
-        _skill_data() / "architecture" / "prompts" / "reconcile_03_final_document.md",
-        _skill_data() / "ux-design" / "prompts" / "12_final_document.md",
     ]
     for p in prompts:
         text = p.read_text(encoding="utf-8")
