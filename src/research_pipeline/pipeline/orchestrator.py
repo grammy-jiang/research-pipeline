@@ -1263,7 +1263,7 @@ def run_pipeline(
                     if not pdf_path.exists():
                         continue
                     try:
-                        import pymupdf  # type: ignore[import-not-found]
+                        import pymupdf
 
                         doc = pymupdf.open(str(pdf_path))
                         texts = [p.get_text() for p in doc]

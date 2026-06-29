@@ -2,6 +2,22 @@
 
 All notable changes to research-pipeline.
 
+## [v0.29.1] — 2026-06-30
+
+### Fixed (CI drift)
+
+CI had drifted red since master was last green (2026-06-07) — tooling and advisories moved while the
+code did not. Restored all gates to green:
+
+- **Lint:** excluded `docs/` (doc-build utility scripts) from ruff — a newer ruff flagged 34 latent
+  E501/style issues there.
+- **Security:** bumped CVE-flagged deps (python-multipart 0.0.32, starlette 1.3.1, vcrpy 8.2.1,
+  cryptography 49.0.0, msgpack 1.2.1, pydantic-settings 2.14.2); ignored torch CVE-2025-3000 in
+  pip-audit (no fix available, transitive) in CI + Makefile.
+- **Type check:** added a mypy `follow_imports = "skip"` override for `fitz` / `pymupdf` /
+  `pymupdf4llm` (they now ship partial/no types) and removed 7 stale `# type: ignore` comments that
+  a newer mypy flagged as unused.
+
 ## [v0.29.0] — 2026-06-29
 
 ### Changed

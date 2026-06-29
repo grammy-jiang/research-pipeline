@@ -23,8 +23,8 @@ def _is_specter2_available() -> bool:
     """Check whether the SPECTER2 dependencies are installed."""
     try:
         import adapters  # type: ignore[import-not-found]  # noqa: F401
-        import torch  # type: ignore[import-not-found]  # noqa: F401
-        import transformers  # type: ignore[import-not-found]  # noqa: F401
+        import torch  # noqa: F401
+        import transformers  # noqa: F401
 
         return True
     except ImportError:

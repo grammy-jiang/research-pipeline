@@ -100,7 +100,7 @@ jobs:
         run: uv sync --extra dev
 
       - name: Audit dependencies for vulnerabilities
-        run: uv run pip-audit --skip-editable --ignore-vuln CVE-2026-3219
+        run: uv run pip-audit --skip-editable --ignore-vuln CVE-2026-3219 --ignore-vuln CVE-2025-3000  # torch: no fix yet (transitive)
 
       - name: Check license compatibility
         run: |
