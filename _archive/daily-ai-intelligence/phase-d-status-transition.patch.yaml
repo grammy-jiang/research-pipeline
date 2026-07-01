@@ -1,0 +1,15 @@
+# Apply without deleting A/B/C ticket records.
+
+current_phase: D
+current_ticket: D01_feedback_models
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D:
+    name: "Explicit feedback loop"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-d-gate"
+    tickets: "<copy D01-D08 from phase-d-status-addendum.yaml>"
+  E: {status: blocked_until_D_done}

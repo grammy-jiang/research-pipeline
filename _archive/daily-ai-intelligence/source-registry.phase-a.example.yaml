@@ -1,0 +1,59 @@
+# Example Phase A source registry.
+# Real source URLs must be reviewed before enabling.
+
+sources:
+  - source_id: github_modelcontextprotocol_servers
+    source_name: "Model Context Protocol Servers Releases"
+    source_class: implementation_source
+    access_method: github_releases
+    official_url: "https://api.github.com/repos/modelcontextprotocol/servers/releases"
+    auth_required: false
+    rate_limit_policy: "github_unauthenticated_or_token_if_available"
+    cadence: daily
+    retention_policy: "store_normalized_events_and_minimal_raw_metadata"
+    allowed_raw_storage: minimal
+    trust_weight: 8
+    noise_weight: 1
+    enabled: false
+    last_reviewed_at: null
+    max_events_per_run: 10
+    tags:
+      - mcp
+      - agents
+
+  - source_id: rss_example_vendor_changelog
+    source_name: "Example Vendor Changelog RSS"
+    source_class: primary_artifact
+    access_method: rss_atom
+    official_url: "https://example.com/changelog/feed.xml"
+    auth_required: false
+    rate_limit_policy: "etag_last_modified"
+    cadence: daily
+    retention_policy: "store_normalized_events_only"
+    allowed_raw_storage: minimal
+    trust_weight: 7
+    noise_weight: 1
+    enabled: false
+    last_reviewed_at: null
+    max_events_per_run: 10
+    tags:
+      - vendor
+      - changelog
+
+  - source_id: manual_calibration
+    source_name: "Manual Calibration Items"
+    source_class: primary_artifact
+    access_method: manual
+    official_url: "local://manual"
+    auth_required: false
+    rate_limit_policy: "none"
+    cadence: manual
+    retention_policy: "store_manual_items"
+    allowed_raw_storage: minimal
+    trust_weight: 5
+    noise_weight: 2
+    enabled: false
+    last_reviewed_at: null
+    max_events_per_run: 10
+    tags:
+      - manual

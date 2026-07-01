@@ -1,0 +1,1694 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers — plus a daily AI intelligence briefing system.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/implementation-plan/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>research-pipeline — Implementation Plan - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#research-pipeline-implementation-plan" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              research-pipeline — Implementation Plan
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture (legacy)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-001-uv-build-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 uv build tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-002-pydantic-domain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 Pydantic models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-003-stage-based-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Stage-based pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-004-conversion-backend-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 Conversion registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-005-sqlite-persistent-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-005 SQLite state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-006-fastmcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-006 FastMCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-007-multi-tier-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Multi-tier memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-008-briefing-vs-academic-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 Dual pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations-runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-document-control" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Document Control
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-scope-and-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Scope and Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-current-state-v01734" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Current State (v0.17.34)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Current State (v0.17.34)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-capability-surface-verified-by-the-2026-05-17-audit-924-clauses-satisfied" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Capability surface (verified by the 2026-05-17 audit, 924 clauses satisfied)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-ci-and-gates" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 CI and gates
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-open-work" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Open Work
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Open Work">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-audit-driven-items-from-audit-deep-research-compliance-2026-05-17md-6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Audit-driven items (from audit-deep-research-compliance-2026-05-17.md §6)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-design-document-follow-through" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Design-document follow-through
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-documentation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Documentation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-explicitly-out-of-scope" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Explicitly Out of Scope
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-cadence-and-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Cadence and Maintenance
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-reference" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Reference
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="research-pipeline-implementation-plan">research-pipeline — Implementation Plan<a class="headerlink" href="#research-pipeline-implementation-plan" title="Permanent link">&para;</a></h1>
+<h2 id="1-document-control">1. Document Control<a class="headerlink" href="#1-document-control" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Value</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Document</td>
+<td>Implementation Plan — research-pipeline</td>
+</tr>
+<tr>
+<td>Version</td>
+<td>0.17.34</td>
+</tr>
+<tr>
+<td>Status</td>
+<td><em>Active — current state and forward work</em></td>
+</tr>
+<tr>
+<td>Last Updated</td>
+<td>2026-05-17</td>
+</tr>
+<tr>
+<td>Source of Truth</td>
+<td>This document for plan; <a href="../system-design/">System Design</a> for architecture; <a href="../changelog/">CHANGELOG</a> for history</td>
+</tr>
+</tbody>
+</table>
+<p>This is the living implementation plan. Closed-out plans (older project phases) are preserved under <a href="_archive/"><code>_archive/</code></a>.</p>
+<hr />
+<h2 id="2-scope-and-purpose">2. Scope and Purpose<a class="headerlink" href="#2-scope-and-purpose" title="Permanent link">&para;</a></h2>
+<p>This plan describes:</p>
+<ul>
+<li><strong>What is implemented today</strong> — the current production capability surface at v0.17.34.</li>
+<li><strong>What is open work</strong> — items derived from recent audits, ADRs, and the deep-research design document.</li>
+<li><strong>What is explicitly out of scope</strong> — to prevent scope creep and to mark items the project has decided not to pursue.</li>
+</ul>
+<p>The plan is anchored in versioned decisions:</p>
+<ul>
+<li><a href="../system-design/">System Design</a> — the canonical architecture.</li>
+<li><a href="../adr/">ADRs</a> — the 8 architecture decisions to date.</li>
+<li><a href="../changelog/">CHANGELOG</a> — per-version history of what shipped.</li>
+<li><a href="../audit-deep-research-compliance-2026-05-17/">Audit: Deep-Research Compliance (2026-05-17)</a> — most recent compliance snapshot against the comprehensive deep-research design document.</li>
+</ul>
+<hr />
+<h2 id="3-current-state-v01734">3. Current State (v0.17.34)<a class="headerlink" href="#3-current-state-v01734" title="Permanent link">&para;</a></h2>
+<h3 id="31-capability-surface-verified-by-the-2026-05-17-audit-924-clauses-satisfied">3.1 Capability surface (verified by the 2026-05-17 audit, 924 clauses satisfied)<a class="headerlink" href="#31-capability-surface-verified-by-the-2026-05-17-audit-924-clauses-satisfied" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Area</th>
+<th>Status</th>
+<th>Reference</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Academic pipeline — 7 stages (plan → search → screen → download → convert → extract → summarize)</td>
+<td>shipped</td>
+<td><a href="../system-design/">System Design §3</a></td>
+</tr>
+<tr>
+<td>Multi-source discovery — arXiv, Google Scholar, Semantic Scholar, OpenAlex, DBLP</td>
+<td>shipped</td>
+<td><a href="../api-reference/">API Reference</a></td>
+</tr>
+<tr>
+<td>Cross-source dedup (arXiv ID, DOI, normalized title)</td>
+<td>shipped</td>
+<td><a href="../system-design/">System Design</a></td>
+</tr>
+<tr>
+<td>Semantic re-ranking (optional SPECTER2)</td>
+<td>shipped</td>
+<td><a href="../system-design/">System Design</a></td>
+</tr>
+<tr>
+<td>Quality evaluation — composite scoring (citations, venue, h-index, recency, reproducibility)</td>
+<td>shipped</td>
+<td><a href="../system-design/">System Design</a></td>
+</tr>
+<tr>
+<td>PDF conversion — 3 local + 5 cloud backends with multi-account rotation and cross-service fallback</td>
+<td>shipped</td>
+<td><a href="../adr/ADR-004-conversion-backend-registry/">ADR-004</a></td>
+</tr>
+<tr>
+<td>Daily AI intelligence briefing pipeline</td>
+<td>shipped</td>
+<td><a href="../user-manual/">User Manual</a></td>
+</tr>
+<tr>
+<td>MCP server — 64 tools, 21 resources, 6 prompts</td>
+<td>shipped</td>
+<td><a href="../adr/ADR-006-fastmcp-server/">ADR-006</a>, <a href="../api-reference/">API Reference</a></td>
+</tr>
+<tr>
+<td>Multi-tier memory (working, episodic, semantic KG, CBR)</td>
+<td>shipped</td>
+<td><a href="../adr/ADR-007-multi-tier-memory/">ADR-007</a></td>
+</tr>
+<tr>
+<td>4-layer confidence architecture (L1 fast → L2 adaptive → L3 DINCO → L4 verification)</td>
+<td>shipped</td>
+<td><a href="../system-design/">System Design</a></td>
+</tr>
+<tr>
+<td>Hard constraints HC1–HC6 enforced by harness</td>
+<td>shipped</td>
+<td><a href="../security-model/">Security Model</a>, <a href="../AGENTS.md">AGENTS.md</a></td>
+</tr>
+<tr>
+<td>Bundled AI skill + sub-agents (Claude Code, Codex CLI, GitHub Copilot CLI)</td>
+<td>shipped</td>
+<td><a href="../AGENTS.md">AGENTS.md §AI skill &amp; sub-agents</a></td>
+</tr>
+</tbody>
+</table>
+<h3 id="32-ci-and-gates">3.2 CI and gates<a class="headerlink" href="#32-ci-and-gates" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Gate</th>
+<th>Status</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>make verify</code> — lint + typecheck + test + security</td>
+<td>passing</td>
+</tr>
+<tr>
+<td><code>uv run pre-commit run --all-files</code></td>
+<td>passing</td>
+</tr>
+<tr>
+<td><code>detect-secrets</code> baseline</td>
+<td>clean</td>
+</tr>
+<tr>
+<td><code>mypy --strict</code></td>
+<td>zero errors enforced</td>
+</tr>
+<tr>
+<td>Test coverage (unit)</td>
+<td>≥85 % core modules ≥95 %</td>
+</tr>
+<tr>
+<td>Compliance vs. comprehensive design (<code>audit</code> skill)</td>
+<td>924 satisfied, 0 violated, 29 unknown (tooling-coverage gap)</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-open-work">4. Open Work<a class="headerlink" href="#4-open-work" title="Permanent link">&para;</a></h2>
+<h3 id="41-audit-driven-items-from-audit-deep-research-compliance-2026-05-17md-6">4.1 Audit-driven items (from <code>audit-deep-research-compliance-2026-05-17.md</code> §6)<a class="headerlink" href="#41-audit-driven-items-from-audit-deep-research-compliance-2026-05-17md-6" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>#</th>
+<th>Item</th>
+<th>Class</th>
+<th>Owner</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>OW-1</td>
+<td>Re-audit once upstream <code>llm-sca-tooling</code> restores <code>get_relevant_files</code> and the per-clause resource handlers; re-classify the 29 unknowns</td>
+<td>tooling-blocked</td>
+<td>auditor</td>
+</tr>
+<tr>
+<td>OW-2</td>
+<td>Optional <code>tests/contracts/</code> runtime-test layer that materialises unknown-clause runtime assertions (§6 MCP server, §11 evaluation gates of the deep-research design)</td>
+<td>testing</td>
+<td>tech lead</td>
+</tr>
+<tr>
+<td>OW-3</td>
+<td>File upstream issues for the four tooling gaps documented in <a href="../upstream-tooling-issues/"><code>upstream-tooling-issues.md</code></a></td>
+<td>tooling</td>
+<td>maintainer</td>
+</tr>
+<tr>
+<td>OW-4</td>
+<td>Resolve any remaining doc cross-reference gaps once this plan is published</td>
+<td>docs</td>
+<td>doc owner</td>
+</tr>
+</tbody>
+</table>
+<h3 id="42-design-document-follow-through">4.2 Design-document follow-through<a class="headerlink" href="#42-design-document-follow-through" title="Permanent link">&para;</a></h3>
+<p>The comprehensive deep-research design document
+(<code>/home/grammy-jiang/Documents/Research/deep-research/deep-research-system-architecture-design.md</code>)
+is the source for forward-looking design. Phased implementation per the
+design's Capability Scope Matrix:</p>
+<table>
+<thead>
+<tr>
+<th>Design phase</th>
+<th>Status in research-pipeline</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>P0 (project skeleton)</td>
+<td>shipped pre-v0.1</td>
+</tr>
+<tr>
+<td>P1 (discovery pipeline)</td>
+<td>shipped</td>
+</tr>
+<tr>
+<td>P2 (analysis data-prep)</td>
+<td>shipped</td>
+</tr>
+<tr>
+<td>P3 (MCP server + intelligence integration)</td>
+<td>shipped (v0.5+)</td>
+</tr>
+<tr>
+<td>P4 (multi-source expansion + memory)</td>
+<td>partial: memory shipped (v0.10+); web/GitHub/patent sources scaffolded only</td>
+</tr>
+<tr>
+<td>P5 (quality &amp; security)</td>
+<td>partial: composite quality shipped; epistemic blinding deferred</td>
+</tr>
+<tr>
+<td>Future (extended MCP + remote access)</td>
+<td>not started</td>
+</tr>
+</tbody>
+</table>
+<p>The capabilities flagged <code>[scaffold]</code> in the design's Capability Scope
+Matrix (web/GitHub/patent search sources via the <code>SearchSource</code> protocol)
+have interface stubs in <code>src/research_pipeline/sources/</code> but no live
+implementation.</p>
+<h3 id="43-documentation">4.3 Documentation<a class="headerlink" href="#43-documentation" title="Permanent link">&para;</a></h3>
+<ul>
+<li>The <code>weak_docs_spec_links: ['implementation plan links missing']</code>
+  finding from the 2026-05-17 readiness audit is addressed by this
+  document and the cross-reference fixes in <code>AGENTS.md</code> and
+  <code>docs/index.md</code> (commit alongside this plan).</li>
+<li>Continued ADR cadence for any major decision (the project has 8
+  ADRs at v0.17.34; the convention is one new ADR per major architectural
+  choice).</li>
+</ul>
+<hr />
+<h2 id="5-explicitly-out-of-scope">5. Explicitly Out of Scope<a class="headerlink" href="#5-explicitly-out-of-scope" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Hosted SaaS / multi-tenant version</strong> — the project is a local CLI/MCP toolkit; hosting is not on the roadmap.</li>
+<li><strong>Non-academic deep-research domains</strong> — the design is academic-paper-shaped; generalisation to legal/medical/patent corpora is a separate project.</li>
+<li><strong>Replacing the LLM-agnostic capability tier with a fixed model</strong> — the LLM-agnostic abstraction is load-bearing (per the deep-research design §1) and stays.</li>
+<li><strong>Removing the SKILL.md / sub-agent boundary</strong> — the boundary between deterministic code and LLM-driven analysis is intentional and stays.</li>
+</ul>
+<hr />
+<h2 id="6-cadence-and-maintenance">6. Cadence and Maintenance<a class="headerlink" href="#6-cadence-and-maintenance" title="Permanent link">&para;</a></h2>
+<ul>
+<li>Update this plan whenever a P-phase item ships (move the row up to §3.1) or whenever a new design item lands in <code>docs/_archive/</code> or <code>adr/</code>.</li>
+<li>Each new audit run should append a row to §4.1 or close one (mark the OW-x as <code>done</code> and link to the closing commit/PR).</li>
+<li>Closed-out plan sections (when a milestone fully ships) move to <code>_archive/</code> with a date prefix, mirroring the convention used for the v0.3.0 plan now at <code>_archive/implementation-plan.md</code>.</li>
+</ul>
+<hr />
+<h2 id="7-reference">7. Reference<a class="headerlink" href="#7-reference" title="Permanent link">&para;</a></h2>
+<ul>
+<li><a href="../_archive/implementation-plan/">Archived plan — Apr 2026, v0.3.0 baseline</a></li>
+<li><a href="../_archive/daily-ai-intelligence-implementation-plan/">Archived plan — Daily AI intelligence</a></li>
+<li><a href="../system-design/">System Design</a> — current architecture</li>
+<li><a href="../adr/">ADR index</a> — 8 ADRs</li>
+<li><a href=".">Audit reports</a> — date-prefixed compliance snapshots (e.g. <code>audit-deep-research-compliance-2026-05-17.md</code>)</li>
+<li><a href="../AGENTS.md">AGENTS.md</a> — agent-facing contract</li>
+<li><a href="../changelog/">CHANGELOG</a> — versioned history</li>
+</ul>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

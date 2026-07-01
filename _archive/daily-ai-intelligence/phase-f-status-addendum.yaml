@@ -1,0 +1,161 @@
+current_phase: F
+current_ticket: F01_source_expansion_governance
+
+phases:
+  A: {status: complete}
+  B: {status: complete}
+  C: {status: complete}
+  D: {status: complete}
+  E: {status: complete}
+  F:
+    name: "Source expansion"
+    status: in_progress
+    acceptance_gate: "docs/daily-ai-intelligence/acceptance-gates.md#phase-f-gate"
+    tickets:
+      F01_source_expansion_governance:
+        status: pending
+        title: "Add source-expansion governance and side-by-side evaluation"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F01_source_expansion_governance.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F01_source_expansion_governance.md"
+        owned_files:
+          - "src/research_pipeline/briefing/source_evaluation.py"
+          - "tests/unit/test_briefing_source_evaluation.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_source_evaluation.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F02_paper_event_mapping:
+        status: pending
+        title: "Map existing arXiv/Hugging Face paper sources into IntelligenceEvent"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F02_paper_event_mapping.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F02_paper_event_mapping.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/papers.py"
+          - "tests/unit/test_briefing_paper_events.py"
+          - "tests/fixtures/briefing/papers/arxiv_candidates.jsonl"
+          - "tests/fixtures/briefing/papers/hf_papers.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_paper_events.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F03_academic_enrichment:
+        status: pending
+        title: "Add OpenAlex/Semantic Scholar/Crossref enrichment for existing paper events"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F03_academic_enrichment.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F03_academic_enrichment.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/academic_enrichment.py"
+          - "tests/unit/test_briefing_academic_enrichment.py"
+          - "tests/fixtures/briefing/enrichment/openalex.json"
+          - "tests/fixtures/briefing/enrichment/semantic_scholar.json"
+          - "tests/fixtures/briefing/enrichment/crossref.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_academic_enrichment.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F04_hacker_news_source:
+        status: pending
+        title: "Add Hacker News discussion source adapter, disabled by default"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F04_hacker_news_source.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F04_hacker_news_source.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/hacker_news.py"
+          - "tests/unit/test_briefing_hacker_news.py"
+          - "tests/fixtures/briefing/hn/item.json"
+          - "tests/fixtures/briefing/hn/thread.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_hacker_news.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F05_reddit_source:
+        status: pending
+        title: "Add targeted Reddit source adapter, disabled by default"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F05_reddit_source.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F05_reddit_source.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/reddit.py"
+          - "tests/unit/test_briefing_reddit.py"
+          - "tests/fixtures/briefing/reddit/listing.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_reddit.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F06_bluesky_source:
+        status: pending
+        title: "Add targeted Bluesky/AT Protocol source adapter, disabled by default"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F06_bluesky_source.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F06_bluesky_source.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/bluesky.py"
+          - "tests/unit/test_briefing_bluesky.py"
+          - "tests/fixtures/briefing/bluesky/feed.json"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_bluesky.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F07_x_source_policy_stub:
+        status: pending
+        title: "Add X/Twitter official API policy-gated source stub, disabled by default"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F07_x_source_policy_stub.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F07_x_source_policy_stub.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/x_api.py"
+          - "tests/unit/test_briefing_x_api_policy.py"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_x_api_policy.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F08_video_audio_weekly_context:
+        status: pending
+        title: "Add YouTube/podcast weekly-context source adapter, disabled by default"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F08_video_audio_weekly_context.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F08_video_audio_weekly_context.md"
+        owned_files:
+          - "src/research_pipeline/briefing/sources/video_audio.py"
+          - "tests/unit/test_briefing_video_audio.py"
+          - "tests/fixtures/briefing/video_audio/youtube_feed.xml"
+        verification_commands:
+          - "uv run pytest tests/unit/test_briefing_video_audio.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+      F09_source_expansion_e2e:
+        status: pending
+        title: "Add source-expansion offline e2e and report-comparison tests"
+        acceptance_contract: "docs/daily-ai-intelligence/acceptance/F09_source_expansion_e2e.md"
+        proof_pack: "docs/daily-ai-intelligence/proofs/F09_source_expansion_e2e.md"
+        owned_files:
+          - "tests/integration_offline/test_briefing_phase_f_source_expansion_e2e.py"
+          - "tests/fixtures/briefing/e2e/source_expansion_baseline/"
+          - "tests/fixtures/briefing/e2e/source_expansion_with_new_source/"
+        verification_commands:
+          - "uv run pytest tests/integration_offline/test_briefing_phase_f_source_expansion_e2e.py -xvs"
+          - "uv run ruff check src/research_pipeline/briefing tests/"
+          - "uv run mypy src/research_pipeline/briefing"
+        last_verified_commit: null
+        audit_status: null
+        audit_reason: null
+  G: {status: blocked_until_F_done}

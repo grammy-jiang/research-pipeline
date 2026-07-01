@@ -1,0 +1,2677 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers — plus a daily AI intelligence briefing system.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/Designing%20Reliable%20Complex%20Skills%20for%20AI%20Coding%20Agents%3A%20A%20Practical%20Manual%20for%20Deterministic%20and%20LLM-Based%20Workflow%20Control/">
+      
+      
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Designing Reliable Complex Skills for AI Coding Agents: A Practical Manual for Deterministic and LLM-Based Workflow Control - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#designing-reliable-complex-skills-for-ai-coding-agents-a-practical-manual-for-deterministic-and-llm-based-workflow-control" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Designing Reliable Complex Skills for AI Coding Agents: A Practical Manual for Deterministic and LLM-Based Workflow Control
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_2" >
+        
+          
+          <label class="md-nav__link" for="__nav_2" id="__nav_2_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_2_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_2">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Getting Started
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../architecture.md" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture (legacy)
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4_4" id="__nav_4_4_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_4_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-001-uv-build-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 uv build tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-002-pydantic-domain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 Pydantic models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-003-stage-based-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Stage-based pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-004-conversion-backend-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 Conversion registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-005-sqlite-persistent-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-005 SQLite state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-006-fastmcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-006 FastMCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-007-multi-tier-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Multi-tier memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-008-briefing-vs-academic-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 Dual pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations-runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#executive-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Executive summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Executive summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-terminology" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key terminology
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#platform-control-surfaces-and-what-they-can-actually-enforce" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform control surfaces and what they can actually enforce
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Platform control surfaces and what they can actually enforce">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#platform-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Platform comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claude-code-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Claude Code guidance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-copilot-guidance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Copilot guidance
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codebase-aware-workflows-and-codex-style-agentsmd" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase-aware workflows and Codex-style AGENTS.md
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#workflow-control-model" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Workflow control model
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Workflow control model">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#deterministic-vs-non-deterministic-task-classification" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Deterministic vs non-deterministic task classification
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#where-workflow-control-should-live" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Where workflow control should live
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#step-handoffs-artifacts-and-workflow-state" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step handoffs, artifacts, and workflow state
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#llm-reasoning-step-contracts" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        LLM reasoning step contracts
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#reviewer-guardrail-and-failure-design" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reviewer, guardrail, and failure design
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Reviewer, guardrail, and failure design">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#what-validation-actually-means" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        What validation actually means
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reviewer-stack" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reviewer stack
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#failure-modes-and-mitigations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Failure modes and mitigations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#implementation-blueprints-and-examples" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Implementation blueprints and examples
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Implementation blueprints and examples">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#design-comparison" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Design comparison
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#reference-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Reference architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-entry-surfaces" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example entry surfaces
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#example-workflow-definitions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example workflow definitions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#claude-code-implementation-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Claude Code implementation blueprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#github-copilot-implementation-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        GitHub Copilot implementation blueprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#codebase-aware-workflow-blueprint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Codebase-aware workflow blueprint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recommended-minimum-viable-and-production-grade-implementations" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recommended minimum viable and production-grade implementations
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#open-questions-and-annotated-bibliography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Open questions and annotated bibliography
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Open questions and annotated bibliography">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#annotated-bibliography" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Annotated bibliography
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="designing-reliable-complex-skills-for-ai-coding-agents-a-practical-manual-for-deterministic-and-llm-based-workflow-control">Designing Reliable Complex Skills for AI Coding Agents: A Practical Manual for Deterministic and LLM-Based Workflow Control<a class="headerlink" href="#designing-reliable-complex-skills-for-ai-coding-agents-a-practical-manual-for-deterministic-and-llm-based-workflow-control" title="Permanent link">&para;</a></h1>
+<h2 id="executive-summary">Executive summary<a class="headerlink" href="#executive-summary" title="Permanent link">&para;</a></h2>
+<p>The core hypothesis is substantially <strong>confirmed</strong>, but it needs one refinement: a reliable AI coding workflow is not just a governed workflow; it is a governed workflow with a <strong>hard boundary between execution, reasoning, review, and synthesis</strong>. Natural-language procedures are useful for intent and heuristics, but they are not reliable enforcement. In both Claude Code and GitHub Copilot, instruction surfaces such as skills, custom instructions, prompt files, and agent prompts are primarily <strong>advisory controls</strong>. Deterministic enforcement comes from hooks, permission systems, scripts, workflow runners, branch protection, required checks, and CI-backed validation. OpenAI’s Codex guidance points in the same direction: use <code>AGENTS.md</code> for repo conventions, skills for reusable workflows, MCP for tools, and external orchestration for deterministic, reviewable pipelines. citeturn11view0turn8view1turn19view0turn21view0turn15view3turn38view4turn38view0</p>
+<p>The practical implication is blunt. If a workflow says “run lint, run tests, inspect changed files, infer intent, assess impact, identify risks, review, and summarize,” then the agent should <strong>not</strong> be trusted to remember and honestly execute that list purely because the list exists in a prompt. Claude Code’s own documentation explicitly says skills can remain present while the model still chooses other tools or approaches, and recommends hooks when behavior must be enforced deterministically. GitHub’s documentation similarly treats custom instructions as persistent context, not hard guarantees, while Copilot code review documentation explicitly says it should supplement, not replace, human review. Research on software-engineering agents reinforces that scaffold design and interface design matter, and that simpler fixed pipelines such as Agentless can rival or outperform more open-ended agent loops by constraining decision points and validating patches explicitly. citeturn8view1turn11view0turn23view1turn37search2turn37search0</p>
+<p>The recommended operating model is therefore:</p>
+<ol>
+<li>Put <strong>deterministic work</strong> behind scripts, typed tool interfaces, or CI jobs.</li>
+<li>Treat <strong>LLM reasoning</strong> as bounded analysis steps with explicit contracts, schemas, evidence requirements, and reviewer gates.</li>
+<li>Pass work between steps using <strong>artifacts and workflow state</strong>, not memory.</li>
+<li>Prohibit the final response from introducing new facts that are not grounded in prior artifacts.</li>
+<li>Make “done” a <strong>validated state transition</strong>, not a sentence the model writes. citeturn11view0turn21view0turn15view10turn35search11turn38view0</li>
+</ol>
+<p>The phrase “Codebase” in the prompt is ambiguous. This manual interprets it as <strong>codebase-aware AI coding agent workflows</strong> and uses Codex-style <code>AGENTS.md</code>, repository indexing, symbol- and graph-aware retrieval, static analysis, and artifact-driven orchestration as the closest concrete implementation pattern. That interpretation is consistent with current GitHub and OpenAI documentation on repository indexing, agentic memory, <code>AGENTS.md</code>, skills, and orchestrated MCP-based workflows. citeturn31view0turn31view1turn38view1turn38view0</p>
+<h3 id="key-terminology">Key terminology<a class="headerlink" href="#key-terminology" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Term</th>
+<th>Practical meaning</th>
+<th>Control type</th>
+<th>Should it be trusted as enforcement?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Skill</td>
+<td>Reusable instructions and optional bundled assets for a recurring task</td>
+<td>Advisory by default</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Custom instruction</td>
+<td>Always-on project, user, org, or path-scoped guidance</td>
+<td>Advisory</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Prompt file</td>
+<td>Manually invoked reusable prompt template for a specific interaction</td>
+<td>Advisory</td>
+<td>No</td>
+</tr>
+<tr>
+<td>Subagent</td>
+<td>Isolated worker with its own context, prompt, and tool scope</td>
+<td>Semi-deterministic isolation, not content correctness</td>
+<td>Partly</td>
+</tr>
+<tr>
+<td>Hook</td>
+<td>Lifecycle-triggered script/prompt/HTTP/MCP action</td>
+<td>Deterministic or semi-deterministic</td>
+<td>Yes, if implemented well</td>
+</tr>
+<tr>
+<td>MCP tool</td>
+<td>Typed tool interface to external systems</td>
+<td>Deterministic interface, non-deterministic choice of use unless enforced</td>
+<td>Partly</td>
+</tr>
+<tr>
+<td>Workflow runner</td>
+<td>External orchestrator that executes steps, writes state, validates outputs</td>
+<td>Deterministic</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>CI pipeline</td>
+<td>External verification pipeline with required checks and branch rules</td>
+<td>Deterministic</td>
+<td>Yes</td>
+</tr>
+<tr>
+<td>Guardrail</td>
+<td>Any mechanism that blocks, constrains, or validates actions or outputs</td>
+<td>Depends on implementation</td>
+<td>Yes, if externalized</td>
+</tr>
+</tbody>
+</table>
+<p>This terminology table is a synthesis of current Claude Code, GitHub Copilot, and Codex documentation, plus the SWE-agent and Agentless research framing around agent-computer interfaces and fixed-step repair pipelines. citeturn9view1turn10view0turn19view0turn21view0turn38view1turn38view2turn38view0turn37search2turn37search0</p>
+<h2 id="platform-control-surfaces-and-what-they-can-actually-enforce">Platform control surfaces and what they can actually enforce<a class="headerlink" href="#platform-control-surfaces-and-what-they-can-actually-enforce" title="Permanent link">&para;</a></h2>
+<h3 id="platform-comparison">Platform comparison<a class="headerlink" href="#platform-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Platform / ecosystem</th>
+<th>Advisory surfaces</th>
+<th>Deterministic or semi-deterministic surfaces</th>
+<th>Best place for mandatory checks</th>
+<th>Main limitation</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Code</td>
+<td><code>CLAUDE.md</code>, skills, slash commands, subagent prompts</td>
+<td>Hooks, permission modes/rules, MCP tools with typed schemas, external scripts/CI</td>
+<td>Hook-triggered runner + CI</td>
+<td>Skills are prompt-based; <code>allowed-tools</code> pre-approves but does not restrict all other tools</td>
+</tr>
+<tr>
+<td>GitHub Copilot</td>
+<td><code>.github/copilot-instructions.md</code>, <code>.github/instructions/*.instructions.md</code>, <code>AGENTS.md</code>, prompt files, custom agent prompts</td>
+<td><code>.github/hooks/*.json</code>, cloud-agent environment setup, GitHub Actions, required checks, branch protection, PR templates</td>
+<td>GitHub Actions + branch protection + hooks</td>
+<td>Instructions are contextual, not authoritative; code review is explicitly non-final</td>
+</tr>
+<tr>
+<td>Codebase-aware workflows using Codex / <code>AGENTS.md</code> patterns</td>
+<td><code>AGENTS.md</code>, skills, custom agent prompts</td>
+<td>MCP-backed orchestration, external runners, Agents SDK workflows, read-only / tool-scoped subagents</td>
+<td>External runner + MCP + CI</td>
+<td><code>AGENTS.md</code> and skills guide behavior but do not themselves guarantee step execution</td>
+</tr>
+</tbody>
+</table>
+<p>Notes: Claude Code behavior comes from its feature-overview, skills, hooks, subagents, and permission docs; GitHub Copilot behavior comes from its customization, hooks, cloud-agent, and branch-protection docs; Codex behavior comes from <code>AGENTS.md</code>, skills, subagents, MCP, and Agents SDK docs. citeturn9view1turn8view1turn11view0turn5view3turn5view4turn19view0turn21view0turn21view2turn15view3turn15view10turn38view1turn38view2turn38view6turn38view0</p>
+<h3 id="claude-code-guidance">Claude Code guidance<a class="headerlink" href="#claude-code-guidance" title="Permanent link">&para;</a></h3>
+<p>Claude Code’s extension model is unusually explicit about what belongs where. <code>CLAUDE.md</code> is persistent session-start context and survives compaction; skills are on-demand reusable instructions or workflows; subagents isolate noisy work into separate contexts; MCP adds tools; hooks run automatically at lifecycle points; permission modes and rules apply outside chat, not by merely asking Claude to behave differently. Anthropic’s docs explicitly say to start with <code>CLAUDE.md</code> for stable conventions, add skills for repeatable procedures, add MCP for external systems, add subagents for isolation, and add hooks when something must happen every time. That is the right control hierarchy. citeturn6view3turn9view1turn10view3</p>
+<p>For workflow control, the key Claude Code fact is that <strong>skills are not enforcement</strong>. A skill’s content is loaded into context and can influence behavior, but Anthropic’s documentation says that if skill content appears to stop influencing behavior, the model may simply be choosing other tools or approaches; their own recommendation is to strengthen descriptions or use hooks for deterministic enforcement. Likewise, skill <code>allowed-tools</code> only grants permission while the skill is active; it does <strong>not</strong> restrict the rest of the tool surface. That means a long <code>SKILL.md</code> with seven or eight mandatory steps is structurally fragile unless an external runner or hooks make those steps observable and blockable. citeturn8view1turn8view0</p>
+<p>Claude Code hooks are the real governance surface. They fire at fixed lifecycle events including <code>UserPromptExpansion</code>, <code>PreToolUse</code>, <code>PostToolUse</code>, <code>PostToolBatch</code>, <code>SubagentStart/Stop</code>, and <code>Stop</code>. <code>PreToolUse</code> can allow, deny, ask, defer, and even modify tool input; <code>UserPromptExpansion</code> can block a slash command before it expands; <code>Stop</code> can prevent the agent from declaring completion. Anthropic also documents that when multiple hooks match, they all run, and then the outputs are merged; for <code>PreToolUse</code>, the most restrictive decision wins. That is powerful, but it also means side effects such as logging still happen even when another hook denies execution. In practice, Claude hooks are suitable for policy gates, audit logging, post-edit formatting, mandatory state checks, and stop-time completion validation. citeturn7view0turn7view2turn11view0</p>
+<p>Subagents are useful, but only for isolation and specialization, not truth. Claude’s built-in Explore and Plan agents are read-only, and custom subagents can have restricted tools, custom permissions, skills, and hooks. That makes them ideal for controlled roles such as “read-only architecture impact analyst” or “final report synthesizer with no write access.” They are not a substitute for validation; they are a way to narrow the blast radius and reduce context pollution. citeturn5view3turn9view3turn10view0turn38view6</p>
+<p><strong>Recommended Claude pattern:</strong> use <code>CLAUDE.md</code> for stable repo norms, a <strong>thin skill</strong> as the entry point, hooks for mandatory lifecycle checks, an external runner for step state and artifacts, MCP for structured codebase services when needed, and CI for final verification. Do not put business-critical compliance logic in prose inside <code>SKILL.md</code>. citeturn6view3turn11view0turn38view4</p>
+<h3 id="github-copilot-guidance">GitHub Copilot guidance<a class="headerlink" href="#github-copilot-guidance" title="Permanent link">&para;</a></h3>
+<p>GitHub Copilot has a broader menu of customization surfaces, but the same control reality. Repository-wide and path-specific custom instructions are automatically added to requests in scope, and GitHub.com additionally supports organization-level instructions and “agent instructions” via <code>AGENTS.md</code>, <code>CLAUDE.md</code>, or <code>GEMINI.md</code> for specific features. Prompt files are separate: they are reusable, manually invoked prompts for one chat interaction, and are only available in VS Code, Visual Studio, and JetBrains IDEs while still in public preview. Custom agents are specialized agent profiles that specify prompt, tools, and MCP servers. Skills are folders of instructions, scripts, and resources that Copilot can load when relevant. citeturn16view0turn17view0turn17view1turn19view0turn25view4turn15view4turn29view2</p>
+<p>That is a rich advisory layer, but GitHub’s own docs repeatedly point engineers toward stronger controls for mandatory behavior. Custom instructions are context, not enforcement. GitHub’s docs warn that conflicting instructions can produce non-deterministic outcomes, and Copilot code review only reads the first 4,000 characters of any custom instruction file. Prompt files are manual and therefore cannot be relied on for mandatory execution unless another system forces their use. Copilot code review itself is explicitly described as a supplement to human review and can miss issues or hallucinate false positives. citeturn17view2turn22search1turn23view1</p>
+<p>GitHub’s stronger control surfaces are the cloud-agent runtime, hooks, GitHub Actions, required checks, and branch protection. Copilot cloud agent runs in a GitHub Actions-powered ephemeral environment, can research, plan, change code on a branch, and optionally open a PR. GitHub recommends pre-installing dependencies and tools with setup steps because trial-and-error environment setup is slow and unreliable given the non-deterministic nature of LLMs. Hooks for Copilot cloud agent and Copilot CLI are repository-scoped JSON files in <code>.github/hooks</code>, can inspect JSON event data, and specifically include <code>preToolUse</code> for allowing or denying tool execution. Branch protection and required status checks remain the final merge gate. citeturn15view3turn21view4turn27search17turn21view0turn21view1turn21view2turn15view10turn35search11</p>
+<p>GitHub’s codebase-aware features are useful but should be treated as <strong>retrieval aids</strong>, not proof. Repository indexing provides semantic code search for Copilot Chat and Copilot cloud agent, and GitHub says indexed repository content is not used for model training. Copilot Memory stores repository-scoped memories with citations and re-validates those citations against the current codebase before reuse. That is a strong pattern for knowledge persistence, but it still does not replace explicit artifact handoff for a multi-step governed workflow. citeturn31view0turn31view1</p>
+<p><strong>Recommended GitHub pattern:</strong> use repository instructions for broad rules, path-specific instructions for localized build/test conventions, prompt files for manual one-off analyses, custom agents for role specialization, hooks for deterministic policy checks, GitHub Actions for every executable validation step, and branch protection/required checks as the merge gate. Treat Copilot instructions as steering, not control. citeturn19view0turn21view0turn15view10turn23view1</p>
+<h3 id="codebase-aware-workflows-and-codex-style-agentsmd">Codebase-aware workflows and Codex-style <code>AGENTS.md</code><a class="headerlink" href="#codebase-aware-workflows-and-codex-style-agentsmd" title="Permanent link">&para;</a></h3>
+<p>OpenAI’s current Codex guidance is consistent with the same thesis. Codex reads <code>AGENTS.md</code> before doing work and builds an instruction chain from global and project scopes; skills use progressive disclosure and load fully only when selected; subagents exist for explicit parallelization and specialization; MCP connects structured tools and context; and the Agents SDK can orchestrate Codex through MCP into “deterministic, reviewable workflows” with handoffs, guardrails, and traces. OpenAI’s customization guidance is explicit: use <code>AGENTS.md</code> for repo conventions, pre-commit hooks and linters to enforce those rules, MCP when workflows need external systems, and subagents for noisy or specialized work. citeturn38view1turn38view2turn38view6turn38view7turn38view0turn38view4</p>
+<p>This matters because it legitimizes a broad engineering pattern: <strong>repository instructions are for policy and conventions; workflows belong in an orchestrator</strong>. The AGENTS system is useful because it is hierarchical and repo-aware, but it is still guidance. The most reliable Codex pattern is to keep <code>AGENTS.md</code> short and durable, keep skills focused and selectively loadable, use code review instructions referenced from <code>AGENTS.md</code>, and move actual step-state execution into an external runner or an MCP-backed orchestrator. citeturn38view1turn38view2turn38view5turn38view0</p>
+<h2 id="workflow-control-model">Workflow control model<a class="headerlink" href="#workflow-control-model" title="Permanent link">&para;</a></h2>
+<h3 id="deterministic-vs-non-deterministic-task-classification">Deterministic vs non-deterministic task classification<a class="headerlink" href="#deterministic-vs-non-deterministic-task-classification" title="Permanent link">&para;</a></h3>
+<p>The table below is the recommended classification framework for the task types in the prompt. It is a synthesis, not a vendor-provided matrix.</p>
+<table>
+<thead>
+<tr>
+<th>Task type</th>
+<th>Class</th>
+<th style="text-align: right;">Scriptable</th>
+<th style="text-align: right;">Exit-code validation</th>
+<th style="text-align: right;">Schema needed</th>
+<th>Human / 2nd LLM review</th>
+<th style="text-align: right;">Block downstream on failure</th>
+<th>Primary artifact</th>
+<th>Recommended control</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>git status</code></td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Optional</td>
+<td>No</td>
+<td style="text-align: right;">Usually yes</td>
+<td><code>git_status.json</code></td>
+<td>Runner or direct tool</td>
+</tr>
+<tr>
+<td>Dependency installation check</td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Optional</td>
+<td>No</td>
+<td style="text-align: right;">Yes</td>
+<td><code>env_probe.json</code></td>
+<td>Runner / CI</td>
+</tr>
+<tr>
+<td>Formatting check</td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No</td>
+<td>No</td>
+<td style="text-align: right;">Yes</td>
+<td><code>format_report.txt</code></td>
+<td>Runner / CI / post-edit hook</td>
+</tr>
+<tr>
+<td>Linting</td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No</td>
+<td>No</td>
+<td style="text-align: right;">Yes</td>
+<td><code>lint_report.json</code></td>
+<td>Runner / CI</td>
+</tr>
+<tr>
+<td>Type checking</td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">No</td>
+<td>No</td>
+<td style="text-align: right;">Yes</td>
+<td><code>typecheck_report.json</code></td>
+<td>Runner / CI</td>
+</tr>
+<tr>
+<td>Unit tests</td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Optional</td>
+<td>No</td>
+<td style="text-align: right;">Yes</td>
+<td><code>unit_test_report.xml</code></td>
+<td>Runner / CI</td>
+</tr>
+<tr>
+<td>Integration tests</td>
+<td>Deterministic</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Optional</td>
+<td>Sometimes</td>
+<td style="text-align: right;">Yes</td>
+<td><code>integration_test_report.xml</code></td>
+<td>Runner / CI</td>
+</tr>
+<tr>
+<td>Security scan</td>
+<td>Deterministic or semi-deterministic depending on tool</td>
+<td style="text-align: right;">Yes</td>
+<td style="text-align: right;">Usually</td>
+<td style="text-align: right;">Yes for normalized output</td>
+<td>Human for high severity</td>
+<td style="text-align: right;">Yes</td>
+<td><code>security_scan.json</code></td>
+<td>Runner / CI</td>
+</tr>
+<tr>
+<td>Changed-file summarization</td>
+<td>Semi-deterministic</td>
+<td style="text-align: right;">Partly</td>
+<td style="text-align: right;">Not reliably</td>
+<td style="text-align: right;">Yes</td>
+<td>Light review</td>
+<td style="text-align: right;">Yes</td>
+<td><code>changed_files.json</code> + <code>diff_stats.json</code></td>
+<td>Script first, optional LLM summary second</td>
+</tr>
+<tr>
+<td>Change intent inference</td>
+<td>LLM reasoning</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Yes</td>
+<td><code>intent_analysis.json</code></td>
+<td>Contracted LLM step + reviewer</td>
+</tr>
+<tr>
+<td>Architecture impact analysis</td>
+<td>LLM reasoning augmented by retrieval</td>
+<td style="text-align: right;">Partly</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Yes</td>
+<td><code>impact_analysis.json</code></td>
+<td>LLM + symbol / graph tools + reviewer</td>
+</tr>
+<tr>
+<td>API compatibility analysis</td>
+<td>Semi-deterministic + LLM reasoning</td>
+<td style="text-align: right;">Partly</td>
+<td style="text-align: right;">Partial</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Yes</td>
+<td><code>api_compat.json</code></td>
+<td>Static diff + LLM interpretation + reviewer</td>
+</tr>
+<tr>
+<td>Security reasoning</td>
+<td>LLM reasoning</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes, preferably specialist reviewer</td>
+<td style="text-align: right;">Yes</td>
+<td><code>security_hypotheses.json</code></td>
+<td>LLM + evidence contract + reviewer</td>
+</tr>
+<tr>
+<td>Performance risk analysis</td>
+<td>LLM reasoning</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Usually yes</td>
+<td><code>performance_risks.json</code></td>
+<td>LLM + profiler/static evidence if available</td>
+</tr>
+<tr>
+<td>Test coverage gap analysis</td>
+<td>LLM reasoning augmented by deterministic reports</td>
+<td style="text-align: right;">Partly</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Yes</td>
+<td><code>test_gap_analysis.json</code></td>
+<td>Coverage data + changed inventory + reviewer</td>
+</tr>
+<tr>
+<td>Migration risk assessment</td>
+<td>LLM reasoning</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Yes</td>
+<td><code>migration_risks.json</code></td>
+<td>Contracted LLM step + reviewer</td>
+</tr>
+<tr>
+<td>Final report generation</td>
+<td>LLM synthesis</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">No</td>
+<td style="text-align: right;">Yes</td>
+<td>Yes</td>
+<td style="text-align: right;">Must not run early</td>
+<td><code>final_report.md</code></td>
+<td>Read-only synthesizer over prior artifacts</td>
+</tr>
+</tbody>
+</table>
+<p>This classification aligns with the official distinction between prompt-based guidance and deterministic hooks/CI, and with SWE-agent and Agentless findings that interface design and fixed validation stages are decisive for reliability. citeturn11view0turn21view0turn38view0turn37search2turn37search0</p>
+<h3 id="where-workflow-control-should-live">Where workflow control should live<a class="headerlink" href="#where-workflow-control-should-live" title="Permanent link">&para;</a></h3>
+<p>Workflow control should live in different places depending on the failure cost:</p>
+<ul>
+<li><strong>Inside the skill or instruction file:</strong> only task framing, role definition, step names, and artifact expectations.</li>
+<li><strong>Inside the agent:</strong> light planning and bounded reasoning over artifacts.</li>
+<li><strong>Inside a script or workflow runner:</strong> deterministic steps, state transitions, retries, artifact writing, and schema validation.</li>
+<li><strong>Inside an MCP server:</strong> structured external capabilities such as symbol graph lookup, call graph traversal, CI log retrieval, or issue/PR mutation.</li>
+<li><strong>Inside hooks:</strong> lifecycle policy checks, required tool approval/denial, post-edit formatting, audit logging, and stop-time completion checks.</li>
+<li><strong>Inside CI and branch protection:</strong> final executable verification and merge gating.</li>
+<li><strong>Inside an external orchestrator:</strong> complex multi-agent or multi-step pipelines where auditability and reruns matter. citeturn11view0turn21view0turn15view10turn35search11turn38view0</li>
+</ul>
+<p>A plain natural-language skill should <strong>never</strong> be trusted with: mandatory tool invocation, mandatory step ordering across long workflows, truthful completion claims, state persistence across compaction or context loss, exact output structure without validation, or merge authority. Claude’s own docs say <code>CLAUDE.md</code> survives compaction while conversation-only instructions may be lost, and skill content can load yet still not control every later choice. GitHub’s docs warn about non-deterministic resolution of instruction conflicts and limitations of code review. citeturn6view3turn8view1turn17view2turn23view1</p>
+<h3 id="step-handoffs-artifacts-and-workflow-state">Step handoffs, artifacts, and workflow state<a class="headerlink" href="#step-handoffs-artifacts-and-workflow-state" title="Permanent link">&para;</a></h3>
+<p>A reliable mixed workflow should hand off through files, not through conversational memory. The recommended artifact flow is:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>repo_snapshot.json
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>  -&gt; env_probe.json
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>  -&gt; deterministic_checks/
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>      lint_report.json
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>      typecheck_report.json
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>      unit_test_report.xml
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>      integration_test_report.xml
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>      security_scan.json
+<a id="__codelineno-0-9" name="__codelineno-0-9" href="#__codelineno-0-9"></a>  -&gt; changed_files.json
+<a id="__codelineno-0-10" name="__codelineno-0-10" href="#__codelineno-0-10"></a>  -&gt; diff_stats.json
+<a id="__codelineno-0-11" name="__codelineno-0-11" href="#__codelineno-0-11"></a>  -&gt; intent_analysis.json
+<a id="__codelineno-0-12" name="__codelineno-0-12" href="#__codelineno-0-12"></a>  -&gt; impact_analysis.json
+<a id="__codelineno-0-13" name="__codelineno-0-13" href="#__codelineno-0-13"></a>  -&gt; risk_hypotheses.json
+<a id="__codelineno-0-14" name="__codelineno-0-14" href="#__codelineno-0-14"></a>  -&gt; test_gap_analysis.json
+<a id="__codelineno-0-15" name="__codelineno-0-15" href="#__codelineno-0-15"></a>  -&gt; reviewer_reports/
+<a id="__codelineno-0-16" name="__codelineno-0-16" href="#__codelineno-0-16"></a>  -&gt; final_report.md
+</code></pre></div>
+<p>The state model should track each step as a durable record:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="p">{</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a><span class="w">  </span><span class="nt">&quot;run_id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-05-12T103015Z-main-abc123&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a><span class="w">  </span><span class="nt">&quot;repo_rev&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;abc123def456&quot;</span><span class="p">,</span><span class="w">  </span><span class="c1">// pragma: allowlist secret</span>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="w">  </span><span class="nt">&quot;manifest_version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a><span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;running&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="w">  </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a><span class="w">    </span><span class="nt">&quot;lint&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-8" name="__codelineno-1-8" href="#__codelineno-1-8"></a><span class="w">      </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-9" name="__codelineno-1-9" href="#__codelineno-1-9"></a><span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;passed&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-10" name="__codelineno-1-10" href="#__codelineno-1-10"></a><span class="w">      </span><span class="nt">&quot;attempt&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span>
+<a id="__codelineno-1-11" name="__codelineno-1-11" href="#__codelineno-1-11"></a><span class="w">      </span><span class="nt">&quot;started_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-05-12T10:31:02Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-12" name="__codelineno-1-12" href="#__codelineno-1-12"></a><span class="w">      </span><span class="nt">&quot;ended_at&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-05-12T10:31:16Z&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-13" name="__codelineno-1-13" href="#__codelineno-1-13"></a><span class="w">      </span><span class="nt">&quot;exit_code&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-1-14" name="__codelineno-1-14" href="#__codelineno-1-14"></a><span class="w">      </span><span class="nt">&quot;outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;artifacts/lint_report.json&quot;</span><span class="p">],</span>
+<a id="__codelineno-1-15" name="__codelineno-1-15" href="#__codelineno-1-15"></a><span class="w">      </span><span class="nt">&quot;checksum&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sha256:...&quot;</span>
+<a id="__codelineno-1-16" name="__codelineno-1-16" href="#__codelineno-1-16"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-1-17" name="__codelineno-1-17" href="#__codelineno-1-17"></a><span class="w">    </span><span class="nt">&quot;intent_analysis&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-1-18" name="__codelineno-1-18" href="#__codelineno-1-18"></a><span class="w">      </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;llm&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-19" name="__codelineno-1-19" href="#__codelineno-1-19"></a><span class="w">      </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;blocked&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-20" name="__codelineno-1-20" href="#__codelineno-1-20"></a><span class="w">      </span><span class="nt">&quot;blocked_by&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;changed_inventory&quot;</span><span class="p">],</span>
+<a id="__codelineno-1-21" name="__codelineno-1-21" href="#__codelineno-1-21"></a><span class="w">      </span><span class="nt">&quot;attempt&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">0</span><span class="p">,</span>
+<a id="__codelineno-1-22" name="__codelineno-1-22" href="#__codelineno-1-22"></a><span class="w">      </span><span class="nt">&quot;required_inputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-1-23" name="__codelineno-1-23" href="#__codelineno-1-23"></a><span class="w">        </span><span class="s2">&quot;artifacts/changed_files.json&quot;</span><span class="p">,</span>
+<a id="__codelineno-1-24" name="__codelineno-1-24" href="#__codelineno-1-24"></a><span class="w">        </span><span class="s2">&quot;artifacts/diff_stats.json&quot;</span>
+<a id="__codelineno-1-25" name="__codelineno-1-25" href="#__codelineno-1-25"></a><span class="w">      </span><span class="p">],</span>
+<a id="__codelineno-1-26" name="__codelineno-1-26" href="#__codelineno-1-26"></a><span class="w">      </span><span class="nt">&quot;outputs&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[]</span>
+<a id="__codelineno-1-27" name="__codelineno-1-27" href="#__codelineno-1-27"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-1-28" name="__codelineno-1-28" href="#__codelineno-1-28"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-1-29" name="__codelineno-1-29" href="#__codelineno-1-29"></a><span class="p">}</span>
+</code></pre></div>
+<p>The point is operational, not cosmetic. A later LLM step should not be able to say “tests passed” unless the runner or CI already marked the relevant step as passed and produced its artifact. The final synthesis step should run in a <strong>read-only role</strong> and be forbidden from executing new tests or making new edits; it may only summarize prior artifacts. That creates a clean <strong>final synthesis boundary</strong>. citeturn11view0turn21view0turn15view10turn38view0</p>
+<h3 id="llm-reasoning-step-contracts">LLM reasoning step contracts<a class="headerlink" href="#llm-reasoning-step-contracts" title="Permanent link">&para;</a></h3>
+<p>Every non-deterministic analysis step should be specified as a contract, not a vague instruction. The minimum contract fields are:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a><span class="nt">step_id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">architecture-impact</span>
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="nt">purpose</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">Assess which modules, APIs, and call sites are affected by the proposed change.</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a><span class="nt">required_inputs</span><span class="p">:</span>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">artifacts/changed_files.json</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">artifacts/diff_stats.json</span>
+<a id="__codelineno-2-6" name="__codelineno-2-6" href="#__codelineno-2-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">artifacts/repo_snapshot.json</span>
+<a id="__codelineno-2-7" name="__codelineno-2-7" href="#__codelineno-2-7"></a><span class="nt">allowed_tools</span><span class="p">:</span>
+<a id="__codelineno-2-8" name="__codelineno-2-8" href="#__codelineno-2-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">symbol_search</span>
+<a id="__codelineno-2-9" name="__codelineno-2-9" href="#__codelineno-2-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">find_references</span>
+<a id="__codelineno-2-10" name="__codelineno-2-10" href="#__codelineno-2-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">dependency_graph</span>
+<a id="__codelineno-2-11" name="__codelineno-2-11" href="#__codelineno-2-11"></a><span class="nt">forbidden_actions</span><span class="p">:</span>
+<a id="__codelineno-2-12" name="__codelineno-2-12" href="#__codelineno-2-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">write_files</span>
+<a id="__codelineno-2-13" name="__codelineno-2-13" href="#__codelineno-2-13"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">run_tests</span>
+<a id="__codelineno-2-14" name="__codelineno-2-14" href="#__codelineno-2-14"></a><span class="nt">required_output_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">impact_analysis.schema.json</span>
+<a id="__codelineno-2-15" name="__codelineno-2-15" href="#__codelineno-2-15"></a><span class="nt">evidence_requirements</span><span class="p">:</span>
+<a id="__codelineno-2-16" name="__codelineno-2-16" href="#__codelineno-2-16"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">every claim must cite file paths and line ranges or graph edges</span>
+<a id="__codelineno-2-17" name="__codelineno-2-17" href="#__codelineno-2-17"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">every risk must link to at least one changed file</span>
+<a id="__codelineno-2-18" name="__codelineno-2-18" href="#__codelineno-2-18"></a><span class="nt">confidence_scoring</span><span class="p">:</span>
+<a id="__codelineno-2-19" name="__codelineno-2-19" href="#__codelineno-2-19"></a><span class="w">  </span><span class="nt">scale</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">0.0-1.0</span>
+<a id="__codelineno-2-20" name="__codelineno-2-20" href="#__codelineno-2-20"></a><span class="nt">assumption_handling</span><span class="p">:</span>
+<a id="__codelineno-2-21" name="__codelineno-2-21" href="#__codelineno-2-21"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">separate confirmed facts from assumptions</span>
+<a id="__codelineno-2-22" name="__codelineno-2-22" href="#__codelineno-2-22"></a><span class="nt">completion_criteria</span><span class="p">:</span>
+<a id="__codelineno-2-23" name="__codelineno-2-23" href="#__codelineno-2-23"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">output validates against schema</span>
+<a id="__codelineno-2-24" name="__codelineno-2-24" href="#__codelineno-2-24"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">no unsupported claims</span>
+<a id="__codelineno-2-25" name="__codelineno-2-25" href="#__codelineno-2-25"></a><span class="nt">reviewer_criteria</span><span class="p">:</span>
+<a id="__codelineno-2-26" name="__codelineno-2-26" href="#__codelineno-2-26"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">evidence coverage &gt;= 0.8</span>
+<a id="__codelineno-2-27" name="__codelineno-2-27" href="#__codelineno-2-27"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">no orphan risks without evidence</span>
+<a id="__codelineno-2-28" name="__codelineno-2-28" href="#__codelineno-2-28"></a><span class="nt">failure_policy</span><span class="p">:</span>
+<a id="__codelineno-2-29" name="__codelineno-2-29" href="#__codelineno-2-29"></a><span class="w">  </span><span class="nt">retries</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">1</span>
+<a id="__codelineno-2-30" name="__codelineno-2-30" href="#__codelineno-2-30"></a><span class="w">  </span><span class="nt">then</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">block</span>
+</code></pre></div>
+<p>Bad prompts include “think carefully,” “analyze the code,” “check if there are issues,” or “review everything.” Good contracts say exactly what evidence to inspect, what tool classes are allowed, what schema to return, what is forbidden, and what counts as done. The LLM is not asked to be vaguely intelligent; it is asked to produce a typed deliverable. citeturn21view2turn38view0turn38view5</p>
+<h2 id="reviewer-guardrail-and-failure-design">Reviewer, guardrail, and failure design<a class="headerlink" href="#reviewer-guardrail-and-failure-design" title="Permanent link">&para;</a></h2>
+<h3 id="what-validation-actually-means">What validation actually means<a class="headerlink" href="#what-validation-actually-means" title="Permanent link">&para;</a></h3>
+<p>There are four different validation problems, and teams routinely conflate them:</p>
+<ol>
+<li><strong>Correctness validation:</strong> is the substantive reasoning right?</li>
+<li><strong>Process validation:</strong> did the step use required evidence and required tools?</li>
+<li><strong>Format validation:</strong> is the output schema-valid and machine-consumable?</li>
+<li><strong>Workflow validation:</strong> was every mandatory step executed and recorded before downstream steps ran?</li>
+</ol>
+<p>The first problem is the hardest and often cannot be fully automated. The second, third, and fourth problems are tractable and should be automated aggressively. This is the crucial refinement to the user’s hypothesis: for LLM reasoning, you can rarely prove that the hidden reasoning is right, but you can often prove that the evidence contract was followed and that the output is reviewable and traceable. GitHub’s code review docs explicitly highlight missed issues, false positives, and insecure suggested code; that is exactly why reviewer gates must validate evidence and enforce follow-up review rather than treating the first model pass as authoritative. citeturn23view1turn37search0turn37search2</p>
+<h3 id="reviewer-stack">Reviewer stack<a class="headerlink" href="#reviewer-stack" title="Permanent link">&para;</a></h3>
+<p>A robust reviewer stack for every major LLM reasoning step should be:</p>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Purpose</th>
+<th style="text-align: right;">Blocks the step?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>JSON/schema validator</td>
+<td>Ensure fields, enums, required arrays, and types match contract</td>
+<td style="text-align: right;">Yes</td>
+</tr>
+<tr>
+<td>Evidence validator</td>
+<td>Ensure every claim references permitted source artifacts and file/line evidence</td>
+<td style="text-align: right;">Yes</td>
+</tr>
+<tr>
+<td>Unsupported-claim detector</td>
+<td>Reject claims with no citation or no matching artifact</td>
+<td style="text-align: right;">Yes</td>
+</tr>
+<tr>
+<td>Tool-use verifier</td>
+<td>Confirm required tools or deterministic precursor steps actually ran</td>
+<td style="text-align: right;">Yes</td>
+</tr>
+<tr>
+<td>Second-pass critic LLM</td>
+<td>Assess coverage, contradictions, and weak assumptions</td>
+<td style="text-align: right;">Usually</td>
+</tr>
+<tr>
+<td>Human approval gate</td>
+<td>Review high-risk steps such as security, migrations, or public API changes</td>
+<td style="text-align: right;">Sometimes or always</td>
+</tr>
+<tr>
+<td>CI-backed verifier</td>
+<td>Re-run deterministics and validate artifact set before merge</td>
+<td style="text-align: right;">Yes</td>
+</tr>
+</tbody>
+</table>
+<p>This reviewer stack is consistent with Claude and Copilot hooks, branch protection, and external orchestrators. The important point is that the reviewer is not “another opinion” only; it is a gate over evidence, contract compliance, and workflow completeness. citeturn11view0turn21view0turn15view10turn35search11turn38view0</p>
+<p>A practical reviewer policy by step looks like this:</p>
+<ul>
+<li><strong>Intent analysis reviewer:</strong> check that outputs reference changed files and separate facts from assumptions.</li>
+<li><strong>Architecture impact reviewer:</strong> check symbol-level evidence coverage and that affected callers or downstream consumers are surfaced.</li>
+<li><strong>Security reasoning reviewer:</strong> require concrete threat hypotheses tied to reachable code paths; low-confidence speculative items stay labeled as hypotheses.</li>
+<li><strong>Test gap reviewer:</strong> require explicit mapping from changed behavior to missing or existing test coverage.</li>
+<li><strong>Final report reviewer:</strong> reject any claim that cites non-existent artifacts or invents new findings not present upstream. citeturn31view1turn38view5turn23view1</li>
+</ul>
+<h3 id="failure-modes-and-mitigations">Failure modes and mitigations<a class="headerlink" href="#failure-modes-and-mitigations" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Failure mode</th>
+<th>Root cause</th>
+<th>Detection</th>
+<th>Prevention</th>
+<th>Recommended mechanism</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Step skipping</td>
+<td>Long prompt compressed into gist</td>
+<td>Missing artifact/state entry</td>
+<td>External manifest and runner</td>
+<td>Runner + state file</td>
+</tr>
+<tr>
+<td>Tool skipping</td>
+<td>Agent chooses different path</td>
+<td>Tool log lacks required call</td>
+<td>Hook or runner requirement</td>
+<td>Hook + tool-use verifier</td>
+</tr>
+<tr>
+<td>Tool hallucination</td>
+<td>Model claims to have run a tool</td>
+<td>No matching log or artifact</td>
+<td>Never trust narration</td>
+<td>Hook logs + artifact check</td>
+</tr>
+<tr>
+<td>Claiming tests passed without running tests</td>
+<td>Conversational bluffing</td>
+<td>No test artifact / exit code</td>
+<td>Final synthesis read-only</td>
+<td>CI + state gate</td>
+</tr>
+<tr>
+<td>Over-relying on memory</td>
+<td>Context truncation / compaction</td>
+<td>Orphan claims without artifacts</td>
+<td>Every step reads files</td>
+<td>Artifact handoff</td>
+</tr>
+<tr>
+<td>Over-broad context loading</td>
+<td>“Read whole repo” behavior</td>
+<td>High token use / shallow analysis</td>
+<td>Progressive disclosure</td>
+<td>Repo map + symbol search</td>
+</tr>
+<tr>
+<td>Under-reading affected files</td>
+<td>Narrow search path</td>
+<td>Missing callers/interfaces</td>
+<td>Structured retrieval checklist</td>
+<td>Graph/symbol tools</td>
+</tr>
+<tr>
+<td>Ignoring failed deterministic checks</td>
+<td>Model treats failure as advisory</td>
+<td>State shows failed step but workflow continues</td>
+<td>Block transitions on failure</td>
+<td>Runner policy</td>
+</tr>
+<tr>
+<td>Treating assumptions as facts</td>
+<td>Poor output schema</td>
+<td>Assumption field empty but speculative language present</td>
+<td>Contract demands separation</td>
+<td>Schema + reviewer</td>
+</tr>
+<tr>
+<td>Producing final synthesis before artifacts exist</td>
+<td>Eager summarization</td>
+<td>Missing prerequisites</td>
+<td>Final step blocks on manifest</td>
+<td>Stop hook / runner</td>
+</tr>
+<tr>
+<td>Confusing reviewed with verified</td>
+<td>Review comment mistaken for proof</td>
+<td>No executable evidence</td>
+<td>Separate review from validation</td>
+<td>Reviewer labels + CI</td>
+</tr>
+<tr>
+<td>Failing to separate facts, assumptions, recommendations</td>
+<td>Weak prompt design</td>
+<td>Mixed fields in output</td>
+<td>Structured schema</td>
+<td>Contract + validator</td>
+</tr>
+<tr>
+<td>Hiding uncertainty</td>
+<td>Incentive to sound decisive</td>
+<td>No confidence or caveats</td>
+<td>Require confidence/assumptions fields</td>
+<td>Schema + reviewer</td>
+</tr>
+<tr>
+<td>Failing to rerun checks after edits</td>
+<td>Checks tied to earlier state</td>
+<td>Artifact timestamps/hash mismatch</td>
+<td>Invalidate downstream on edit</td>
+<td>Post-edit hook + runner</td>
+</tr>
+<tr>
+<td>Losing state across context compaction or session changes</td>
+<td>Memory-only workflow</td>
+<td>Missing continuation markers</td>
+<td>Durable state on disk</td>
+<td>State file + logs</td>
+</tr>
+</tbody>
+</table>
+<p>These failure modes are the practical expression of what the platform docs and research already imply: prompt-only control decays, while logs, artifacts, hooks, and fixed-state transitions remain inspectable. citeturn6view3turn8view1turn11view0turn21view0turn31view1turn37search2turn37search0</p>
+<h2 id="implementation-blueprints-and-examples">Implementation blueprints and examples<a class="headerlink" href="#implementation-blueprints-and-examples" title="Permanent link">&para;</a></h2>
+<h3 id="design-comparison">Design comparison<a class="headerlink" href="#design-comparison" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Design</th>
+<th>Advantages</th>
+<th>Failure modes</th>
+<th>Best use case</th>
+<th>Verdict</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fat skill</td>
+<td>Fast to author; easy to distribute; good for lightweight playbooks</td>
+<td>Step merging, step skipping, tool skipping, fabricated completion, weak audit trail</td>
+<td>Small advisory workflows with low failure cost</td>
+<td>Acceptable only for short non-critical flows</td>
+</tr>
+<tr>
+<td>Thin skill + workflow runner</td>
+<td>Clear separation of prompt and control; repeatable; easy to validate; friendly to CI</td>
+<td>Extra engineering effort; runner becomes a maintained product</td>
+<td>Default choice for serious mixed workflows</td>
+<td>Best default</td>
+</tr>
+<tr>
+<td>Skill + hooks + MCP + CI</td>
+<td>Highest control, auditability, external tools, lifecycle enforcement, merge gating</td>
+<td>Highest complexity and operational overhead</td>
+<td>Team or org-scale governed workflows</td>
+<td>Best production architecture</td>
+</tr>
+</tbody>
+</table>
+<p>This comparison is aligned with vendor docs that place hooks, CI, and external orchestration on the enforcement side, and with Agentless-style evidence that fixed-stage pipelines can outperform more free-form agent loops for reliable issue resolution. citeturn11view0turn21view0turn38view0turn37search0</p>
+<h3 id="reference-architecture">Reference architecture<a class="headerlink" href="#reference-architecture" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a>repo/
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>  .agent/
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>    workflow_state.json
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>    manifest.json
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>    logs/
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>    artifacts/
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a>    steps/
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>  .claude/
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>    skills/
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a>      code-health-review/
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>        SKILL.md
+<a id="__codelineno-3-12" name="__codelineno-3-12" href="#__codelineno-3-12"></a>    settings.json
+<a id="__codelineno-3-13" name="__codelineno-3-13" href="#__codelineno-3-13"></a>  .github/
+<a id="__codelineno-3-14" name="__codelineno-3-14" href="#__codelineno-3-14"></a>    copilot-instructions.md
+<a id="__codelineno-3-15" name="__codelineno-3-15" href="#__codelineno-3-15"></a>    instructions/
+<a id="__codelineno-3-16" name="__codelineno-3-16" href="#__codelineno-3-16"></a>      backend.instructions.md
+<a id="__codelineno-3-17" name="__codelineno-3-17" href="#__codelineno-3-17"></a>    hooks/
+<a id="__codelineno-3-18" name="__codelineno-3-18" href="#__codelineno-3-18"></a>      policy.json
+<a id="__codelineno-3-19" name="__codelineno-3-19" href="#__codelineno-3-19"></a>    prompts/
+<a id="__codelineno-3-20" name="__codelineno-3-20" href="#__codelineno-3-20"></a>      review-code.prompt.md
+<a id="__codelineno-3-21" name="__codelineno-3-21" href="#__codelineno-3-21"></a>    workflows/
+<a id="__codelineno-3-22" name="__codelineno-3-22" href="#__codelineno-3-22"></a>      code-health.yml
+<a id="__codelineno-3-23" name="__codelineno-3-23" href="#__codelineno-3-23"></a>  AGENTS.md
+<a id="__codelineno-3-24" name="__codelineno-3-24" href="#__codelineno-3-24"></a>  tools/
+<a id="__codelineno-3-25" name="__codelineno-3-25" href="#__codelineno-3-25"></a>    agent_workflow/
+<a id="__codelineno-3-26" name="__codelineno-3-26" href="#__codelineno-3-26"></a>      runner.py
+<a id="__codelineno-3-27" name="__codelineno-3-27" href="#__codelineno-3-27"></a>      steps/
+<a id="__codelineno-3-28" name="__codelineno-3-28" href="#__codelineno-3-28"></a>      validators/
+<a id="__codelineno-3-29" name="__codelineno-3-29" href="#__codelineno-3-29"></a>      reviewers/
+<a id="__codelineno-3-30" name="__codelineno-3-30" href="#__codelineno-3-30"></a>      mcp_tools/
+</code></pre></div>
+<p><strong>What each part does</strong></p>
+<ul>
+<li><code>.agent/manifest.json</code>: canonical ordered workflow definition.</li>
+<li><code>.agent/workflow_state.json</code>: durable state machine for the current or latest run.</li>
+<li><code>.agent/artifacts/</code>: evidence handoff store.</li>
+<li><code>.agent/logs/</code>: tool-use and reviewer logs.</li>
+<li><code>.claude/skills/.../SKILL.md</code>: Claude entry point.</li>
+<li><code>.claude/settings.json</code>: Claude hooks and permission rules.</li>
+<li><code>.github/copilot-instructions.md</code>: broad Copilot norms.</li>
+<li><code>.github/instructions/*.instructions.md</code>: path-scoped Copilot rules.</li>
+<li><code>.github/hooks/*.json</code>: Copilot CLI / cloud-agent hook definitions.</li>
+<li><code>.github/prompts/*.prompt.md</code>: manual analysts’ prompt files where useful.</li>
+<li><code>.github/workflows/code-health.yml</code>: CI-backed verification.</li>
+<li><code>AGENTS.md</code>: codebase-aware instructions consumed by Codex-style agents and supported Copilot surfaces.</li>
+<li><code>tools/agent_workflow/runner.py</code>: orchestrator that owns state, retries, artifacts, and schema validation.</li>
+</ul>
+<h3 id="example-entry-surfaces">Example entry surfaces<a class="headerlink" href="#example-entry-surfaces" title="Permanent link">&para;</a></h3>
+<p><strong>Claude <code>SKILL.md</code></strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>---
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>name: code-health-review
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>description: Run the governed code health review workflow for the current repository state.
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>disable-model-invocation: true
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="gu">allowed-tools: Bash(python tools/agent_workflow/runner.py *) Read Grep Glob</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a><span class="gu">---</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>Execute <span class="sb">`python tools/agent_workflow/runner.py --manifest .agent/manifest.json`</span>.
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>Rules:
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a><span class="k">-</span><span class="w"> </span>Do not claim any step is complete unless the workflow state marks it passed.
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a><span class="k">-</span><span class="w"> </span>Do not summarize findings until <span class="sb">`.agent/artifacts/final_report.md`</span> exists.
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a><span class="k">-</span><span class="w"> </span>If the runner reports blocked or failed steps, report the exact blocking step IDs.
+</code></pre></div>
+<p><strong><code>AGENTS.md</code></strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="gh"># Repository agent instructions</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>Use <span class="sb">`.agent/manifest.json`</span> as the source of truth for ordered workflow steps.
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>Never treat conversational memory as workflow state.
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>Always read required inputs from <span class="sb">`.agent/artifacts/`</span> and write outputs back there.
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>Facts, assumptions, and recommendations must be separated.
+<a id="__codelineno-5-9" name="__codelineno-5-9" href="#__codelineno-5-9"></a>Any final synthesis must cite artifact file names and supporting file:line evidence.
+</code></pre></div>
+<p><strong><code>.github/copilot-instructions.md</code></strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>Follow repository conventions, but do not treat prose as proof of completion.
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>For governed reviews:
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="k">-</span><span class="w"> </span>use <span class="sb">`.agent/manifest.json`</span> as the workflow definition
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a><span class="k">-</span><span class="w"> </span>prefer deterministic reports from linters, tests, type checks, and scanners
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a><span class="k">-</span><span class="w"> </span>write structured JSON artifacts for all reasoning steps
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="k">-</span><span class="w"> </span>never state that checks passed unless artifacts show a passing result
+</code></pre></div>
+<h3 id="example-workflow-definitions">Example workflow definitions<a class="headerlink" href="#example-workflow-definitions" title="Permanent link">&para;</a></h3>
+<p><strong>Workflow manifest</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="p">{</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="w">  </span><span class="nt">&quot;name&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;code-health-review&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="w">  </span><span class="nt">&quot;version&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;1.0&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a><span class="w">  </span><span class="nt">&quot;entrypoint&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;runner.py&quot;</span><span class="p">,</span>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="w">  </span><span class="nt">&quot;steps&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;repo_snapshot&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;script&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/repo_snapshot.py&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deterministic_checks&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;script&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/deterministic_checks.py&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;changed_inventory&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;deterministic&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;script&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/changed_inventory.py&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-9" name="__codelineno-7-9" href="#__codelineno-7-9"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;intent_analysis&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;llm&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;contract&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/intent_analysis.yaml&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-10" name="__codelineno-7-10" href="#__codelineno-7-10"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;impact_analysis&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;llm&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;contract&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/impact_analysis.yaml&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-11" name="__codelineno-7-11" href="#__codelineno-7-11"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;test_gap_analysis&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;llm&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;contract&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/test_gap_analysis.yaml&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-12" name="__codelineno-7-12" href="#__codelineno-7-12"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;reviewer_pass&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;reviewer&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;contract&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/reviewer.yaml&quot;</span><span class="p">},</span>
+<a id="__codelineno-7-13" name="__codelineno-7-13" href="#__codelineno-7-13"></a><span class="w">    </span><span class="p">{</span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;final_report&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;kind&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;llm&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;contract&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;steps/final_report.yaml&quot;</span><span class="p">}</span>
+<a id="__codelineno-7-14" name="__codelineno-7-14" href="#__codelineno-7-14"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-7-15" name="__codelineno-7-15" href="#__codelineno-7-15"></a><span class="p">}</span>
+</code></pre></div>
+<p><strong>Deterministic step definition</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deterministic_checks</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">deterministic</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a><span class="nt">commands</span><span class="p">:</span>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;ruff</span><span class="nv"> </span><span class="s">check</span><span class="nv"> </span><span class="s">.</span><span class="nv"> </span><span class="s">--output-format=json</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">.agent/artifacts/lint_report.json&quot;</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;mypy</span><span class="nv"> </span><span class="s">.</span><span class="nv"> </span><span class="s">--hide-error-context</span><span class="nv"> </span><span class="s">--no-color-output</span><span class="nv"> </span><span class="s">&gt;</span><span class="nv"> </span><span class="s">.agent/artifacts/typecheck_report.txt&quot;</span>
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="s">&quot;pytest</span><span class="nv"> </span><span class="s">-q</span><span class="nv"> </span><span class="s">--junitxml=.agent/artifacts/unit_test_report.xml&quot;</span>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="nt">on_failure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">block</span>
+</code></pre></div>
+<p><strong>LLM reasoning step definition</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">test_gap_analysis</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">llm</span>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nt">required_inputs</span><span class="p">:</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.agent/artifacts/changed_files.json</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.agent/artifacts/unit_test_report.xml</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">.agent/artifacts/impact_analysis.json</span>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="nt">output_schema</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">schemas/test_gap_analysis.schema.json</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a><span class="nt">required_fields</span><span class="p">:</span>
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">covered_paths</span>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">uncovered_risks</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">recommended_tests</span>
+<a id="__codelineno-9-12" name="__codelineno-9-12" href="#__codelineno-9-12"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">evidence</span>
+<a id="__codelineno-9-13" name="__codelineno-9-13" href="#__codelineno-9-13"></a><span class="nt">confidence_field</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">confidence</span>
+<a id="__codelineno-9-14" name="__codelineno-9-14" href="#__codelineno-9-14"></a><span class="nt">forbidden_actions</span><span class="p">:</span>
+<a id="__codelineno-9-15" name="__codelineno-9-15" href="#__codelineno-9-15"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">edit_files</span>
+<a id="__codelineno-9-16" name="__codelineno-9-16" href="#__codelineno-9-16"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">run_commands</span>
+</code></pre></div>
+<p><strong>Reviewer step definition</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="nt">id</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reviewer_pass</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a><span class="nt">kind</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">reviewer</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="nt">checks</span><span class="p">:</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">schema_validation</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">evidence_validation</span>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">unsupported_claim_detection</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">prerequisite_artifact_check</span>
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a><span class="w">  </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">final_synthesis_boundary_check</span>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="nt">on_failure</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">block</span>
+</code></pre></div>
+<p><strong>Final report template</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="gh"># Code Health Review</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="gu">## Verified deterministic results</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="k">-</span><span class="w"> </span>lint:
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="k">-</span><span class="w"> </span>type check:
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="k">-</span><span class="w"> </span>tests:
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="k">-</span><span class="w"> </span>security scan:
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a><span class="gu">## Confirmed findings</span>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="k">-</span><span class="w"> </span>item:
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a>  evidence:
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>  confidence:
+<a id="__codelineno-11-13" name="__codelineno-11-13" href="#__codelineno-11-13"></a>
+<a id="__codelineno-11-14" name="__codelineno-11-14" href="#__codelineno-11-14"></a><span class="gu">## Assumptions and uncertainties</span>
+<a id="__codelineno-11-15" name="__codelineno-11-15" href="#__codelineno-11-15"></a><span class="k">-</span><span class="w"> </span>item:
+<a id="__codelineno-11-16" name="__codelineno-11-16" href="#__codelineno-11-16"></a>  why uncertain:
+<a id="__codelineno-11-17" name="__codelineno-11-17" href="#__codelineno-11-17"></a>
+<a id="__codelineno-11-18" name="__codelineno-11-18" href="#__codelineno-11-18"></a><span class="gu">## Recommended follow-up</span>
+<a id="__codelineno-11-19" name="__codelineno-11-19" href="#__codelineno-11-19"></a><span class="k">-</span><span class="w"> </span>item:
+<a id="__codelineno-11-20" name="__codelineno-11-20" href="#__codelineno-11-20"></a>  blocking: true|false
+</code></pre></div>
+<h3 id="claude-code-implementation-blueprint">Claude Code implementation blueprint<a class="headerlink" href="#claude-code-implementation-blueprint" title="Permanent link">&para;</a></h3>
+<p>Use <code>CLAUDE.md</code> only for persistent repo facts and stable conventions. Use one thin skill that calls the runner. Use hooks for lifecycle control:</p>
+<ul>
+<li><code>UserPromptExpansion</code>: if <code>/code-health-review</code> is called directly, ensure the manifest exists and attach run context.</li>
+<li><code>PreToolUse</code>: deny unapproved write or bash tools outside the runner for governed review sessions.</li>
+<li><code>PostToolUse</code> on <code>Edit|Write</code>: run formatter or mark downstream deterministic artifacts stale.</li>
+<li><code>Stop</code>: block final output if required artifacts are missing or any blocking step status is not <code>passed</code>.</li>
+</ul>
+<p>A minimal <code>.claude/settings.json</code> sketch looks like this:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="p">{</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="w">    </span><span class="nt">&quot;UserPromptExpansion&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="w">      </span><span class="p">{</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="w">        </span><span class="nt">&quot;matcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;code-health-review&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a><span class="w">        </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-12-7" name="__codelineno-12-7" href="#__codelineno-12-7"></a><span class="w">          </span><span class="p">{</span>
+<a id="__codelineno-12-8" name="__codelineno-12-8" href="#__codelineno-12-8"></a><span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-9" name="__codelineno-12-9" href="#__codelineno-12-9"></a><span class="w">            </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python tools/agent_workflow/check_manifest.py&quot;</span>
+<a id="__codelineno-12-10" name="__codelineno-12-10" href="#__codelineno-12-10"></a><span class="w">          </span><span class="p">}</span>
+<a id="__codelineno-12-11" name="__codelineno-12-11" href="#__codelineno-12-11"></a><span class="w">        </span><span class="p">]</span>
+<a id="__codelineno-12-12" name="__codelineno-12-12" href="#__codelineno-12-12"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-12-13" name="__codelineno-12-13" href="#__codelineno-12-13"></a><span class="w">    </span><span class="p">],</span>
+<a id="__codelineno-12-14" name="__codelineno-12-14" href="#__codelineno-12-14"></a><span class="w">    </span><span class="nt">&quot;Stop&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-12-15" name="__codelineno-12-15" href="#__codelineno-12-15"></a><span class="w">      </span><span class="p">{</span>
+<a id="__codelineno-12-16" name="__codelineno-12-16" href="#__codelineno-12-16"></a><span class="w">        </span><span class="nt">&quot;matcher&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-17" name="__codelineno-12-17" href="#__codelineno-12-17"></a><span class="w">        </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-12-18" name="__codelineno-12-18" href="#__codelineno-12-18"></a><span class="w">          </span><span class="p">{</span>
+<a id="__codelineno-12-19" name="__codelineno-12-19" href="#__codelineno-12-19"></a><span class="w">            </span><span class="nt">&quot;type&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;command&quot;</span><span class="p">,</span>
+<a id="__codelineno-12-20" name="__codelineno-12-20" href="#__codelineno-12-20"></a><span class="w">            </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;python tools/agent_workflow/check_completion.py&quot;</span>
+<a id="__codelineno-12-21" name="__codelineno-12-21" href="#__codelineno-12-21"></a><span class="w">          </span><span class="p">}</span>
+<a id="__codelineno-12-22" name="__codelineno-12-22" href="#__codelineno-12-22"></a><span class="w">        </span><span class="p">]</span>
+<a id="__codelineno-12-23" name="__codelineno-12-23" href="#__codelineno-12-23"></a><span class="w">      </span><span class="p">}</span>
+<a id="__codelineno-12-24" name="__codelineno-12-24" href="#__codelineno-12-24"></a><span class="w">    </span><span class="p">]</span>
+<a id="__codelineno-12-25" name="__codelineno-12-25" href="#__codelineno-12-25"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-12-26" name="__codelineno-12-26" href="#__codelineno-12-26"></a><span class="p">}</span>
+</code></pre></div>
+<p>This blueprint fits Claude’s actual mechanics: hooks are the deterministic lifecycle surface; skills are not. Known limitations remain: skill behavior is advisory, <code>allowed-tools</code> is permission-granting not restriction, and hook side effects still occur even when a different hook blocks the action. citeturn11view0turn8view0turn8view1</p>
+<h3 id="github-copilot-implementation-blueprint">GitHub Copilot implementation blueprint<a class="headerlink" href="#github-copilot-implementation-blueprint" title="Permanent link">&para;</a></h3>
+<p>For Copilot, the entry point is broader because the platform spans IDE, CLI, cloud agent, code review, and GitHub.com:</p>
+<ul>
+<li><code>.github/copilot-instructions.md</code>: broad repository norms.</li>
+<li><code>.github/instructions/**/*.instructions.md</code>: path-specific build/test notes.</li>
+<li><code>.github/agents/reviewer.md</code>: optional specialist custom agent with restricted tools.</li>
+<li><code>.github/hooks/policy.json</code>: deterministic <code>preToolUse</code>, <code>sessionStart</code>, and <code>sessionEnd</code> policies for Copilot CLI and cloud agent.</li>
+<li><code>copilot-setup-steps.yml</code>: preinstall linters, test deps, and scanners in the cloud-agent environment.</li>
+<li><code>.github/workflows/code-health.yml</code>: mandatory CI.</li>
+<li>Branch protection: require <code>code-health</code>, required reviews, and optionally merge queue.</li>
+</ul>
+<p>A minimal hook sketch:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="p">{</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="w">  </span><span class="nt">&quot;hooks&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a><span class="w">      </span><span class="nt">&quot;event&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;preToolUse&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a><span class="w">      </span><span class="nt">&quot;run&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;./tools/agent_workflow/policy_gate.sh&quot;</span>
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a><span class="w">      </span><span class="nt">&quot;event&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sessionStart&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-9" name="__codelineno-13-9" href="#__codelineno-13-9"></a><span class="w">      </span><span class="nt">&quot;run&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;./tools/agent_workflow/session_start.sh&quot;</span>
+<a id="__codelineno-13-10" name="__codelineno-13-10" href="#__codelineno-13-10"></a><span class="w">    </span><span class="p">},</span>
+<a id="__codelineno-13-11" name="__codelineno-13-11" href="#__codelineno-13-11"></a><span class="w">    </span><span class="p">{</span>
+<a id="__codelineno-13-12" name="__codelineno-13-12" href="#__codelineno-13-12"></a><span class="w">      </span><span class="nt">&quot;event&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;sessionEnd&quot;</span><span class="p">,</span>
+<a id="__codelineno-13-13" name="__codelineno-13-13" href="#__codelineno-13-13"></a><span class="w">      </span><span class="nt">&quot;run&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;./tools/agent_workflow/archive_run.sh&quot;</span>
+<a id="__codelineno-13-14" name="__codelineno-13-14" href="#__codelineno-13-14"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-13-15" name="__codelineno-13-15" href="#__codelineno-13-15"></a><span class="w">  </span><span class="p">]</span>
+<a id="__codelineno-13-16" name="__codelineno-13-16" href="#__codelineno-13-16"></a><span class="p">}</span>
+</code></pre></div>
+<p>A minimal CI skeleton:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="nt">name</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">code-health</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a><span class="nt">on</span><span class="p">:</span>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="w">  </span><span class="nt">pull_request</span><span class="p">:</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="w">  </span><span class="nt">workflow_dispatch</span><span class="p">:</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a><span class="nt">jobs</span><span class="p">:</span>
+<a id="__codelineno-14-7" name="__codelineno-14-7" href="#__codelineno-14-7"></a><span class="w">  </span><span class="nt">verify</span><span class="p">:</span>
+<a id="__codelineno-14-8" name="__codelineno-14-8" href="#__codelineno-14-8"></a><span class="w">    </span><span class="nt">runs-on</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">ubuntu-latest</span>
+<a id="__codelineno-14-9" name="__codelineno-14-9" href="#__codelineno-14-9"></a><span class="w">    </span><span class="nt">steps</span><span class="p">:</span>
+<a id="__codelineno-14-10" name="__codelineno-14-10" href="#__codelineno-14-10"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/checkout@v4</span>
+<a id="__codelineno-14-11" name="__codelineno-14-11" href="#__codelineno-14-11"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">uses</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">actions/setup-python@v5</span>
+<a id="__codelineno-14-12" name="__codelineno-14-12" href="#__codelineno-14-12"></a><span class="w">        </span><span class="nt">with</span><span class="p">:</span>
+<a id="__codelineno-14-13" name="__codelineno-14-13" href="#__codelineno-14-13"></a><span class="w">          </span><span class="nt">python-version</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;3.12&quot;</span>
+<a id="__codelineno-14-14" name="__codelineno-14-14" href="#__codelineno-14-14"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pip install -r requirements-dev.txt</span>
+<a id="__codelineno-14-15" name="__codelineno-14-15" href="#__codelineno-14-15"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python tools/agent_workflow/runner.py --ci --manifest .agent/manifest.json</span>
+<a id="__codelineno-14-16" name="__codelineno-14-16" href="#__codelineno-14-16"></a><span class="w">      </span><span class="p p-Indicator">-</span><span class="w"> </span><span class="nt">run</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">python tools/agent_workflow/validate_artifacts.py</span>
+</code></pre></div>
+<p>This is the correct enforcement posture because GitHub’s own docs place hard guarantees in hooks, Actions, required checks, and branch rules, while treating instructions, prompt files, and code review as assistive layers. citeturn21view0turn21view4turn15view10turn35search8turn23view1</p>
+<h3 id="codebase-aware-workflow-blueprint">Codebase-aware workflow blueprint<a class="headerlink" href="#codebase-aware-workflow-blueprint" title="Permanent link">&para;</a></h3>
+<p>A codebase-aware workflow should <strong>not</strong> ask the model to “read the whole codebase.” It should force progressive disclosure:</p>
+<ol>
+<li>Build or fetch a <strong>repo map</strong> and changed-file inventory.</li>
+<li>Use <strong>semantic search</strong> or symbol search to locate likely impact surfaces.</li>
+<li>Expand to definitions, references, callers, imports, and adjacent tests.</li>
+<li>Pull static-analysis or graph artifacts where available.</li>
+<li>Only then run reasoning steps with explicit evidence contracts.</li>
+</ol>
+<p>For this workflow, an MCP tool should expose structured codebase operations instead of raw prose. Example:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">tool</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">impact_graph.get_dependents</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="nt">input</span><span class="p">:</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="nt">symbol</span><span class="p">:</span><span class="w"> </span><span class="s">&quot;payments.RefundService.refund&quot;</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="nt">output</span><span class="p">:</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nt">schema</span><span class="p">:</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">    </span><span class="nt">callers</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="w">    </span><span class="nt">downstream_modules</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a><span class="w">    </span><span class="nt">api_surfaces</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a><span class="w">    </span><span class="nt">evidence</span><span class="p">:</span><span class="w"> </span><span class="p p-Indicator">[]</span>
+</code></pre></div>
+<p>This pattern is aligned with GitHub repository indexing, Copilot’s semantic code search, Copilot Memory’s validated citations, and Codex’s MCP and orchestrated workflow guidance. citeturn31view0turn31view1turn38view7turn38view0</p>
+<h3 id="recommended-minimum-viable-and-production-grade-implementations">Recommended minimum viable and production-grade implementations<a class="headerlink" href="#recommended-minimum-viable-and-production-grade-implementations" title="Permanent link">&para;</a></h3>
+<p><strong>Minimum viable implementation</strong></p>
+<ul>
+<li>Thin skill or command that launches one runner.</li>
+<li>One manifest file and one state file.</li>
+<li>Deterministic checks executed by script.</li>
+<li>Two or three LLM contracts at most.</li>
+<li>Final report step restricted to prior artifacts.</li>
+<li>CI reruns deterministic checks and validates artifact presence.</li>
+</ul>
+<p><strong>Production-grade implementation</strong></p>
+<ul>
+<li>Thin entry skill or custom agent.</li>
+<li>Hooks that block out-of-policy tool use and block stop-time completion when artifacts are missing.</li>
+<li>MCP services for symbol search, dependency/call graph lookup, and CI log summarization.</li>
+<li>Second-pass reviewer agents for all reasoning steps.</li>
+<li>Signed or hashed artifacts and immutable run logs.</li>
+<li>Branch protection, required checks, required reviews, merge queue where useful.</li>
+<li>PR template requiring artifact IDs, risk level, and unresolved assumptions.</li>
+<li>Human approval gates for security, migrations, and public API changes. citeturn11view0turn21view0turn15view10turn35search2turn38view0</li>
+</ul>
+<h2 id="open-questions-and-annotated-bibliography">Open questions and annotated bibliography<a class="headerlink" href="#open-questions-and-annotated-bibliography" title="Permanent link">&para;</a></h2>
+<p>The main unresolved engineering question is not whether governed workflows are better; that part is settled. The unresolved question is <strong>how much correctness validation for LLM reasoning can be automated before the cost exceeds the benefit</strong>. Current platform docs are strong on tool control, context control, auditability, and merge gating, but much weaker on proving that a subtle architecture or security conclusion is actually correct. The best current answer is to automate evidence, format, and workflow validation aggressively, then reserve human review for high-consequence reasoning. Another open trade-off is complexity: the production architecture is materially safer, but the operational tax is real, especially for small teams. citeturn23view1turn38view0turn37search0turn37search2</p>
+<h3 id="annotated-bibliography">Annotated bibliography<a class="headerlink" href="#annotated-bibliography" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Source</th>
+<th>Vendor / author</th>
+<th>Date</th>
+<th>Contribution</th>
+<th>Limitation / bias</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>urlExtend Claude Codeturn9view1</td>
+<td>entity["organization","Anthropic","ai company"] / urlAnthropichttps://www.anthropic.com</td>
+<td>Live docs</td>
+<td>Best official map of <code>CLAUDE.md</code>, skills, subagents, hooks, MCP, and feature layering</td>
+<td>Product documentation; describes intended behavior, not failure rates</td>
+</tr>
+<tr>
+<td>urlAutomate workflows with hooksturn11view0</td>
+<td>urlAnthropichttps://www.anthropic.com</td>
+<td>Live docs</td>
+<td>Strongest primary source on deterministic lifecycle enforcement in Claude Code</td>
+<td>Focused on hooks, not end-to-end governed workflow design</td>
+</tr>
+<tr>
+<td>urlExtend Claude with skillsturn2view1</td>
+<td>urlAnthropichttps://www.anthropic.com</td>
+<td>Live docs</td>
+<td>Clarifies skill lifecycle, <code>allowed-tools</code>, manual vs model invocation, and why skills are not hard enforcement</td>
+<td>Still a vendor view of the feature</td>
+</tr>
+<tr>
+<td>urlCreate custom subagentsturn5view3</td>
+<td>urlAnthropichttps://www.anthropic.com</td>
+<td>Live docs</td>
+<td>Useful on isolation, tool restrictions, and read-only exploration patterns</td>
+<td>Does not claim correctness guarantees</td>
+</tr>
+<tr>
+<td>urlCopilot customization cheat sheetturn19view0</td>
+<td>entity["company","GitHub","developer platform"] / urlGitHubhttps://github.com</td>
+<td>Live docs</td>
+<td>Best GitHub source for comparing custom instructions, prompt files, custom agents, hooks, skills, subagents, and MCP across surfaces</td>
+<td>High-level reference, not a design manual</td>
+</tr>
+<tr>
+<td>urlAdding repository custom instructions for GitHub Copilotturn15view0</td>
+<td>urlGitHubhttps://github.com</td>
+<td>Live docs</td>
+<td>Primary source on repository-wide and path-specific instruction behavior and precedence</td>
+<td>Instructions are advisory; docs do not frame them as enforcement</td>
+</tr>
+<tr>
+<td>urlAbout hooksturn21view0 and urlHooks configurationturn21view2</td>
+<td>urlGitHubhttps://github.com</td>
+<td>Live docs</td>
+<td>Primary source on Copilot CLI / cloud-agent hooks, JSON event payloads, and deterministic tool controls</td>
+<td>Current support is limited to specific Copilot surfaces</td>
+</tr>
+<tr>
+<td>urlAbout GitHub Copilot cloud agentturn15view3 and urlConfigure the development environmentturn21view4</td>
+<td>urlGitHubhttps://github.com</td>
+<td>Live docs</td>
+<td>Defines the GitHub Actions-powered cloud-agent environment and why preinstall/setup steps matter for reliability</td>
+<td>Vendor implementation details may change over time</td>
+</tr>
+<tr>
+<td>urlResponsible use of GitHub Copilot code reviewturn23view1</td>
+<td>urlGitHubhttps://github.com</td>
+<td>Live docs</td>
+<td>Best official statement of code-review limitations, false positives, and need for human review</td>
+<td>Discusses limitations, not workflow architecture</td>
+</tr>
+<tr>
+<td>urlIndexing repositories for GitHub Copilotturn31view0 and urlAbout agentic memory for GitHub Copilotturn31view1</td>
+<td>urlGitHubhttps://github.com</td>
+<td>Live docs</td>
+<td>Strong evidence for codebase-aware retrieval, semantic search, and memory validated by citations</td>
+<td>Retrieval support is not the same as guaranteed reasoning correctness</td>
+</tr>
+<tr>
+<td>urlCustom instructions with AGENTS.mdturn38view1</td>
+<td>entity["organization","OpenAI","ai company"] / urlOpenAIhttps://openai.com</td>
+<td>Live docs</td>
+<td>Best primary source on <code>AGENTS.md</code> precedence and discovery in Codex</td>
+<td>Guidance surface, not enforcement surface</td>
+</tr>
+<tr>
+<td>urlAgent Skillsturn38view2, urlSubagentsturn38view6, and urlCreating multi-agent workflowsturn38view0</td>
+<td>urlOpenAIhttps://openai.com</td>
+<td>Live docs</td>
+<td>Best Codex sources for progressive disclosure, explicit subagents, MCP, and deterministic reviewable orchestration</td>
+<td>Product docs, not controlled experiments</td>
+</tr>
+<tr>
+<td>urlIntroducing Codexturn36search1</td>
+<td>urlOpenAIhttps://openai.com</td>
+<td>16 May 2025</td>
+<td>High-level product framing for cloud-based software-engineering agent workflows</td>
+<td>Launch post; marketing bias expected</td>
+</tr>
+<tr>
+<td>urlSWE-agent: Agent-Computer Interfaces Enable Automated Software Engineeringturn37search2</td>
+<td>John Yang et al.</td>
+<td>2024</td>
+<td>Strong research evidence that agent-computer interface design materially affects software-agent performance</td>
+<td>Benchmark-centric; not a platform manual</td>
+</tr>
+<tr>
+<td>urlAgentless: Demystifying LLM-based Software Engineering Agentsturn37search0</td>
+<td>Chunqiu Steven Xia et al.</td>
+<td>2024</td>
+<td>Strong research evidence that a fixed localization-repair-validation pipeline can match or beat more open-ended agent scaffolds</td>
+<td>Focused on issue resolution benchmarks; not every enterprise workflow maps directly</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Bottom line:</strong> design complex AI coding skills as <strong>governed workflows with typed artifacts, explicit state, deterministic validation, and bounded reasoning contracts</strong>. Use natural language to specify intent and analysis prompts. Use hooks, runners, CI, and branch rules to make the workflow real. citeturn11view0turn21view0turn15view10turn38view0turn37search0turn37search2</p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

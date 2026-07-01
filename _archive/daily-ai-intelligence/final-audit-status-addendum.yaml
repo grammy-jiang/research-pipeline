@@ -1,0 +1,15 @@
+# Merge into phase-status.yaml after G is complete.
+# This is an audit stage, not product Phase H.
+
+final_audit:
+  name: "Final completeness audit"
+  status: pending
+  required_outputs:
+    - docs/daily-ai-intelligence/final-traceability-matrix.md
+    - docs/daily-ai-intelligence/final-gap-register.md
+    - docs/daily-ai-intelligence/final-completeness-audit-report.md
+  acceptance_gate: "docs/daily-ai-intelligence/final-acceptance-gate.md"
+  rules:
+    - "Do not mark complete if gap register is non-empty."
+    - "Do not silently implement new features during audit."
+    - "Map every gap to the original phase/ticket."
