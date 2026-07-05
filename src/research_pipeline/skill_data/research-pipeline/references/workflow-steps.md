@@ -113,7 +113,9 @@ The runner delegates these tasks to sub-agents with formal contracts:
 3. `[review-synthesis]` → `synthesis-reviewer` sub-agent (llm_reviewer gate)
 
 See `runners/subagent_contracts/` for the full contracts.
-All sub-agents **MUST** use `model: "claude-opus-4.6"`.
+Sub-agents inherit the session model by default (recommended); prefer a model
+alias (`opus`/`sonnet`/`haiku`) over a pinned dated id, and only override
+downward for mechanical steps. See `references/sub-agents.md` for details.
 
 ## Task `[classify-gaps]` — Gap classification
 
