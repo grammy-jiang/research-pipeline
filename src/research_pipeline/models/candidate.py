@@ -6,7 +6,7 @@ OpenAlex, DBLP) with optional enrichment fields.
 
 from datetime import datetime
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, ValidationInfo, field_validator
 
 
 class CandidateRecord(BaseModel):
@@ -18,8 +18,21 @@ class CandidateRecord(BaseModel):
     authors: list[str] = Field(description="List of author names.")
     published: datetime = Field(description="v1 submission time (UTC).")
     updated: datetime = Field(description="This version's submission time (UTC).")
-    categories: list[str] = Field(description="All arXiv categories.")
-    primary_category: str = Field(description="Primary arXiv category.")
+    # Non-arXiv sources (Semantic Scholar, OpenAlex, …) and hand-promoted or
+    # older records may lack arXiv category data; default and coerce null so a
+    # downstream strict parse never crashes on a missing/None value (#24).
+    categories: list[str] = Field(
+        default_factory=list, description="All arXiv categories."
+    )
+    primary_category: str = Field(default="", description="Primary arXiv category.")
+
+    @field_validator("categories", "primary_category", mode="before")
+    @classmethod
+    def _coerce_null_category(cls, value: object, info: ValidationInfo) -> object:
+        if value is None:
+            return [] if info.field_name == "categories" else ""
+        return value
+
     abstract: str = Field(description="Paper abstract text.")
     abs_url: str = Field(description="URL to the abstract page.")
     pdf_url: str = Field(description="URL to the PDF.")

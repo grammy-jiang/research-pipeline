@@ -75,6 +75,27 @@ class TestCandidateRecord:
                 # missing title
             )  # type: ignore[call-arg]
 
+    def test_null_or_missing_category_coerced(self) -> None:
+        # Regression for #24: non-arXiv/hand-promoted records may carry null or
+        # omit category fields; they must default, not ValidationError.
+        base = {
+            "arxiv_id": "2401.0001",
+            "version": "v1",
+            "title": "T",
+            "authors": ["A"],
+            "published": datetime(2024, 1, 1, tzinfo=UTC),
+            "updated": datetime(2024, 1, 1, tzinfo=UTC),
+            "abstract": "a",
+            "abs_url": "",
+            "pdf_url": "",
+        }
+        explicit_null = CandidateRecord(**base, categories=None, primary_category=None)  # type: ignore[arg-type]
+        assert explicit_null.categories == []
+        assert explicit_null.primary_category == ""
+        omitted = CandidateRecord.model_validate(base)
+        assert omitted.categories == []
+        assert omitted.primary_category == ""
+
 
 class TestCheapScoreBreakdown:
     def test_valid(self) -> None:
