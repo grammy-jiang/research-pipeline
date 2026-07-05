@@ -412,7 +412,7 @@ class CoherenceInput(BaseModel):
         min_length=2,
     )
     workspace: str = Field(
-        default="runs",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
 
@@ -425,7 +425,7 @@ class ConsolidationInput(BaseModel):
         description="Run IDs to ingest. If None, scans workspace.",
     )
     workspace: str = Field(
-        default="runs",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
     dry_run: bool = Field(
@@ -450,7 +450,7 @@ class BlindingAuditInput(BaseModel):
     """Input for the epistemic blinding audit tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
     run_id: str = Field(
@@ -471,7 +471,7 @@ class DualMetricsInput(BaseModel):
     """Input for the dual-metrics evaluation tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
     query: str = Field(
@@ -495,7 +495,7 @@ class CbrLookupInput(BaseModel):
     """Input for the CBR lookup tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory.",
     )
     topic: str = Field(
@@ -515,7 +515,7 @@ class CbrRetainInput(BaseModel):
     """Input for the CBR retain tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory.",
     )
     run_id: str = Field(
@@ -878,7 +878,7 @@ class EvaluateInput(BaseModel):
         description="Specific stage to evaluate. Empty means all stages.",
     )
     workspace: str = Field(
-        default="runs",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
 
