@@ -1066,6 +1066,57 @@ class TestCmdExpand:
         client.fetch_related.assert_called_once()
         mock_write.assert_called_once()
 
+    @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
+    @patch("research_pipeline.cli.cmd_expand.RateLimiter")
+    @patch("research_pipeline.cli.cmd_expand.init_run")
+    @patch("research_pipeline.cli.cmd_expand.load_config")
+    def _run_expand_over_existing(
+        self, mock_cfg, mock_init, mock_limiter, mock_client_cls, tmp_path, replace
+    ):
+        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.storage.manifests import read_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir
+
+        mock_cfg.return_value = _make_config(tmp_path)
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        expand_dir = get_stage_dir(run_dir, "expand")
+        expand_dir.mkdir(parents=True, exist_ok=True)
+        (expand_dir / "expanded_candidates.jsonl").write_text(
+            json.dumps({"arxiv_id": "OLD"})
+            + "\n"
+            + json.dumps({"arxiv_id": "2301.00002"})
+            + "\n"
+        )
+        dup = MagicMock()
+        dup.arxiv_id = "2301.00002"
+        dup.model_dump.return_value = {"arxiv_id": "2301.00002"}
+        fresh = MagicMock()
+        fresh.arxiv_id = "2301.00003"
+        fresh.model_dump.return_value = {"arxiv_id": "2301.00003"}
+        client = MagicMock()
+        client.fetch_related.return_value = [dup, fresh]
+        mock_client_cls.return_value = client
+
+        run_expand(
+            paper_ids=["2301.00001"],
+            config_path=None,
+            workspace=tmp_path,
+            run_id="run1",
+            replace=replace,
+        )
+        records = read_jsonl(expand_dir / "expanded_candidates.jsonl")
+        return {r["arxiv_id"] for r in records}
+
+    def test_expand_merges_with_existing(self, tmp_path):
+        ids = self._run_expand_over_existing(tmp_path=tmp_path, replace=False)
+        # OLD preserved, 2301.00002 deduped, 2301.00003 added (#27)
+        assert ids == {"OLD", "2301.00002", "2301.00003"}
+
+    def test_expand_replace_overwrites(self, tmp_path):
+        ids = self._run_expand_over_existing(tmp_path=tmp_path, replace=True)
+        assert ids == {"2301.00002", "2301.00003"}
+
     @patch("research_pipeline.cli.cmd_expand.write_jsonl")
     @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
     @patch("research_pipeline.cli.cmd_expand.RateLimiter")

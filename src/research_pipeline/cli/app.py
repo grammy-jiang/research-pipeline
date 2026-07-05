@@ -552,6 +552,12 @@ def expand(
         "Stops early when hop yields fewer (diminishing returns). "
         "0 means no check (default 0).",
     ),
+    replace: bool = typer.Option(
+        False,
+        "--replace",
+        help="Overwrite expanded_candidates.jsonl instead of merging with any "
+        "existing file (default: merge by paper id).",
+    ),
 ) -> None:
     """Expand citation graph for specified papers.
 
@@ -589,6 +595,7 @@ def expand(
         snowball_decay_patience=snowball_decay_patience,
         bfs_budget=bfs_budget,
         bfs_min_new=bfs_min_new,
+        replace=replace,
         **opts,
     )
 
