@@ -1746,6 +1746,46 @@ class TestCmdSearch:
     @patch("research_pipeline.cli.cmd_search._search_arxiv")
     @patch("research_pipeline.cli.cmd_search.init_run")
     @patch("research_pipeline.cli.cmd_search.load_config")
+    def test_zero_yield_source_warns_and_strict_exits(
+        self, mock_cfg, mock_init, mock_arxiv, mock_dedup, mock_write, tmp_path, capsys
+    ):
+        from research_pipeline.cli.cmd_search import run_search
+
+        mock_cfg.return_value = _make_config(tmp_path)
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        (run_dir / "plan").mkdir(parents=True)
+        (run_dir / "search").mkdir(parents=True)
+        mock_dedup.return_value = []
+        mock_arxiv.return_value = []  # zero yield (#20)
+
+        run_search(
+            topic="t",
+            resume=False,
+            config_path=None,
+            workspace=tmp_path,
+            run_id="run1",
+            source="arxiv",
+        )
+        captured = capsys.readouterr()
+        assert "contributed nothing" in (captured.out + captured.err)
+
+        with pytest.raises(click.exceptions.Exit):
+            run_search(
+                topic="t",
+                resume=False,
+                config_path=None,
+                workspace=tmp_path,
+                run_id="run1",
+                source="arxiv",
+                strict_sources=True,
+            )
+
+    @patch("research_pipeline.cli.cmd_search.write_jsonl")
+    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
+    @patch("research_pipeline.cli.cmd_search._search_arxiv")
+    @patch("research_pipeline.cli.cmd_search.init_run")
+    @patch("research_pipeline.cli.cmd_search.load_config")
     def test_happy_path_with_existing_plan(
         self, mock_cfg, mock_init, mock_arxiv, mock_dedup, mock_write, tmp_path
     ):

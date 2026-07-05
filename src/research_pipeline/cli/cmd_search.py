@@ -210,6 +210,7 @@ def run_search(
     workspace: Path | None = None,
     run_id: str | None = None,
     source: str | None = None,
+    strict_sources: bool = False,
 ) -> None:
     """Execute the search stage: query enabled sources and collect candidates.
 
@@ -255,6 +256,8 @@ def run_search(
     sources = _resolve_sources(source, config.sources.enabled)
     search_dir = get_stage_dir(run_root, "search")
     all_candidates: list[CandidateRecord] = []
+    # Per-source outcome: >=0 candidate count, -1 failed, -2 not installed (#20).
+    source_results: dict[str, int] = {}
 
     # Run sources in parallel using ThreadPoolExecutor
     source_dispatch: dict[str, tuple[Any, tuple[Any, ...]]] = {
@@ -281,25 +284,55 @@ def run_search(
             try:
                 candidates = future.result()
                 all_candidates.extend(candidates)
-                typer.echo(f"  {source_name}: {len(candidates)} candidates")
+                source_results[source_name] = len(candidates)
             except ImportError as exc:
                 install_hint = (
-                    "Install with: pipx inject research-pipeline scholarly"
+                    "pipx inject research-pipeline scholarly"
                     if source_name == "scholar"
                     else str(exc)
                 )
                 logger.error(
-                    "%s search failed (missing dependency): %s",
+                    "%s search failed (missing dependency): %s — install: %s",
                     source_name,
                     exc,
+                    install_hint,
                 )
-                typer.echo(
-                    f"  {source_name}: SKIPPED (not installed — {install_hint})",
-                    err=True,
-                )
+                source_results[source_name] = -2
             except Exception as exc:
                 logger.error("%s search failed: %s", source_name, exc)
-                typer.echo(f"  {source_name}: FAILED ({exc})", err=True)
+                source_results[source_name] = -1
+
+    # Per-source summary table + loud warning on zero-yield / failed sources so
+    # multi-source recall silently degrading to single-source is visible (#20).
+    typer.echo("Per-source results:")
+    degraded: list[str] = []
+    for src_name in sources:
+        outcome = source_results.get(src_name, -1)
+        if outcome == -2:
+            label = "SKIPPED (not installed)"
+            degraded.append(src_name)
+        elif outcome < 0:
+            label = "FAILED"
+            degraded.append(src_name)
+        else:
+            label = f"{outcome} candidates"
+            if outcome == 0:
+                degraded.append(src_name)
+        typer.echo(f"  {src_name:<16} {label}")
+    if degraded:
+        logger.warning(
+            "%d of %d source(s) contributed nothing (zero-yield or failed): %s",
+            len(degraded),
+            len(sources),
+            ", ".join(degraded),
+        )
+        typer.echo(
+            f"WARNING: {len(degraded)}/{len(sources)} source(s) contributed "
+            f"nothing: {', '.join(degraded)}",
+            err=True,
+        )
+        if strict_sources:
+            raise typer.Exit(1)
 
     # Cross-source dedup
     deduped = dedup_cross_source(all_candidates)
