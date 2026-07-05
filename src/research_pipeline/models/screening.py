@@ -1,5 +1,6 @@
 """Screening models for relevance scoring and shortlist decisions."""
 
+import contextlib
 import logging
 from typing import Any, Literal
 
@@ -89,6 +90,17 @@ def _default_cheap() -> dict[str, Any]:
     }
 
 
+def _label_from_score(score: float) -> str:
+    """Derive an LLM relevance label from a numeric score."""
+    if score >= 0.7:
+        return "high"
+    if score >= 0.4:
+        return "medium"
+    if score > 0.0:
+        return "low"
+    return "off_topic"
+
+
 def parse_shortlist_lenient(data: dict[str, Any]) -> RelevanceDecision:
     """Parse a shortlist entry leniently, filling defaults for missing fields.
 
@@ -130,5 +142,23 @@ def parse_shortlist_lenient(data: dict[str, Any]) -> RelevanceDecision:
     # download: default to True if missing
     if "download" not in patched:
         patched["download"] = True
+
+    # llm: coerce a partial judgment dict. Sub-agent-curated shortlists often
+    # supply only relevance_score/comment, so fill the required llm_score and
+    # label (derived from the score) rather than rejecting the entry (#25).
+    llm_val = patched.get("llm")
+    if isinstance(llm_val, dict):
+        llm_patched = dict(llm_val)
+        if "llm_score" not in llm_patched:
+            raw_score = llm_patched.get(
+                "relevance_score", patched.get("final_score", 0.0)
+            )
+            with contextlib.suppress(TypeError, ValueError):
+                llm_patched["llm_score"] = float(raw_score)
+        if llm_patched.get("label") not in {"high", "medium", "low", "off_topic"}:
+            llm_patched["label"] = _label_from_score(
+                float(llm_patched.get("llm_score", 0.0))
+            )
+        patched["llm"] = llm_patched
 
     return RelevanceDecision.model_validate(patched)
