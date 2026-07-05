@@ -114,8 +114,24 @@ def run_download(
     downloaded = sum(1 for e in entries if e.status == "downloaded")
     skipped = sum(1 for e in entries if e.status == "skipped_exists")
     failed = sum(1 for e in entries if e.status == "failed")
+    # Papers never attempted because download_batch stopped at max_per_run new
+    # downloads. Surfacing this stops a silent half-shortlist run (#29).
+    limit_skipped = max(0, len(papers) - len(entries))
 
     typer.echo(f"Downloaded: {downloaded}, Skipped: {skipped}, Failed: {failed}")
+    if limit_skipped:
+        cap = config.download.max_per_run
+        typer.echo(
+            f"WARNING: {limit_skipped} paper(s) NOT downloaded — hit the "
+            f"download.max_per_run cap ({cap}). Raise [download] max_per_run "
+            f"in config (or split the run) to include the rest."
+        )
+        logger.warning(
+            "download.max_per_run cap (%d) truncated the shortlist: "
+            "%d paper(s) not downloaded",
+            cap,
+            limit_skipped,
+        )
     typer.echo(f"Manifest: {manifest_path}")
     logger.info(
         "Download stage complete: %d downloaded, %d skipped, %d failed",
