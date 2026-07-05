@@ -15,6 +15,37 @@ logger = logging.getLogger(__name__)
 DEFAULT_WORKSPACE = "./workspace"
 DEFAULT_RUNS_DIR = "./runs"
 
+# Cap on a single resources/read payload so one read cannot flood the client
+# context (a converted paper is tens of thousands of tokens). Oversized reads
+# are truncated with a notice that reports the true size. See issue #44.
+_MAX_RESOURCE_BYTES = 512 * 1024
+
+
+def _cap_text(text: str, source: str) -> str:
+    """Truncate an oversized text resource, appending a size notice."""
+    raw = text.encode("utf-8")
+    if len(raw) <= _MAX_RESOURCE_BYTES:
+        return text
+    head = raw[:_MAX_RESOURCE_BYTES].decode("utf-8", errors="ignore")
+    return (
+        f"{head}\n\n[truncated: {source} is {len(raw)} bytes; showing the "
+        f"first {_MAX_RESOURCE_BYTES}. Read the file directly for the full "
+        "content.]\n"
+    )
+
+
+def _cap_bytes(data: bytes, source: str) -> bytes:
+    """Truncate an oversized binary resource, logging the truncation."""
+    if len(data) <= _MAX_RESOURCE_BYTES:
+        return data
+    logger.warning(
+        "%s is %d bytes; truncating to the %d-byte resource cap",
+        source,
+        len(data),
+        _MAX_RESOURCE_BYTES,
+    )
+    return data[:_MAX_RESOURCE_BYTES]
+
 
 def _find_runs_root() -> Path:
     """Find the runs directory, checking workspace/ and runs/ locations."""
@@ -88,7 +119,7 @@ def get_run_candidates(run_id: str) -> str:
     candidates_path = run_root / "search" / "candidates.jsonl"
     if not candidates_path.exists():
         raise ValueError(f"No candidates for run '{run_id}'")
-    return candidates_path.read_text()
+    return _cap_text(candidates_path.read_text(), f"candidates for run '{run_id}'")
 
 
 def get_run_shortlist(run_id: str) -> str:
@@ -112,7 +143,7 @@ def get_paper_pdf(run_id: str, paper_id: str) -> bytes:
     for pattern in [f"{paper_id}.pdf", f"*{paper_id}*.pdf"]:
         matches = list(pdf_dir.glob(pattern))
         if matches:
-            return matches[0].read_bytes()
+            return _cap_bytes(matches[0].read_bytes(), f"PDF for paper '{paper_id}'")
     raise ValueError(f"No PDF for paper '{paper_id}' in run '{run_id}'")
 
 
@@ -130,7 +161,9 @@ def get_paper_markdown(run_id: str, paper_id: str) -> str:
         for pattern in [f"{paper_id}.md", f"*{paper_id}*.md"]:
             matches = list(md_dir.glob(pattern))
             if matches:
-                return matches[0].read_text()
+                return _cap_text(
+                    matches[0].read_text(), f"markdown for paper '{paper_id}'"
+                )
 
     raise ValueError(f"No markdown for paper '{paper_id}' in run '{run_id}'")
 
@@ -157,7 +190,9 @@ def get_paper_extraction(run_id: str, paper_id: str) -> str:
     for pattern in [f"{paper_id}.extraction.json", f"*{paper_id}*.extraction.json"]:
         matches = list(extraction_dir.glob(pattern))
         if matches:
-            return matches[0].read_text()
+            return _cap_text(
+                matches[0].read_text(), f"extraction for paper '{paper_id}'"
+            )
     raise ValueError(f"No extraction for paper '{paper_id}' in run '{run_id}'")
 
 
@@ -172,7 +207,7 @@ def get_synthesis_report(run_id: str) -> str:
         synthesis_path = run_root / "summarize" / "synthesis_report.json"
     if not synthesis_path.exists():
         raise ValueError(f"No synthesis report for run '{run_id}'")
-    return synthesis_path.read_text()
+    return _cap_text(synthesis_path.read_text(), f"synthesis for run '{run_id}'")
 
 
 def get_quality_scores(run_id: str) -> str:
