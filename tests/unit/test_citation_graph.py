@@ -117,3 +117,21 @@ class TestCitationGraphClient:
         paper["abstract"] = None
         candidate = client._parse_paper(paper)
         assert candidate.abstract == ""
+
+
+class TestParsePaperNullFields:
+    """Sparse Semantic Scholar records must not crash parsing (#26)."""
+
+    def test_null_paper_id_and_externalids(self) -> None:
+        client = CitationGraphClient()
+        paper = {
+            "paperId": None,
+            "externalIds": None,
+            "title": "Sparse Ref",
+            "abstract": "",
+            "year": 2024,
+            "authors": [],
+        }
+        record = client._parse_paper(paper)
+        assert record.arxiv_id.startswith("s2-")
+        assert record.title == "Sparse Ref"
