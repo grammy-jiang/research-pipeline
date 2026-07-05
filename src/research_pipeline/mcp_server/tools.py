@@ -98,8 +98,11 @@ def _log_info(ctx: Context | None, message: str) -> None:
     """Log via MCP context if available, always log via Python logger."""
     logger.info(message)
     if ctx is not None:
-        with contextlib.suppress(Exception):
-            ctx.info(message)
+        from research_pipeline.mcp_server.logging_state import should_emit
+
+        if should_emit("info"):
+            with contextlib.suppress(Exception):
+                ctx.info(message)
 
 
 def _backend_kwargs(

@@ -11,9 +11,14 @@ import logging
 from pathlib import Path
 
 from mcp.server.fastmcp import Context, FastMCP
-from mcp.types import ToolAnnotations
+from mcp.types import LoggingLevel, ToolAnnotations
 
-from research_pipeline.mcp_server import completions, prompts, resources
+from research_pipeline.mcp_server import (
+    completions,
+    logging_state,
+    prompts,
+    resources,
+)
 from research_pipeline.mcp_server.schemas import (
     AnalyzeClaimsInput,
     AnalyzePapersInput,
@@ -143,6 +148,19 @@ mcp = FastMCP(
         "screen, download, convert, extract, summarize papers."
     ),
 )
+
+
+@mcp._mcp_server.set_logging_level()
+async def _handle_set_logging_level(level: LoggingLevel) -> None:
+    """Honour ``logging/setLevel`` from the client.
+
+    The server emits ``notifications/message`` (via ``ctx.info/.warning/...``),
+    so per the MCP spec it MUST declare the ``logging`` capability — registering
+    this handler is exactly what advertises it in ``initialize`` — and honour
+    the client-set minimum level. Emissions are gated on this level in
+    ``tools.py::_log_info`` and ``workflow/telemetry.py``. See issue #41.
+    """
+    logging_state.set_min_level(level)
 
 
 @mcp.tool(
