@@ -47,6 +47,27 @@ def _cap_bytes(data: bytes, source: str) -> bytes:
     return data[:_MAX_RESOURCE_BYTES]
 
 
+def _validate_id(value: str, kind: str) -> str:
+    """Reject path traversal in a caller-supplied identifier.
+
+    Resource URIs carry ``run_id``/``paper_id``/``date`` straight into a
+    filesystem path. Refuse empty values, ``..`` segments, absolute paths, and
+    NUL bytes so a read cannot escape the workspace root (#40).
+    """
+    if not value or ".." in value or value.startswith(("/", "\\")) or "\x00" in value:
+        raise ValueError(f"Invalid {kind}: {value!r}")
+    return value
+
+
+def _safe_join(root: Path, *parts: str) -> Path:
+    """Join *parts* under *root*, refusing anything that escapes it (#40)."""
+    base = root.resolve()
+    target = base.joinpath(*parts).resolve()
+    if not target.is_relative_to(base):
+        raise ValueError(f"Path escapes root {base}: {parts}")
+    return target
+
+
 def _find_runs_root() -> Path:
     """Find the runs directory, checking workspace/ and runs/ locations."""
     for candidate in [DEFAULT_RUNS_DIR, DEFAULT_WORKSPACE]:
@@ -58,9 +79,10 @@ def _find_runs_root() -> Path:
 
 def _get_run_root(run_id: str) -> Path | None:
     """Find the root directory for a specific run."""
+    _validate_id(run_id, "run_id")
     roots = [Path(DEFAULT_RUNS_DIR), Path(DEFAULT_WORKSPACE)]
     for root in roots:
-        run_path = root.resolve() / run_id
+        run_path = _safe_join(root, run_id)
         if run_path.is_dir():
             return run_path
     return None
@@ -135,6 +157,7 @@ def get_run_shortlist(run_id: str) -> str:
 
 def get_paper_pdf(run_id: str, paper_id: str) -> bytes:
     """Read a downloaded paper's PDF as bytes."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
         raise ValueError(f"Run '{run_id}' not found")
@@ -149,6 +172,7 @@ def get_paper_pdf(run_id: str, paper_id: str) -> bytes:
 
 def get_paper_markdown(run_id: str, paper_id: str) -> str:
     """Read a paper's converted markdown."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
         raise ValueError(f"Run '{run_id}' not found")
@@ -170,6 +194,7 @@ def get_paper_markdown(run_id: str, paper_id: str) -> str:
 
 def get_paper_summary(run_id: str, paper_id: str) -> str:
     """Read a paper's summary as JSON."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
         raise ValueError(f"Run '{run_id}' not found")
@@ -183,6 +208,7 @@ def get_paper_summary(run_id: str, paper_id: str) -> str:
 
 def get_paper_extraction(run_id: str, paper_id: str) -> str:
     """Read a paper's rich Step 1 extraction as JSON."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
         raise ValueError(f"Run '{run_id}' not found")
@@ -252,7 +278,8 @@ def get_global_index() -> str:
 
 
 def _get_briefing_root(date: str) -> Path:
-    return Path(DEFAULT_WORKSPACE).resolve() / "briefings" / date
+    _validate_id(date, "date")
+    return _safe_join(Path(DEFAULT_WORKSPACE) / "briefings", date)
 
 
 def list_briefings() -> str:

@@ -200,3 +200,17 @@ class TestManageIndexInput:
     def test_gc_mode(self) -> None:
         p = ManageIndexInput(gc=True)
         assert p.gc is True
+
+
+class TestRunIdTraversalValidator:
+    """run_id feeds a filesystem path, so traversal must be rejected (#40)."""
+
+    def test_rejects_traversal(self) -> None:
+        for bad in ("../../etc", "a/../b", "/abs/run", "x\x00y"):
+            with pytest.raises(ValidationError):
+                PlanTopicInput(topic="x", run_id=bad)
+
+    def test_allows_normal_and_empty(self) -> None:
+        assert PlanTopicInput(topic="x", run_id="run-001").run_id == "run-001"
+        # empty is the auto-generate sentinel
+        assert PlanTopicInput(topic="x").run_id == ""
