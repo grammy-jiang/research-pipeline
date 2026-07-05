@@ -10,6 +10,7 @@ from pathlib import Path
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.models.candidate import CandidateRecord
+from research_pipeline.models.screening import parse_shortlist_lenient
 from research_pipeline.quality.composite import compute_quality_score
 from research_pipeline.storage.manifests import read_jsonl, write_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
@@ -60,10 +61,13 @@ def run_quality(
         return
 
     if candidates_path.suffix == ".json":
+        # shortlist.json holds RelevanceDecision-shaped entries; unwrap the
+        # embedded CandidateRecord instead of parsing the whole decision (#28).
         raw_records = json.loads(candidates_path.read_text(encoding="utf-8"))
+        candidates = [parse_shortlist_lenient(r).paper for r in raw_records]
     else:
         raw_records = read_jsonl(candidates_path)
-    candidates = [CandidateRecord(**r) for r in raw_records]
+        candidates = [CandidateRecord(**r) for r in raw_records]
     logger.info("Scoring %d candidates from %s", len(candidates), candidates_path)
 
     quality_dir = get_stage_dir(run_root, "quality")

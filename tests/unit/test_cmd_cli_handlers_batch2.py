@@ -1464,9 +1464,11 @@ class TestCmdQuality:
         search_dir = run_dir / "search"
         search_dir.mkdir(parents=True)
 
-        candidate_data = _candidate_dict()
+        # shortlist.json holds RelevanceDecision-shaped entries (#28); wrap the
+        # candidate. parse_shortlist_lenient fills the remaining defaults.
+        decision_data = {"paper": _candidate_dict()}
         (screen_dir / "shortlist.json").write_text(
-            json.dumps([candidate_data]), encoding="utf-8"
+            json.dumps([decision_data]), encoding="utf-8"
         )
 
         qs = MagicMock()
