@@ -15,6 +15,7 @@ from mcp.types import LoggingLevel, ToolAnnotations
 
 from research_pipeline.mcp_server import (
     completions,
+    guard_wiring,
     logging_state,
     prompts,
     resources,
@@ -2507,6 +2508,11 @@ def prompt_quality_assessment(run_id: str) -> list[dict[str, str]]:
 async def handle_completion(ref, argument, context=None):  # type: ignore[no-untyped-def]
     """Auto-complete arguments for resource templates and prompts."""
     return await completions.handle_completion(ref, argument, context)
+
+
+# Wire the zero-trust guard into tool dispatch (#45). Must run after every
+# @mcp.tool() above has been registered so the registry is complete.
+_guard = guard_wiring.install_guard(mcp)
 
 
 if __name__ == "__main__":
