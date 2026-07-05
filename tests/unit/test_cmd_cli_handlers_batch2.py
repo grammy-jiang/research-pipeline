@@ -633,6 +633,64 @@ class TestCmdDownload:
     @patch("research_pipeline.cli.cmd_download.download_batch")
     @patch("research_pipeline.cli.cmd_download.create_session")
     @patch("research_pipeline.cli.cmd_download.ArxivRateLimiter")
+    @patch("research_pipeline.cli.cmd_download.init_run")
+    @patch("research_pipeline.cli.cmd_download.load_config")
+    def test_max_per_run_cap_warns(
+        self,
+        mock_cfg,
+        mock_init,
+        mock_limiter,
+        mock_session,
+        mock_batch,
+        mock_write,
+        tmp_path,
+        capsys,
+    ):
+        """A cap-truncated shortlist must surface a warning, not silence (#29)."""
+        from research_pipeline.cli.cmd_download import run_download
+
+        cfg = _make_config(tmp_path)
+        cfg.download.max_per_run = 1
+        mock_cfg.return_value = cfg
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        screen_dir = run_dir / "screen"
+        screen_dir.mkdir(parents=True)
+        shortlist_data = [
+            {
+                "paper": {
+                    "arxiv_id": f"2301.0000{i}",
+                    "version": "v1",
+                    "title": "t",
+                    "authors": ["a"],
+                    "published": "2024-01-01T00:00:00Z",
+                    "updated": "2024-01-01T00:00:00Z",
+                    "abstract": "a",
+                    "abs_url": "",
+                    "pdf_url": "http://x",
+                },
+                "download": True,
+            }
+            for i in range(3)
+        ]
+        (screen_dir / "shortlist.json").write_text(
+            json.dumps(shortlist_data), encoding="utf-8"
+        )
+        dl_entry = MagicMock()
+        dl_entry.status = "downloaded"
+        dl_entry.model_dump.return_value = {"status": "downloaded"}
+        mock_batch.return_value = [dl_entry]  # 1 entry for 3 papers → 2 truncated
+
+        run_download(force=False, config_path=None, workspace=tmp_path, run_id="run1")
+
+        out = capsys.readouterr().out
+        assert "NOT downloaded" in out
+        assert "max_per_run" in out
+
+    @patch("research_pipeline.cli.cmd_download.write_jsonl")
+    @patch("research_pipeline.cli.cmd_download.download_batch")
+    @patch("research_pipeline.cli.cmd_download.create_session")
+    @patch("research_pipeline.cli.cmd_download.ArxivRateLimiter")
     @patch("research_pipeline.cli.cmd_download.read_jsonl")
     @patch("research_pipeline.cli.cmd_download.init_run")
     @patch("research_pipeline.cli.cmd_download.load_config")
