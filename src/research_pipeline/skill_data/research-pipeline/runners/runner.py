@@ -198,6 +198,35 @@ def print_llm_delegation(task: dict[str, Any], ctx: dict[str, Any]) -> None:
 # ---------------------------------------------------------------------------
 
 
+def capture_run_id(
+    state: dict[str, Any], ctx: dict[str, str], cwd_str: str
+) -> str | None:
+    """Discover and record the run id produced by the plan stage (#17).
+
+    The plan MCP tool generates a fresh ``runs/<id>/`` directory but never
+    reports the id back into workflow state, so downstream ``{run_id}``
+    substitutions render empty. When the state carries no run id, adopt the
+    newest ``runs/*`` directory and write it into both the persisted state and
+    the live context so subsequent tasks resolve correctly.
+    """
+    if state.get("run_id"):
+        return str(state["run_id"])
+    runs_dir = Path(cwd_str) / "runs"
+    if not runs_dir.is_dir():
+        return None
+    candidates = [
+        d for d in runs_dir.iterdir() if d.is_dir() and not d.name.startswith(".")
+    ]
+    if not candidates:
+        return None
+    newest = max(candidates, key=lambda d: d.stat().st_mtime)
+    run_id = newest.name
+    state["run_id"] = run_id
+    ctx["run_id"] = run_id
+    ctx["run_dir"] = str(newest)
+    return run_id
+
+
 def run_workflow(
     manifest: dict[str, Any],
     state: dict[str, Any],
@@ -284,23 +313,43 @@ def run_workflow(
                 # Pause: agent must complete the sub-agent and re-run runner.
                 return 0
 
-            # ---- MCP tool — print the invocation for the agent ----
+            # ---- MCP tool — delegate to the agent, validate on re-run ----
             if kind == "deterministic_mcp_tool":
+                output = task.get("output", {})
+                if current.get("status") == "delegated":
+                    # Re-run: capture the run id the plan tool generated, then
+                    # accept only if the declared artifact exists + validates —
+                    # no optimistic accept (#17).
+                    capture_run_id(state, ctx, cwd_str)
+                    if output and not validate_artifact(output, ctx):
+                        print(
+                            f"\n[MCP TOOL] {task_id}: awaiting artifact "
+                            f"{output.get('path', '?')}"
+                        )
+                        continue  # stay delegated; the DAG pauses below
+                    task_states[task_id] = {
+                        "status": "accepted",
+                        "ended_at": datetime.now(UTC).isoformat(),
+                        "note": "MCP tool output validated",
+                    }
+                    save_state(state, state_path)
+                    changed = True
+                    continue
+                # First encounter: show the invocation and pause the DAG.
                 cli = task.get("executor", {}).get("cli", "")
                 for key, val in ctx.items():
                     cli = cli.replace(f"{{{key}}}", str(val))
                 print(f"\n[MCP TOOL] {task_id}: {label}")
                 if cli:
-                    print(f"  CLI equivalent: {cli}")
-                # Optimistically accept MCP tool tasks; the agent will validate.
+                    print(f"  Invoke: {cli}")
                 task_states[task_id] = {
-                    "status": "accepted",
-                    "ended_at": datetime.now(UTC).isoformat(),
-                    "note": "MCP tool invoked by agent",
+                    "status": "delegated",
+                    "started_at": datetime.now(UTC).isoformat(),
+                    "note": "awaiting MCP tool invocation by agent",
                 }
                 save_state(state, state_path)
                 changed = True
-                continue
+                return 0
 
             # ---- Deterministic script ----
             print(f"\n[RUNNING] {task_id}: {label}")
