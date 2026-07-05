@@ -165,6 +165,11 @@ def search(
             "dblp, huggingface, all (default: from config)."
         ),
     ),
+    strict_sources: bool = typer.Option(
+        False,
+        "--strict-sources",
+        help="Exit non-zero if any selected source yields no candidates or fails.",
+    ),
 ) -> None:
     """Search configured academic paper sources in parallel.
 
@@ -176,7 +181,9 @@ def search(
     from research_pipeline.cli.cmd_search import run_search
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_search(topic, resume=resume, source=source, **opts)
+    run_search(
+        topic, resume=resume, source=source, strict_sources=strict_sources, **opts
+    )
 
 
 @app.command()
