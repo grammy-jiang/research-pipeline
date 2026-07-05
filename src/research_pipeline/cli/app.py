@@ -1410,6 +1410,33 @@ def evaluate(
     evaluate_cmd(run_id=run_id, stage=stage, workspace=workspace)
 
 
+@app.command("verify")
+def verify(
+    run_id: str = typer.Option(..., "--run-id", help="Run ID to verify."),
+    stage: str = typer.Option(
+        "", "--stage", "-s", help="Specific stage (default: all)."
+    ),
+    config: Path | None = typer.Option(
+        None, "--config", "-c", help="Config TOML (for workspace resolution)."
+    ),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Verify pipeline outputs against their schemas, exiting non-zero on failure.
+
+    Gate-friendly counterpart to ``evaluate``, used by the skill's manifest
+    validation gates.
+
+    Example: research-pipeline verify --run-id <RUN_ID> --stage plan
+    """
+    from research_pipeline.cli.cmd_evaluate import verify_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    verify_cmd(run_id=run_id, stage=stage, config_path=config, workspace=workspace)
+
+
 @app.command("horizon")
 def horizon(
     score: float = typer.Option(
