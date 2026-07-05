@@ -10,30 +10,45 @@ Use the task tool with the appropriate agent type. Each agent should be
 given the full file paths to its input artifacts — agents are stateless
 and do not share context with the main conversation.
 
-### Model Configuration (REQUIRED)
+### Model Configuration
 
-**All sub-agents MUST be launched with `model: "claude-opus-4.6"`** for
-maximum reasoning quality. This is a non-negotiable requirement — academic
-paper analysis demands the highest-quality reasoning available.
+Sub-agents **inherit the session model by default**, which is almost always the
+right choice for academic paper analysis: it keeps the analysis at the same
+capability as the driving session without pinning a specific model. Only
+override the model *downward* for clearly mechanical sub-tasks (formatting,
+extracting already-located fields) to save cost.
+
+Prefer the **model aliases** the harness exposes (`opus`, `sonnet`, `haiku`, or
+the current-flagship alias) over dated model ids — a pinned id such as
+`claude-opus-4.6` goes stale and may be rejected by current Agent tooling.
 
 ```
 task(
   agent_type: "paper-screener" | "paper-analyzer" | "paper-synthesizer",
-  model: "claude-opus-4.6",   # ← ALWAYS set this
+  # omit `model` to inherit the session model (recommended), or use an alias:
+  # model: "opus",
   mode: "background",
   ...
 )
 ```
 
-| Agent | Model | Rationale |
-|-------|-------|-----------|
-| paper-screener | `claude-opus-4.6` | Nuanced relevance judgments require deep understanding |
-| paper-analyzer | `claude-opus-4.6` | Methodology assessment and critique need expert-level reasoning |
-| paper-synthesizer | `claude-opus-4.6` | Cross-paper synthesis, contradiction detection, and gap analysis are the most demanding tasks |
+| Agent | Recommended model | Rationale |
+|-------|-------------------|-----------|
+| paper-screener | inherit session (or `opus`) | Nuanced relevance judgments need deep understanding |
+| paper-analyzer | inherit session (or `opus`) | Methodology assessment and critique need expert reasoning |
+| paper-synthesizer | inherit session (or `opus`) | Cross-paper synthesis, contradiction detection, and gap analysis are the most demanding |
 
-**Do NOT use** `claude-opus-4.6-fast`, `claude-haiku-4.5`, or other cheaper
-models for sub-agents — the quality degradation on academic analysis tasks
-is significant.
+Avoid downgrading synthesis/analysis to small models — the quality drop on
+academic tasks is significant. Mechanical steps may use a smaller alias.
+
+### Missing agent types (fallback)
+
+The agent-type registry loads at session start, so agent types installed or
+symlink-repaired mid-session may report as unavailable until the next session.
+When `paper-screener` / `paper-analyzer` / `paper-synthesizer` is missing, fall
+back to a **general-purpose agent** instructed to read the corresponding role
+definition at `~/.claude/agents/<name>.md` and follow the same contract
+(inputs, outputs, and quality bar) as the dedicated agent.
 
 ## paper-screener
 
