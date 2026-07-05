@@ -79,6 +79,38 @@ class TestBuildQueryFromPlan:
         result = build_query_from_plan(plan)
         assert result == ["ti:test", "abs:test"]
 
+    def test_plain_variant_is_field_scoped(self) -> None:
+        # Regression for #16: a plain-language variant must be field-scoped,
+        # not sent to arXiv verbatim (which matches ~everything).
+        plan = QueryPlan(
+            topic_raw="t",
+            topic_normalized="t",
+            query_variants=["llm agent translation"],
+        )
+        result = build_query_from_plan(plan)
+        assert len(result) == 1
+        query = result[0]
+        assert query != "llm agent translation"
+        assert "ti:" in query and "abs:" in query
+        assert 'ti:"llm"' in query and 'ti:"agent"' in query
+
+    def test_scoped_variant_passthrough(self) -> None:
+        plan = QueryPlan(
+            topic_raw="t",
+            topic_normalized="t",
+            query_variants=["ti:neural AND abs:network"],
+        )
+        assert build_query_from_plan(plan) == ["ti:neural AND abs:network"]
+
+    def test_plain_variant_applies_categories(self) -> None:
+        plan = QueryPlan(
+            topic_raw="t",
+            topic_normalized="t",
+            query_variants=["machine translation"],
+            candidate_categories=["cs.CL"],
+        )
+        assert "cat:cs.CL" in build_query_from_plan(plan)[0]
+
     def test_must_terms_only(self) -> None:
         plan = QueryPlan(
             topic_raw="neural search",

@@ -57,11 +57,46 @@ def build_negative_filter(negative_terms: list[str]) -> str:
     )
 
 
+_FIELD_PREFIXES = ("ti:", "abs:", "cat:", "au:", "all:", "co:", "jr:", "id:")
+
+
+def _is_field_scoped(query: str) -> bool:
+    """True if *query* already contains arXiv field syntax (operator-crafted)."""
+    lowered = query.lower()
+    return any(prefix in lowered for prefix in _FIELD_PREFIXES)
+
+
+def _scope_variant(variant: str, plan: QueryPlan) -> str:
+    """Field-scope a plain-language variant so arXiv does not treat it as a
+    match-everything query (#16).
+
+    A variant that already carries arXiv field syntax is assumed to be a
+    deliberately-crafted raw query and is passed through unchanged. Otherwise
+    the variant's words are AND-ed within title and abstract, then constrained
+    by the plan's categories and negative terms.
+    """
+    if _is_field_scoped(variant):
+        return variant
+    terms = [t for t in variant.split() if t.strip()]
+    if not terms:
+        return variant
+    title_q = build_field_query("ti", terms, "AND")
+    abs_q = build_field_query("abs", terms, "AND")
+    query = f"({title_q}) OR ({abs_q})"
+    if plan.candidate_categories:
+        query = f"({query}) AND ({build_category_filter(plan.candidate_categories)})"
+    neg = build_negative_filter(plan.negative_terms)
+    if neg:
+        query = f"({query}) {neg}"
+    return query
+
+
 def build_query_from_plan(plan: QueryPlan) -> list[str]:
     """Generate arXiv query strings from a QueryPlan.
 
-    If the plan already has ``query_variants``, returns those directly.
-    Otherwise generates queries from must/nice terms and categories.
+    If the plan already has ``query_variants``, each is field-scoped (unless it
+    already contains arXiv field syntax). Otherwise generates queries from
+    must/nice terms and categories.
 
     Args:
         plan: The query plan.
@@ -70,8 +105,8 @@ def build_query_from_plan(plan: QueryPlan) -> list[str]:
         List of arXiv query strings ready for API use.
     """
     if plan.query_variants:
-        logger.info("Using %d pre-defined query variants", len(plan.query_variants))
-        return list(plan.query_variants)
+        logger.info("Field-scoping %d query variants", len(plan.query_variants))
+        return [_scope_variant(v, plan) for v in plan.query_variants]
 
     queries: list[str] = []
 
