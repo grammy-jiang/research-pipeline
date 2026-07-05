@@ -122,3 +122,26 @@ class TestGetGlobalIndex:
         result = json.loads(resources.get_global_index())
         assert "count" in result
         assert "papers" in result
+
+
+class TestResourceCaps:
+    """Oversized resource reads are size-capped (#44)."""
+
+    def test_cap_text_passthrough_under_limit(self) -> None:
+        assert resources._cap_text("hello", "x") == "hello"
+
+    def test_cap_text_truncates_over_limit(self) -> None:
+        big = "a" * (resources._MAX_RESOURCE_BYTES + 1000)
+        out = resources._cap_text(big, "big.md")
+        assert len(out.encode("utf-8")) < len(big.encode("utf-8"))
+        assert "truncated" in out
+        assert "big.md" in out
+
+    def test_cap_bytes_passthrough_under_limit(self) -> None:
+        assert resources._cap_bytes(b"pdf", "x") == b"pdf"
+
+    def test_cap_bytes_truncates_over_limit(self) -> None:
+        big = b"a" * (resources._MAX_RESOURCE_BYTES + 1000)
+        assert (
+            len(resources._cap_bytes(big, "big.pdf")) == resources._MAX_RESOURCE_BYTES
+        )

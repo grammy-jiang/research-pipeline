@@ -263,3 +263,17 @@ class TestConvertPdfs:
             )
 
         mock_create.assert_called_once()
+
+
+class TestScrubExc:
+    """Tool error messages must not leak internal filesystem paths (#44)."""
+
+    def test_redacts_home_dir(self) -> None:
+        from pathlib import Path
+
+        from research_pipeline.mcp_server.tools import _scrub_exc
+
+        home = str(Path.home())
+        msg = _scrub_exc(FileNotFoundError(f"{home}/runs/secret/paper.pdf missing"))
+        assert home not in msg
+        assert "paper.pdf" in msg
