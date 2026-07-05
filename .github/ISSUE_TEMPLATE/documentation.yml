@@ -1,0 +1,43 @@
+name: "📚 Documentation"
+description: "Docs, references, or packaged skill instructions are wrong, stale, or missing."
+title: "[docs] <one-line summary>"
+labels: ["documentation"]
+body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched existing issues (open and closed) for duplicates
+          required: true
+
+  - type: input
+    id: location
+    attributes:
+      label: Document location
+      description: File path (and section) of the wrong or missing documentation.
+      placeholder: "skill_data/research-pipeline/references/sub-agents.md — Model Configuration"
+    validations:
+      required: true
+
+  - type: textarea
+    id: current
+    attributes:
+      label: Current text / state
+      description: Quote the wrong or stale passage, or state "missing".
+    validations:
+      required: true
+
+  - type: textarea
+    id: correct
+    attributes:
+      label: What it should say
+      description: Corrected content or an outline of the missing section.
+    validations:
+      required: true
+
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Why (evidence, optional)
+      description: What proves the current text wrong — code behavior, API responses, session logs.
