@@ -17,7 +17,7 @@ from pathlib import Path
 from research_pipeline.config.loader import load_config
 from research_pipeline.infra.rate_limit import RateLimiter
 from research_pipeline.sources.citation_graph import CitationGraphClient
-from research_pipeline.storage.manifests import write_jsonl
+from research_pipeline.storage.manifests import read_jsonl, write_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 logger = logging.getLogger(__name__)
@@ -41,6 +41,7 @@ def run_expand(
     config_path: Path | None = None,
     workspace: Path | None = None,
     run_id: str | None = None,
+    replace: bool = False,
 ) -> None:
     """Execute citation-graph expansion for the given paper IDs.
 
@@ -182,9 +183,36 @@ def run_expand(
                 len(candidates) - len(seen_ids) + len(bfs_candidates),
             )
 
-    # Write expanded candidates
+    # Write expanded candidates. By default merge with any existing file so a
+    # second (e.g. slower, larger) expand run does not silently overwrite the
+    # artifact that screening already consumed; --replace restores the old
+    # wholesale-overwrite behaviour (#27).
     output_path = expand_dir / "expanded_candidates.jsonl"
-    records = [c.model_dump(mode="json") for c in candidates]
+    new_records = [c.model_dump(mode="json") for c in candidates]
+    if replace or not output_path.exists():
+        records = new_records
+    else:
+        by_id: dict[str, dict[str, object]] = {}
+        for rec in read_jsonl(output_path):
+            key = rec.get("arxiv_id") or rec.get("semantic_scholar_id") or ""
+            if key:
+                by_id[key] = rec
+        merged_new = 0
+        for rec in new_records:
+            key = rec.get("arxiv_id") or rec.get("semantic_scholar_id") or ""
+            if key and key not in by_id:
+                merged_new += 1
+            if key:
+                by_id[key] = rec
+        records = list(by_id.values())
+        logger.info(
+            "Merged expansion into existing artifact: %d existing + %d this run "
+            "= %d total (%d new)",
+            len(records) - merged_new,
+            len(new_records),
+            len(records),
+            merged_new,
+        )
     write_jsonl(output_path, records)
 
     logger.info(
