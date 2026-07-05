@@ -168,6 +168,23 @@ def run_summarize(
         encoding="utf-8",
     )
 
+    # Range sanity check over extracted statistics: surface impossible values
+    # (e.g. a Spearman rho of -1.8) rather than letting them survive verbatim
+    # into the report. Written as a sidecar artifact (no schema change) (#33).
+    from research_pipeline.quality.stat_sanity import find_stat_anomalies
+
+    stat_warnings: list[dict[str, object]] = []
+    for record in extraction_records:
+        anomalies = find_stat_anomalies(record.model_dump(mode="json"))
+        if anomalies:
+            logger.warning(
+                "Out-of-range statistics in %s: %s", record.paper_id, anomalies
+            )
+            stat_warnings.append({"paper_id": record.paper_id, "warnings": anomalies})
+    (sum_dir / "stat_warnings.json").write_text(
+        json.dumps(stat_warnings, indent=2), encoding="utf-8"
+    )
+
     if step == "extraction":
         typer.echo(f"Extracted: {len(extraction_records)} papers")
         typer.echo(f"Extraction artifacts: {extraction_dir}")
