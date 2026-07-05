@@ -18,6 +18,8 @@ import time
 from pathlib import Path
 from typing import TYPE_CHECKING
 
+from pydantic import BaseModel, Field
+
 if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
     from mcp.server.session import ServerSession
@@ -380,6 +382,55 @@ def _parse_json_response(text: str) -> dict:
 # ---------------------------------------------------------------------------
 
 
+class _ApprovalDecision(BaseModel):
+    """Elicitation response schema for a yes/no governance gate.
+
+    MCP elicitation requires a Pydantic ``BaseModel`` (the SDK calls
+    ``schema.model_json_schema()``); passing a plain dict raises
+    ``AttributeError`` before any wire message is sent. Only primitive fields
+    are permitted. See issue #37.
+    """
+
+    approved: bool = Field(default=True, description="Approve and continue")
+
+
+async def _elicit_approval(
+    ctx: Context,
+    message: str,
+    telemetry: WorkflowTelemetry,
+    stage: str,
+    **log_kwargs: object,
+) -> dict:
+    """Ask the user a yes/no governance question via MCP elicitation.
+
+    Fails closed: an explicit ``decline`` or ``cancel`` — or an accept whose
+    ``approved`` is false — yields ``approved=False`` so the workflow does not
+    silently proceed (each iteration spends API budget). Only an explicit
+    ``accept`` with ``approved=True`` continues. If the client does not support
+    elicitation the call raises; a non-interactive client cannot gate, so we
+    log and proceed.
+    """
+    try:
+        result = await ctx.elicit(message=message, schema=_ApprovalDecision)
+        action = getattr(result, "action", "accept")
+        if action == "accept":
+            data = result.data
+            approved = bool(getattr(data, "approved", False)) if data else False
+            decision: dict = {"approved": approved}
+        elif action == "cancel":
+            decision = {"approved": False, "cancelled": True}
+        else:  # "decline"
+            decision = {"approved": False}
+        telemetry.log_user_decision(stage, f"{stage} review: {decision}", **log_kwargs)
+        return decision
+    except Exception as exc:
+        logger.warning("Elicitation unavailable, proceeding: %s", exc)
+        telemetry.log_user_decision(
+            stage, f"Default (elicitation unavailable): {exc}", **log_kwargs
+        )
+        return {"approved": True}
+
+
 async def _elicit_plan_review(
     ctx: Context,
     plan_data: dict,
@@ -393,34 +444,7 @@ async def _elicit_plan_review(
         f"Variants: {len(plan_data.get('query_variants', []))}\n\n"
         f"Approve this plan?"
     )
-    try:
-        result = await ctx.elicit(
-            message=message,
-            schema={
-                "type": "object",
-                "properties": {
-                    "approved": {
-                        "type": "boolean",
-                        "description": "Approve the query plan",
-                        "default": True,
-                    },
-                },
-            },
-        )
-        decision = {"approved": True}
-        if hasattr(result, "data") and result.data:
-            decision = (
-                result.data if isinstance(result.data, dict) else {"approved": True}
-            )
-        action = getattr(result, "action", "accept")
-        if action == "decline":
-            decision = {"approved": False}
-        telemetry.log_user_decision("plan", f"Plan review: {decision}")
-        return decision
-    except Exception as exc:
-        logger.warning("Elicitation failed, using defaults: %s", exc)
-        telemetry.log_user_decision("plan", f"Default (elicitation failed): {exc}")
-        return {"approved": True}
+    return await _elicit_approval(ctx, message, telemetry, "plan")
 
 
 async def _elicit_shortlist_review(
@@ -437,34 +461,7 @@ async def _elicit_shortlist_review(
         f"Top papers:\n{preview}\n\n"
         f"Approve this shortlist?"
     )
-    try:
-        result = await ctx.elicit(
-            message=message,
-            schema={
-                "type": "object",
-                "properties": {
-                    "approved": {
-                        "type": "boolean",
-                        "description": "Approve the shortlist",
-                        "default": True,
-                    },
-                },
-            },
-        )
-        decision = {"approved": True}
-        if hasattr(result, "data") and result.data:
-            decision = (
-                result.data if isinstance(result.data, dict) else {"approved": True}
-            )
-        action = getattr(result, "action", "accept")
-        if action == "decline":
-            decision = {"approved": False}
-        telemetry.log_user_decision("screen", f"Shortlist review: {decision}")
-        return decision
-    except Exception as exc:
-        logger.warning("Elicitation failed, using defaults: %s", exc)
-        telemetry.log_user_decision("screen", f"Default (elicitation failed): {exc}")
-        return {"approved": True}
+    return await _elicit_approval(ctx, message, telemetry, "screen")
 
 
 async def _elicit_iteration_approval(
@@ -488,38 +485,9 @@ async def _elicit_iteration_approval(
         f"{metrics_summary}\n\n"
         f"Continue to next iteration?"
     )
-    try:
-        result = await ctx.elicit(
-            message=message,
-            schema={
-                "type": "object",
-                "properties": {
-                    "approved": {
-                        "type": "boolean",
-                        "description": "Continue iteration",
-                        "default": True,
-                    },
-                },
-            },
-        )
-        decision = {"approved": True}
-        if hasattr(result, "data") and result.data:
-            decision = (
-                result.data if isinstance(result.data, dict) else {"approved": True}
-            )
-        action = getattr(result, "action", "accept")
-        if action == "decline":
-            decision = {"approved": False}
-        telemetry.log_user_decision(
-            "iterate", f"Iteration approval: {decision}", iteration=iteration
-        )
-        return decision
-    except Exception as exc:
-        logger.warning("Elicitation failed, using defaults: %s", exc)
-        telemetry.log_user_decision(
-            "iterate", f"Default (elicitation failed): {exc}", iteration=iteration
-        )
-        return {"approved": True}
+    return await _elicit_approval(
+        ctx, message, telemetry, "iterate", iteration=iteration
+    )
 
 
 # ---------------------------------------------------------------------------
