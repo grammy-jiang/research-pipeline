@@ -112,3 +112,25 @@ class TestParseShortlistLenient:
         results = [parse_shortlist_lenient(e) for e in entries]
         assert len(results) == 2
         assert all(isinstance(r, RelevanceDecision) for r in results)
+
+    def test_partial_llm_dict_coerced(self) -> None:
+        """A sub-agent-curated partial llm dict must coerce, not reject (#25)."""
+        entry = _make_minimal_decision_dict()
+        entry["llm"] = {"relevance_score": 0.78, "comment": "on topic"}
+        result = parse_shortlist_lenient(entry)
+        assert result.llm is not None
+        assert result.llm.llm_score == 0.78
+        assert result.llm.label == "high"
+
+    def test_llm_label_derived_from_score(self) -> None:
+        entry = _make_minimal_decision_dict()
+        entry["llm"] = {"llm_score": 0.5}
+        result = parse_shortlist_lenient(entry)
+        assert result.llm is not None
+        assert result.llm.label == "medium"
+
+    def test_llm_none_preserved(self) -> None:
+        entry = _make_minimal_decision_dict()
+        entry["llm"] = None
+        result = parse_shortlist_lenient(entry)
+        assert result.llm is None

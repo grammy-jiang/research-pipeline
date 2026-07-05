@@ -11,7 +11,10 @@ from research_pipeline.config.loader import load_config
 from research_pipeline.llm.providers import create_llm_provider
 from research_pipeline.models.conversion import ConvertManifestEntry
 from research_pipeline.models.query_plan import QueryPlan
-from research_pipeline.models.screening import RelevanceDecision
+from research_pipeline.models.screening import (
+    RelevanceDecision,
+    parse_shortlist_lenient,
+)
 from research_pipeline.models.summary import PaperExtractionRecord
 from research_pipeline.storage.manifests import read_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
@@ -72,7 +75,7 @@ def run_summarize(
     shortlist: list[RelevanceDecision] = []
     if shortlist_path.exists():
         raw_sl = json.loads(shortlist_path.read_text(encoding="utf-8"))
-        shortlist = [RelevanceDecision.model_validate(d) for d in raw_sl]
+        shortlist = [parse_shortlist_lenient(d) for d in raw_sl]
 
     title_map: dict[str, str] = {d.paper.arxiv_id: d.paper.title for d in shortlist}
 

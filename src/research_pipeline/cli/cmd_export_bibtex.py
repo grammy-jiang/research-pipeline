@@ -9,7 +9,7 @@ from pathlib import Path
 import typer
 
 from research_pipeline.config.loader import load_config
-from research_pipeline.models.screening import RelevanceDecision
+from research_pipeline.models.screening import parse_shortlist_lenient
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 from research_pipeline.summarization.bibtex_export import (
     export_candidates_bibtex,
@@ -57,7 +57,7 @@ def export_bibtex_cmd(
     shortlist_path = stage_dir / "shortlist.json"
     if stage == "screen" and shortlist_path.exists():
         raw = json.loads(shortlist_path.read_text(encoding="utf-8"))
-        decisions = [RelevanceDecision.model_validate(item) for item in raw]
+        decisions = [parse_shortlist_lenient(item) for item in raw]
         candidates = [decision.paper for decision in decisions]
         logger.info("Loading candidates from %s", shortlist_path)
     else:
