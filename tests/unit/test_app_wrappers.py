@@ -333,6 +333,7 @@ class TestReportCommand:
             template="survey",
             custom_template="",
             output="",
+            config="",
             verbose=False,
         )
         mock_run.assert_called_once()

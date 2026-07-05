@@ -45,6 +45,7 @@ def report_cmd(
         "--output",
         help="Output Markdown file path (default: auto in run dir).",
     ),
+    config_path: Path | None = None,
 ) -> None:
     """Render a synthesis report using a configurable template.
 
@@ -74,7 +75,7 @@ def report_cmd(
         )
         raise typer.Exit(1)
 
-    cfg = load_config()
+    cfg = load_config(config_path)
     ws = Path(cfg.workspace)
     _, run_root = init_run(ws, run_id)
     stage_dir = get_stage_dir(run_root, "summarize")
