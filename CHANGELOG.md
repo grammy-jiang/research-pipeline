@@ -2,6 +2,58 @@
 
 All notable changes to research-pipeline.
 
+## [v0.30.0] — 2026-07-06
+
+Closed two review umbrellas: the MCP-server conformance/security review
+(#14, 13 issues) and the end-to-end pipeline session findings (#34, 18 issues).
+31 fixes/features, each shipped with tests; the unit suite grew to 4593 passing.
+
+### Security
+
+- Sandbox custom Jinja2 report templates with `ImmutableSandboxedEnvironment`,
+  closing an SSTI → RCE via `tool_report(custom_template=…)` (#35).
+- Confine resource paths: a `_safe_join` containment helper + traversal
+  validators on `run_id`/`paper_id`/`date`, plus a `run_id` schema validator (#40).
+- Wire the zero-trust `McpGuard` (registration + schema-hash integrity +
+  rate-limit + audit) into MCP tool dispatch (#45).
+- Scrub absolute filesystem paths from tool error messages (#44).
+
+### MCP server
+
+- Tools emit `isError` on failure and return `ToolResult`, so FastMCP now
+  populates `outputSchema` and `structuredContent` (#38).
+- Fix 5 broken prompts (invalid `role:"system"`) (#36); make elicitation gates
+  real and fail-closed on cancel (#37); declare the `logging` capability and
+  honour `setLevel` (#41).
+- Resource reads raise on missing artifacts instead of returning
+  success-shaped error blobs (#42); size-cap resource reads + search progress (#44).
+- Flip `readOnlyHint` on 7 writer tools (#39); unify the `workspace` default (#43).
+- Capability-domain toolsets via `RESEARCH_PIPELINE_MCP_TOOLSETS` to cut the
+  64-tool schema tax (#46); add an in-memory protocol test harness (#47).
+
+### Pipeline & CLI
+
+- New `verify` command so the skill's manifest validation gates work (#18).
+- Field-scope plain-language arXiv query variants (#16); per-source search
+  summary + zero-yield warning + `--strict-sources` (#20).
+- `quality`/`summarize`/`export-bibtex` parse shortlists leniently, with `llm`
+  coercion (#25, #28); `CandidateRecord` defaults/coerces null category fields (#24).
+- `expand` merges instead of overwriting (`--replace` for the old behaviour) (#27);
+  convert-rough/-fine rebuild the unified manifest (#30); download surfaces the
+  `max_per_run` cap truncation (#29).
+- Config loader raises on an explicit missing `--config` (#21); statistic range
+  sanity checks with a `stat_warnings.json` sidecar (#33).
+
+### Skill & setup
+
+- `setup --check` diagnoses dangling-symlink/stub installs; warn on fragile
+  `--symlink` (#19).
+- Skill runner validates MCP-kind tasks and captures the plan `run_id` (#17);
+  runner `--status` exit code locked (#22); `check_completion` finds
+  `validation_result.json` (#32); `report` accepts `--config` (#31); sub-agent
+  model guidance de-pinned + missing-agent fallback (#23); fix null-externalIds
+  warning spam in the citation graph (#26).
+
 ## [v0.29.1] — 2026-06-30
 
 ### Fixed (CI drift)
