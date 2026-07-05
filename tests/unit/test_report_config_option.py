@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import typer
 from typer.testing import CliRunner
 
 from research_pipeline.cli.app import app
@@ -9,10 +10,11 @@ from research_pipeline.cli.app import app
 runner = CliRunner()
 
 
-def test_report_help_lists_config() -> None:
-    result = runner.invoke(app, ["report", "--help"])
-    assert result.exit_code == 0
-    assert "--config" in result.output
+def test_report_command_registers_config_param() -> None:
+    # Deterministic introspection (Rich --help output wraps unpredictably in CI).
+    command = typer.main.get_command(app)
+    report = command.commands["report"]  # type: ignore[attr-defined]
+    assert "config" in {param.name for param in report.params}
 
 
 def test_report_config_option_parses() -> None:
