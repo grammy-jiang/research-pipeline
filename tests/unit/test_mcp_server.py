@@ -97,6 +97,16 @@ class TestServerRegistration:
             f"(offenders: {[n for n, d in defaults.items() if d != './workspace']})"
         )
 
+    def test_tools_expose_output_schema(self) -> None:
+        """ToolResult-returning wrappers must expose an outputSchema so the
+        client receives structuredContent (M3, folded into #38). Before the
+        fix the wrappers returned a bare dict and outputSchema was None.
+        """
+        tool = mcp._tool_manager._tools["tool_plan_topic"]
+        assert tool.output_schema is not None
+        props = tool.output_schema.get("properties", {})
+        assert {"success", "message", "artifacts"} <= set(props)
+
     def test_openworld_tools(self) -> None:
         """Tools that call external APIs should have openWorldHint=True."""
         openworld_tools = {
