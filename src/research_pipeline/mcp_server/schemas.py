@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CommonParams(BaseModel):
@@ -16,6 +16,19 @@ class CommonParams(BaseModel):
         default="",
         description="Run identifier. Empty string means auto-generate.",
     )
+
+    @field_validator("run_id")
+    @classmethod
+    def _no_run_id_traversal(cls, value: str) -> str:
+        """Reject path traversal in a run identifier (#40).
+
+        ``run_id`` is joined onto the workspace root to locate a run directory,
+        so a value containing ``..`` / an absolute path / a NUL byte could
+        escape the workspace. The empty default (auto-generate) is allowed.
+        """
+        if ".." in value or value.startswith(("/", "\\")) or "\x00" in value:
+            raise ValueError("run_id must not contain path traversal")
+        return value
 
 
 class PlanTopicInput(CommonParams):

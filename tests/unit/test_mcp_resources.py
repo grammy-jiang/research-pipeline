@@ -124,6 +124,41 @@ class TestGetGlobalIndex:
         assert "papers" in result
 
 
+class TestPathConfinement:
+    """Caller-supplied identifiers cannot escape the workspace root (#40)."""
+
+    def test_validate_id_rejects_traversal(self) -> None:
+        for bad in ("../etc", "a/../../b", "/abs", "", "x\x00y"):
+            with pytest.raises(ValueError, match="Invalid"):
+                resources._validate_id(bad, "run_id")
+
+    def test_validate_id_allows_normal(self) -> None:
+        assert resources._validate_id("run-001", "run_id") == "run-001"
+        # old-style arXiv ids contain a slash but no traversal
+        assert resources._validate_id("hep-th/9901001", "paper_id") == "hep-th/9901001"
+
+    def test_safe_join_contains(self, tmp_path: Path) -> None:
+        assert (
+            resources._safe_join(tmp_path, "sub", "f.txt")
+            == (tmp_path / "sub" / "f.txt").resolve()
+        )
+
+    def test_safe_join_rejects_escape(self, tmp_path: Path) -> None:
+        with pytest.raises(ValueError, match="escapes root"):
+            resources._safe_join(tmp_path, "..", "..", "etc")
+
+    def test_get_run_root_rejects_traversal(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setattr(resources, "DEFAULT_RUNS_DIR", str(tmp_path))
+        with pytest.raises(ValueError, match="Invalid run_id"):
+            resources._get_run_root("../../etc")
+
+    def test_paper_reader_rejects_traversal(self) -> None:
+        with pytest.raises(ValueError, match="Invalid paper_id"):
+            resources.get_paper_markdown("run", "../../secret")
+
+
 class TestResourceCaps:
     """Oversized resource reads are size-capped (#44)."""
 
