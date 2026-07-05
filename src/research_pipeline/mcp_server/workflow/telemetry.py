@@ -354,11 +354,14 @@ class WorkflowTelemetry:
         log_fn = getattr(logger, level, logger.info)
         log_fn("[%s/%s] %s", event["surface"], event["event_type"], event["message"])
 
-        # MCP logging (if context available)
+        # MCP logging (if context available, honouring the client-set level)
         if self._ctx is not None:
-            with contextlib.suppress(Exception):
-                ctx_fn = getattr(self._ctx, level, self._ctx.info)
-                ctx_fn(event["message"])
+            from research_pipeline.mcp_server.logging_state import should_emit
+
+            if should_emit(level):
+                with contextlib.suppress(Exception):
+                    ctx_fn = getattr(self._ctx, level, self._ctx.info)
+                    ctx_fn(event["message"])
 
         # JSONL persistence (AER dual-path)
         with contextlib.suppress(Exception):
