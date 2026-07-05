@@ -334,4 +334,6 @@ def test_briefing_mcp_resources_read_artifacts(
         "2026-04-27"
     )
     assert "rank_score" in resources.get_briefing_ranked("2026-04-27")
-    assert "workflow_state" not in resources.get_briefing_workflow_state("missing")
+    # A missing artifact raises rather than returning an error blob (see #42).
+    with pytest.raises(ValueError, match="No briefing workflow state"):
+        resources.get_briefing_workflow_state("missing")
