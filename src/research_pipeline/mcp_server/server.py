@@ -883,7 +883,7 @@ def tool_aggregate_evidence(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1037,7 +1037,7 @@ async def tool_consolidation(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1075,7 +1075,7 @@ async def tool_blinding_audit(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1369,7 +1369,7 @@ async def tool_research_workflow(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1404,7 +1404,7 @@ async def tool_export_bibtex(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1443,7 +1443,7 @@ async def tool_report(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1516,7 +1516,7 @@ async def tool_enrich(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
