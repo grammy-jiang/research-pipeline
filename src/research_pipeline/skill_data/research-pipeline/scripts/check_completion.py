@@ -39,7 +39,12 @@ SUMMARIZE_CANDIDATES = [
 ]
 
 # Validation file locations to probe (in order of preference).
+# `research-pipeline validate` writes ``validation_result.json`` next to the
+# report; the plain ``validation.json`` names are kept for older runs (#32).
 VALIDATION_CANDIDATES = [
+    "validate/validation_result.json",
+    "validation_result.json",
+    "summarize/validation_result.json",
     "validate/validation.json",
     "validation.json",
     "summarize/validation.json",
