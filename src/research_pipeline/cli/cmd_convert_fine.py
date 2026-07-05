@@ -101,6 +101,12 @@ def run_convert_fine(
         rec["tier"] = "fine"
     write_jsonl(manifest_path, records)
 
+    # Refresh the unified manifest from the tier manifests so extract/summarize
+    # never process a stale subset on a re-run (#30).
+    from research_pipeline.conversion.manifest_merge import rebuild_unified_manifest
+
+    rebuild_unified_manifest(run_root)
+
     converted = sum(1 for r in results if r.status == "converted")
     skipped = sum(1 for r in results if r.status == "skipped_exists")
     failed = sum(1 for r in results if r.status == "failed")
