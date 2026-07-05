@@ -81,16 +81,26 @@ def load_config(config_path: Path | None = None) -> PipelineConfig:
     """
     data: dict = {}  # type: ignore[type-arg]
 
+    # An explicitly-requested config (--config or the env var) must exist:
+    # silently falling back to defaults hides a typo'd path and runs with the
+    # wrong sources (#21). Only auto-discovered ./config.toml may be absent.
+    explicit = config_path is not None
     if config_path is None:
         env_path = os.environ.get(f"{_ENV_PREFIX}CONFIG")
         if env_path:
             config_path = Path(env_path)
+            explicit = True
         elif Path("config.toml").exists():
             config_path = Path("config.toml")
 
     if config_path is not None and config_path.exists():
         logger.info("Loading config from %s", config_path)
         data = _load_toml(config_path)
+    elif explicit:
+        raise FileNotFoundError(
+            f"Config file not found: {config_path}. "
+            "Fix the path, or omit --config to use defaults."
+        )
     else:
         logger.info("No config file found; using defaults")
 
