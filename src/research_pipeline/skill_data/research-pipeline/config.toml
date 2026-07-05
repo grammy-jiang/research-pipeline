@@ -1,8 +1,13 @@
 # research-pipeline configuration
-# Path: ~/.claude/config.toml
 #
-# This file is auto-loaded when research-pipeline commands run from ~/.claude/
-# (the default CWD for the academic-paper-research skill).
+# Config is loaded (highest precedence first) from:
+#   1. --config <path> passed to any command
+#   2. the RESEARCH_PIPELINE_CONFIG environment variable
+#   3. ./config.toml in the current working directory
+# There is no automatic ~/.claude/config.toml lookup: pass --config <path>
+# (or set RESEARCH_PIPELINE_CONFIG) when this file lives elsewhere. An
+# explicit --config/env path that does not exist is now an error, not a
+# silent fall back to defaults.
 #
 # Fill in your API keys below for the online backends you want to use.
 # Leave unused backends empty — they won't be called.
