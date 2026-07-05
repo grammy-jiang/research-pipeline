@@ -715,6 +715,12 @@ def setup(
         "-s",
         help="Create symlinks instead of copying files.",
     ),
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Report broken skill/agent installs (dangling symlinks, stubs) "
+        "and exit without installing.",
+    ),
     force: bool = typer.Option(
         False,
         "--force",
@@ -782,6 +788,7 @@ def setup(
         _install_agent_files,
         _install_claude_mcp,
         _install_codex_mcp,
+        check_installation,
         run_setup,
     )
     from research_pipeline.infra.logging import setup_logging
@@ -791,6 +798,25 @@ def setup(
 
     skill_path = Path(skill_target) if skill_target else None
     agents_path = Path(agents_target) if agents_target else DEFAULT_AGENTS_DIR
+
+    if check:
+        problems = check_installation(agents_path)
+        if problems:
+            logger.warning("Found %d skill/agent install problem(s):", len(problems))
+            for problem in problems:
+                logger.warning("  - %s", problem)
+            logger.warning("Re-run 'research-pipeline setup --force' to repair.")
+        else:
+            logger.info("Skill/agent installation looks healthy.")
+        return
+
+    if symlink:
+        logger.warning(
+            "--symlink points into the version-pinned pipx venv; a Python "
+            "upgrade or 'pipx reinstall' will dangle these links and the skill "
+            "and agents will silently disappear. Prefer the default copy for "
+            "stable installs, or re-run 'setup --check' after upgrades."
+        )
     mcp_config_path = (
         Path(mcp_config_target) if mcp_config_target else DEFAULT_MCP_CONFIG_FILE
     )

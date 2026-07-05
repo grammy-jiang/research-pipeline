@@ -658,6 +658,54 @@ def _update_vscode_mcp_config(target: Path, force: bool) -> bool:
     return True
 
 
+def check_installation(
+    agents_target: Path | None = None, home: Path | None = None
+) -> list[str]:
+    """Report broken skill/agent installs — dangling symlinks or stubs (#19).
+
+    A ``--symlink`` install points into the version-pinned pipx venv, so a
+    Python upgrade or ``pipx reinstall`` leaves every link dangling and the
+    skill/agents silently disappear. This scans the standard install roots and
+    returns human-readable problem descriptions (empty list = healthy).
+
+    Args:
+        agents_target: Override the Claude agents directory (for tests).
+        home: Override the home directory (for tests).
+    """
+    home = home or Path.home()
+    problems: list[str] = []
+
+    skill_roots = [
+        home / ".claude" / "skills",
+        home / ".agents" / "skills",
+        home / ".copilot" / "skills",
+    ]
+    for root in skill_roots:
+        if not root.is_dir():
+            continue
+        for entry in sorted(root.iterdir()):
+            if entry.is_symlink() and not entry.exists():
+                problems.append(
+                    f"dangling skill symlink: {entry} -> {entry.readlink()}"
+                )
+            elif entry.is_dir() and not (entry / "SKILL.md").exists():
+                problems.append(f"skill missing SKILL.md: {entry}")
+
+    agents_dir = agents_target or (home / ".claude" / "agents")
+    if agents_dir.is_dir():
+        for agent in sorted(agents_dir.glob("paper-*.md")):
+            if agent.is_symlink() and not agent.exists():
+                problems.append(
+                    f"dangling agent symlink: {agent} -> {agent.readlink()}"
+                )
+            elif agent.is_file() and agent.stat().st_size < 50:
+                problems.append(
+                    f"agent file looks like a stub "
+                    f"({agent.stat().st_size} bytes): {agent}"
+                )
+    return problems
+
+
 def run_setup(
     skill_target: Path | None = None,
     skill_targets: Sequence[Path] | None = None,
