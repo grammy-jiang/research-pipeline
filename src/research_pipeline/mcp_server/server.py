@@ -19,6 +19,7 @@ from research_pipeline.mcp_server import (
     logging_state,
     prompts,
     resources,
+    toolsets,
 )
 from research_pipeline.mcp_server.schemas import (
     AnalyzeClaimsInput,
@@ -2509,6 +2510,11 @@ async def handle_completion(ref, argument, context=None):  # type: ignore[no-unt
     """Auto-complete arguments for resource templates and prompts."""
     return await completions.handle_completion(ref, argument, context)
 
+
+# Prune tools to the operator-selected capability domains (#46). Runs after
+# every @mcp.tool() above is registered and before the guard, so the guard
+# only registers the tools that remain active.
+_active_toolsets = toolsets.apply_toolsets(mcp)
 
 # Wire the zero-trust guard into tool dispatch (#45). Must run after every
 # @mcp.tool() above has been registered so the registry is complete.
