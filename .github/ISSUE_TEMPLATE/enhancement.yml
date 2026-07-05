@@ -1,0 +1,55 @@
+name: "✨ Enhancement"
+description: "New capability, robustness improvement, or quality-of-life change — nothing is broken, but something should be better."
+title: "[enhancement] <one-line summary>"
+labels: ["enhancement"]
+body:
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched existing issues (open and closed) for duplicates
+          required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem / motivation
+      description: What friction, risk, or missed opportunity motivates this? Describe the scenario where the current behavior falls short.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - "CLI stage"
+        - "Skill runner / manifest"
+        - "Sources"
+        - "Models / schemas"
+        - "Packaging / setup"
+        - "Sub-agents / prompts"
+        - "Documentation / references"
+        - "Other"
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed solution
+      description: Concrete behavior you want, including CLI/API surface if relevant.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered (optional)
+
+  - type: textarea
+    id: scope
+    attributes:
+      label: Scope & impact (optional)
+      description: Affected stages, backward compatibility, config/schema migrations.

@@ -1,0 +1,143 @@
+name: "🐛 Bug report"
+description: "A stage, runner, or component misbehaves: wrong output, crash, silent failure, or schema mismatch."
+title: "[bug] <one-line summary>"
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for filing a detailed report. The more of the optional
+        diagnosis sections you can fill, the faster the fix lands.
+
+  - type: checkboxes
+    id: preflight
+    attributes:
+      label: Pre-flight checklist
+      options:
+        - label: I searched existing issues (open and closed) for duplicates
+          required: true
+        - label: I reproduced this on the latest version (or noted the version below)
+          required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: One or two sentences. What is broken, and what is the user-visible consequence?
+      placeholder: "`quality` stage crashes with ValidationError on every run that has a screen shortlist."
+    validations:
+      required: true
+
+  - type: dropdown
+    id: severity
+    attributes:
+      label: Severity
+      description: |
+        critical = data loss / silently wrong results with no signal ·
+        high = a stage or workflow is unusable ·
+        medium = wrong behavior with a workaround ·
+        low = papercut, cosmetic, or docs-adjacent
+      options:
+        - critical
+        - high
+        - medium
+        - low
+    validations:
+      required: true
+
+  - type: dropdown
+    id: component
+    attributes:
+      label: Component
+      options:
+        - "CLI stage (plan/search/screen/expand/quality/download/convert/extract/summarize/report/validate)"
+        - "Skill runner / manifest (runner.py, manifest.json, workflow_state)"
+        - "Sources (arxiv, scholar, semantic_scholar, openalex, dblp, huggingface, citation_graph)"
+        - "Models / schemas (pydantic records, parsers)"
+        - "Packaging / setup (pipx, symlinks, skill_data, agent_data, config)"
+        - "Sub-agents / prompts (screener, analyzer, synthesizer contracts)"
+        - "Documentation / references"
+        - "Other"
+    validations:
+      required: true
+
+  - type: input
+    id: version
+    attributes:
+      label: Affected version
+      description: "`research-pipeline --version`, git SHA, or 'skill as packaged on <date>'"
+      placeholder: "0.29.1"
+    validations:
+      required: true
+
+  - type: textarea
+    id: environment
+    attributes:
+      label: Environment
+      description: OS, Python version, install method, relevant config deviations.
+      placeholder: |
+        - Fedora 44, Python 3.14.6
+        - pipx install from local checkout
+        - config: sources = arxiv + free sources, no API keys
+      render: markdown
+    validations:
+      required: true
+
+  - type: textarea
+    id: repro
+    attributes:
+      label: Reproduction steps
+      description: Exact commands and minimal input to trigger the bug. Include run-id layout or fixture files if state-dependent.
+      placeholder: |
+        1. `research-pipeline plan "topic" --config config.toml`
+        2. `research-pipeline screen --run-id <id>`
+        3. `research-pipeline quality --run-id <id>`
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What happens instead. Quote error messages exactly.
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / output
+      description: Relevant log excerpt or full traceback. Auto-formatted as code, no backticks needed.
+      render: shell
+
+  - type: textarea
+    id: root_cause
+    attributes:
+      label: Root-cause analysis (optional)
+      description: If you already located the defect, cite file:line and explain the mechanism.
+      placeholder: "`cli/cmd_quality.py:66` does `CandidateRecord(**r)` but shortlist.json entries are RelevanceDecision-shaped…"
+
+  - type: textarea
+    id: proposed_fix
+    attributes:
+      label: Proposed fix (optional)
+      description: Concrete change you believe resolves it, including alternatives considered.
+
+  - type: textarea
+    id: workaround
+    attributes:
+      label: Workaround used (optional)
+      description: How you unblocked yourself; helps others hitting this before the fix.
+
+  - type: textarea
+    id: related
+    attributes:
+      label: Related issues / context (optional)
+      description: "Links: sibling issues, session notes, upstream API docs."
