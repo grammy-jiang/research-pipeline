@@ -973,7 +973,7 @@ async def tool_gate_info(
 )
 async def tool_coherence(
     run_ids: list[str],
-    workspace: str = "runs",
+    workspace: str = "./workspace",
 ) -> dict:
     """Evaluate multi-session coherence across pipeline runs.
 
@@ -1000,7 +1000,7 @@ async def tool_coherence(
     ),
 )
 async def tool_consolidation(
-    workspace: str = "runs",
+    workspace: str = "./workspace",
     run_ids: list[str] | None = None,
     dry_run: bool = False,
     capacity: int = 100,
@@ -1044,7 +1044,7 @@ async def tool_consolidation(
     ),
 )
 async def tool_blinding_audit(
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     run_id: str = "",
     threshold: float = 0.4,
     store_results: bool = True,
@@ -1083,7 +1083,7 @@ async def tool_blinding_audit(
 )
 async def tool_dual_metrics(
     query: str,
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     run_ids: list[str] | None = None,
     k: int = 5,
     store_results: bool = True,
@@ -1126,7 +1126,7 @@ async def tool_dual_metrics(
 )
 async def tool_cbr_lookup(
     topic: str,
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     max_results: int = 5,
     min_quality: float = 0.0,
 ) -> dict:
@@ -1164,7 +1164,7 @@ async def tool_cbr_lookup(
 async def tool_cbr_retain(
     run_id: str,
     topic: str,
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     outcome: str = "unknown",
     strategy_notes: str = "",
 ) -> dict:
@@ -1283,7 +1283,7 @@ async def tool_adaptive_stopping(
 async def tool_confidence_layers(
     run_id: str,
     config_path: str = "",
-    workspace: str = "",
+    workspace: str = "./workspace",
     l4_threshold: float = 0.50,
     damping: float = 0.80,
     calibrate: bool = False,
@@ -1601,7 +1601,7 @@ async def tool_watch(
 def tool_analyze_claims(
     run_id: str,
     ctx: Context,
-    workspace: str = "",
+    workspace: str = "./workspace",
 ) -> dict:
     """Decompose paper summaries into atomic claims with evidence classification.
 
@@ -1629,7 +1629,7 @@ def tool_analyze_claims(
 def tool_score_claims(
     run_id: str,
     ctx: Context,
-    workspace: str = "",
+    workspace: str = "./workspace",
 ) -> dict:
     """Score confidence for decomposed claims using LLM evaluation.
 
@@ -1705,7 +1705,7 @@ def tool_kg_query(
 def tool_kg_ingest(
     run_id: str,
     ctx: Context,
-    workspace: str = "",
+    workspace: str = "./workspace",
     db_path: str = "",
 ) -> dict:
     """Ingest pipeline results into the knowledge graph.

@@ -138,8 +138,12 @@ def _backend_kwargs(
 
 
 def _resolve_workspace(workspace: str) -> Path:
-    """Resolve workspace path."""
-    return Path(workspace).expanduser().resolve()
+    """Resolve a workspace path.
+
+    An empty string falls back to the shared default so every tool resolves
+    an omitted ``workspace=`` to the same location (#43).
+    """
+    return Path(workspace or "./workspace").expanduser().resolve()
 
 
 def _resolve_run_id(run_id: str) -> str:
@@ -1998,7 +2002,7 @@ def coherence_tool(
     try:
         from research_pipeline.pipeline.coherence import run_coherence
 
-        ws = Path(params.workspace)
+        ws = _resolve_workspace(params.workspace)
         report = run_coherence(
             run_ids=params.run_ids,
             workspace=ws,
@@ -2032,7 +2036,7 @@ def consolidation_tool(
 
         from research_pipeline.pipeline.consolidation import run_consolidation
 
-        ws = Path(params.workspace)
+        ws = _resolve_workspace(params.workspace)
         result = run_consolidation(
             workspace=ws,
             run_ids=params.run_ids,
