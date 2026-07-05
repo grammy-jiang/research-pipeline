@@ -1740,6 +1740,12 @@ def report_command(
         "--output",
         help="Output Markdown file path.",
     ),
+    config: str = typer.Option(
+        "",
+        "--config",
+        help="Path to config TOML (for workspace resolution), for parity with "
+        "sibling stage commands.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
 ) -> None:
     """Render synthesis report using a configurable template.
@@ -1761,6 +1767,7 @@ def report_command(
         template=template,
         custom_template=custom_template,
         output=output,
+        config_path=Path(config) if config else None,
     )
 
 
