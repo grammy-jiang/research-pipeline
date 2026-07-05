@@ -157,6 +157,25 @@ class TestRenderReport:
         assert rendered.endswith("\n")
 
 
+class TestCustomTemplateSandbox:
+    """Custom templates are compiled in a sandbox to prevent SSTI -> RCE (#35)."""
+
+    def test_malicious_template_blocked(self) -> None:
+        from jinja2.exceptions import SecurityError
+
+        report = _make_report()
+        # Classic SSTI payload that reaches Python internals to build an RCE
+        # gadget chain; the sandbox must refuse it.
+        malicious = "{{ ''.__class__.__mro__[1].__subclasses__() }}"
+        with pytest.raises(SecurityError):
+            render_report(report, custom_template=malicious)
+
+    def test_benign_custom_template_still_renders(self) -> None:
+        report = _make_report()
+        out = render_report(report, custom_template="T: {{ report.topic }}")
+        assert "T: Large Language Models" in out
+
+
 class TestRenderReportToFile:
     """Tests for render_report_to_file()."""
 
