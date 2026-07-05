@@ -1,0 +1,62 @@
+{"event_count": 3, "event_type": "source_polled", "source_id": "anthropic-news", "status": "ok", "timestamp": "2026-07-05T23:00:00Z"}
+{"event_count": 3, "event_type": "source_polled", "source_id": "anthropic-engineering", "status": "ok", "timestamp": "2026-07-05T23:00:05Z"}
+{"event_count": 3, "event_type": "source_polled", "source_id": "anthropic-news-feed", "status": "ok", "timestamp": "2026-07-05T23:00:13Z"}
+{"event_count": 3, "event_type": "source_polled", "source_id": "openai-news", "status": "ok", "timestamp": "2026-07-05T23:00:17Z"}
+{"event_count": 3, "event_type": "source_polled", "source_id": "openai-developers-blog", "status": "ok", "timestamp": "2026-07-05T23:00:17Z"}
+{"event_count": 3, "event_type": "source_polled", "source_id": "openai-cookbook", "status": "ok", "timestamp": "2026-07-05T23:00:18Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "deepmind-blog", "status": "ok", "timestamp": "2026-07-05T23:00:18Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "google-research-blog", "status": "ok", "timestamp": "2026-07-05T23:00:18Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "meta-research", "status": "ok", "timestamp": "2026-07-05T23:00:20Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "meta-engineering", "status": "ok", "timestamp": "2026-07-05T23:00:20Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "apple-ml-research", "status": "ok", "timestamp": "2026-07-05T23:00:20Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "nvidia-developer-genai", "status": "ok", "timestamp": "2026-07-05T23:00:20Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "nvidia-blog-deep-learning", "status": "ok", "timestamp": "2026-07-05T23:00:20Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "huggingface-blog", "status": "ok", "timestamp": "2026-07-05T23:00:20Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "bair-blog", "status": "ok", "timestamp": "2026-07-05T23:00:21Z"}
+{"error": "xmlParseEntityRef: no name, line 1, column 2327 (<string>, line 1)", "event_count": 0, "event_type": "source_polled", "source_id": "langchain-blog", "status": "error", "timestamp": "2026-07-05T23:00:21Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "cohere-blog", "status": "ok", "timestamp": "2026-07-05T23:00:22Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "together-ai-blog", "status": "ok", "timestamp": "2026-07-05T23:00:22Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "simonwillison-blog", "status": "ok", "timestamp": "2026-07-05T23:00:22Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "raschka-magazine", "status": "ok", "timestamp": "2026-07-05T23:00:22Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-transformers", "status": "ok", "timestamp": "2026-07-05T23:00:22Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-vllm", "status": "ok", "timestamp": "2026-07-05T23:00:23Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-mcp-spec", "status": "ok", "timestamp": "2026-07-05T23:00:23Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-anthropic-sdk-python", "status": "ok", "timestamp": "2026-07-05T23:00:23Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-openai-python", "status": "ok", "timestamp": "2026-07-05T23:00:24Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-langchain", "status": "ok", "timestamp": "2026-07-05T23:00:24Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-llama-cpp", "status": "ok", "timestamp": "2026-07-05T23:00:25Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-pydantic-ai", "status": "ok", "timestamp": "2026-07-05T23:00:25Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "gh-autogen", "status": "ok", "timestamp": "2026-07-05T23:00:25Z"}
+{"error": "403 Client Error: Forbidden for url: https://importai.substack.com/feed", "event_count": 0, "event_type": "source_polled", "source_id": "import-ai", "status": "error", "timestamp": "2026-07-05T23:00:25Z"}
+{"error": "403 Client Error: Forbidden for url: https://www.deeplearning.ai/the-batch/", "event_count": 0, "event_type": "source_polled", "source_id": "the-batch", "status": "error", "timestamp": "2026-07-05T23:00:25Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "last-week-in-ai", "status": "ok", "timestamp": "2026-07-05T23:00:25Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "ai-snake-oil", "status": "ok", "timestamp": "2026-07-05T23:00:25Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "interconnects", "status": "ok", "timestamp": "2026-07-05T23:00:26Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "chip-huyen", "status": "ok", "timestamp": "2026-07-05T23:00:26Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "the-gradient", "status": "ok", "timestamp": "2026-07-05T23:00:30Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "latent-space", "status": "ok", "timestamp": "2026-07-05T23:00:30Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "stratechery", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "techcrunch-ai", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "venturebeat-ai", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "the-verge-ai", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "mit-tech-review-ai", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "ars-technica-tech", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "mistral-news", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "xai-news", "status": "ok", "timestamp": "2026-07-05T23:00:31Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "stability-news", "status": "ok", "timestamp": "2026-07-05T23:00:32Z"}
+{"error": "StartTag: invalid element name, line 1, column 2 (<string>, line 1)", "event_count": 0, "event_type": "source_polled", "source_id": "ai21-blog", "status": "error", "timestamp": "2026-07-05T23:00:32Z"}
+{"event_count": 2, "event_type": "source_polled", "source_id": "microsoft-research", "status": "ok", "timestamp": "2026-07-05T23:00:32Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "aws-ml-blog", "status": "ok", "timestamp": "2026-07-05T23:00:32Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "replicate-blog", "status": "ok", "timestamp": "2026-07-05T23:00:33Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "modal-blog", "status": "ok", "timestamp": "2026-07-05T23:00:33Z"}
+{"error": "error parsing attribute name, line 1, column 3308 (<string>, line 1)", "event_count": 0, "event_type": "source_polled", "source_id": "anyscale-blog", "status": "error", "timestamp": "2026-07-05T23:00:33Z"}
+{"error": "Specification mandates value for attribute hidden, line 1, column 4374 (<string>, line 1)", "event_count": 0, "event_type": "source_polled", "source_id": "stanford-hai", "status": "error", "timestamp": "2026-07-05T23:00:33Z"}
+{"event_count": 1, "event_type": "source_polled", "source_id": "cset-georgetown", "status": "ok", "timestamp": "2026-07-05T23:00:33Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "epoch-ai", "status": "ok", "timestamp": "2026-07-05T23:00:34Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "arxiv-cs-cl", "status": "ok", "timestamp": "2026-07-05T23:00:34Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "arxiv-cs-ai", "status": "ok", "timestamp": "2026-07-05T23:00:34Z"}
+{"event_count": 0, "event_type": "source_polled", "source_id": "arxiv-cs-lg", "status": "ok", "timestamp": "2026-07-05T23:00:34Z"}
+{"duration_seconds": 40.701, "event_count": 76, "event_type": "poll_completed", "timestamp": "2026-07-05T23:00:34Z"}
+{"cluster_count": 76, "event_type": "rank_completed", "ranked_count": 50, "timestamp": "2026-07-05T23:00:34Z"}
+{"event_type": "daily_generated", "item_count": 50, "path": "workspace/briefings/2026-07-05/reports/daily.md", "timestamp": "2026-07-05T23:00:34Z"}
+{"error_count": 0, "event_type": "daily_validated", "passed": true, "timestamp": "2026-07-05T23:00:34Z", "warning_count": 0}
