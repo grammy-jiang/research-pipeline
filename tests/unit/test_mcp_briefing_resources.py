@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import contextlib
 import json
 from pathlib import Path
 
@@ -54,8 +55,10 @@ def test_get_briefing_daily_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     _isolate_workspace(monkeypatch, tmp_path)
-    payload = json.loads(resources.get_briefing_daily("2026-04-20"))
-    assert "error" in payload
+    # A missing brief must raise (surfaced as a JSON-RPC error), not return a
+    # success-shaped error blob. See #42.
+    with pytest.raises(ValueError, match="No daily brief"):
+        resources.get_briefing_daily("2026-04-20")
 
 
 def test_get_briefing_daily_returns_text(
@@ -81,7 +84,8 @@ def test_get_briefing_ranked_missing(
     monkeypatch: pytest.MonkeyPatch, tmp_path: Path
 ) -> None:
     _isolate_workspace(monkeypatch, tmp_path)
-    assert "error" in json.loads(resources.get_briefing_ranked("2026-04-20"))
+    with pytest.raises(ValueError, match="No ranked clusters"):
+        resources.get_briefing_ranked("2026-04-20")
 
 
 def test_get_briefing_telemetry(
@@ -93,7 +97,8 @@ def test_get_briefing_telemetry(
     tp.write_text('{"stage":"polled"}\n')
     assert "polled" in resources.get_briefing_telemetry("2026-04-20")
     # missing case
-    assert "error" in json.loads(resources.get_briefing_telemetry("2099-01-01"))
+    with pytest.raises(ValueError, match="No briefing telemetry"):
+        resources.get_briefing_telemetry("2099-01-01")
 
 
 def test_get_briefing_validation(
@@ -106,7 +111,8 @@ def test_get_briefing_validation(
     out = json.loads(resources.get_briefing_validation("2026-04-20"))
     assert out["passed"] is True
     # missing case
-    assert "error" in json.loads(resources.get_briefing_validation("2099-01-01"))
+    with pytest.raises(ValueError, match="No briefing validation"):
+        resources.get_briefing_validation("2099-01-01")
 
 
 def test_get_briefing_workflow_state(
@@ -119,7 +125,8 @@ def test_get_briefing_workflow_state(
     out = json.loads(resources.get_briefing_workflow_state("2026-04-20"))
     assert out["current_stage"] == "validated"
     # missing case
-    assert "error" in json.loads(resources.get_briefing_workflow_state("2099-01-01"))
+    with pytest.raises(ValueError, match="No briefing workflow state"):
+        resources.get_briefing_workflow_state("2099-01-01")
 
 
 def test_briefing_resources_are_read_only(
@@ -128,11 +135,16 @@ def test_briefing_resources_are_read_only(
     """Briefing resource handlers must not create or mutate files."""
     _isolate_workspace(monkeypatch, tmp_path)
     before = list(tmp_path.rglob("*"))
+    # Missing artifacts now raise (see #42); reads must still never mutate.
     resources.list_briefings()
-    resources.get_briefing_daily("2026-04-20")
-    resources.get_briefing_ranked("2026-04-20")
-    resources.get_briefing_telemetry("2026-04-20")
-    resources.get_briefing_validation("2026-04-20")
-    resources.get_briefing_workflow_state("2026-04-20")
+    for getter in (
+        resources.get_briefing_daily,
+        resources.get_briefing_ranked,
+        resources.get_briefing_telemetry,
+        resources.get_briefing_validation,
+        resources.get_briefing_workflow_state,
+    ):
+        with contextlib.suppress(ValueError):
+            getter("2026-04-20")
     after = list(tmp_path.rglob("*"))
     assert before == after

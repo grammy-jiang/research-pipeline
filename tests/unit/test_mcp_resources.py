@@ -56,8 +56,11 @@ class TestListRuns:
 class TestGetRunManifest:
     def test_missing_run(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         monkeypatch.setattr(resources, "DEFAULT_RUNS_DIR", str(tmp_path))
-        result = json.loads(resources.get_run_manifest("nonexistent"))
-        assert "error" in result
+        monkeypatch.setattr(resources, "DEFAULT_WORKSPACE", str(tmp_path))
+        # A missing run must raise (surfaced as a JSON-RPC error), not return
+        # a success-shaped error blob. See #42.
+        with pytest.raises(ValueError, match="not found"):
+            resources.get_run_manifest("nonexistent")
 
     def test_existing_manifest(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
@@ -78,8 +81,8 @@ class TestGetRunPlan:
         run_dir = tmp_path / "test-run"
         run_dir.mkdir()
         monkeypatch.setattr(resources, "DEFAULT_RUNS_DIR", str(tmp_path))
-        result = json.loads(resources.get_run_plan("test-run"))
-        assert "error" in result
+        with pytest.raises(ValueError, match="No plan"):
+            resources.get_run_plan("test-run")
 
 
 class TestGetRunCandidates:
