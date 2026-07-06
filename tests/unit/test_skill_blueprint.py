@@ -11,6 +11,8 @@ from __future__ import annotations
 
 import json
 import re
+import subprocess
+import sys
 from pathlib import Path
 
 
@@ -800,3 +802,93 @@ def test_quality_gate_covers_v07_routing_clarity() -> None:
         "routing heuristic",
     ):
         assert needle in gate, f"quality gate missing v0.7.0 check: {needle}"
+
+
+# --- issue #81: deterministic cross-phase coherence guard ---
+#
+# The blueprint quality-gate is a pure-LLM stage; it silently passed
+# cross-phase-incoherent blueprints (an MVP-0 node whose required servicer is
+# staged MVP-1, or an MVP control gated on a non-blocking open question). A
+# deterministic guard (scripts/check_blueprint_coherence.py, wired as the
+# check-coherence manifest task between compose-blueprint and quality-gate)
+# now catches this. These tests pin that behaviour with a minimal
+# coherent/incoherent fixture pair.
+
+_COHERENCE_SCRIPT = _skill_root() / "scripts" / "check_blueprint_coherence.py"
+_COHERENCE_FIXTURES = _skill_root() / "tests" / "coherence_fixtures"
+
+
+def _run_coherence_guard(fixture: str) -> tuple[int, dict]:
+    """Run the guard over a fixture; return (exit_code, parsed JSON result)."""
+    proc = subprocess.run(
+        [sys.executable, str(_COHERENCE_SCRIPT), str(_COHERENCE_FIXTURES / fixture)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def test_coherence_guard_script_exists_and_nonempty() -> None:
+    assert _COHERENCE_SCRIPT.exists(), "missing scripts/check_blueprint_coherence.py"
+    assert _COHERENCE_SCRIPT.read_text(encoding="utf-8").strip()
+
+
+def test_coherence_fixtures_exist() -> None:
+    assert (_COHERENCE_FIXTURES / "coherent_blueprint.md").exists()
+    assert (_COHERENCE_FIXTURES / "incoherent_blueprint.md").exists()
+
+
+def test_coherent_fixture_passes_guard() -> None:
+    code, result = _run_coherence_guard("coherent_blueprint.md")
+    assert code == 0, f"coherent fixture unexpectedly failed: {result['findings']}"
+    assert result["all_passed"] is True
+    assert result["fail_count"] == 0
+
+
+def test_incoherent_fixture_fails_on_phase_inversion_and_open_dependency() -> None:
+    code, result = _run_coherence_guard("incoherent_blueprint.md")
+    assert code == 1
+    assert result["all_passed"] is False
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    # Both known defect classes from issue #81 must be caught deterministically.
+    assert "phase_inversion" in failed_checks, failed_checks
+    assert "open_dependency" in failed_checks, failed_checks
+
+
+def test_manifest_has_coherence_gate_between_compose_and_quality() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    ids = [task["id"] for task in data["tasks"]]
+    assert "check-coherence" in ids, "manifest missing check-coherence task"
+    assert (
+        ids.index("compose-blueprint")
+        < ids.index("check-coherence")
+        < ids.index("quality-gate")
+    ), "check-coherence must sit between compose-blueprint and quality-gate"
+    task = next(t for t in data["tasks"] if t["id"] == "check-coherence")
+    assert task["executor"]["kind"] == "deterministic_script"
+    assert "check_blueprint_coherence.py" in task["executor"]["command"]
+    quality_gate = next(t for t in data["tasks"] if t["id"] == "quality-gate")
+    assert "check-coherence" in quality_gate["depends_on"]
+    assert "check-coherence" in data["mandatory_gates"]
+
+
+def test_template_documents_coherence_anchors() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "<!-- coherence:" in template, "template missing a coherence anchor example"
+    assert "phase inversion" in template.lower()
+
+
+def test_quality_gate_splits_conditions_atomically() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    # One-condition-per-check restructuring + the deterministic pre-gate.
+    assert "one condition per check" in gate.lower()
+    assert "check_blueprint_coherence" in gate
+    # The 3-clause release-gate condition is now split per clause (issue #81
+    # called out Gate 6's release-gate AND being verified holistically).
+    for clause in ("6b.i", "6b.ii", "6b.iii"):
+        assert clause in gate, f"release-gate clause not split: {clause}"

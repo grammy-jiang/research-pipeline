@@ -29,6 +29,21 @@
 > is actually present** (Appendix A is always present; include the
 > Appendix B line only when you include that appendix).
 
+> **Cross-phase coherence anchors.** A deterministic guard
+> (`scripts/check_blueprint_coherence.py`) runs between compose and the
+> quality-gate to catch **phase inversion** — an MVP-N node whose required
+> servicer or precondition is itself staged later, or an MVP control gated on
+> a non-blocking open question. Tag each staged workflow gate, servicer, and
+> open question with a single-line coherence anchor so the cross-check is
+> exact, not fuzzy-text:
+>
+> `<!-- coherence: id=<anchor> stage=MVP-0|MVP-1|open|future [requires=<id,...>] [blocking=yes|no] [qualifier="..."] -->`
+>
+> Every referenced id must resolve, and each MVP servicer must satisfy
+> `stage(servicer) <= stage(node)`. An MVP node may depend on an open question
+> only when that question is `blocking=yes` or the dependency carries an
+> explicit `qualifier`.
+
 ---
 
 ## 1. Executive Product Thesis
@@ -241,6 +256,12 @@ is added.)`
 **Decision Gates:**
 1. ...
 
+<!-- coherence: id=wf1.gate.contradicts stage=MVP-0 requires=sec9.7.r1 -->
+
+> Anchor every staged gate whose "Yes" branch escalates to a servicer defined
+> elsewhere (e.g. the §9.7 human-review row), so the coherence guard can verify
+> the servicer is available no later than this gate.
+
 **Steps:**
 1. ...
 
@@ -315,6 +336,11 @@ The product should feel like `<short description of the intended experience>`.
 | Trigger | User Decision | Expected Product Support | MVP Stage |
 |---|---|---|---|
 | ... | ... | ... | ... |
+
+<!-- coherence: id=sec9.7.r1 stage=MVP-0 -->
+
+> Give each human-review / servicer row a stable anchor and stage so a gate that
+> escalates to it can be phase-checked (`stage(servicer) <= stage(gate)`).
 
 ### 9.8 Failure and Recovery Expectations
 
@@ -489,6 +515,12 @@ The MVP is successful if ... <specific, pass/fail criteria>.
 |---|---|---|---|---|
 | ... | ... | ... | Yes/No | ACADEMIC / ENGINEERING |
 
+<!-- coherence: id=sec17.oq1 stage=open blocking=yes -->
+
+> Anchor each open question with `stage=open` and its `blocking` verdict. An
+> MVP node that requires a non-blocking open question (without an explicit
+> `qualifier`) is a phase inversion and fails the coherence guard.
+
 ---
 
 ## 18. Handoff Notes for Technical Design
@@ -639,6 +671,7 @@ research-pipeline
 | Risk honesty | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Evaluation coverage | PASS / WARNING / FAIL | ... | ... | Yes/No |
 | Downstream usefulness | PASS / WARNING / FAIL | ... | ... | Yes/No |
+| Cross-phase coherence (deterministic guard) | PASS / WARNING / FAIL | scripts/check_blueprint_coherence.py — no phase inversion | ... | Yes/No |
 
 **Product Experience Gate** (§9) — see
 `references/product-experience-direction.md` for fail/warning conditions. Here
