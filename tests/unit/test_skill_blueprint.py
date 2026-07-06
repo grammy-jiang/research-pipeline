@@ -15,6 +15,8 @@ import subprocess
 import sys
 from pathlib import Path
 
+import pytest
+
 
 def _skill_root() -> Path:
     # Resolve via filesystem; skill files are bundled with the package.
@@ -1116,3 +1118,212 @@ def test_compose_prompt_has_pre_delivery_propagation_check() -> None:
         "MVP roster → §7, §12, §13, §14, §15, Appendix A",
     ):
         assert needle in prompt, f"compose prompt missing propagation check: {needle}"
+
+
+# --- issue #83: trustworthy golden fixture + labelled negative/adversarial
+# fixtures + weak-input output fixture ---
+#
+# The blueprint skill's only golden output fixture itself reproduced both
+# coherence defects the deterministic guard (issue #81) is meant to catch: an
+# MVP-0 admission gate whose contradiction servicer was staged MVP-1
+# (servicer-reachability → ``phase_inversion``) and an MVP-0 redundancy gate
+# whose dedup precondition was a non-blocking open question
+# (precondition-currency → ``open_dependency``). It also carried no coherence
+# anchors, so the guard passed it vacuously, and there were no negative fixtures
+# proving the checklists reject a violating document, nor a weak-input output
+# fixture. These tests pin the regenerated coherent oracle, the labelled
+# regression pairs, the mutation-derived negative set, and the weak-input
+# output fixture.
+
+_GOLDEN_EXAMPLE = (
+    _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+)
+_WEAK_OUTPUT = (
+    _skill_root() / "tests" / "sample_outputs" / "weak_input_blueprint_example.md"
+)
+_REGRESSIONS_DIR = _skill_root() / "tests" / "regressions"
+_MUTATIONS_DIR = _skill_root() / "tests" / "mutations"
+_MINI_SOURCE_REPORT = _MUTATIONS_DIR / "mini_source_report.md"
+_NEUTRALITY_FORBIDDEN_TERMS = frozenset(
+    {
+        "postgresql",
+        "mongodb",
+        "mysql",
+        "sqlite",
+        "redis",
+        "fastapi",
+        "django",
+        "react",
+        "aws",
+        "gcp",
+        "azure",
+        "docker",
+        "kubernetes",
+        "pinecone",
+    }
+)
+
+
+def _run_guard_over(blueprint: Path, source: Path | None = None) -> tuple[int, dict]:
+    """Run the deterministic coherence guard over a path (optional source)."""
+    args = [sys.executable, str(_COHERENCE_SCRIPT), str(blueprint)]
+    if source is not None:
+        args += ["--source-report", str(source)]
+    proc = subprocess.run(args, capture_output=True, text=True, check=False)
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def _label_field(text: str, key: str) -> str | None:
+    """Read a ``key=value`` field from a fixture's leading label comment."""
+    match = re.search(rf"\b{re.escape(key)}=(\S+)", text)
+    return match.group(1) if match else None
+
+
+def _mutation_fixtures() -> list[Path]:
+    """Every single-mutation negative fixture (files with a mutation label)."""
+    if not _MUTATIONS_DIR.is_dir():
+        return []
+    return sorted(
+        path
+        for path in _MUTATIONS_DIR.glob("*.md")
+        if path.read_text(encoding="utf-8").lstrip().startswith("<!-- mutation:")
+    )
+
+
+def test_golden_example_passes_coherence_guard_with_anchors() -> None:
+    """The shipped exemplar is an independently-verified, phase-clean oracle.
+
+    Run without ``--source-report``: the cross-phase coherence graph is the
+    trustworthy-oracle requirement. Source citation/confidence fidelity is a
+    separate line-based heuristic covered by dedicated tests above.
+    """
+    code, result = _run_guard_over(_GOLDEN_EXAMPLE)
+    assert code == 0, result["findings"]
+    assert result["all_passed"] is True
+    # Must actually carry anchors — an anchorless fixture passes only vacuously
+    # (with a ``no_coherence_anchors`` warning) and cannot be a trustworthy
+    # expected-object. This is the assertion that fails on the pre-#83 fixture.
+    assert result["node_count"] > 0, "golden fixture carries no coherence anchors"
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert not fails, fails
+    warnings = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    assert "no_coherence_anchors" not in warnings
+
+
+def test_weak_input_output_fixture_is_coherent_and_disciplined() -> None:
+    """A weak-input OUTPUT fixture exists and models weak-input discipline."""
+    assert _WEAK_OUTPUT.exists(), "missing weak-input output fixture"
+    text = _WEAK_OUTPUT.read_text(encoding="utf-8")
+    # Follows the full template, like the strong exemplar.
+    assert "## Contents" in text
+    assert _numbered_section_titles(text) == REQUIRED_SECTIONS
+    # Declares the weak input and keeps assumption / open-question discipline
+    # instead of fabricating confidence grades.
+    assert "**Input quality:** weak" in text
+    assert "Assumption" in text
+    assert "confidence grade is invented" in text.lower()
+    assert "no invented confidence" in text.lower()
+    # A small product must not self-score as complex: it uses the lightweight
+    # routing band, unlike the strong exemplar's ``complex (13+)``.
+    assert "**Total Score:** 7 / 21" in text
+    assert "lightweight" in text
+    assert "complex (13+)" not in text
+    # Implementation-neutral, same gate as the strong exemplar.
+    lowered = text.lower()
+    for term in (
+        "postgresql",
+        "mongodb",
+        "fastapi",
+        "react",
+        " aws ",
+        "docker",
+        "kubernetes",
+        "redis",
+        "pinecone",
+        "create table",
+    ):
+        assert term not in lowered, f"weak fixture leaks tech-stack term: {term!r}"
+    # Phase-clean and anchored.
+    code, result = _run_guard_over(_WEAK_OUTPUT)
+    assert code == 0, result["findings"]
+    assert result["all_passed"] is True
+    assert result["node_count"] > 0, "weak fixture carries no coherence anchors"
+
+
+def test_issue83_negative_fixture_set_is_present() -> None:
+    """The regression pairs and the mutation set must all ship."""
+    for pair in ("servicer-reachability", "precondition-currency"):
+        assert (_REGRESSIONS_DIR / pair / "bad.md").exists(), pair
+        assert (_REGRESSIONS_DIR / pair / "fixed.md").exists(), pair
+    mutation_names = {path.name for path in _mutation_fixtures()}
+    for expected in (
+        "invert-mvp-tag.md",
+        "sever-servicer-edge.md",
+        "blank-citation.md",
+        "swap-confidence-grade.md",
+        "forbidden-term.md",
+    ):
+        assert expected in mutation_names, f"missing mutation fixture: {expected}"
+    assert _MINI_SOURCE_REPORT.exists()
+
+
+@pytest.mark.parametrize("pair", ["servicer-reachability", "precondition-currency"])
+def test_regression_pair_bad_fails_labelled_check_and_fixed_passes(pair: str) -> None:
+    """Each pair proves a named coherence check catches a real defect.
+
+    ``bad.md`` reproduces one golden-fixture defect and must FAIL its labelled
+    check; ``fixed.md`` applies the golden-fixture fix and must PASS cleanly.
+    """
+    bad = _REGRESSIONS_DIR / pair / "bad.md"
+    fixed = _REGRESSIONS_DIR / pair / "fixed.md"
+    expected_check = _label_field(bad.read_text(encoding="utf-8"), "check")
+    assert expected_check, f"{pair}/bad.md missing a `check=` label"
+
+    code, result = _run_guard_over(bad)
+    assert code == 1, f"{pair}/bad.md unexpectedly passed the guard"
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert expected_check in fails, (pair, expected_check, fails)
+
+    code_fixed, result_fixed = _run_guard_over(fixed)
+    assert code_fixed == 0, result_fixed["findings"]
+    assert result_fixed["all_passed"] is True
+    assert result_fixed["node_count"] > 0
+
+
+@pytest.mark.parametrize("path", _mutation_fixtures(), ids=lambda p: p.name)
+def test_mutation_negative_triggers_labelled_check(path: Path) -> None:
+    """Each single-mutation fixture triggers exactly the check it is labelled with.
+
+    Coherence mutations are caught by the deterministic guard at their labelled
+    level; the neutrality mutation is caught by the implementation-neutrality
+    gate (a forbidden tech-stack term), which the coherence guard deliberately
+    does not police.
+    """
+    text = path.read_text(encoding="utf-8")
+    detector = _label_field(text, "detector") or "coherence"
+
+    if detector == "neutrality":
+        term = _label_field(text, "term")
+        assert term, f"{path.name} neutrality mutation missing a `term=` label"
+        assert term.lower() in text.lower(), f"{path.name} missing its forbidden term"
+        assert term.lower() in _NEUTRALITY_FORBIDDEN_TERMS, (
+            f"{term!r} is not a known forbidden tech-stack term"
+        )
+        # The coherence guard must NOT flag a neutrality-only violation.
+        _code, result = _run_guard_over(path)
+        assert not {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+        return
+
+    expected_check = _label_field(text, "check")
+    level = (_label_field(text, "level") or "FAIL").upper()
+    assert expected_check, f"{path.name} missing a `check=` label"
+    source = _MINI_SOURCE_REPORT if "needs-source-report" in text else None
+
+    _code, result = _run_guard_over(path, source)
+    hits = {f["check"] for f in result["findings"] if f["level"] == level}
+    assert expected_check in hits, (
+        path.name,
+        expected_check,
+        level,
+        result["findings"],
+    )
