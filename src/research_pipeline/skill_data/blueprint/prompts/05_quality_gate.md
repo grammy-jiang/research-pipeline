@@ -39,6 +39,12 @@ document — most importantly **phase inversion**:
   the `## N.` headings, in order.
 - **0e — Blank citations:** no `[]` / `[TODO]` / `[TBD]` placeholder citations
   remain (`WARNING`).
+- **0f — Citation string exists:** when the source report path is available,
+  every paper-style citation string exists in the source report's
+  `## References` section exactly as written (`FAIL`).
+- **0g — Confidence not upgraded:** when the source report path is available,
+  a cited blueprint claim does not assign a higher confidence grade than the
+  source report assigned to the same citation (`FAIL`).
 
 If this pre-gate exits non-zero, **stop and fix the staging or the coherence
 anchors** before the reasoning gates — do not re-derive the def→use graph by
@@ -84,6 +90,18 @@ the outcome in the self-check appendix (Cross-phase coherence row).
   `[Author, Year]`; gap-derived rows cite
   `[Source Report: Research Gaps — <gap name>]`. A cell is blank only when
   the row is explicitly an internal design hypothesis.
+- **2d — Load-bearing citation fidelity:** for load-bearing claims (thesis emphasis,
+  primary interaction mode, and primary actor), re-read the cited source-report section
+  before finalizing. The citation must support the
+  specific runtime/product claim being made, not merely a nearby research or
+  build-time concern. If the source addresses a different concern, reclassify
+  the claim as a **product-design decision** with rationale, downgrade the
+  evidence label accordingly, and move unsupported residue to §17.
+- **2e — Deterministic citation invariants:** confirm the deterministic
+  pre-gate reported that each citation string exists in the source report's `## References`
+  section and that the confidence grade was not silently upgraded. If either
+  check failed, keep Gate 2 at `FAIL`; do not repair by inventing a new citation
+  or confidence label.
 
 ## Gate 3 — Implementation neutrality (with warning tier)
 
@@ -164,7 +182,10 @@ Gate rows in the self-check.
   review is required but no human-review experience is defined; AI uncertainty
   exists but no uncertainty/review behaviour is defined;
   trust/control/transparency requirements are absent for an AI-heavy system; or
-  UX assumptions are not handed off to architecture.
+  UX assumptions are not handed off to architecture; or the primary interaction
+  mode (or a promoted secondary mode) is agent-callable / tool-driven but §9
+  lacks a blueprint-level READ/ACT authorization-boundary statement or §13 lacks
+  a matching §13 risk row for agent authority-confusion / prompt injection.
 - `WARNING` if any of: multiple interaction modes are plausible but none is
   primary; an interaction-mode label is ambiguous or unclassified (a bare "AI
   Skill" not tagged wrapper/integration vs primary surface, or conflated with
@@ -178,6 +199,10 @@ Gate rows in the self-check.
   design, exact CLI syntax/flags, exact MCP/API schemas, detailed copywriting,
   or implementation tasks — relocate those to a later UX-design/implementation
   stage. `standard` §9 over 1–2 pages is a `WARNING` (compress).
+- For the agent-callable / tool-driven mode trigger, stay blueprint-level:
+  state who may READ what, who/what may ACT, where human approval is required,
+  and which downstream stage owns detailed schemas. Do not define exact MCP tool
+  schemas, API routes, permission tables, or implementation tasks here.
 
 ## Gate 9 — Adaptive stage-gate recommendation (§19)
 
@@ -263,10 +288,11 @@ Then add the **Product Experience Gate** rows (§9): Primary user identified ·
 Primary job-to-be-done defined · Primary experience thesis defined · Primary
 interaction mode selected · Interaction modes classified · Trust / control /
 transparency needs defined · Human-in-the-loop experience defined where needed ·
-Failure / recovery expectations defined · UX assumptions handed off to
-architecture. Each carries a status, a concrete required action for any
-WARNING/FAIL, and a blocks-technical-design verdict (here "Blocks Architecture?"
-≡ "Blocks TD?").
+Failure / recovery expectations defined · Agent/tool authorization boundary
+defined where needed · Matching agent authority risk row present where needed ·
+UX assumptions handed off to architecture. Each carries a status, a concrete
+required action for any WARNING/FAIL, and a blocks-technical-design verdict
+(here "Blocks Architecture?" ≡ "Blocks TD?").
 
 Then add the **Adaptive Stage-Gate Recommendation Gate** rows (§19): Recommended
 Next Stages section exists · Controlled decision values used · RUN decisions

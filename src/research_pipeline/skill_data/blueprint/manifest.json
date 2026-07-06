@@ -122,22 +122,22 @@
     },
     {
       "id": "check-coherence",
-      "label": "Deterministic cross-phase coherence guard (phase-inversion graph, open-question dependency, Contents/heading equality, blank-citation scan)",
+      "label": "Deterministic cross-phase coherence and citation guard (phase-inversion graph, open-question dependency, Contents/heading equality, blank-citation scan, citation reference fidelity)",
       "type": "gate",
       "phase": "compose",
       "depends_on": ["compose-blueprint"],
       "executor": {
         "kind": "deterministic_script",
-        "command": "python3 {skill_dir}/scripts/check_blueprint_coherence.py <topic-slug>-product-blueprint.md"
+        "command": "python3 {skill_dir}/scripts/check_blueprint_coherence.py <topic-slug>-product-blueprint.md --source-report <topic-slug>-research-report.md"
       },
       "output": {
         "path": "intermediate/coherence_check_result.json"
       },
-      "validation": ["exit_code_zero"],
+      "validation": ["exit_code_zero", "paper_citations_exist_in_source_references", "confidence_grades_not_upgraded"],
       "failure_policy": {
         "on_failure": "revise",
         "retries": 3,
-        "message": "The blueprint has a cross-phase incoherence (e.g. an MVP-0 node whose required servicer is staged later, or an MVP control gated on a non-blocking open question). Fix the staging or the coherence anchors, then re-run the guard before the quality gate. Do not deliver a blueprint that fails this deterministic check."
+        "message": "The blueprint has a deterministic coherence or citation-fidelity failure (e.g. an MVP-0 node whose required servicer is staged later, an MVP control gated on a non-blocking open question, a paper citation absent from the source report References, or a silently upgraded confidence grade). Fix the staging, citations, confidence labels, or coherence anchors, then re-run the guard before the quality gate. Do not deliver a blueprint that fails this deterministic check."
       }
     },
     {
