@@ -1,9 +1,10 @@
 {
   "workflow_id": "blueprint",
   "version": "0.8.0",
-  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The composed blueprint has 20 sections including §9 Product Experience Direction (UX intent only — primary user, job-to-be-done, experience thesis, interaction mode (each classified primary / secondary / wrapper-integration / future surface, with 'AI Skill' disambiguated and not conflated with MCP), trust/control/transparency, human-in-the-loop, failure/recovery, and a UX→architecture handoff; never wireframes, screen layout, exact CLI/MCP/API syntax, or copy) and §19 Recommended Next Stages (the blueprint as first adaptive stage-gate router — a pipeline complexity assessment labelled a routing heuristic, plus RUN/SKIP/DEFER/ASK_USER recommendations with a Depends-On prerequisite for architecture-design, tech-stack-selection, ux-design, security-review, test-design, architecture-update, and architecture-reconciliation, with evidence, confidence, and revisit triggers; an ASK_USER rationale explains any ASK_USER absence; the recommended pipeline splits a linear path from a conditional follow-up gates table; architecture-design normally RUN, architecture-update/-reconciliation default to DEFER; recommendations are overrideable and never silently expand the pipeline). The quality-gate stage runs metadata-integrity, thesis-emphasis, source-fidelity (incl. gap-citation fallback), scope-control, MVP-structure (MVP-0 vs MVP-1 vs safety/evaluation baselines), release-gate-confidence-consistency, implementation-neutrality (with a warning tier), Contents/appendix-consistency, a Product Experience Gate, and an Adaptive Stage-Gate Recommendation Gate; applies a self-repair pass for safe wording rewrites before delivery; then emits an actionable PASS/WARNING/FAIL self-check appendix (gate · status · finding · required action · blocks-technical-design) plus an optional Appendix B design-decision register for architecture handoff. Converts a research synthesis report into an implementation-neutral product blueprint. Pure-LLM transformation: every task is a reasoning step driven by a prompt file; there is no deterministic CLI/MCP backend. v0.8.0 cross-skill-artifact-contract pass: the blueprint template conforms to the shared Cross-Skill Artifact Contract (references/artifact-contract.md) — §1.6 Generation Metadata carries Artifact Type (product_blueprint) + a stable Topic Slug; a Cross-Skill Artifact Contract block exposes Source Artifacts Consumed and a Contract Field Map; and Appendix A includes a Cross-Skill Artifact Contract Gate. The generation prompt instructs contract compliance with the controlled vocabulary.",
+  "description": "Research-to-product blueprint: intake → extract → translate → resolve → compose → quality-gate. The composed blueprint has 20 sections including §9 Product Experience Direction (UX intent only — primary user, job-to-be-done, experience thesis, interaction mode (each classified primary / secondary / wrapper-integration / future surface, with 'AI Skill' disambiguated and not conflated with MCP), trust/control/transparency, human-in-the-loop, failure/recovery, and a UX→architecture handoff; never wireframes, screen layout, exact CLI/MCP/API syntax, or copy) and §19 Recommended Next Stages (the blueprint as first adaptive stage-gate router — a pipeline complexity assessment labelled a routing heuristic, plus RUN/SKIP/DEFER/ASK_USER recommendations with a Depends-On prerequisite for architecture-design, tech-stack-selection, ux-design, security-review, test-design, architecture-update, and architecture-reconciliation, with evidence, confidence, and revisit triggers; an ASK_USER rationale explains any ASK_USER absence; the recommended pipeline splits a linear path from a conditional follow-up gates table; architecture-design normally RUN, architecture-update/-reconciliation default to DEFER; recommendations are overrideable and never silently expand the pipeline). The quality-gate stage runs metadata-integrity, thesis-emphasis, source-fidelity (incl. gap-citation fallback), scope-control, MVP-structure (MVP-0 vs MVP-1 vs safety/evaluation baselines), release-gate-confidence-consistency, implementation-neutrality (with a warning tier), Contents/appendix-consistency, a Product Experience Gate, and an Adaptive Stage-Gate Recommendation Gate; applies a self-repair pass for safe wording rewrites before delivery; then emits an actionable PASS/WARNING/FAIL self-check appendix (gate · status · finding · required action · blocks-technical-design) plus an optional Appendix B design-decision register for architecture handoff. Converts a research synthesis report into an implementation-neutral product blueprint. Almost every task is an LLM reasoning step driven by a prompt file; the one exception is a deterministic, stdlib-only cross-phase coherence guard (scripts/check_blueprint_coherence.py) that runs between compose-blueprint and quality-gate. It materializes a machine-readable phase-inversion graph from stable coherence anchors and fails loudly when an MVP-N node's required servicer is staged later (MVP-N+1+) or an MVP control is gated on a non-blocking open question — cross-section incoherence a single LLM pass cannot reliably hold. The quality-gate then splits each bundled gate into one-condition-per-check so residual failures localize. v0.8.0 cross-skill-artifact-contract pass: the blueprint template conforms to the shared Cross-Skill Artifact Contract (references/artifact-contract.md) — §1.6 Generation Metadata carries Artifact Type (product_blueprint) + a stable Topic Slug; a Cross-Skill Artifact Contract block exposes Source Artifacts Consumed and a Contract Field Map; and Appendix A includes a Cross-Skill Artifact Contract Gate. The generation prompt instructs contract compliance with the controlled vocabulary.",
   "mandatory_gates": [
     "assess-input-quality",
+    "check-coherence",
     "quality-gate"
   ],
   "tasks": [
@@ -120,11 +121,31 @@
       "failure_policy": {"on_failure": "revise", "retries": 3}
     },
     {
-      "id": "quality-gate",
-      "label": "Run the quality gates (metadata integrity, thesis emphasis, source fidelity + gap-citation fallback, scope control, MVP-0/MVP-1 structure, release-gate confidence, implementation-neutrality warning tier, Contents/appendix consistency, Product Experience Gate, Adaptive Stage-Gate Recommendation Gate); apply the self-repair pass for safe wording rewrites; emit the actionable self-check appendix; revise failing sections (max 3 attempts)",
-      "type": "verification",
+      "id": "check-coherence",
+      "label": "Deterministic cross-phase coherence guard (phase-inversion graph, open-question dependency, Contents/heading equality, blank-citation scan)",
+      "type": "gate",
       "phase": "compose",
       "depends_on": ["compose-blueprint"],
+      "executor": {
+        "kind": "deterministic_script",
+        "command": "python3 {skill_dir}/scripts/check_blueprint_coherence.py <topic-slug>-product-blueprint.md"
+      },
+      "output": {
+        "path": "intermediate/coherence_check_result.json"
+      },
+      "validation": ["exit_code_zero"],
+      "failure_policy": {
+        "on_failure": "revise",
+        "retries": 3,
+        "message": "The blueprint has a cross-phase incoherence (e.g. an MVP-0 node whose required servicer is staged later, or an MVP control gated on a non-blocking open question). Fix the staging or the coherence anchors, then re-run the guard before the quality gate. Do not deliver a blueprint that fails this deterministic check."
+      }
+    },
+    {
+      "id": "quality-gate",
+      "label": "Run the quality gates (metadata integrity, thesis emphasis, source fidelity + gap-citation fallback, scope control, MVP-0/MVP-1 structure, release-gate confidence, implementation-neutrality warning tier, Contents/appendix consistency, Product Experience Gate, Adaptive Stage-Gate Recommendation Gate) split one-condition-per-check; apply the self-repair pass for safe wording rewrites; emit the actionable self-check appendix; revise failing sections (max 3 attempts)",
+      "type": "verification",
+      "phase": "compose",
+      "depends_on": ["check-coherence"],
       "executor": {
         "kind": "llm_task",
         "prompt": "prompts/05_quality_gate.md",
