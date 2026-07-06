@@ -892,3 +892,227 @@ def test_quality_gate_splits_conditions_atomically() -> None:
     # called out Gate 6's release-gate AND being verified holistically).
     for clause in ("6b.i", "6b.ii", "6b.iii"):
         assert clause in gate, f"release-gate clause not split: {clause}"
+
+
+# --- issue #85: citation fidelity, agent-mode authorization boundary, and
+# amend-without-new-research playbook ---
+
+
+def _run_coherence_guard_with_source(
+    blueprint: Path, source_report: Path
+) -> tuple[int, dict]:
+    """Run the deterministic guard with source-report citation validation."""
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(_COHERENCE_SCRIPT),
+            str(blueprint),
+            "--source-report",
+            str(source_report),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def test_coherence_guard_fails_when_blueprint_citation_missing_from_references(
+    tmp_path: Path,
+) -> None:
+    source_report = tmp_path / "source-report.md"
+    source_report.write_text(
+        """# Source Report
+
+## References
+
+- [2312.01234] Evaluator-gated memory writes.
+""",
+        encoding="utf-8",
+    )
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+This thesis cites evidence that is absent from the source references.
+[9999.00000]
+""",
+        encoding="utf-8",
+    )
+
+    code, result = _run_coherence_guard_with_source(blueprint, source_report)
+
+    assert code == 1
+    assert result["all_passed"] is False
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "citation_not_in_references" in failed_checks
+
+
+def test_coherence_guard_accepts_blueprint_citation_present_in_references(
+    tmp_path: Path,
+) -> None:
+    source_report = tmp_path / "source-report.md"
+    source_report.write_text(
+        """# Source Report
+
+## References
+
+- [2312.01234] Evaluator-gated memory writes.
+""",
+        encoding="utf-8",
+    )
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+This thesis cites evidence present in the source references. [2312.01234]
+""",
+        encoding="utf-8",
+    )
+
+    code, result = _run_coherence_guard_with_source(blueprint, source_report)
+
+    assert code == 0
+    assert result["all_passed"] is True
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "citation_not_in_references" not in failed_checks
+
+
+def test_coherence_guard_fails_on_silent_confidence_upgrade(tmp_path: Path) -> None:
+    source_report = tmp_path / "source-report.md"
+    source_report.write_text(
+        """# Source Report
+
+## Confidence-Graded Findings
+
+- MEDIUM — Selective forgetting improves signal but has loss risk. [2402.01234]
+
+## References
+
+- [2402.01234] Selective forgetting.
+""",
+        encoding="utf-8",
+    )
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+| Claim | Confidence | Citation |
+|---|---|---|
+| Selective forgetting is release-ready. | HIGH | [2402.01234] |
+""",
+        encoding="utf-8",
+    )
+
+    code, result = _run_coherence_guard_with_source(blueprint, source_report)
+
+    assert code == 1
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "confidence_silently_upgraded" in failed_checks
+
+
+def test_manifest_wires_source_report_into_deterministic_guard() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    task = next(t for t in data["tasks"] if t["id"] == "check-coherence")
+    command = task["executor"]["command"]
+    assert "--source-report" in command
+    assert "<topic-slug>-research-report.md" in command
+
+
+def test_quality_gate_covers_load_bearing_citation_fidelity() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "load-bearing claims",
+        "thesis emphasis",
+        "primary interaction mode",
+        "primary actor",
+        "re-read the cited source-report section",
+        "product-design decision",
+        "citation string exists in the source report's `## References`",
+        "confidence grade was not silently upgraded",
+    ):
+        assert needle in gate, f"Gate 2 missing citation-fidelity rule: {needle}"
+
+
+def test_product_experience_reference_requires_agent_authorization_boundary() -> None:
+    ref = (_skill_root() / "references" / "product-experience-direction.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "agent-callable / tool-driven",
+        "READ/ACT authorization boundary",
+        "matching §13 risk row",
+        "agent authority-confusion",
+        "prompt injection",
+        "do not define exact MCP tool schemas",
+    ):
+        assert needle in ref, f"product-experience reference missing: {needle}"
+
+
+def test_quality_gate_requires_agent_mode_authorization_boundary() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "agent-callable / tool-driven",
+        "READ/ACT authorization-boundary statement",
+        "promoted secondary",
+        "matching §13 risk row",
+        "agent authority-confusion",
+        "prompt injection",
+    ):
+        assert needle in gate, f"Gate 8 missing authorization-boundary rule: {needle}"
+
+
+def test_troubleshooting_has_amend_without_new_report_playbook() -> None:
+    text = (_skill_root() / "references" / "troubleshooting.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "Amend an existing blueprint with a new decision (no new research report)",
+        "load-bearing fact classes",
+        "interaction mode → §3, §8, §9.4/9.5, §10, §16, §18, §19, Appendix A",
+        "MVP roster → §7, §12, §13, §14, §15, Appendix A",
+        "surgical amendment",
+        "pre-delivery propagation check",
+    ):
+        assert needle in text, f"troubleshooting playbook missing: {needle}"
+
+
+def test_compose_prompt_has_pre_delivery_propagation_check() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "Pre-delivery propagation check",
+        "amend an existing blueprint",
+        "interaction mode → §3, §8, §9.4/9.5, §10, §16, §18, §19, Appendix A",
+        "MVP roster → §7, §12, §13, §14, §15, Appendix A",
+    ):
+        assert needle in prompt, f"compose prompt missing propagation check: {needle}"

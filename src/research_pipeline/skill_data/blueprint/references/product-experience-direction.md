@@ -82,6 +82,32 @@ Disambiguation rules:
 This is still UX **intent** — classify the surface, do not design it (no command
 syntax, schemas, or routes).
 
+## Agent/tool-driven authorization boundary
+
+If the primary interaction mode, or any secondary mode promoted into MVP scope,
+is **agent-callable / tool-driven** (for example AI Skill, MCP, external-agent
+API, or another delegated action surface), §9 must include a blueprint-level
+**READ/ACT authorization boundary**:
+
+- **READ:** what information the agent/tool caller may inspect, and what remains
+  user-only or human-review-only.
+- **ACT:** what the agent/tool caller may change, trigger, submit, delete, or
+  approve without another human decision.
+- **Human approval:** which actions require explicit user/operator approval,
+  especially irreversible, externally visible, or cross-scope actions.
+- **Downstream owner:** architecture/security review owns exact contracts,
+  permission models, and runtime enforcement.
+
+Also add a **matching §13 risk row** for **agent authority-confusion** and/or
+**prompt injection** whenever the mode can cause actions, data egress, or
+decision delegation. This is a named requirement because generic trust/control
+wording has not reliably produced the boundary in downstream reviews.
+
+Keep the boundary at product-blueprint altitude: do not define exact MCP tool schemas,
+API routes, permission tables, request/response payloads, or
+implementation tasks. Those belong to architecture, security-review, and
+implementation-plan.
+
 ## What §9 must NOT include
 
 These belong to a later UX-design or implementation stage, not the blueprint:
@@ -167,6 +193,8 @@ Add these rows to the Appendix A self-check (status `PASS` / `WARNING` /
 | Trust / control / transparency needs defined | Present for an AI-heavy system. |
 | Human-in-the-loop experience defined where needed | Present when review is required. |
 | Failure / recovery expectations defined | High-level recovery experience present. |
+| Agent/tool authorization boundary defined where needed | Agent-callable / tool-driven primary or promoted secondary modes state READ/ACT boundaries. |
+| Matching agent authority risk row present where needed | §13 includes agent authority-confusion / prompt injection risk when agent/tool modes can act, delegate, or expose data. |
 | UX assumptions handed off to architecture | Handoff table maps UX → architecture impact. |
 
 ### Fail conditions
@@ -179,6 +207,10 @@ Add these rows to the Appendix A self-check (status `PASS` / `WARNING` /
 - human review is required but no human-review experience is defined;
 - AI uncertainty exists but no uncertainty/review behaviour is defined;
 - trust/control/transparency requirements are absent for an AI-heavy system;
+- primary or promoted secondary agent-callable / tool-driven modes lack a
+  READ/ACT authorization boundary;
+- agent-callable / tool-driven modes can act, delegate, or expose data but §13
+  lacks a matching agent authority-confusion / prompt injection risk row;
 - UX assumptions are not handed off to architecture.
 
 ### Warning conditions

@@ -80,6 +80,13 @@ UX Assumptions for Architecture · Product Experience Handoff to Architecture.
   product direction, architecture, risk, or implementation. In automatic mode,
   infer a reasonable default and record it in §9 "UX Assumptions for
   Architecture"; high-impact assumptions must be review-flagged.
+- When the primary interaction mode, or a secondary mode promoted into MVP
+  scope, is agent-callable / tool-driven, include a blueprint-level READ/ACT
+  authorization boundary: who/what can read, who/what can act, where human
+  approval is required, and which downstream stage owns detailed schemas. Add a
+  matching §13 risk row for agent authority-confusion / prompt injection. Keep
+  exact MCP tool schemas, API routes, and permission tables deferred to
+  architecture/security review.
 
 See `references/product-experience-direction.md` for the section template,
 clarification-question format, the Product Experience Gate, and the boundary
@@ -130,6 +137,15 @@ trace exists, mark it **"Design hypothesis — requires validation."** An
 explicit design decision may be used only to connect, operationalize, or
 govern research-backed capabilities; it needs a rationale and must not
 replace research traceability for core product claims.
+
+**Citation fidelity for load-bearing claims.** For thesis emphasis, primary
+interaction mode, and primary actor claims, re-read the cited source-report
+section before finalizing. If the cited section supports a different concern
+(for example build-time developer tooling rather than the product's runtime
+interaction mode), reclassify the statement as a product-design decision with
+rationale instead of calling it research-derived. Do not upgrade confidence
+grades beyond the source report. The deterministic pre-gate checks that paper
+citations exist in the source report's `## References` section.
 
 **Gap-citation fallback.** Do not leave a citation cell blank. Paper-derived
 items cite `[arxiv_id]` / `[Author, Year]`. An item derived from a
@@ -242,6 +258,21 @@ Rules:
   with `Depends On`, a few-line ASK_USER rationale, a recommended pipeline
   (linear path + a small conditional-gates table), and a decision log. The
   clarity additions are columns and small tables, not new essays.
+
+## Pre-delivery propagation check
+
+Before delivering, scan whether you are generating from scratch or applying the
+amend an existing blueprint guidance from `references/troubleshooting.md`.
+For any new or changed load-bearing fact, update its dependent sections and
+Appendix A before running the quality gate:
+
+- interaction mode → §3, §8, §9.4/9.5, §10, §16, §18, §19, Appendix A
+- MVP roster → §7, §12, §13, §14, §15, Appendix A
+
+If a dependent section is intentionally unchanged, state why in the affected
+section or the quality-gate self-check. Do not leave stale references to a prior
+interaction mode, actor, capability roster, phase, risk, or downstream-stage
+recommendation.
 
 ## Optional Appendix B — Design Decision Register
 

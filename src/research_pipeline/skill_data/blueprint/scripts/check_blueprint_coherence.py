@@ -37,6 +37,12 @@ Checks (deterministic, stdlib only, no network, no LLM):
     contents_vs_headings  ``## Contents`` numbered entries must equal the
                           ``## N. Title`` headings, in order.
     placeholder_citation  No blank / ``TODO`` / ``TBD`` citations remain.
+    citation_not_in_refs  If a source report is supplied, every paper-style
+                          citation in the blueprint must exist verbatim in the
+                          source report's ``## References`` section.
+    confidence_upgrade    If a source report is supplied, a blueprint citation
+                          must not carry a higher confidence grade than the
+                          same citation carries in the source report.
 
 Out of scope (tracked in issue #81 follow-ups): failure-mode<->risk-row
 pairing, which needs a richer tagging convention.
@@ -44,6 +50,8 @@ pairing, which needs a richer tagging convention.
 Usage::
 
     python3 check_blueprint_coherence.py <topic-slug>-product-blueprint.md
+    python3 check_blueprint_coherence.py <topic-slug>-product-blueprint.md \
+        --source-report <topic-slug>-research-report.md
 
 Exit codes:
     0 — No FAIL findings; blueprint is cross-phase coherent (warnings allowed).
@@ -77,6 +85,27 @@ _CONTENTS_ENTRY_RE = re.compile(
 # which always carries a space or ``x`` and so never matches ``[]``).
 _PLACEHOLDER_CITATION_RE = re.compile(
     r"\[\]|\[(?:todo|tbd|fixme|xxx|citation needed)\]", re.IGNORECASE
+)
+_FENCED_BLOCK_RE = re.compile(r"```.*?```", re.DOTALL)
+_CITATION_RE = re.compile(r"\[(?P<citation>[^\[\]\n]{2,120})\](?!\()")
+_REFERENCE_HEADING_RE = re.compile(
+    r"^#{1,6}\s+References\s*$", re.IGNORECASE | re.MULTILINE
+)
+_NEXT_HEADING_RE = re.compile(r"^#{1,6}\s+\S", re.MULTILINE)
+_ARXIV_CITATION_RE = re.compile(r"\b\d{4}\.\d{4,5}(?:v\d+)?\b")
+_YEAR_CITATION_RE = re.compile(r"\b(?:19|20)\d{2}\b")
+_SOURCE_REPORT_CITATION_PREFIX = "source report:"
+_CONFIDENCE_RANKS = {
+    "LOW": 1,
+    "MEDIUM": 2,
+    "HIGH": 3,
+    "🔴": 1,
+    "🟡": 2,
+    "🟢": 3,
+}
+_CONFIDENCE_RE = re.compile(
+    r"\b(?P<word>LOW|MEDIUM|HIGH)\b|(?P<symbol>[🔴🟡🟢])",
+    re.IGNORECASE,
 )
 
 _OPEN_STAGES = {"open", "open-question", "unresolved"}
@@ -290,13 +319,130 @@ def check_placeholder_citations(text: str) -> list[dict]:
     return findings
 
 
-def run_checks(text: str) -> dict:
+def _strip_fenced_blocks(text: str) -> str:
+    """Remove fenced code blocks so diagram labels are not parsed as citations."""
+    return _FENCED_BLOCK_RE.sub("", text)
+
+
+def _references_section(source_report_text: str) -> str | None:
+    """Return the source report's references section, if present."""
+    match = _REFERENCE_HEADING_RE.search(source_report_text)
+    if match is None:
+        return None
+    rest = source_report_text[match.end() :]
+    next_heading = _NEXT_HEADING_RE.search(rest)
+    if next_heading is None:
+        return rest
+    return rest[: next_heading.start()]
+
+
+def _is_paper_citation(citation: str) -> bool:
+    """Return true for paper-style citations checked against References."""
+    normalized = citation.strip()
+    if normalized.lower().startswith(_SOURCE_REPORT_CITATION_PREFIX):
+        return False
+    return bool(
+        _ARXIV_CITATION_RE.search(normalized) or _YEAR_CITATION_RE.search(normalized)
+    )
+
+
+def _paper_citations(text: str) -> set[str]:
+    """Extract external paper-style citation strings from Markdown text."""
+    citations: set[str] = set()
+    for match in _CITATION_RE.finditer(_strip_fenced_blocks(text)):
+        citation = match.group("citation").strip()
+        if _is_paper_citation(citation):
+            citations.add(citation)
+    return citations
+
+
+def _confidence_rank(text: str) -> int | None:
+    """Return the strongest confidence grade named in a line of text."""
+    ranks: list[int] = []
+    for match in _CONFIDENCE_RE.finditer(text):
+        token = match.group("word") or match.group("symbol")
+        if token is None:
+            continue
+        ranks.append(_CONFIDENCE_RANKS[token.upper()])
+    if not ranks:
+        return None
+    return max(ranks)
+
+
+def _citation_confidence_map(text: str) -> dict[str, int]:
+    """Map citations to the strongest confidence grade found on their lines."""
+    confidence_by_citation: dict[str, int] = {}
+    for line in _strip_fenced_blocks(text).splitlines():
+        rank = _confidence_rank(line)
+        if rank is None:
+            continue
+        for citation in _paper_citations(line):
+            confidence_by_citation[citation] = max(
+                confidence_by_citation.get(citation, 0), rank
+            )
+    return confidence_by_citation
+
+
+def check_source_citation_fidelity(
+    blueprint_text: str, source_report_text: str
+) -> list[dict]:
+    """Check blueprint paper citations against the source report."""
+    findings: list[dict] = []
+    references = _references_section(source_report_text)
+    if references is None:
+        return [
+            _finding(
+                FAIL,
+                "source_references_missing",
+                "Source report has no '## References' section; citation fidelity "
+                "cannot be checked.",
+            )
+        ]
+
+    source_references = _paper_citations(references)
+    blueprint_citations = _paper_citations(blueprint_text)
+    for citation in sorted(blueprint_citations - source_references):
+        findings.append(
+            _finding(
+                FAIL,
+                "citation_not_in_references",
+                f"Blueprint citation [{citation}] does not exist verbatim in the "
+                "source report's References section.",
+                citation=citation,
+            )
+        )
+
+    source_confidences = _citation_confidence_map(source_report_text)
+    blueprint_confidences = _citation_confidence_map(blueprint_text)
+    for citation in sorted(blueprint_citations & source_references):
+        source_rank = source_confidences.get(citation)
+        blueprint_rank = blueprint_confidences.get(citation)
+        if source_rank is None or blueprint_rank is None:
+            continue
+        if blueprint_rank > source_rank:
+            findings.append(
+                _finding(
+                    FAIL,
+                    "confidence_silently_upgraded",
+                    f"Blueprint assigns [{citation}] a higher confidence grade "
+                    "than the source report.",
+                    citation=citation,
+                    source_rank=source_rank,
+                    blueprint_rank=blueprint_rank,
+                )
+            )
+    return findings
+
+
+def run_checks(text: str, source_report_text: str | None = None) -> dict:
     """Run every coherence check and return a structured result dict."""
     nodes = parse_nodes(text)
     findings: list[dict] = []
     findings.extend(check_graph(nodes))
     findings.extend(check_contents_vs_headings(text))
     findings.extend(check_placeholder_citations(text))
+    if source_report_text is not None:
+        findings.extend(check_source_citation_fidelity(text, source_report_text))
     fail_count = sum(1 for f in findings if f["level"] == FAIL)
     warning_count = sum(1 for f in findings if f["level"] == WARNING)
     return {
@@ -320,6 +466,14 @@ def main() -> int:
         "blueprint",
         help="Path to the composed product blueprint markdown file.",
     )
+    parser.add_argument(
+        "--source-report",
+        help=(
+            "Optional source research report. When supplied, the guard verifies "
+            "blueprint paper citations exist verbatim in its References section "
+            "and confidence grades are not upgraded."
+        ),
+    )
     args = parser.parse_args()
 
     path = Path(args.blueprint).expanduser()
@@ -334,8 +488,30 @@ def main() -> int:
         return 1
 
     text = path.read_text(encoding="utf-8")
-    result = run_checks(text)
+    source_report_text = None
+    source_report_path = None
+    if args.source_report is not None:
+        source_report_path = Path(args.source_report).expanduser()
+        if not source_report_path.exists():
+            print(
+                json.dumps(
+                    {
+                        "blueprint": str(path),
+                        "source_report": str(source_report_path),
+                        "error": "source report not found",
+                        "all_passed": False,
+                    },
+                    indent=2,
+                )
+            )
+            print(f"❌ Source report not found: {source_report_path}", file=sys.stderr)
+            return 1
+        source_report_text = source_report_path.read_text(encoding="utf-8")
+
+    result = run_checks(text, source_report_text)
     result["blueprint"] = str(path)
+    if source_report_path is not None:
+        result["source_report"] = str(source_report_path)
     print(json.dumps(result, indent=2))
 
     if result["all_passed"]:

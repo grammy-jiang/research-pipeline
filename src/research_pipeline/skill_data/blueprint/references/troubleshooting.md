@@ -70,6 +70,36 @@ stop. Common repeat failures:
   hypothesis.
 - MVP too large → push more ideas to DEFER.
 
+## Amend an existing blueprint with a new decision (no new research report)
+
+Use this playbook when a downstream product, architecture, UX, security, or
+planning decision changes the blueprint **without** a replacement research
+report. This is a surgical amendment, not research regeneration: preserve source
+research findings and citations, change only the accepted product decision and
+the sections that depend on it, and record the reason in §2 Update History or
+the decision table.
+
+1. Name the new decision and classify it as a product-design decision,
+   architecture feedback, UX feedback, security feedback, implementation
+   constraint, or user override.
+2. Identify the affected load-bearing fact classes and update every dependent
+   section before delivery:
+   - interaction mode → §3, §8, §9.4/9.5, §10, §16, §18, §19, Appendix A
+   - MVP roster → §7, §12, §13, §14, §15, Appendix A
+3. Check for stale references to the old decision in the thesis, actors,
+   workflows, interaction-mode tables, logical architecture boundaries, roadmap,
+   risk rows, evaluation rows, MVP staging, downstream-stage recommendations,
+   traceability appendix, and self-check.
+4. Preserve research confidence grades unless a new source report is supplied.
+   If the amendment is product-only, label it as a product-design decision with
+   rationale rather than research-derived evidence.
+5. Run the pre-delivery propagation check from `prompts/04_generate_blueprint.md`
+   and then re-run the quality gate. If any dependent section is intentionally
+   unchanged, say why in that section or Appendix A.
+
+Do not use this playbook to smuggle in new research evidence. A new or materially
+changed research report still follows the full update path below.
+
 ## Updating an existing blueprint
 
 When a new research report replaces the prior one **and the user asks to
