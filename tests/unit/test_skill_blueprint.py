@@ -4,7 +4,8 @@ The blueprint skill is a pure prompt-driven transformation skill (no CLI/MCP
 backend). These tests validate that the bundled skill files are well-formed,
 discoverable by ``setup``, and stay faithful to the design contract:
 standard-only SKILL.md frontmatter, the 20-section output template, the five
-prompts, the references, and an implementation-neutral example output.
+core prompts plus input-quality prompt, the references, and an
+implementation-neutral example output.
 """
 
 from __future__ import annotations
@@ -55,7 +56,48 @@ def _required_sections_from_template() -> list[str]:
     return [title for _, title in sections]
 
 
+def _frontmatter(text: str) -> str:
+    assert text.startswith("---\n"), "file must start with YAML frontmatter"
+    head, _, _ = text[4:].partition("\n---\n")
+    return head
+
+
+def _frontmatter_description(text: str) -> str:
+    match = re.search(r"description: >\n(.*?)\nlicense:", _frontmatter(text), re.S)
+    assert match, "could not parse folded description block"
+    return " ".join(line.strip() for line in match.group(1).splitlines()).lower()
+
+
+def _block_between(text: str, start_marker: str, end_marker: str) -> str:
+    start = text.index(start_marker)
+    end = text.index(end_marker, start)
+    return text[start:end]
+
+
+def _numbered_list_titles(block: str) -> list[str]:
+    return [
+        match.group("title").strip()
+        for match in re.finditer(
+            r"^\s*(?:- \[ \] )?(?P<number>\d+)\. (?P<title>.+)$",
+            block,
+            re.MULTILINE,
+        )
+    ]
+
+
+def _when_to_trigger_phrases(text: str) -> list[str]:
+    block = _block_between(text, "## When To Trigger", "Do **not** trigger for:")
+    quoted = {
+        " ".join(match.group(1).split()).lower()
+        for match in re.finditer(r'"([^"]+)"', block)
+    }
+    aliases_line = re.search(r"- The aliases (?P<line>.*)", block)
+    aliases = set(re.findall(r"`([^`]+)`", aliases_line.group("line")))
+    return sorted(quoted | {alias.lower() for alias in aliases})
+
+
 REQUIRED_PROMPTS = [
+    "00_assess_input_quality.md",
     "01_extract_research_items.md",
     "02_translate_to_product_primitives.md",
     "03_resolve_ideas.md",
@@ -86,6 +128,42 @@ REQUIRED_SECTIONS = _required_sections_from_template()
 
 def test_required_sections_match_template_numbered_headings() -> None:
     assert _required_sections_from_template() == REQUIRED_SECTIONS
+
+
+def test_hand_authored_section_lists_match_template_headings() -> None:
+    """The template headings are the only source of truth for the 20 sections."""
+    expected = _required_sections_from_template()
+    skill_text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    prompt_text = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    checklist_text = (
+        _skill_root() / "tests" / "expected_sections_checklist.md"
+    ).read_text(encoding="utf-8")
+
+    section_lists = {
+        "SKILL.md": _numbered_list_titles(
+            _block_between(
+                skill_text,
+                "The blueprint must contain these 20 sections",
+                "Use `templates/product_blueprint_template.md` as the skeleton.",
+            )
+        ),
+        "prompts/04_generate_blueprint.md": _numbered_list_titles(
+            _block_between(prompt_text, "## Required sections", "## Thesis")
+        ),
+        "tests/expected_sections_checklist.md": _numbered_list_titles(
+            _block_between(
+                checklist_text,
+                "All 20 required sections present",
+                "## Content quality",
+            )
+        ),
+    }
+
+    assert section_lists == dict.fromkeys(section_lists, expected), (
+        "hand-authored section list drifted from template headings"
+    )
 
 
 def test_skill_md_exists_and_has_frontmatter() -> None:
@@ -121,6 +199,32 @@ def test_skill_md_has_trigger_phrases() -> None:
     text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
     for phrase in ("create a blueprint", "design the product", "product-blueprint"):
         assert phrase in text.lower(), f"SKILL.md missing trigger phrase: {phrase}"
+
+
+def test_skill_frontmatter_description_covers_when_to_trigger_phrases() -> None:
+    """Discovery reads frontmatter first, so body trigger phrases must not drift."""
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    description = _frontmatter_description(text)
+    trigger_phrases = set(_when_to_trigger_phrases(text))
+    intentionally_omitted = {
+        # This is a handover subsection title in the research-pipeline skill,
+        # not a likely user invocation phrase for this skill.
+        "system-design handover",
+    }
+
+    unknown_omissions = intentionally_omitted - trigger_phrases
+    assert not unknown_omissions, (
+        "frontmatter trigger omission allowlist contains unknown phrases: "
+        f"{sorted(unknown_omissions)}"
+    )
+    missing = sorted(
+        phrase
+        for phrase in trigger_phrases - intentionally_omitted
+        if phrase not in description
+    )
+    assert not missing, (
+        f"SKILL.md frontmatter description misses When To Trigger phrases: {missing}"
+    )
 
 
 def test_skill_md_has_non_goals_no_tech_stack() -> None:
@@ -189,6 +293,44 @@ def test_manifest_executors_reference_real_prompt_files() -> None:
         prompt = task.get("executor", {}).get("prompt")
         if prompt:
             assert (_skill_root() / prompt).exists(), f"missing executor: {prompt}"
+
+
+def test_manifest_has_orthogonal_intake_quality_and_extraction_owners() -> None:
+    """Intake, quality assessment, and extraction must not share one prompt owner."""
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    tasks = {task["id"]: task for task in data["tasks"]}
+
+    assert tasks["intake"]["executor"]["kind"] == "document_discovery"
+    assert "prompt" not in tasks["intake"]["executor"]
+    assert tasks["assess-input-quality"]["executor"]["prompt"] == (
+        "prompts/00_assess_input_quality.md"
+    )
+    assert tasks["extract-research-items"]["executor"]["prompt"] == (
+        "prompts/01_extract_research_items.md"
+    )
+
+
+def test_resolve_prompt_is_single_owner_of_mvp_membership_decisions() -> None:
+    """Prompt 02 may rank primitives, but Prompt 03 owns MVP inclusion."""
+    translate = (
+        _skill_root() / "prompts" / "02_translate_to_product_primitives.md"
+    ).read_text(encoding="utf-8")
+    resolve = (_skill_root() / "prompts" / "03_resolve_ideas.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "mvp candidate" not in translate.lower()
+    assert "final mvp inclusion is decided only in prompt 03" in translate.lower()
+    assert "| Source Idea | Research Citation | Decision |" in resolve
+    assert "| Rationale | MVP? | Related Risks |" in resolve
+
+
+def test_quality_gate_references_compose_prompt_as_generation_rule_owner() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "prompts/04_generate_blueprint.md is the authoritative owner" in gate
+    assert "verify outcomes; do not redefine generation rules" in gate
 
 
 def test_output_template_has_all_numbered_sections_and_contents() -> None:
@@ -313,7 +455,7 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.8.0"
+    assert data["version"] == "0.9.0"
 
 
 # --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
