@@ -10,6 +10,7 @@ prompts, the references, and an implementation-neutral example output.
 from __future__ import annotations
 
 import json
+import re
 from pathlib import Path
 
 
@@ -18,6 +19,36 @@ def _skill_root() -> Path:
     import research_pipeline
 
     return Path(research_pipeline.__file__).parent / "skill_data" / "blueprint"
+
+
+_NUMBERED_SECTION_RE = re.compile(r"^## (?P<number>\d+)\. (?P<title>.+)$", re.MULTILINE)
+
+
+def _numbered_sections(text: str) -> list[tuple[int, str]]:
+    """Return ordered top-level numbered section headings."""
+    return [
+        (int(match.group("number")), match.group("title").strip())
+        for match in _NUMBERED_SECTION_RE.finditer(text)
+    ]
+
+
+def _numbered_section_titles(text: str) -> list[str]:
+    return [title for _, title in _numbered_sections(text)]
+
+
+def _product_blueprint_template_text() -> str:
+    return (_skill_root() / "templates" / "product_blueprint_template.md").read_text(
+        encoding="utf-8"
+    )
+
+
+def _required_sections_from_template() -> list[str]:
+    sections = _numbered_sections(_product_blueprint_template_text())
+    numbers = [number for number, _ in sections]
+    assert numbers == list(range(1, len(numbers) + 1)), (
+        f"template sections are not contiguous from 1: {numbers}"
+    )
+    return [title for _, title in sections]
 
 
 REQUIRED_PROMPTS = [
@@ -43,27 +74,14 @@ REQUIRED_REFERENCES = [
     "troubleshooting.md",
 ]
 
-# The 18 required output sections, by heading text.
-REQUIRED_SECTIONS = [
-    "Executive Product Thesis",
-    "Source Research Interpretation",
-    "Target Users and System Actors",
-    "Product Goals and Non-Goals",
-    "Research-to-Product Translation Map",
-    "Adopt / Adapt / Merge / Defer / Reject Decisions",
-    "Core Product Capabilities",
-    "Workflow Model",
-    "Logical Architecture",
-    "Conceptual Information Model",
-    "Decision Policies",
-    "Risk, Governance, and Safety Model",
-    "Evaluation Strategy",
-    "MVP Scope",
-    "Roadmap and Future Extensions",
-    "Open Questions and Validation Plan",
-    "Handoff Notes for Technical Design",
-    "Traceability Appendix",
-]
+# Required output sections, by heading text. The product blueprint template is
+# the source of truth so section additions, removals, and renames cannot drift
+# from a hand-maintained test constant.
+REQUIRED_SECTIONS = _required_sections_from_template()
+
+
+def test_required_sections_match_template_numbered_headings() -> None:
+    assert _required_sections_from_template() == REQUIRED_SECTIONS
 
 
 def test_skill_md_exists_and_has_frontmatter() -> None:
@@ -169,13 +187,10 @@ def test_manifest_executors_reference_real_prompt_files() -> None:
             assert (_skill_root() / prompt).exists(), f"missing executor: {prompt}"
 
 
-def test_output_template_has_all_18_sections_and_contents() -> None:
-    template = (
-        _skill_root() / "templates" / "product_blueprint_template.md"
-    ).read_text(encoding="utf-8")
+def test_output_template_has_all_numbered_sections_and_contents() -> None:
+    template = _product_blueprint_template_text()
     assert "## Contents" in template
-    for section in REQUIRED_SECTIONS:
-        assert section in template, f"template missing section: {section}"
+    assert _numbered_section_titles(template) == REQUIRED_SECTIONS
 
 
 def test_example_output_is_complete_and_neutral() -> None:
@@ -183,10 +198,9 @@ def test_example_output_is_complete_and_neutral() -> None:
     example = (
         _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
     ).read_text(encoding="utf-8")
-    # Contents + all 18 sections.
+    # Contents + every numbered section from the template, in order.
     assert "## Contents" in example
-    for section in REQUIRED_SECTIONS:
-        assert section in example, f"example missing section: {section}"
+    assert _numbered_section_titles(example) == REQUIRED_SECTIONS
     # Both required Mermaid diagrams (workflow + architecture) → at least 2.
     assert example.count("```mermaid") >= 2
     # Carries research citations.
@@ -463,11 +477,9 @@ def test_template_and_example_have_product_experience_direction() -> None:
 
 def test_template_and_example_are_now_20_sections() -> None:
     """§19 insert renumbers the tail; the document must run 1..20 in order."""
-    import re
-
     for rel in _PE_DOCS:
         text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
-        numbers = [int(m) for m in re.findall(r"^## (\d+)\. ", text, re.MULTILINE)]
+        numbers = [number for number, _ in _numbered_sections(text)]
         assert numbers == list(range(1, 21)), f"{rel} sections not 1..20: {numbers}"
 
 
