@@ -2,6 +2,32 @@
 
 All notable changes to research-pipeline.
 
+## [v0.31.0] — 2026-07-06
+
+Hardened the bundled `blueprint` design-chain skill: closed a 5-issue review
+(#81–#85) of its quality gate, test oracle, and internal duplication, each fix
+shipped with tests. The skill manifest moved 0.8.0 → 0.9.0.
+
+### blueprint skill
+
+- Add a deterministic cross-phase coherence guard
+  (`scripts/check_blueprint_coherence.py`) wired between `compose-blueprint` and
+  `quality-gate`: it materializes a phase-inversion def→use graph from stable
+  template anchors and fails loudly on an MVP-N node whose required servicer is
+  staged later, or an MVP control gated on a non-blocking open question (#81).
+- Strengthen the quality gate — citation fidelity for load-bearing claims, an
+  agent-mode READ/ACT authorization-boundary requirement with a matching risk
+  row, and an amend-without-a-new-report update playbook (#85).
+- Make the golden fixture a trustworthy oracle: regenerate it phase-coherent,
+  add labelled servicer-reachability / precondition-currency regression pairs, a
+  mutation-derived negative set, and a weak-input output fixture (#83).
+- Derive the required-section list from the template's own `## N.` headings with
+  an exhaustive check, ending the stale 18-vs-20 section-count drift (#82).
+- Single-source the skill's duplicated structure — assert the frontmatter
+  triggers against `When To Trigger`, reconcile the manifest orthogonality seams
+  (one owner for intake / input-quality / extraction / MVP membership), and have
+  the quality gate reference the generation prompt instead of restating it (#84).
+
 ## [v0.30.0] — 2026-07-06
 
 Closed two review umbrellas: the MCP-server conformance/security review
