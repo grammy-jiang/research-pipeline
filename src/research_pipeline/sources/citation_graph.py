@@ -343,6 +343,7 @@ class CitationGraphClient:
         items = data.get("data", [])
 
         candidates: list[CandidateRecord] = []
+        parse_failures = 0
         for item in items[:limit]:
             paper = item.get(paper_key, {})
             if not paper or not paper.get("title"):
@@ -351,8 +352,18 @@ class CitationGraphClient:
                 candidate = self._parse_paper(paper)
                 candidates.append(candidate)
             except Exception as exc:
-                logger.warning("Failed to parse %s paper: %s", direction, exc)
+                # Log per-entry at debug and summarize once, so a batch of
+                # sparse S2 references does not spam the operator (#26).
+                parse_failures += 1
+                logger.debug("Skipped unparseable %s paper: %s", direction, exc)
 
+        if parse_failures:
+            logger.warning(
+                "Skipped %d unparseable %s paper(s) for %s",
+                parse_failures,
+                direction,
+                paper_id,
+            )
         logger.info("Fetched %d %s for %s", len(candidates), direction, paper_id)
         return candidates
 
@@ -370,7 +381,9 @@ class CitationGraphClient:
         doi = external_ids.get("DOI")
 
         if not arxiv_id:
-            arxiv_id = f"s2-{paper.get('paperId', '')[:10]}"
+            # paperId may be present-but-null; coerce before slicing so we do
+            # not raise "'NoneType' object is not subscriptable" (#26).
+            arxiv_id = f"s2-{(paper.get('paperId') or '')[:10]}"
 
         title = paper.get("title", "")
         abstract = paper.get("abstract") or ""

@@ -55,6 +55,58 @@ class TestServerRegistration:
             tool = mcp._tool_manager._tools[name]
             assert tool.annotations.readOnlyHint is True, f"{name} should be readOnly"
 
+    def test_writer_tools_not_readonly(self) -> None:
+        """Tools that write files/DB must NOT be annotated readOnlyHint=True.
+
+        Regression guard for #39: readOnlyHint is the signal a client uses to
+        decide whether a call needs confirmation, so a writer marked read-only
+        would be silently auto-approved.
+        """
+        writer_tools = {
+            "tool_export_html",
+            "tool_export_bibtex",
+            "tool_report",
+            "tool_cluster",
+            "tool_cite_context",
+            "tool_blinding_audit",
+            "tool_dual_metrics",
+        }
+        for name in writer_tools:
+            tool = mcp._tool_manager._tools[name]
+            assert tool.annotations.readOnlyHint is False, (
+                f"{name} writes to disk/DB and must not be readOnly"
+            )
+
+    def test_workspace_defaults_uniform(self) -> None:
+        """Every tool that exposes a `workspace` param must default it to the
+        same value on the wire.
+
+        Regression guard for #43: divergent defaults ("./workspace" vs "runs")
+        made an agent that omitted `workspace=` silently read the wrong
+        directory and get a plausible empty result instead of an error.
+        """
+        defaults = {}
+        for name, tool in mcp._tool_manager._tools.items():
+            props = (tool.parameters or {}).get("properties", {})
+            if "workspace" in props and "default" in props["workspace"]:
+                defaults[name] = props["workspace"]["default"]
+        assert defaults, "no tool exposed a workspace default to lint"
+        unique = set(defaults.values())
+        assert unique == {"./workspace"}, (
+            f"workspace defaults diverge: {sorted(unique)} "
+            f"(offenders: {[n for n, d in defaults.items() if d != './workspace']})"
+        )
+
+    def test_tools_expose_output_schema(self) -> None:
+        """ToolResult-returning wrappers must expose an outputSchema so the
+        client receives structuredContent (M3, folded into #38). Before the
+        fix the wrappers returned a bare dict and outputSchema was None.
+        """
+        tool = mcp._tool_manager._tools["tool_plan_topic"]
+        assert tool.output_schema is not None
+        props = tool.output_schema.get("properties", {})
+        assert {"success", "message", "artifacts"} <= set(props)
+
     def test_openworld_tools(self) -> None:
         """Tools that call external APIs should have openWorldHint=True."""
         openworld_tools = {

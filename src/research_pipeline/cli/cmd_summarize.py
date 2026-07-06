@@ -11,7 +11,10 @@ from research_pipeline.config.loader import load_config
 from research_pipeline.llm.providers import create_llm_provider
 from research_pipeline.models.conversion import ConvertManifestEntry
 from research_pipeline.models.query_plan import QueryPlan
-from research_pipeline.models.screening import RelevanceDecision
+from research_pipeline.models.screening import (
+    RelevanceDecision,
+    parse_shortlist_lenient,
+)
 from research_pipeline.models.summary import PaperExtractionRecord
 from research_pipeline.storage.manifests import read_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
@@ -72,7 +75,7 @@ def run_summarize(
     shortlist: list[RelevanceDecision] = []
     if shortlist_path.exists():
         raw_sl = json.loads(shortlist_path.read_text(encoding="utf-8"))
-        shortlist = [RelevanceDecision.model_validate(d) for d in raw_sl]
+        shortlist = [parse_shortlist_lenient(d) for d in raw_sl]
 
     title_map: dict[str, str] = {d.paper.arxiv_id: d.paper.title for d in shortlist}
 
@@ -163,6 +166,23 @@ def run_summarize(
             indent=2,
         ),
         encoding="utf-8",
+    )
+
+    # Range sanity check over extracted statistics: surface impossible values
+    # (e.g. a Spearman rho of -1.8) rather than letting them survive verbatim
+    # into the report. Written as a sidecar artifact (no schema change) (#33).
+    from research_pipeline.quality.stat_sanity import find_stat_anomalies
+
+    stat_warnings: list[dict[str, object]] = []
+    for record in extraction_records:
+        anomalies = find_stat_anomalies(record.model_dump(mode="json"))
+        if anomalies:
+            logger.warning(
+                "Out-of-range statistics in %s: %s", record.paper_id, anomalies
+            )
+            stat_warnings.append({"paper_id": record.paper_id, "warnings": anomalies})
+    (sum_dir / "stat_warnings.json").write_text(
+        json.dumps(stat_warnings, indent=2), encoding="utf-8"
     )
 
     if step == "extraction":

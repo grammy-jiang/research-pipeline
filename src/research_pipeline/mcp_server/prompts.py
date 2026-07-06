@@ -1,7 +1,10 @@
 """MCP prompt templates for common research workflows.
 
 Each function returns a list of message dicts (role + content) that
-clients can use as conversation starters.
+clients can use as conversation starters. Per the MCP specification, prompt
+messages may only use the ``user`` or ``assistant`` role (there is no
+``system`` role on the wire), so role framing is folded into the leading
+``user`` message.
 """
 
 from __future__ import annotations
@@ -15,19 +18,14 @@ def research_topic_prompt(topic: str) -> list[dict[str, str]]:
     """Generate a full research workflow guidance prompt."""
     return [
         {
-            "role": "system",
-            "content": (
-                "You are an academic research assistant. Guide the user through "
-                "a systematic literature review using the research-pipeline tools. "
-                "The pipeline stages are: plan → verify-plan → search → screen → "
-                "download → convert → extract → summarize → validate-report → "
-                "check-completion. At each stage, explain what is "
-                "happening and suggest next steps."
-            ),
-        },
-        {
             "role": "user",
             "content": (
+                "Act as an academic research assistant and guide me through a "
+                "systematic literature review using the research-pipeline tools. "
+                "The pipeline stages are: plan → verify-plan → search → screen → "
+                "download → convert → extract → summarize → validate-report → "
+                "check-completion. At each stage, explain what is happening and "
+                "suggest next steps.\n\n"
                 f"I want to research the topic: **{topic}**\n\n"
                 "Please help me:\n"
                 "1. Create a query plan with good search terms\n"
@@ -47,16 +45,11 @@ def analyze_paper_prompt(run_id: str, paper_id: str) -> list[dict[str, str]]:
     """Generate a prompt to analyze a specific converted paper."""
     return [
         {
-            "role": "system",
-            "content": (
-                "You are an expert academic paper analyst. Provide a thorough, "
-                "critical analysis of the paper. Focus on methodology, key findings, "
-                "limitations, and contributions to the field."
-            ),
-        },
-        {
             "role": "user",
             "content": (
+                "Act as an expert academic paper analyst and provide a thorough, "
+                "critical analysis of the paper. Focus on methodology, key "
+                "findings, limitations, and contributions to the field.\n\n"
                 f"Analyze the paper with ID **{paper_id}** from run **{run_id}**.\n\n"
                 f"Read the paper markdown from resource "
                 f"`runs://{run_id}/markdown/{paper_id}` and provide:\n\n"
@@ -76,16 +69,11 @@ def compare_papers_prompt(run_id: str) -> list[dict[str, str]]:
     """Generate a prompt to compare all papers in a run."""
     return [
         {
-            "role": "system",
-            "content": (
-                "You are an expert at comparative literature analysis. "
-                "Synthesize findings across multiple papers, identifying "
-                "agreements, contradictions, gaps, and emerging themes."
-            ),
-        },
-        {
             "role": "user",
             "content": (
+                "Act as an expert at comparative literature analysis. Synthesize "
+                "findings across multiple papers, identifying agreements, "
+                "contradictions, gaps, and emerging themes.\n\n"
                 f"Compare all papers in run **{run_id}**.\n\n"
                 f"Read the synthesis report from resource "
                 f"`runs://{run_id}/synthesis` and paper summaries to produce:\n\n"
@@ -104,19 +92,13 @@ def refine_search_prompt(run_id: str) -> list[dict[str, str]]:
     """Generate a prompt to refine search based on current results."""
     return [
         {
-            "role": "system",
-            "content": (
-                "You are a search refinement expert. Analyze current search results "
-                "and suggest improved query terms, additional sources, or adjusted "
-                "screening criteria to improve coverage."
-            ),
-        },
-        {
             "role": "user",
             "content": (
+                "Act as a search refinement expert. Analyze the current search "
+                "results and suggest improved query terms, additional sources, or "
+                "adjusted screening criteria to improve coverage.\n\n"
                 f"Review the search results for run **{run_id}**.\n\n"
-                f"Read the candidates from `runs://{run_id}/candidates` and "
-                f"the candidates from `runs://{run_id}/candidates`, then:\n\n"
+                f"Read the candidates from `runs://{run_id}/candidates`, then:\n\n"
                 "1. **Coverage Assessment**: Are key subtopics well-covered?\n"
                 "2. **Missing Areas**: What relevant topics are underrepresented?\n"
                 "3. **Query Suggestions**: New search terms or query variants\n"
@@ -132,16 +114,11 @@ def quality_assessment_prompt(run_id: str) -> list[dict[str, str]]:
     """Generate a prompt to interpret quality evaluation scores."""
     return [
         {
-            "role": "system",
-            "content": (
-                "You are a research quality assessment expert. Interpret "
-                "quality evaluation scores and provide actionable recommendations "
-                "on which papers to prioritize."
-            ),
-        },
-        {
             "role": "user",
             "content": (
+                "Act as a research quality assessment expert. Interpret the "
+                "quality evaluation scores and provide actionable recommendations "
+                "on which papers to prioritize.\n\n"
                 f"Assess the quality of papers in run **{run_id}**.\n\n"
                 f"Read the quality scores from `runs://{run_id}/quality` and:\n\n"
                 "1. **Score Interpretation**: What do the scores mean in context?\n"

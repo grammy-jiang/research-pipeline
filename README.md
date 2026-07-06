@@ -242,6 +242,11 @@ crash recovery.
 
 ## AI Skill And Agents
 
+Bundled skills: `research-pipeline`, `blueprint`, `daily-ai-intelligence`. (The downstream
+`architecture` and `ux-design` skills moved to the separate `design-pipeline` repo on
+2026-06-29; the chain still works — `setup` installs blueprint here, and design-pipeline
+installs the rest into the same `~/.claude/skills/`.)
+
 Install the bundled skill for Claude Code / GitHub Copilot and Codex, plus
 Claude Code sub-agent definitions:
 

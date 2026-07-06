@@ -16,6 +16,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 from jinja2 import BaseLoader, Environment
+from jinja2.sandbox import ImmutableSandboxedEnvironment
 
 from research_pipeline import __version__
 from research_pipeline.models.summary import CrossPaperSynthesisRecord, SynthesisReport
@@ -350,16 +351,25 @@ def render_report(
         ValueError: If *template_name* is not recognized and no custom
             template is provided.
     """
+    env: Environment
     if custom_template is not None:
         tmpl_str = custom_template
+        # A custom template may be attacker-controlled: tool_report reads it
+        # from a caller-supplied file path and passes the raw source here.
+        # Compile it in an immutable sandbox that blocks access to Python
+        # internals (__class__, __globals__, ...), closing the SSTI -> RCE
+        # hole. Output is Markdown, so autoescape stays off. See issue #35.
+        env = ImmutableSandboxedEnvironment(  # nosec B701
+            loader=BaseLoader(), autoescape=False
+        )
     elif template_name in TEMPLATES:
         tmpl_str = TEMPLATES[template_name]
+        env = Environment(loader=BaseLoader(), autoescape=False)  # nosec B701
     else:
         raise ValueError(
             f"Unknown template {template_name!r}. Available: {list_templates()}"
         )
 
-    env = Environment(loader=BaseLoader(), autoescape=False)  # nosec B701
     template = env.from_string(tmpl_str)
 
     timestamp = datetime.now(tz=UTC).strftime("%Y-%m-%d %H:%M UTC")

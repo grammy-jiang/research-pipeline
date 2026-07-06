@@ -633,6 +633,64 @@ class TestCmdDownload:
     @patch("research_pipeline.cli.cmd_download.download_batch")
     @patch("research_pipeline.cli.cmd_download.create_session")
     @patch("research_pipeline.cli.cmd_download.ArxivRateLimiter")
+    @patch("research_pipeline.cli.cmd_download.init_run")
+    @patch("research_pipeline.cli.cmd_download.load_config")
+    def test_max_per_run_cap_warns(
+        self,
+        mock_cfg,
+        mock_init,
+        mock_limiter,
+        mock_session,
+        mock_batch,
+        mock_write,
+        tmp_path,
+        capsys,
+    ):
+        """A cap-truncated shortlist must surface a warning, not silence (#29)."""
+        from research_pipeline.cli.cmd_download import run_download
+
+        cfg = _make_config(tmp_path)
+        cfg.download.max_per_run = 1
+        mock_cfg.return_value = cfg
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        screen_dir = run_dir / "screen"
+        screen_dir.mkdir(parents=True)
+        shortlist_data = [
+            {
+                "paper": {
+                    "arxiv_id": f"2301.0000{i}",
+                    "version": "v1",
+                    "title": "t",
+                    "authors": ["a"],
+                    "published": "2024-01-01T00:00:00Z",
+                    "updated": "2024-01-01T00:00:00Z",
+                    "abstract": "a",
+                    "abs_url": "",
+                    "pdf_url": "http://x",
+                },
+                "download": True,
+            }
+            for i in range(3)
+        ]
+        (screen_dir / "shortlist.json").write_text(
+            json.dumps(shortlist_data), encoding="utf-8"
+        )
+        dl_entry = MagicMock()
+        dl_entry.status = "downloaded"
+        dl_entry.model_dump.return_value = {"status": "downloaded"}
+        mock_batch.return_value = [dl_entry]  # 1 entry for 3 papers → 2 truncated
+
+        run_download(force=False, config_path=None, workspace=tmp_path, run_id="run1")
+
+        out = capsys.readouterr().out
+        assert "NOT downloaded" in out
+        assert "max_per_run" in out
+
+    @patch("research_pipeline.cli.cmd_download.write_jsonl")
+    @patch("research_pipeline.cli.cmd_download.download_batch")
+    @patch("research_pipeline.cli.cmd_download.create_session")
+    @patch("research_pipeline.cli.cmd_download.ArxivRateLimiter")
     @patch("research_pipeline.cli.cmd_download.read_jsonl")
     @patch("research_pipeline.cli.cmd_download.init_run")
     @patch("research_pipeline.cli.cmd_download.load_config")
@@ -1007,6 +1065,57 @@ class TestCmdExpand:
 
         client.fetch_related.assert_called_once()
         mock_write.assert_called_once()
+
+    @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
+    @patch("research_pipeline.cli.cmd_expand.RateLimiter")
+    @patch("research_pipeline.cli.cmd_expand.init_run")
+    @patch("research_pipeline.cli.cmd_expand.load_config")
+    def _run_expand_over_existing(
+        self, mock_cfg, mock_init, mock_limiter, mock_client_cls, tmp_path, replace
+    ):
+        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.storage.manifests import read_jsonl
+        from research_pipeline.storage.workspace import get_stage_dir
+
+        mock_cfg.return_value = _make_config(tmp_path)
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        expand_dir = get_stage_dir(run_dir, "expand")
+        expand_dir.mkdir(parents=True, exist_ok=True)
+        (expand_dir / "expanded_candidates.jsonl").write_text(
+            json.dumps({"arxiv_id": "OLD"})
+            + "\n"
+            + json.dumps({"arxiv_id": "2301.00002"})
+            + "\n"
+        )
+        dup = MagicMock()
+        dup.arxiv_id = "2301.00002"
+        dup.model_dump.return_value = {"arxiv_id": "2301.00002"}
+        fresh = MagicMock()
+        fresh.arxiv_id = "2301.00003"
+        fresh.model_dump.return_value = {"arxiv_id": "2301.00003"}
+        client = MagicMock()
+        client.fetch_related.return_value = [dup, fresh]
+        mock_client_cls.return_value = client
+
+        run_expand(
+            paper_ids=["2301.00001"],
+            config_path=None,
+            workspace=tmp_path,
+            run_id="run1",
+            replace=replace,
+        )
+        records = read_jsonl(expand_dir / "expanded_candidates.jsonl")
+        return {r["arxiv_id"] for r in records}
+
+    def test_expand_merges_with_existing(self, tmp_path):
+        ids = self._run_expand_over_existing(tmp_path=tmp_path, replace=False)
+        # OLD preserved, 2301.00002 deduped, 2301.00003 added (#27)
+        assert ids == {"OLD", "2301.00002", "2301.00003"}
+
+    def test_expand_replace_overwrites(self, tmp_path):
+        ids = self._run_expand_over_existing(tmp_path=tmp_path, replace=True)
+        assert ids == {"2301.00002", "2301.00003"}
 
     @patch("research_pipeline.cli.cmd_expand.write_jsonl")
     @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
@@ -1464,9 +1573,11 @@ class TestCmdQuality:
         search_dir = run_dir / "search"
         search_dir.mkdir(parents=True)
 
-        candidate_data = _candidate_dict()
+        # shortlist.json holds RelevanceDecision-shaped entries (#28); wrap the
+        # candidate. parse_shortlist_lenient fills the remaining defaults.
+        decision_data = {"paper": _candidate_dict()}
         (screen_dir / "shortlist.json").write_text(
-            json.dumps([candidate_data]), encoding="utf-8"
+            json.dumps([decision_data]), encoding="utf-8"
         )
 
         qs = MagicMock()
@@ -1629,6 +1740,46 @@ class TestCmdSearch:
 
         mock_dedup.assert_called_once()
         mock_write.assert_called_once()
+
+    @patch("research_pipeline.cli.cmd_search.write_jsonl")
+    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
+    @patch("research_pipeline.cli.cmd_search._search_arxiv")
+    @patch("research_pipeline.cli.cmd_search.init_run")
+    @patch("research_pipeline.cli.cmd_search.load_config")
+    def test_zero_yield_source_warns_and_strict_exits(
+        self, mock_cfg, mock_init, mock_arxiv, mock_dedup, mock_write, tmp_path, capsys
+    ):
+        from research_pipeline.cli.cmd_search import run_search
+
+        mock_cfg.return_value = _make_config(tmp_path)
+        run_dir = tmp_path / "run1"
+        mock_init.return_value = ("run1", run_dir)
+        (run_dir / "plan").mkdir(parents=True)
+        (run_dir / "search").mkdir(parents=True)
+        mock_dedup.return_value = []
+        mock_arxiv.return_value = []  # zero yield (#20)
+
+        run_search(
+            topic="t",
+            resume=False,
+            config_path=None,
+            workspace=tmp_path,
+            run_id="run1",
+            source="arxiv",
+        )
+        captured = capsys.readouterr()
+        assert "contributed nothing" in (captured.out + captured.err)
+
+        with pytest.raises(click.exceptions.Exit):
+            run_search(
+                topic="t",
+                resume=False,
+                config_path=None,
+                workspace=tmp_path,
+                run_id="run1",
+                source="arxiv",
+                strict_sources=True,
+            )
 
     @patch("research_pipeline.cli.cmd_search.write_jsonl")
     @patch("research_pipeline.cli.cmd_search.dedup_cross_source")

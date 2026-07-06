@@ -165,6 +165,11 @@ def search(
             "dblp, huggingface, all (default: from config)."
         ),
     ),
+    strict_sources: bool = typer.Option(
+        False,
+        "--strict-sources",
+        help="Exit non-zero if any selected source yields no candidates or fails.",
+    ),
 ) -> None:
     """Search configured academic paper sources in parallel.
 
@@ -176,7 +181,9 @@ def search(
     from research_pipeline.cli.cmd_search import run_search
 
     opts = _common_options(verbose, config, workspace, run_id)
-    run_search(topic, resume=resume, source=source, **opts)
+    run_search(
+        topic, resume=resume, source=source, strict_sources=strict_sources, **opts
+    )
 
 
 @app.command()
@@ -552,6 +559,12 @@ def expand(
         "Stops early when hop yields fewer (diminishing returns). "
         "0 means no check (default 0).",
     ),
+    replace: bool = typer.Option(
+        False,
+        "--replace",
+        help="Overwrite expanded_candidates.jsonl instead of merging with any "
+        "existing file (default: merge by paper id).",
+    ),
 ) -> None:
     """Expand citation graph for specified papers.
 
@@ -589,6 +602,7 @@ def expand(
         snowball_decay_patience=snowball_decay_patience,
         bfs_budget=bfs_budget,
         bfs_min_new=bfs_min_new,
+        replace=replace,
         **opts,
     )
 
@@ -715,6 +729,12 @@ def setup(
         "-s",
         help="Create symlinks instead of copying files.",
     ),
+    check: bool = typer.Option(
+        False,
+        "--check",
+        help="Report broken skill/agent installs (dangling symlinks, stubs) "
+        "and exit without installing.",
+    ),
     force: bool = typer.Option(
         False,
         "--force",
@@ -782,6 +802,7 @@ def setup(
         _install_agent_files,
         _install_claude_mcp,
         _install_codex_mcp,
+        check_installation,
         run_setup,
     )
     from research_pipeline.infra.logging import setup_logging
@@ -791,6 +812,25 @@ def setup(
 
     skill_path = Path(skill_target) if skill_target else None
     agents_path = Path(agents_target) if agents_target else DEFAULT_AGENTS_DIR
+
+    if check:
+        problems = check_installation(agents_path)
+        if problems:
+            logger.warning("Found %d skill/agent install problem(s):", len(problems))
+            for problem in problems:
+                logger.warning("  - %s", problem)
+            logger.warning("Re-run 'research-pipeline setup --force' to repair.")
+        else:
+            logger.info("Skill/agent installation looks healthy.")
+        return
+
+    if symlink:
+        logger.warning(
+            "--symlink points into the version-pinned pipx venv; a Python "
+            "upgrade or 'pipx reinstall' will dangle these links and the skill "
+            "and agents will silently disappear. Prefer the default copy for "
+            "stable installs, or re-run 'setup --check' after upgrades."
+        )
     mcp_config_path = (
         Path(mcp_config_target) if mcp_config_target else DEFAULT_MCP_CONFIG_FILE
     )
@@ -1370,6 +1410,33 @@ def evaluate(
     evaluate_cmd(run_id=run_id, stage=stage, workspace=workspace)
 
 
+@app.command("verify")
+def verify(
+    run_id: str = typer.Option(..., "--run-id", help="Run ID to verify."),
+    stage: str = typer.Option(
+        "", "--stage", "-s", help="Specific stage (default: all)."
+    ),
+    config: Path | None = typer.Option(
+        None, "--config", "-c", help="Config TOML (for workspace resolution)."
+    ),
+    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    verbose: bool = typer.Option(False, "--verbose", "-v"),
+) -> None:
+    """Verify pipeline outputs against their schemas, exiting non-zero on failure.
+
+    Gate-friendly counterpart to ``evaluate``, used by the skill's manifest
+    validation gates.
+
+    Example: research-pipeline verify --run-id <RUN_ID> --stage plan
+    """
+    from research_pipeline.cli.cmd_evaluate import verify_cmd
+    from research_pipeline.infra.logging import setup_logging
+
+    level = logging.DEBUG if verbose else logging.INFO
+    setup_logging(level=level)
+    verify_cmd(run_id=run_id, stage=stage, config_path=config, workspace=workspace)
+
+
 @app.command("horizon")
 def horizon(
     score: float = typer.Option(
@@ -1714,6 +1781,12 @@ def report_command(
         "--output",
         help="Output Markdown file path.",
     ),
+    config: str = typer.Option(
+        "",
+        "--config",
+        help="Path to config TOML (for workspace resolution), for parity with "
+        "sibling stage commands.",
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
 ) -> None:
     """Render synthesis report using a configurable template.
@@ -1735,6 +1808,7 @@ def report_command(
         template=template,
         custom_template=custom_template,
         output=output,
+        config_path=Path(config) if config else None,
     )
 
 

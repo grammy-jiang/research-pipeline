@@ -11,9 +11,16 @@ import logging
 from pathlib import Path
 
 from mcp.server.fastmcp import Context, FastMCP
-from mcp.types import ToolAnnotations
+from mcp.types import LoggingLevel, ToolAnnotations
 
-from research_pipeline.mcp_server import completions, prompts, resources
+from research_pipeline.mcp_server import (
+    completions,
+    guard_wiring,
+    logging_state,
+    prompts,
+    resources,
+    toolsets,
+)
 from research_pipeline.mcp_server.schemas import (
     AnalyzeClaimsInput,
     AnalyzePapersInput,
@@ -64,6 +71,7 @@ from research_pipeline.mcp_server.schemas import (
     ScreenCandidatesInput,
     SearchInput,
     SummarizePapersInput,
+    ToolResult,
     ValidateReportInput,
     VerifyStageInput,
     WatchInput,
@@ -145,6 +153,19 @@ mcp = FastMCP(
 )
 
 
+@mcp._mcp_server.set_logging_level()
+async def _handle_set_logging_level(level: LoggingLevel) -> None:
+    """Honour ``logging/setLevel`` from the client.
+
+    The server emits ``notifications/message`` (via ``ctx.info/.warning/...``),
+    so per the MCP spec it MUST declare the ``logging`` capability — registering
+    this handler is exactly what advertises it in ``initialize`` — and honour
+    the client-set minimum level. Emissions are gated on this level in
+    ``tools.py::_log_info`` and ``workflow/telemetry.py``. See issue #41.
+    """
+    logging_state.set_min_level(level)
+
+
 @mcp.tool(
     annotations=ToolAnnotations(
         readOnlyHint=False,
@@ -158,7 +179,7 @@ def tool_plan_topic(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Create a structured query plan from a natural language research topic.
 
     Normalizes the topic, generates query variants and candidate arXiv
@@ -167,7 +188,7 @@ def tool_plan_topic(
     result = plan_topic(
         PlanTopicInput(topic=topic, workspace=workspace, run_id=run_id), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -185,7 +206,7 @@ def tool_search(
     topic: str = "",
     resume: bool = False,
     source: str = "",
-) -> dict:
+) -> ToolResult:
     """Search configured academic paper sources.
 
     Queries enabled sources with rate limiting, parses responses,
@@ -203,7 +224,7 @@ def tool_search(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -219,7 +240,7 @@ def tool_screen_candidates(
     workspace: str = "./workspace",
     run_id: str = "",
     resume: bool = False,
-) -> dict:
+) -> ToolResult:
     """Two-stage relevance screening: cheap BM25 scoring then shortlist selection.
 
     Reads candidates from the search stage, scores them, and produces
@@ -229,7 +250,7 @@ def tool_screen_candidates(
         ScreenCandidatesInput(workspace=workspace, run_id=run_id, resume=resume),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -245,7 +266,7 @@ def tool_download_pdfs(
     workspace: str = "./workspace",
     run_id: str = "",
     force: bool = False,
-) -> dict:
+) -> ToolResult:
     """Download shortlisted PDFs from arXiv with rate-limit compliance.
 
     Respects arXiv's 3-second rate limit. Downloads are idempotent
@@ -254,7 +275,7 @@ def tool_download_pdfs(
     result = download_pdfs(
         DownloadPdfsInput(workspace=workspace, run_id=run_id, force=force), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -271,7 +292,7 @@ def tool_convert_pdfs(
     run_id: str = "",
     force: bool = False,
     backend: str = "",
-) -> dict:
+) -> ToolResult:
     """Convert downloaded PDFs to Markdown.
 
     Supports multiple backends: docling, marker, pymupdf4llm (local) and
@@ -285,7 +306,7 @@ def tool_convert_pdfs(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -300,7 +321,7 @@ def tool_extract_content(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Extract structured content (chunks, sections) from converted Markdown.
 
     Performs chunking and indexing for downstream summarization.
@@ -308,7 +329,7 @@ def tool_extract_content(
     result = extract_content(
         ExtractContentInput(workspace=workspace, run_id=run_id), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -323,7 +344,7 @@ def tool_summarize_papers(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Generate per-paper summaries and cross-paper synthesis.
 
     Produces evidence-backed summaries with chunk citations,
@@ -332,7 +353,7 @@ def tool_summarize_papers(
     result = summarize_papers(
         SummarizePapersInput(workspace=workspace, run_id=run_id), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -349,7 +370,7 @@ def tool_run_pipeline(
     workspace: str = "./workspace",
     run_id: str = "",
     resume: bool = False,
-) -> dict:
+) -> ToolResult:
     """Run the full pipeline end-to-end.
 
     Stages: plan → search → screen → download → convert →
@@ -362,7 +383,7 @@ def tool_run_pipeline(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -377,7 +398,7 @@ def tool_get_run_manifest(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Inspect a run's manifest: stages completed, artifacts produced, timing.
 
     Use this to check the status of a pipeline run.
@@ -385,7 +406,7 @@ def tool_get_run_manifest(
     result = get_run_manifest(
         GetRunManifestInput(workspace=workspace, run_id=run_id), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -401,7 +422,7 @@ def tool_convert_file(
     ctx: Context,
     output_dir: str = "",
     backend: str = "",
-) -> dict:
+) -> ToolResult:
     """Convert a single PDF file to Markdown (standalone, no pipeline workspace needed).
 
     Supports multiple backends: docling, marker, pymupdf4llm (local) and
@@ -413,7 +434,7 @@ def tool_convert_file(
         ConvertFileInput(pdf_path=pdf_path, output_dir=output_dir, backend=backend),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -424,7 +445,7 @@ def tool_convert_file(
         openWorldHint=False,
     ),
 )
-def tool_list_backends(ctx: Context) -> dict:
+def tool_list_backends(ctx: Context) -> ToolResult:
     """List available PDF-to-Markdown converter backends.
 
     Returns the names of all registered backends: docling, marker,
@@ -433,7 +454,7 @@ def tool_list_backends(ctx: Context) -> dict:
     Each backend requires its corresponding extra to be installed.
     """
     result = list_backends(ListBackendsInput(), ctx=ctx)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -451,7 +472,7 @@ def tool_expand_citations(
     run_id: str = "",
     direction: str = "both",
     limit: int = 50,
-) -> dict:
+) -> ToolResult:
     """Expand citation graph for specified papers via Semantic Scholar.
 
     Fetches papers that cite or are referenced by the given seed papers.
@@ -468,7 +489,7 @@ def tool_expand_citations(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -483,7 +504,7 @@ def tool_evaluate_quality(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Compute composite quality scores for candidate papers.
 
     Evaluates papers on citation impact, venue reputation (CORE rankings),
@@ -493,7 +514,7 @@ def tool_evaluate_quality(
     result = evaluate_quality(
         EvaluateQualityInput(workspace=workspace, run_id=run_id), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -508,7 +529,7 @@ def tool_get_venue_tier(
     venue_name: str,
     ctx: Context,
     data_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Look up CORE venue tier and quality score for a venue.
 
     Returns the tier label (A*, A, B, C) and numeric score for the given
@@ -517,7 +538,7 @@ def tool_get_venue_tier(
     result = get_venue_tier(
         GetVenueTierInput(venue_name=venue_name, data_path=data_path), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -535,7 +556,7 @@ def tool_compute_semantic_scores(
     run_id: str = "",
     model_name: str = "allenai/specter2",
     batch_size: int = 32,
-) -> dict:
+) -> ToolResult:
     """Compute SPECTER2 semantic similarity scores for all candidate papers.
 
     Embeds the topic query and each candidate paper using SPECTER2, then
@@ -552,7 +573,7 @@ def tool_compute_semantic_scores(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -568,7 +589,7 @@ def tool_convert_rough(
     workspace: str = "./workspace",
     run_id: str = "",
     force: bool = False,
-) -> dict:
+) -> ToolResult:
     """Fast Tier 2 conversion of all downloaded PDFs using pymupdf4llm.
 
     CPU-only, fast conversion for all papers. The agent reads rough
@@ -578,7 +599,7 @@ def tool_convert_rough(
     result = convert_rough(
         ConvertRoughInput(workspace=workspace, run_id=run_id, force=force), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -596,7 +617,7 @@ def tool_convert_fine(
     run_id: str = "",
     force: bool = False,
     backend: str = "",
-) -> dict:
+) -> ToolResult:
     """High-quality Tier 3 conversion of selected PDFs.
 
     Converts agent-selected papers using docling, marker, or cloud
@@ -613,7 +634,7 @@ def tool_convert_fine(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -629,7 +650,7 @@ def tool_manage_index(
     list_papers: bool = False,
     gc: bool = False,
     db_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Manage the global paper index for incremental runs.
 
     Browse indexed papers (list_papers=true) or clean stale entries
@@ -638,7 +659,7 @@ def tool_manage_index(
     result = manage_index(
         ManageIndexInput(list_papers=list_papers, gc=gc, db_path=db_path), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -655,7 +676,7 @@ def tool_analyze_papers(
     run_id: str = "",
     collect: bool = False,
     paper_ids: list[str] | None = None,
-) -> dict:
+) -> ToolResult:
     """Prepare per-paper analysis tasks or validate collected results.
 
     Without collect=True: discovers converted papers, generates analysis
@@ -671,7 +692,7 @@ def tool_analyze_papers(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -687,7 +708,7 @@ def tool_validate_report(
     report_path: str = "",
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Validate a research report for completeness and quality.
 
     Checks for 14 required sections, confidence-level annotations,
@@ -700,7 +721,7 @@ def tool_validate_report(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -716,7 +737,7 @@ def tool_compare_runs(
     run_id_b: str,
     ctx: Context,
     workspace: str = "./workspace",
-) -> dict:
+) -> ToolResult:
     """Compare two pipeline runs and produce a structured diff.
 
     Analyzes paper overlap, gap resolution, confidence-level changes,
@@ -728,7 +749,7 @@ def tool_compare_runs(
         CompareRunsInput(workspace=workspace, run_id_a=run_id_a, run_id_b=run_id_b),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -744,7 +765,7 @@ def tool_verify_stage(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
-) -> dict:
+) -> ToolResult:
     """Verify structural completeness of a pipeline stage output.
 
     Runs structural verification gates (not LLM-based) to confirm
@@ -756,7 +777,7 @@ def tool_verify_stage(
         VerifyStageInput(workspace=workspace, run_id=run_id, stage=stage),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -776,7 +797,7 @@ def tool_record_feedback(
     reason: str = "",
     show: bool = False,
     adjust: bool = False,
-) -> dict:
+) -> ToolResult:
     """Record user accept/reject feedback on screened papers.
 
     Stores decisions in a persistent SQLite database. Accumulated
@@ -798,7 +819,7 @@ def tool_record_feedback(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -816,7 +837,7 @@ def tool_query_eval_log(
     channel: str = "all",
     stage: str = "",
     limit: int = 50,
-) -> dict:
+) -> ToolResult:
     """Query three-channel evaluation logs for a pipeline run.
 
     Three channels capture different aspects of execution:
@@ -836,7 +857,7 @@ def tool_query_eval_log(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -856,7 +877,7 @@ def tool_aggregate_evidence(
     similarity_threshold: float = 0.7,
     strip_rhetoric: bool = True,
     output_format: str = "text",
-) -> dict:
+) -> ToolResult:
     """Aggregate evidence from synthesis, stripping rhetoric.
 
     Processes synthesis report through evidence-only aggregation:
@@ -878,12 +899,12 @@ def tool_aggregate_evidence(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -896,7 +917,7 @@ def tool_export_html(
     markdown_file: str = "",
     title: str = "Research Report",
     output: str = "",
-) -> dict:
+) -> ToolResult:
     """Export synthesis report as self-contained HTML.
 
     Two modes:
@@ -914,7 +935,7 @@ def tool_export_html(
         ),
         ctx=ctx,
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -927,7 +948,7 @@ def tool_export_html(
 )
 async def tool_model_routing_info(
     config_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Show current phase-aware model routing configuration.
 
     Returns which LLM provider is assigned to each phase tier
@@ -937,7 +958,7 @@ async def tool_model_routing_info(
 
     params = ModelRoutingInfoInput(config_path=config_path)
     result = model_routing_info_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -950,7 +971,7 @@ async def tool_model_routing_info(
 )
 async def tool_gate_info(
     config_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Show current HITL gate configuration.
 
     Returns which stages have approval gates and whether
@@ -960,7 +981,7 @@ async def tool_gate_info(
 
     params = GateInfoInput(config_path=config_path)
     result = gate_info_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -973,8 +994,8 @@ async def tool_gate_info(
 )
 async def tool_coherence(
     run_ids: list[str],
-    workspace: str = "runs",
-) -> dict:
+    workspace: str = "./workspace",
+) -> ToolResult:
     """Evaluate multi-session coherence across pipeline runs.
 
     Computes factual consistency, temporal ordering, knowledge update
@@ -988,7 +1009,7 @@ async def tool_coherence(
 
     params = CoherenceInput(run_ids=run_ids, workspace=workspace)
     result = coherence_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1000,13 +1021,13 @@ async def tool_coherence(
     ),
 )
 async def tool_consolidation(
-    workspace: str = "runs",
+    workspace: str = "./workspace",
     run_ids: list[str] | None = None,
     dry_run: bool = False,
     capacity: int = 100,
     threshold: float = 0.8,
     min_support: int = 2,
-) -> dict:
+) -> ToolResult:
     """Consolidate cross-run memory: compress episodes, promote rules, prune stale.
 
     Implements episodic → semantic consolidation following the SEA/MLMF
@@ -1032,23 +1053,23 @@ async def tool_consolidation(
         min_support=min_support,
     )
     result = consolidation_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
     ),
 )
 async def tool_blinding_audit(
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     run_id: str = "",
     threshold: float = 0.4,
     store_results: bool = True,
-) -> dict:
+) -> ToolResult:
     """Run epistemic blinding audit to detect LLM prior contamination.
 
     Implements A/B blinding protocol (arXiv 2604.06013): scans analysis
@@ -1070,12 +1091,12 @@ async def tool_blinding_audit(
         store_results=store_results,
     )
     result = blinding_audit_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1083,11 +1104,11 @@ async def tool_blinding_audit(
 )
 async def tool_dual_metrics(
     query: str,
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     run_ids: list[str] | None = None,
     k: int = 5,
     store_results: bool = True,
-) -> dict:
+) -> ToolResult:
     """Evaluate pipeline runs using Pass@k + Pass[k] dual metrics.
 
     Computes capability ceiling (Pass@k) and reliability floor (Pass[k])
@@ -1113,7 +1134,7 @@ async def tool_dual_metrics(
         store_results=store_results,
     )
     result = dual_metrics_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1126,10 +1147,10 @@ async def tool_dual_metrics(
 )
 async def tool_cbr_lookup(
     topic: str,
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     max_results: int = 5,
     min_quality: float = 0.0,
-) -> dict:
+) -> ToolResult:
     """Look up similar past cases and recommend a research strategy.
 
     Uses Case-Based Reasoning (arXiv 2506.18096) to retrieve successful
@@ -1150,7 +1171,7 @@ async def tool_cbr_lookup(
         min_quality=min_quality,
     )
     result = cbr_lookup_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1164,10 +1185,10 @@ async def tool_cbr_lookup(
 async def tool_cbr_retain(
     run_id: str,
     topic: str,
-    workspace: str = "workspace",
+    workspace: str = "./workspace",
     outcome: str = "unknown",
     strategy_notes: str = "",
-) -> dict:
+) -> ToolResult:
     """Store a completed pipeline run as a CBR case.
 
     Extracts strategy information (queries, sources, quality) from run
@@ -1190,7 +1211,7 @@ async def tool_cbr_retain(
         strategy_notes=strategy_notes,
     )
     result = cbr_retain_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1205,7 +1226,7 @@ async def tool_kg_quality(
     db_path: str = "",
     staleness_days: float = 365.0,
     sample_size: int = 0,
-) -> dict:
+) -> ToolResult:
     """Evaluate knowledge graph quality across 5 dimensions.
 
     Three-layer composable architecture (TKDE 2022 + Text2KGBench):
@@ -1224,7 +1245,7 @@ async def tool_kg_quality(
         sample_size=sample_size,
     )
     result = kg_quality_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1242,7 +1263,7 @@ async def tool_adaptive_stopping(
     min_results: int = 5,
     max_budget: int = 500,
     relevance_threshold: float = 0.5,
-) -> dict:
+) -> ToolResult:
     """Evaluate query-adaptive retrieval stopping criteria.
 
     Three strategies based on query type (HingeMem WWW '26):
@@ -1269,7 +1290,7 @@ async def tool_adaptive_stopping(
         relevance_threshold=relevance_threshold,
     )
     result = adaptive_stopping_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1283,11 +1304,11 @@ async def tool_adaptive_stopping(
 async def tool_confidence_layers(
     run_id: str,
     config_path: str = "",
-    workspace: str = "",
+    workspace: str = "./workspace",
     l4_threshold: float = 0.50,
     damping: float = 0.80,
     calibrate: bool = False,
-) -> dict:
+) -> ToolResult:
     """Score claims through the 4-layer confidence architecture.
 
     L1 (fast signal) → L2 (adaptive granularity) → L3 (DINCO calibration)
@@ -1312,7 +1333,7 @@ async def tool_confidence_layers(
         calibrate=calibrate,
     )
     result = confidence_layers_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1369,7 +1390,7 @@ async def tool_research_workflow(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1380,7 +1401,7 @@ async def tool_export_bibtex(
     stage: str = "screen",
     output: str = "",
     workspace: str = "./workspace",
-) -> dict:
+) -> ToolResult:
     """Export papers from a pipeline stage as BibTeX.
 
     Reads candidate JSONL files from the specified stage and produces
@@ -1399,12 +1420,12 @@ async def tool_export_bibtex(
         workspace=workspace,
     )
     result = export_bibtex_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1416,7 +1437,7 @@ async def tool_report(
     custom_template: str = "",
     output: str = "",
     workspace: str = "./workspace",
-) -> dict:
+) -> ToolResult:
     """Render a synthesis report using a configurable template.
 
     Reads synthesis_report.json or synthesis.json from the summarize stage
@@ -1438,12 +1459,12 @@ async def tool_report(
         workspace=workspace,
     )
     result = report_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1455,7 +1476,7 @@ async def tool_cluster(
     threshold: float = 0.15,
     output: str = "",
     workspace: str = "./workspace",
-) -> dict:
+) -> ToolResult:
     """Cluster papers by topic similarity using TF-IDF.
 
     Groups screened candidates into topically coherent clusters for
@@ -1476,7 +1497,7 @@ async def tool_cluster(
         workspace=workspace,
     )
     result = cluster_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1492,7 +1513,7 @@ async def tool_enrich(
     stage: str = "candidates",
     workspace: str = "./workspace",
     config_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Enrich candidates with missing abstracts/metadata from Semantic Scholar.
 
     Queries Semantic Scholar by DOI or title to fill in missing abstracts
@@ -1511,12 +1532,12 @@ async def tool_enrich(
         config_path=config_path,
     )
     result = enrich_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -1528,7 +1549,7 @@ async def tool_cite_context(
     output: str = "",
     workspace: str = "./workspace",
     config_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Extract citation contexts from converted Markdown papers.
 
     Finds citation markers in converted papers and extracts the
@@ -1549,7 +1570,7 @@ async def tool_cite_context(
         config_path=config_path,
     )
     result = cite_context_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1566,7 +1587,7 @@ async def tool_watch(
     max_results: int = 20,
     output: str = "",
     config_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Check for new papers matching saved watch queries on arXiv.
 
     Monitors saved queries for recently published papers. Designed
@@ -1587,7 +1608,7 @@ async def tool_watch(
         config_path=config_path,
     )
     result = watch_tool(params=params)
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1601,8 +1622,8 @@ async def tool_watch(
 def tool_analyze_claims(
     run_id: str,
     ctx: Context,
-    workspace: str = "",
-) -> dict:
+    workspace: str = "./workspace",
+) -> ToolResult:
     """Decompose paper summaries into atomic claims with evidence classification.
 
     Breaks each paper's summary into individual factual claims and classifies
@@ -1615,7 +1636,7 @@ def tool_analyze_claims(
     result = analyze_claims_tool(
         AnalyzeClaimsInput(run_id=run_id, workspace=workspace), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1629,8 +1650,8 @@ def tool_analyze_claims(
 def tool_score_claims(
     run_id: str,
     ctx: Context,
-    workspace: str = "",
-) -> dict:
+    workspace: str = "./workspace",
+) -> ToolResult:
     """Score confidence for decomposed claims using LLM evaluation.
 
     Assigns confidence scores to each atomic claim produced by
@@ -1643,7 +1664,7 @@ def tool_score_claims(
     result = score_claims_tool(
         ScoreClaimsInput(run_id=run_id, workspace=workspace), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1656,7 +1677,7 @@ def tool_score_claims(
 )
 def tool_kg_stats(
     db_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Show knowledge graph statistics.
 
     Returns entity and triple counts, type distributions, and
@@ -1666,7 +1687,7 @@ def tool_kg_stats(
         db_path: Path to KG database. Empty uses default.
     """
     result = kg_stats_tool(KGStatsInput(db_path=db_path))
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1680,7 +1701,7 @@ def tool_kg_stats(
 def tool_kg_query(
     entity_id: str,
     db_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Query an entity and its relations in the knowledge graph.
 
     Returns the entity details and all connected relations
@@ -1691,7 +1712,7 @@ def tool_kg_query(
         db_path: Path to KG database. Empty uses default.
     """
     result = kg_query_tool(KGQueryInput(entity_id=entity_id, db_path=db_path))
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1705,9 +1726,9 @@ def tool_kg_query(
 def tool_kg_ingest(
     run_id: str,
     ctx: Context,
-    workspace: str = "",
+    workspace: str = "./workspace",
     db_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Ingest pipeline results into the knowledge graph.
 
     Loads candidates and claim decompositions from a pipeline run
@@ -1721,7 +1742,7 @@ def tool_kg_ingest(
     result = kg_ingest_tool(
         KGIngestInput(run_id=run_id, workspace=workspace, db_path=db_path), ctx=ctx
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1735,7 +1756,7 @@ def tool_kg_ingest(
 def tool_memory_stats(
     episodic_db: str = "",
     kg_db: str = "",
-) -> dict:
+) -> ToolResult:
     """Show memory tier statistics.
 
     Returns statistics for episodic memory (past runs) and
@@ -1746,7 +1767,7 @@ def tool_memory_stats(
         kg_db: Path to KG database. Empty uses default.
     """
     result = memory_stats_tool(MemoryStatsInput(episodic_db=episodic_db, kg_db=kg_db))
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1760,7 +1781,7 @@ def tool_memory_stats(
 def tool_memory_episodes(
     limit: int = 20,
     episodic_db: str = "",
-) -> dict:
+) -> ToolResult:
     """List recent episodic memories (past pipeline runs).
 
     Returns recent pipeline run episodes with topic, paper counts,
@@ -1773,7 +1794,7 @@ def tool_memory_episodes(
     result = memory_episodes_tool(
         MemoryEpisodesInput(limit=limit, episodic_db=episodic_db)
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1788,7 +1809,7 @@ def tool_memory_search(
     topic: str,
     limit: int = 10,
     episodic_db: str = "",
-) -> dict:
+) -> ToolResult:
     """Search episodic memory for past runs on a topic.
 
     Finds previous pipeline runs that match the given topic,
@@ -1802,7 +1823,7 @@ def tool_memory_search(
     result = memory_search_tool(
         MemorySearchInput(topic=topic, limit=limit, episodic_db=episodic_db)
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1817,7 +1838,7 @@ def tool_evaluate(
     run_id: str,
     workspace: str = "./workspace",
     stage: str = "",
-) -> dict:
+) -> ToolResult:
     """Evaluate pipeline outputs against their schemas.
 
     Validates that pipeline stage outputs conform to expected
@@ -1831,7 +1852,7 @@ def tool_evaluate(
     result = evaluate_tool(
         EvaluateInput(run_id=run_id, workspace=workspace, stage=stage)
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1849,7 +1870,7 @@ def tool_horizon_metric(
     difficulty: float = 0.5,
     entropy_trend: float = 0.0,
     reliability: float = 1.0,
-) -> dict:
+) -> ToolResult:
     """Compute the Unified Horizon Metric (UHM).
 
     Combines quality, difficulty, horizon-length, and stability into a single
@@ -1873,7 +1894,7 @@ def tool_horizon_metric(
             reliability=reliability,
         )
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1887,7 +1908,7 @@ def tool_horizon_metric(
 def tool_rrp_diagnostic(
     report_text: str,
     shortlist_ids: list[str] | None = None,
-) -> dict:
+) -> ToolResult:
     """Recall / Reasoning / Presentation diagnostic (Theme 16).
 
     Decomposes a synthesis report's quality along three axes to localize
@@ -1904,7 +1925,7 @@ def tool_rrp_diagnostic(
             shortlist_ids=list(shortlist_ids or []),
         )
     )
-    return result.model_dump()
+    return result
 
 
 @mcp.tool(
@@ -1920,7 +1941,7 @@ def brief_poll_sources(
     workspace: str = "./workspace",
     date: str = "",
     fixture_base_dir: str = "",
-) -> dict:
+) -> ToolResult:
     """Poll configured daily AI intelligence sources.
 
     This technical-intelligence tool is networked only to registry-allowed
@@ -1933,7 +1954,7 @@ def brief_poll_sources(
             date=date,
             fixture_base_dir=fixture_base_dir,
         )
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -1950,7 +1971,7 @@ def brief_rank_events(
     registry_path: str = "",
     use_memory: bool = True,
     use_feedback: bool = True,
-) -> dict:
+) -> ToolResult:
     """Deduplicate and rank normalized daily intelligence events locally."""
     return brief_rank_events_tool(
         BriefRankEventsInput(
@@ -1960,7 +1981,7 @@ def brief_rank_events(
             use_memory=use_memory,
             use_feedback=use_feedback,
         )
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -1971,11 +1992,11 @@ def brief_rank_events(
         openWorldHint=False,
     ),
 )
-def brief_generate_daily(workspace: str = "./workspace", date: str = "") -> dict:
+def brief_generate_daily(workspace: str = "./workspace", date: str = "") -> ToolResult:
     """Generate a template-based daily AI intelligence Markdown brief."""
     return brief_generate_daily_tool(
         BriefGenerateDailyInput(workspace=workspace, date=date)
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -1986,11 +2007,11 @@ def brief_generate_daily(workspace: str = "./workspace", date: str = "") -> dict
         openWorldHint=False,
     ),
 )
-def brief_validate_report(workspace: str = "./workspace", date: str = "") -> dict:
+def brief_validate_report(workspace: str = "./workspace", date: str = "") -> ToolResult:
     """Validate daily brief sections, budgets, duplicate titles, and evidence links."""
     return brief_validate_report_tool(
         BriefValidateReportInput(workspace=workspace, date=date)
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -2006,7 +2027,7 @@ def brief_run(
     workspace: str = "./workspace",
     date: str = "",
     fixture_base_dir: str = "",
-) -> dict:
+) -> ToolResult:
     """Run poll, rank, generate, and validate for the daily intelligence brief."""
     return brief_run_tool(
         BriefRunInput(
@@ -2015,7 +2036,7 @@ def brief_run(
             date=date,
             fixture_base_dir=fixture_base_dir,
         )
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -2031,7 +2052,7 @@ def brief_export_obsidian(
     workspace: str = "./workspace",
     date: str = "",
     registry_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Export daily, topic, and source briefing notes under a configured vault."""
     return brief_export_obsidian_tool(
         BriefExportObsidianInput(
@@ -2040,7 +2061,7 @@ def brief_export_obsidian(
             date=date,
             registry_path=registry_path,
         )
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -2059,7 +2080,7 @@ def brief_record_feedback(
     date: str = "",
     reason: str = "",
     strength: float = 1.0,
-) -> dict:
+) -> ToolResult:
     """Record explicit local feedback for briefing ranking."""
     return brief_record_feedback_tool(
         BriefRecordFeedbackInput(
@@ -2071,7 +2092,7 @@ def brief_record_feedback(
             reason=reason,
             strength=strength,
         )
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -2086,7 +2107,7 @@ def brief_generate_dossier(
     cluster_id: str,
     workspace: str = "./workspace",
     date: str = "",
-) -> dict:
+) -> ToolResult:
     """Generate one manual hot-topic dossier from a ranked briefing cluster."""
     return brief_generate_dossier_tool(
         BriefGenerateDossierInput(
@@ -2094,7 +2115,7 @@ def brief_generate_dossier(
             workspace=workspace,
             date=date,
         )
-    ).model_dump()
+    )
 
 
 @mcp.tool(
@@ -2109,7 +2130,7 @@ def brief_weekly_synthesis(
     week: str,
     workspace: str = "./workspace",
     output_path: str = "",
-) -> dict:
+) -> ToolResult:
     """Generate a weekly daily-intelligence trend memo from local daily briefs."""
     return brief_weekly_synthesis_tool(
         BriefWeeklySynthesisInput(
@@ -2117,7 +2138,7 @@ def brief_weekly_synthesis(
             workspace=workspace,
             output_path=output_path,
         )
-    ).model_dump()
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -2488,6 +2509,16 @@ def prompt_quality_assessment(run_id: str) -> list[dict[str, str]]:
 async def handle_completion(ref, argument, context=None):  # type: ignore[no-untyped-def]
     """Auto-complete arguments for resource templates and prompts."""
     return await completions.handle_completion(ref, argument, context)
+
+
+# Prune tools to the operator-selected capability domains (#46). Runs after
+# every @mcp.tool() above is registered and before the guard, so the guard
+# only registers the tools that remain active.
+_active_toolsets = toolsets.apply_toolsets(mcp)
+
+# Wire the zero-trust guard into tool dispatch (#45). Must run after every
+# @mcp.tool() above has been registered so the registry is complete.
+_guard = guard_wiring.install_guard(mcp)
 
 
 if __name__ == "__main__":

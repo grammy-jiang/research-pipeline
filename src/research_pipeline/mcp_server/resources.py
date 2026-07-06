@@ -15,6 +15,58 @@ logger = logging.getLogger(__name__)
 DEFAULT_WORKSPACE = "./workspace"
 DEFAULT_RUNS_DIR = "./runs"
 
+# Cap on a single resources/read payload so one read cannot flood the client
+# context (a converted paper is tens of thousands of tokens). Oversized reads
+# are truncated with a notice that reports the true size. See issue #44.
+_MAX_RESOURCE_BYTES = 512 * 1024
+
+
+def _cap_text(text: str, source: str) -> str:
+    """Truncate an oversized text resource, appending a size notice."""
+    raw = text.encode("utf-8")
+    if len(raw) <= _MAX_RESOURCE_BYTES:
+        return text
+    head = raw[:_MAX_RESOURCE_BYTES].decode("utf-8", errors="ignore")
+    return (
+        f"{head}\n\n[truncated: {source} is {len(raw)} bytes; showing the "
+        f"first {_MAX_RESOURCE_BYTES}. Read the file directly for the full "
+        "content.]\n"
+    )
+
+
+def _cap_bytes(data: bytes, source: str) -> bytes:
+    """Truncate an oversized binary resource, logging the truncation."""
+    if len(data) <= _MAX_RESOURCE_BYTES:
+        return data
+    logger.warning(
+        "%s is %d bytes; truncating to the %d-byte resource cap",
+        source,
+        len(data),
+        _MAX_RESOURCE_BYTES,
+    )
+    return data[:_MAX_RESOURCE_BYTES]
+
+
+def _validate_id(value: str, kind: str) -> str:
+    """Reject path traversal in a caller-supplied identifier.
+
+    Resource URIs carry ``run_id``/``paper_id``/``date`` straight into a
+    filesystem path. Refuse empty values, ``..`` segments, absolute paths, and
+    NUL bytes so a read cannot escape the workspace root (#40).
+    """
+    if not value or ".." in value or value.startswith(("/", "\\")) or "\x00" in value:
+        raise ValueError(f"Invalid {kind}: {value!r}")
+    return value
+
+
+def _safe_join(root: Path, *parts: str) -> Path:
+    """Join *parts* under *root*, refusing anything that escapes it (#40)."""
+    base = root.resolve()
+    target = base.joinpath(*parts).resolve()
+    if not target.is_relative_to(base):
+        raise ValueError(f"Path escapes root {base}: {parts}")
+    return target
+
 
 def _find_runs_root() -> Path:
     """Find the runs directory, checking workspace/ and runs/ locations."""
@@ -27,9 +79,10 @@ def _find_runs_root() -> Path:
 
 def _get_run_root(run_id: str) -> Path | None:
     """Find the root directory for a specific run."""
+    _validate_id(run_id, "run_id")
     roots = [Path(DEFAULT_RUNS_DIR), Path(DEFAULT_WORKSPACE)]
     for root in roots:
-        run_path = root.resolve() / run_id
+        run_path = _safe_join(root, run_id)
         if run_path.is_dir():
             return run_path
     return None
@@ -62,10 +115,10 @@ def get_run_manifest(run_id: str) -> str:
     """Read a run's manifest as JSON."""
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     manifest_path = run_root / "run_manifest.json"
     if not manifest_path.exists():
-        return json.dumps({"error": f"No manifest for run '{run_id}'"})
+        raise ValueError(f"No manifest for run '{run_id}'")
     return manifest_path.read_text()
 
 
@@ -73,10 +126,10 @@ def get_run_plan(run_id: str) -> str:
     """Read a run's query plan as JSON."""
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     plan_path = run_root / "plan" / "query_plan.json"
     if not plan_path.exists():
-        return json.dumps({"error": f"No plan for run '{run_id}'"})
+        raise ValueError(f"No plan for run '{run_id}'")
     return plan_path.read_text()
 
 
@@ -84,43 +137,45 @@ def get_run_candidates(run_id: str) -> str:
     """Read a run's search candidates as JSONL."""
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     candidates_path = run_root / "search" / "candidates.jsonl"
     if not candidates_path.exists():
-        return json.dumps({"error": f"No candidates for run '{run_id}'"})
-    return candidates_path.read_text()
+        raise ValueError(f"No candidates for run '{run_id}'")
+    return _cap_text(candidates_path.read_text(), f"candidates for run '{run_id}'")
 
 
 def get_run_shortlist(run_id: str) -> str:
     """Read a run's screened shortlist as JSON."""
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     shortlist_path = run_root / "screen" / "shortlist.json"
     if not shortlist_path.exists():
-        return json.dumps({"error": f"No shortlist for run '{run_id}'"})
+        raise ValueError(f"No shortlist for run '{run_id}'")
     return shortlist_path.read_text()
 
 
 def get_paper_pdf(run_id: str, paper_id: str) -> bytes:
     """Read a downloaded paper's PDF as bytes."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return b""
+        raise ValueError(f"Run '{run_id}' not found")
     pdf_dir = run_root / "download" / "pdf"
     # Try exact filename, then glob
     for pattern in [f"{paper_id}.pdf", f"*{paper_id}*.pdf"]:
         matches = list(pdf_dir.glob(pattern))
         if matches:
-            return matches[0].read_bytes()
-    return b""
+            return _cap_bytes(matches[0].read_bytes(), f"PDF for paper '{paper_id}'")
+    raise ValueError(f"No PDF for paper '{paper_id}' in run '{run_id}'")
 
 
 def get_paper_markdown(run_id: str, paper_id: str) -> str:
     """Read a paper's converted markdown."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
 
     # Check convert/markdown, convert_rough, convert_fine
     for subdir in ["convert/markdown", "convert_fine", "convert_rough"]:
@@ -130,66 +185,68 @@ def get_paper_markdown(run_id: str, paper_id: str) -> str:
         for pattern in [f"{paper_id}.md", f"*{paper_id}*.md"]:
             matches = list(md_dir.glob(pattern))
             if matches:
-                return matches[0].read_text()
+                return _cap_text(
+                    matches[0].read_text(), f"markdown for paper '{paper_id}'"
+                )
 
-    return json.dumps(
-        {"error": f"No markdown for paper '{paper_id}' in run '{run_id}'"}
-    )
+    raise ValueError(f"No markdown for paper '{paper_id}' in run '{run_id}'")
 
 
 def get_paper_summary(run_id: str, paper_id: str) -> str:
     """Read a paper's summary as JSON."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     summary_dir = run_root / "summarize"
     for pattern in [f"{paper_id}_summary.json", f"*{paper_id}*.json"]:
         matches = list(summary_dir.glob(pattern))
         if matches:
             return matches[0].read_text()
-    return json.dumps({"error": f"No summary for paper '{paper_id}' in run '{run_id}'"})
+    raise ValueError(f"No summary for paper '{paper_id}' in run '{run_id}'")
 
 
 def get_paper_extraction(run_id: str, paper_id: str) -> str:
     """Read a paper's rich Step 1 extraction as JSON."""
+    _validate_id(paper_id, "paper_id")
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     extraction_dir = run_root / "summarize" / "extractions"
     for pattern in [f"{paper_id}.extraction.json", f"*{paper_id}*.extraction.json"]:
         matches = list(extraction_dir.glob(pattern))
         if matches:
-            return matches[0].read_text()
-    return json.dumps(
-        {"error": f"No extraction for paper '{paper_id}' in run '{run_id}'"}
-    )
+            return _cap_text(
+                matches[0].read_text(), f"extraction for paper '{paper_id}'"
+            )
+    raise ValueError(f"No extraction for paper '{paper_id}' in run '{run_id}'")
 
 
 def get_synthesis_report(run_id: str) -> str:
     """Read a run's cross-paper synthesis report."""
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     synthesis_path = run_root / "summarize" / "synthesis_report.md"
     if not synthesis_path.exists():
         # Try JSON variant
         synthesis_path = run_root / "summarize" / "synthesis_report.json"
     if not synthesis_path.exists():
-        return json.dumps({"error": f"No synthesis report for run '{run_id}'"})
-    return synthesis_path.read_text()
+        raise ValueError(f"No synthesis report for run '{run_id}'")
+    return _cap_text(synthesis_path.read_text(), f"synthesis for run '{run_id}'")
 
 
 def get_quality_scores(run_id: str) -> str:
     """Read a run's quality evaluation scores as JSON."""
     run_root = _get_run_root(run_id)
     if run_root is None:
-        return json.dumps({"error": f"Run '{run_id}' not found"})
+        raise ValueError(f"Run '{run_id}' not found")
     quality_path = run_root / "quality" / "quality_scores.json"
     if not quality_path.exists():
         # Try JSONL variant
         quality_path = run_root / "quality" / "quality_scores.jsonl"
     if not quality_path.exists():
-        return json.dumps({"error": f"No quality scores for run '{run_id}'"})
+        raise ValueError(f"No quality scores for run '{run_id}'")
     return quality_path.read_text()
 
 
@@ -217,11 +274,12 @@ def get_global_index() -> str:
             }
         )
     except Exception as exc:
-        return json.dumps({"error": str(exc), "count": 0, "papers": []})
+        raise ValueError(f"Global paper index unavailable: {exc}") from exc
 
 
 def _get_briefing_root(date: str) -> Path:
-    return Path(DEFAULT_WORKSPACE).resolve() / "briefings" / date
+    _validate_id(date, "date")
+    return _safe_join(Path(DEFAULT_WORKSPACE) / "briefings", date)
 
 
 def list_briefings() -> str:
@@ -247,7 +305,7 @@ def get_briefing_daily(date: str) -> str:
     """Read a daily intelligence brief."""
     path = _get_briefing_root(date) / "reports" / "daily.md"
     if not path.exists():
-        return json.dumps({"error": f"No daily brief for {date}"})
+        raise ValueError(f"No daily brief for {date}")
     return path.read_text()
 
 
@@ -255,7 +313,7 @@ def get_briefing_ranked(date: str) -> str:
     """Read ranked briefing clusters JSONL."""
     path = _get_briefing_root(date) / "ranked" / "ranked_clusters.jsonl"
     if not path.exists():
-        return json.dumps({"error": f"No ranked clusters for {date}"})
+        raise ValueError(f"No ranked clusters for {date}")
     return path.read_text()
 
 
@@ -263,7 +321,7 @@ def get_briefing_telemetry(date: str) -> str:
     """Read briefing telemetry JSONL."""
     path = _get_briefing_root(date) / "telemetry.jsonl"
     if not path.exists():
-        return json.dumps({"error": f"No briefing telemetry for {date}"})
+        raise ValueError(f"No briefing telemetry for {date}")
     return path.read_text()
 
 
@@ -271,7 +329,7 @@ def get_briefing_validation(date: str) -> str:
     """Read briefing validation JSON."""
     path = _get_briefing_root(date) / "validation" / "validation.json"
     if not path.exists():
-        return json.dumps({"error": f"No briefing validation for {date}"})
+        raise ValueError(f"No briefing validation for {date}")
     return path.read_text()
 
 
@@ -279,5 +337,5 @@ def get_briefing_workflow_state(date: str) -> str:
     """Read briefing workflow state JSON."""
     path = _get_briefing_root(date) / "workflow_state.json"
     if not path.exists():
-        return json.dumps({"error": f"No briefing workflow state for {date}"})
+        raise ValueError(f"No briefing workflow state for {date}")
     return path.read_text()

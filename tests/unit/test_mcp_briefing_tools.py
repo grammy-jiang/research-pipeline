@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import inspect
+from pathlib import Path
 
 from research_pipeline.mcp_server import tools
 from research_pipeline.mcp_server.schemas import (
@@ -86,8 +87,12 @@ def test_brief_tool_returns_tool_result_on_failure(tmp_path) -> None:
     assert isinstance(result.message, str)
 
 
-def test_brief_tools_never_raise_user_facing(tmp_path) -> None:
-    """Each brief tool returns a ToolResult instead of raising."""
+def test_brief_tools_surface_errors_via_iserror(tmp_path) -> None:
+    """On missing inputs each brief tool either returns a ToolResult (an
+    expected business outcome) or raises a RuntimeError — which FastMCP maps to
+    isError=true — with the caller's home directory scrubbed from the message.
+    Genuine failures are no longer swallowed into a success-shaped ToolResult.
+    See #38/#44."""
     cases = [
         (
             "brief_validate_report_tool",
@@ -126,10 +131,20 @@ def test_brief_tools_never_raise_user_facing(tmp_path) -> None:
             BriefWeeklySynthesisInput(workspace=str(tmp_path), week="2026-W18"),
         ),
     ]
+    home = str(Path.home())
     for name, params in cases:
         fn = getattr(tools, name)
-        result = fn(params)
-        assert isinstance(result, ToolResult), name
+        result = None
+        error_msg = None
+        try:
+            result = fn(params)
+        except RuntimeError as exc:
+            error_msg = str(exc)
+        if error_msg is not None:
+            # Genuine failure surfaced as a raise (isError) with home scrubbed.
+            assert home not in error_msg, name
+        else:
+            assert isinstance(result, ToolResult), name
 
 
 def test_brief_common_input_is_base() -> None:

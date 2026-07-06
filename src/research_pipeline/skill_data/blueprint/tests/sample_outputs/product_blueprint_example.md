@@ -3,6 +3,12 @@
 > Illustrative example generated from `sample_inputs/strong_report_excerpt.md`.
 > Implementation-neutral by design. Citations are fictional, matching the
 > sample report.
+>
+> Independently verified by `scripts/check_blueprint_coherence.py`: it is
+> phase-clean (every MVP-0 gate's servicer is available at MVP-0) and carries
+> machine-readable coherence anchors, so it is a trustworthy expected-object.
+> Negative/adversarial fixtures live in `tests/regressions/` and
+> `tests/mutations/`; a weak-input output fixture lives beside this file.
 
 ## Contents
 
@@ -72,7 +78,7 @@ deletion that cannot be verified.
 | Gap-closure rounds | 2 |
 | Latest run ID | unknown |
 | Source readiness verdict | `HAS_GAPS` |
-| Blueprint skill version | 0.6.0 |
+| Blueprint skill version | 0.8.0 |
 | Generated at | `<date>` |
 | Output detail | standard |
 | Target domain | AI coding-agent memory |
@@ -215,20 +221,31 @@ rejected · contradiction ignored · no audit trail.
 contradictions visible · decisions traceable.
 **Traceability:** [2312.01234], [2401.05678].
 
+**Staging note:** At MVP-0 the redundancy gate uses **exact-match dedup** and a
+contradiction is **quarantined** (fail-closed) — both servicers ship at MVP-0.
+Human contradiction *review* is an MVP-1 enhancement over quarantined items
+(§9.7, §15.2); semantic dedup at repo scale is an open scaling question (§17).
+The coherence anchors below make this def→use staging machine-checkable.
+
 ```mermaid
 flowchart TD
     A[Candidate item proposed] --> B{Source trusted?}
     B -->|No| C[Quarantine]
     B -->|Yes| D{Relevant?}
     D -->|No| E[Reject]
-    D -->|Yes| F{Redundant?}
+    D -->|Yes| F{Redundant? exact match}
     F -->|Yes| G[Update existing]
     F -->|No| H{Contradicts existing?}
-    H -->|Yes| I[Flag → human review]
+    H -->|Yes| I[Quarantine as contradiction]
     H -->|No| J{Safe to store?}
     J -->|No| C
     J -->|Yes| K[Accept → audit event]
 ```
+
+<!-- coherence: id=wf1.gate.redundant stage=MVP-0 requires=wf1.servicer.dedup -->
+<!-- coherence: id=wf1.gate.contradicts stage=MVP-0 requires=wf1.servicer.quarantine -->
+<!-- coherence: id=wf1.servicer.dedup stage=MVP-0 -->
+<!-- coherence: id=wf1.servicer.quarantine stage=MVP-0 -->
 
 ### Workflow 2: Retrieval
 
@@ -299,6 +316,13 @@ transparent about what was stored, why, and what can be deleted.
 | Trigger | User Decision | Expected Product Support | MVP Stage |
 |---|---|---|---|
 | Admission flags a contradiction | Accept, reject, or reconcile | Surface the conflicting records + rationale for review | MVP-1 |
+
+<!-- coherence: id=sec9.hitl.contradiction stage=MVP-1 requires=wf1.servicer.quarantine -->
+
+At MVP-0 a contradiction is quarantined (the servicer that ships in the
+admission core); this MVP-1 review consumes those quarantined items, so the
+enhancement depends only on an already-available MVP-0 servicer — no phase
+inversion.
 
 ### 9.8 Failure and Recovery Expectations
 
@@ -393,7 +417,7 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 
 | Policy | Purpose | Inputs | Decision Options | Default | Escalation | Traceability |
 |---|---|---|---|---|---|---|
-| Admission | Gate writes | trust, relevance, redundancy, safety | admit/update/quarantine/reject | quarantine (fail-closed) | human review on contradiction | [2312.01234] |
+| Admission | Gate writes | trust, relevance, redundancy, safety | admit/update/quarantine/reject | quarantine (fail-closed) | quarantine on contradiction (MVP-0); human review MVP-1 | [2312.01234] |
 | Retrieval | Rank in scope | query, scope, freshness | return/empty | in-scope only | — | [Park et al., 2023] |
 | Promotion | Widen scope | record, target scope | allow/deny | deny | developer approval | [2401.05678] |
 | Forgetting | Remove records | request, references | tombstone/keep | manual-only (MVP) | flag if referenced | [2402.01234] |
@@ -431,11 +455,14 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 The smallest path that proves the thesis: an agent writes a gated memory
 and retrieves it within one scope.
 
-- Memory Admission workflow + policy (fail-closed).
+- Memory Admission workflow + policy (fail-closed): the redundancy gate uses
+  exact-match dedup and contradictions are quarantined (not admitted) — both
+  servicers ship at MVP-0.
 - Hybrid Retrieval, local scope only.
 
 ### 15.2 MVP-1 — First Usable Version
 
+- Human contradiction review over the MVP-0 quarantined contradictions.
 - Scoped records (local/project) with explicit promotion.
 - Verified deletion promoted to a first-class workflow.
 
@@ -469,7 +496,8 @@ is verifiable in the audit log.
 
 - **Phase 0 — Clarification:** confirm scope model and audit needs.
 - **Phase 1 — Core MVP:** admission, hybrid retrieval, scoping, deletion.
-- **Phase 2 — Governance hardening:** contradiction review, dedup at scale.
+- **Phase 2 — Governance hardening:** human contradiction review (over MVP-0
+  quarantined items), semantic dedup at repo scale.
 - **Phase 3 — Expansion:** team scope, hierarchical retrieval.
 - **Phase 4 — Research extensions:** auto-consolidation *after* validation.
 
@@ -480,8 +508,14 @@ is verifiable in the audit log.
 | Question | Why It Matters | Validation Method | Blocks MVP? | Gap Source |
 |---|---|---|---|---|
 | Optimal consolidation frequency? | Affects auto-consolidation safety | Offline cadence sweep | No | ACADEMIC |
-| Dedup correctness at repo scale? | Storage + recall quality | Scenario test on large corpus | No | ENGINEERING (MEDIUM) |
+| Semantic dedup precision at repo scale? | Recall quality *beyond* the MVP-0 exact-match gate | Scenario test on large corpus | No | ENGINEERING (MEDIUM) |
 | Is manual forgetting sufficient for v1? | Avoids losing useful records | User study | No | [2402.01234] |
+
+<!-- coherence: id=sec17.oq.dedupscale stage=open blocking=no -->
+
+The MVP-0 redundancy gate depends on exact-match dedup (an available MVP-0
+servicer), **not** on this open question. Semantic dedup precision at scale is
+a non-blocking scaling concern, so no MVP control depends on it.
 
 ---
 
@@ -601,11 +635,12 @@ research-pipeline
 | Gate | Status | Finding | Required Action | Blocks Technical Design? |
 |---|---|---|---|---|
 | Required sections + Contents present | PASS | All 20 sections + Contents. | — | No |
-| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.6.0 from manifest. | — | No |
+| Metadata integrity (no invented values) | PASS | 1 pipeline run / 2 gap-closure rounds kept distinct; skill version 0.8.0 from manifest. | — | No |
 | Thesis emphasis (primary architecture) | PASS | Thesis leads with gated admission + scoped records + retrieval, not a conditional mechanism. | — | No |
 | Research traceability / source fidelity | PASS | Every capability cited; deletion verification cites the source-report gap. | — | No |
 | Scope control (primary scope matches thesis) | PASS | Only agent + developer are Primary; no out-of-scope actors. | — | No |
-| MVP discipline (MVP-0 vs MVP-1 vs baselines) | PASS | MVP-0 is 2 capabilities; promotion + verified deletion deferred to MVP-1. | — | No |
+| MVP discipline (MVP-0 vs MVP-1 vs baselines) | PASS | MVP-0 is 2 capabilities (exact-match dedup + contradiction quarantine ship at MVP-0); promotion, verified deletion, and contradiction review deferred to MVP-1. | — | No |
+| Cross-phase coherence (deterministic guard) | PASS | Coherence anchors present; every MVP-0 gate's servicer is MVP-0 (exact-match dedup, quarantine); the MVP-1 contradiction review consumes MVP-0 quarantine; no MVP control depends on the non-blocking open dedup-scale question — `scripts/check_blueprint_coherence.py` passes with 0 FAILs. | — | No |
 | Release-gate confidence consistency | PASS | All release gates derive from HIGH-confidence safety findings. | — | No |
 | Implementation neutrality | PASS | No tech/vendor names; conceptual components only. | — | No |
 | Risk honesty | PASS | Poisoning, leakage, unverifiable deletion are release gates. | — | No |

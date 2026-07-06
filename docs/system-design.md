@@ -5,9 +5,9 @@
 | Field | Value |
 |-------|-------|
 | Document | System Design — research-pipeline |
-| Version | 0.17.14 |
+| Version | 0.17.15 |
 | Status | *Current* |
-| Last Updated | 2025 |
+| Last Updated | 2026-07-01 |
 | Source of Truth | Codebase at `src/research_pipeline/` |
 
 Changes to this document should accompany corresponding code changes in the same commit.
@@ -21,7 +21,7 @@ Changes to this document should accompany corresponding code changes in the same
 1. **Academic Paper Research Pipeline** — searches multiple academic databases, screens candidates, downloads PDFs, converts to Markdown, extracts structured content, and synthesises a cross-paper research report across 7 sequential stages.
 2. **Daily AI Intelligence Briefing Pipeline** — polls 12 heterogeneous intelligence sources, deduplicates and ranks events, and generates a concise daily brief across 4 stages.
 
-Both modes are exposed via a Typer CLI (`research-pipeline`), an MCP (Model Context Protocol) server with 69 tools, and a bundled AI skill/sub-agent package for Claude Code and GitHub Copilot.
+Both modes are exposed via a Typer CLI (`research-pipeline`), an MCP (Model Context Protocol) server with 64 tools, and a bundled AI skill/sub-agent package for Claude Code and GitHub Copilot.
 
 ---
 
@@ -355,10 +355,10 @@ flowchart TD
     end
 
     subgraph MCP["MCP Server (FastMCP)"]
-        MCPServer["server.py — entry point"]
-        MCPTools["tools.py — 69 tools"]
-        MCPRes["resources.py — 21 resources"]
-        MCPPrompts["prompts.py — 6 prompts"]
+        MCPServer["server.py — entry point; registers 64 tools / 21 resources / 6 prompts"]
+        MCPTools["tools.py — tool implementations"]
+        MCPRes["resources.py — resource implementations"]
+        MCPPrompts["prompts.py — prompt implementations"]
         Workflow["workflow/ — 6-layer harness"]
     end
 
@@ -700,7 +700,7 @@ Decomposes synthesis quality into Recall / Reasoning / Presentation axes to loca
 | Protocol | Model Context Protocol (MCP) |
 | Transport | stdio |
 | Framework | FastMCP |
-| Tools | 69 |
+| Tools | 64 |
 | Resources | 21 (URI-template based) |
 | Prompts | 6 |
 | Entry point | `research-pipeline mcp serve` |
@@ -823,9 +823,9 @@ All domain objects are Pydantic `BaseModel` subclasses in `src/research_pipeline
 | `feedback.db` | `~/.cache/research-pipeline/` | User screening feedback (ELO-style weights) |
 | `.blinding_audits.db` | `<workspace>/<run-id>/` | Per-run blinding audit results |
 | `.dual_metrics.db` | `<workspace>/<run-id>/` | Per-run Pass@k / Pass[k] records |
-| `feedback.db` (briefing) | `<workspace>/feedback/` | Briefing ranking feedback signals |
+| `feedback.db` (briefing) | `<workspace>/briefings/<date>/feedback/` | Briefing ranking feedback signals |
 | `audit_db` (eval log) | `<workspace>/<run-id>/` | Three-channel evaluation log (traces + audit + snapshots) |
-| Topic memory store | `<workspace>/` | <!-- UNKNOWN: exact path — inferred from `topic_memory_store.py` --> |
+| `topics.db` (briefing) | `<workspace>/briefings/<date>/memory/` | Briefing topic-memory store (Phase B); created under the per-date briefing run root by `briefing/topic_memory.py` |
 
 ### 19.3 Configuration Schemas
 
@@ -998,7 +998,6 @@ The workflow harness (`workflow/monitoring.py`) detects doom loops (repeated ide
 | No authentication on MCP | MCP server uses stdio transport with no auth layer; relies on OS-level process isolation | Low |
 | `reproducibility_weight = 0.0` | Quality dimension reserved but not implemented | Low |
 | Single-machine incremental index | `GlobalPaperIndex` is per-machine SQLite; no cross-machine sync | Low |
-| Topic memory store location | <!-- UNKNOWN: exact persistent path for topic memory store is not confirmed from code inspection --> | Info |
 
 ---
 

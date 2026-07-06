@@ -2,6 +2,117 @@
 
 All notable changes to research-pipeline.
 
+## [v0.31.0] — 2026-07-06
+
+Hardened the bundled `blueprint` design-chain skill: closed a 5-issue review
+(#81–#85) of its quality gate, test oracle, and internal duplication, each fix
+shipped with tests. The skill manifest moved 0.8.0 → 0.9.0.
+
+### blueprint skill
+
+- Add a deterministic cross-phase coherence guard
+  (`scripts/check_blueprint_coherence.py`) wired between `compose-blueprint` and
+  `quality-gate`: it materializes a phase-inversion def→use graph from stable
+  template anchors and fails loudly on an MVP-N node whose required servicer is
+  staged later, or an MVP control gated on a non-blocking open question (#81).
+- Strengthen the quality gate — citation fidelity for load-bearing claims, an
+  agent-mode READ/ACT authorization-boundary requirement with a matching risk
+  row, and an amend-without-a-new-report update playbook (#85).
+- Make the golden fixture a trustworthy oracle: regenerate it phase-coherent,
+  add labelled servicer-reachability / precondition-currency regression pairs, a
+  mutation-derived negative set, and a weak-input output fixture (#83).
+- Derive the required-section list from the template's own `## N.` headings with
+  an exhaustive check, ending the stale 18-vs-20 section-count drift (#82).
+- Single-source the skill's duplicated structure — assert the frontmatter
+  triggers against `When To Trigger`, reconcile the manifest orthogonality seams
+  (one owner for intake / input-quality / extraction / MVP membership), and have
+  the quality gate reference the generation prompt instead of restating it (#84).
+
+## [v0.30.0] — 2026-07-06
+
+Closed two review umbrellas: the MCP-server conformance/security review
+(#14, 13 issues) and the end-to-end pipeline session findings (#34, 18 issues).
+31 fixes/features, each shipped with tests; the unit suite grew to 4593 passing.
+
+### Security
+
+- Sandbox custom Jinja2 report templates with `ImmutableSandboxedEnvironment`,
+  closing an SSTI → RCE via `tool_report(custom_template=…)` (#35).
+- Confine resource paths: a `_safe_join` containment helper + traversal
+  validators on `run_id`/`paper_id`/`date`, plus a `run_id` schema validator (#40).
+- Wire the zero-trust `McpGuard` (registration + schema-hash integrity +
+  rate-limit + audit) into MCP tool dispatch (#45).
+- Scrub absolute filesystem paths from tool error messages (#44).
+
+### MCP server
+
+- Tools emit `isError` on failure and return `ToolResult`, so FastMCP now
+  populates `outputSchema` and `structuredContent` (#38).
+- Fix 5 broken prompts (invalid `role:"system"`) (#36); make elicitation gates
+  real and fail-closed on cancel (#37); declare the `logging` capability and
+  honour `setLevel` (#41).
+- Resource reads raise on missing artifacts instead of returning
+  success-shaped error blobs (#42); size-cap resource reads + search progress (#44).
+- Flip `readOnlyHint` on 7 writer tools (#39); unify the `workspace` default (#43).
+- Capability-domain toolsets via `RESEARCH_PIPELINE_MCP_TOOLSETS` to cut the
+  64-tool schema tax (#46); add an in-memory protocol test harness (#47).
+
+### Pipeline & CLI
+
+- New `verify` command so the skill's manifest validation gates work (#18).
+- Field-scope plain-language arXiv query variants (#16); per-source search
+  summary + zero-yield warning + `--strict-sources` (#20).
+- `quality`/`summarize`/`export-bibtex` parse shortlists leniently, with `llm`
+  coercion (#25, #28); `CandidateRecord` defaults/coerces null category fields (#24).
+- `expand` merges instead of overwriting (`--replace` for the old behaviour) (#27);
+  convert-rough/-fine rebuild the unified manifest (#30); download surfaces the
+  `max_per_run` cap truncation (#29).
+- Config loader raises on an explicit missing `--config` (#21); statistic range
+  sanity checks with a `stat_warnings.json` sidecar (#33).
+
+### Skill & setup
+
+- `setup --check` diagnoses dangling-symlink/stub installs; warn on fragile
+  `--symlink` (#19).
+- Skill runner validates MCP-kind tasks and captures the plan `run_id` (#17);
+  runner `--status` exit code locked (#22); `check_completion` finds
+  `validation_result.json` (#32); `report` accepts `--config` (#31); sub-agent
+  model guidance de-pinned + missing-agent fallback (#23); fix null-externalIds
+  warning spam in the citation graph (#26).
+
+## [v0.29.1] — 2026-06-30
+
+### Fixed (CI drift)
+
+CI had drifted red since master was last green (2026-06-07) — tooling and advisories moved while the
+code did not. Restored all gates to green:
+
+- **Lint:** excluded `docs/` (doc-build utility scripts) from ruff — a newer ruff flagged 34 latent
+  E501/style issues there.
+- **Security:** bumped CVE-flagged deps (python-multipart 0.0.32, starlette 1.3.1, vcrpy 8.2.1,
+  cryptography 49.0.0, msgpack 1.2.1, pydantic-settings 2.14.2); ignored torch CVE-2025-3000 in
+  pip-audit (no fix available, transitive) in CI + Makefile.
+- **Type check:** added a mypy `follow_imports = "skip"` override for `fitz` / `pymupdf` /
+  `pymupdf4llm` (they now ship partial/no types) and removed 7 stale `# type: ignore` comments that
+  a newer mypy flagged as unused.
+
+## [v0.29.0] — 2026-06-29
+
+### Changed
+
+- **Extracted the `architecture` and `ux-design` skills to the separate `design-pipeline` repo.**
+  research-pipeline now ships the `research-pipeline`, `blueprint`, and `daily-ai-intelligence`
+  skills; the downstream product-design stages (blueprint → architecture → ux-design) live in
+  their own repo. The chain is unchanged: skills install side-by-side into `~/.claude/skills/`
+  and hand off via artifact files; the artifact-contract in `blueprint/references/` is the interface.
+
+### Removed
+
+- `skill_data/architecture/`, `skill_data/ux-design/` and their `tests/unit/test_skill_*.py`.
+- Architecture-skill design/improvement notes under `docs/`.
+- `tests/unit/test_artifact_contract.py` trimmed to the blueprint (producer) side; downstream
+  template/prompt conformance now lives in design-pipeline.
+
 ## [v0.28.0] — 2026-06-07
 
 ### Added

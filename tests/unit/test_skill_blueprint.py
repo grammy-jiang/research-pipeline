@@ -4,13 +4,19 @@ The blueprint skill is a pure prompt-driven transformation skill (no CLI/MCP
 backend). These tests validate that the bundled skill files are well-formed,
 discoverable by ``setup``, and stay faithful to the design contract:
 standard-only SKILL.md frontmatter, the 20-section output template, the five
-prompts, the references, and an implementation-neutral example output.
+core prompts plus input-quality prompt, the references, and an
+implementation-neutral example output.
 """
 
 from __future__ import annotations
 
 import json
+import re
+import subprocess
+import sys
 from pathlib import Path
+
+import pytest
 
 
 def _skill_root() -> Path:
@@ -20,7 +26,78 @@ def _skill_root() -> Path:
     return Path(research_pipeline.__file__).parent / "skill_data" / "blueprint"
 
 
+_NUMBERED_SECTION_RE = re.compile(r"^## (?P<number>\d+)\. (?P<title>.+)$", re.MULTILINE)
+
+
+def _numbered_sections(text: str) -> list[tuple[int, str]]:
+    """Return ordered top-level numbered section headings."""
+    return [
+        (int(match.group("number")), match.group("title").strip())
+        for match in _NUMBERED_SECTION_RE.finditer(text)
+    ]
+
+
+def _numbered_section_titles(text: str) -> list[str]:
+    return [title for _, title in _numbered_sections(text)]
+
+
+def _product_blueprint_template_text() -> str:
+    return (_skill_root() / "templates" / "product_blueprint_template.md").read_text(
+        encoding="utf-8"
+    )
+
+
+def _required_sections_from_template() -> list[str]:
+    sections = _numbered_sections(_product_blueprint_template_text())
+    numbers = [number for number, _ in sections]
+    assert numbers == list(range(1, len(numbers) + 1)), (
+        f"template sections are not contiguous from 1: {numbers}"
+    )
+    return [title for _, title in sections]
+
+
+def _frontmatter(text: str) -> str:
+    assert text.startswith("---\n"), "file must start with YAML frontmatter"
+    head, _, _ = text[4:].partition("\n---\n")
+    return head
+
+
+def _frontmatter_description(text: str) -> str:
+    match = re.search(r"description: >\n(.*?)\nlicense:", _frontmatter(text), re.S)
+    assert match, "could not parse folded description block"
+    return " ".join(line.strip() for line in match.group(1).splitlines()).lower()
+
+
+def _block_between(text: str, start_marker: str, end_marker: str) -> str:
+    start = text.index(start_marker)
+    end = text.index(end_marker, start)
+    return text[start:end]
+
+
+def _numbered_list_titles(block: str) -> list[str]:
+    return [
+        match.group("title").strip()
+        for match in re.finditer(
+            r"^\s*(?:- \[ \] )?(?P<number>\d+)\. (?P<title>.+)$",
+            block,
+            re.MULTILINE,
+        )
+    ]
+
+
+def _when_to_trigger_phrases(text: str) -> list[str]:
+    block = _block_between(text, "## When To Trigger", "Do **not** trigger for:")
+    quoted = {
+        " ".join(match.group(1).split()).lower()
+        for match in re.finditer(r'"([^"]+)"', block)
+    }
+    aliases_line = re.search(r"- The aliases (?P<line>.*)", block)
+    aliases = set(re.findall(r"`([^`]+)`", aliases_line.group("line")))
+    return sorted(quoted | {alias.lower() for alias in aliases})
+
+
 REQUIRED_PROMPTS = [
+    "00_assess_input_quality.md",
     "01_extract_research_items.md",
     "02_translate_to_product_primitives.md",
     "03_resolve_ideas.md",
@@ -43,27 +120,50 @@ REQUIRED_REFERENCES = [
     "troubleshooting.md",
 ]
 
-# The 18 required output sections, by heading text.
-REQUIRED_SECTIONS = [
-    "Executive Product Thesis",
-    "Source Research Interpretation",
-    "Target Users and System Actors",
-    "Product Goals and Non-Goals",
-    "Research-to-Product Translation Map",
-    "Adopt / Adapt / Merge / Defer / Reject Decisions",
-    "Core Product Capabilities",
-    "Workflow Model",
-    "Logical Architecture",
-    "Conceptual Information Model",
-    "Decision Policies",
-    "Risk, Governance, and Safety Model",
-    "Evaluation Strategy",
-    "MVP Scope",
-    "Roadmap and Future Extensions",
-    "Open Questions and Validation Plan",
-    "Handoff Notes for Technical Design",
-    "Traceability Appendix",
-]
+# Required output sections, by heading text. The product blueprint template is
+# the source of truth so section additions, removals, and renames cannot drift
+# from a hand-maintained test constant.
+REQUIRED_SECTIONS = _required_sections_from_template()
+
+
+def test_required_sections_match_template_numbered_headings() -> None:
+    assert _required_sections_from_template() == REQUIRED_SECTIONS
+
+
+def test_hand_authored_section_lists_match_template_headings() -> None:
+    """The template headings are the only source of truth for the 20 sections."""
+    expected = _required_sections_from_template()
+    skill_text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    prompt_text = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    checklist_text = (
+        _skill_root() / "tests" / "expected_sections_checklist.md"
+    ).read_text(encoding="utf-8")
+
+    section_lists = {
+        "SKILL.md": _numbered_list_titles(
+            _block_between(
+                skill_text,
+                "The blueprint must contain these 20 sections",
+                "Use `templates/product_blueprint_template.md` as the skeleton.",
+            )
+        ),
+        "prompts/04_generate_blueprint.md": _numbered_list_titles(
+            _block_between(prompt_text, "## Required sections", "## Thesis")
+        ),
+        "tests/expected_sections_checklist.md": _numbered_list_titles(
+            _block_between(
+                checklist_text,
+                "All 20 required sections present",
+                "## Content quality",
+            )
+        ),
+    }
+
+    assert section_lists == dict.fromkeys(section_lists, expected), (
+        "hand-authored section list drifted from template headings"
+    )
 
 
 def test_skill_md_exists_and_has_frontmatter() -> None:
@@ -99,6 +199,32 @@ def test_skill_md_has_trigger_phrases() -> None:
     text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
     for phrase in ("create a blueprint", "design the product", "product-blueprint"):
         assert phrase in text.lower(), f"SKILL.md missing trigger phrase: {phrase}"
+
+
+def test_skill_frontmatter_description_covers_when_to_trigger_phrases() -> None:
+    """Discovery reads frontmatter first, so body trigger phrases must not drift."""
+    text = (_skill_root() / "SKILL.md").read_text(encoding="utf-8")
+    description = _frontmatter_description(text)
+    trigger_phrases = set(_when_to_trigger_phrases(text))
+    intentionally_omitted = {
+        # This is a handover subsection title in the research-pipeline skill,
+        # not a likely user invocation phrase for this skill.
+        "system-design handover",
+    }
+
+    unknown_omissions = intentionally_omitted - trigger_phrases
+    assert not unknown_omissions, (
+        "frontmatter trigger omission allowlist contains unknown phrases: "
+        f"{sorted(unknown_omissions)}"
+    )
+    missing = sorted(
+        phrase
+        for phrase in trigger_phrases - intentionally_omitted
+        if phrase not in description
+    )
+    assert not missing, (
+        f"SKILL.md frontmatter description misses When To Trigger phrases: {missing}"
+    )
 
 
 def test_skill_md_has_non_goals_no_tech_stack() -> None:
@@ -169,13 +295,48 @@ def test_manifest_executors_reference_real_prompt_files() -> None:
             assert (_skill_root() / prompt).exists(), f"missing executor: {prompt}"
 
 
-def test_output_template_has_all_18_sections_and_contents() -> None:
-    template = (
-        _skill_root() / "templates" / "product_blueprint_template.md"
+def test_manifest_has_orthogonal_intake_quality_and_extraction_owners() -> None:
+    """Intake, quality assessment, and extraction must not share one prompt owner."""
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    tasks = {task["id"]: task for task in data["tasks"]}
+
+    assert tasks["intake"]["executor"]["kind"] == "document_discovery"
+    assert "prompt" not in tasks["intake"]["executor"]
+    assert tasks["assess-input-quality"]["executor"]["prompt"] == (
+        "prompts/00_assess_input_quality.md"
+    )
+    assert tasks["extract-research-items"]["executor"]["prompt"] == (
+        "prompts/01_extract_research_items.md"
+    )
+
+
+def test_resolve_prompt_is_single_owner_of_mvp_membership_decisions() -> None:
+    """Prompt 02 may rank primitives, but Prompt 03 owns MVP inclusion."""
+    translate = (
+        _skill_root() / "prompts" / "02_translate_to_product_primitives.md"
     ).read_text(encoding="utf-8")
+    resolve = (_skill_root() / "prompts" / "03_resolve_ideas.md").read_text(
+        encoding="utf-8"
+    )
+
+    assert "mvp candidate" not in translate.lower()
+    assert "final mvp inclusion is decided only in prompt 03" in translate.lower()
+    assert "| Source Idea | Research Citation | Decision |" in resolve
+    assert "| Rationale | MVP? | Related Risks |" in resolve
+
+
+def test_quality_gate_references_compose_prompt_as_generation_rule_owner() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "prompts/04_generate_blueprint.md is the authoritative owner" in gate
+    assert "verify outcomes; do not redefine generation rules" in gate
+
+
+def test_output_template_has_all_numbered_sections_and_contents() -> None:
+    template = _product_blueprint_template_text()
     assert "## Contents" in template
-    for section in REQUIRED_SECTIONS:
-        assert section in template, f"template missing section: {section}"
+    assert _numbered_section_titles(template) == REQUIRED_SECTIONS
 
 
 def test_example_output_is_complete_and_neutral() -> None:
@@ -183,10 +344,9 @@ def test_example_output_is_complete_and_neutral() -> None:
     example = (
         _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
     ).read_text(encoding="utf-8")
-    # Contents + all 18 sections.
+    # Contents + every numbered section from the template, in order.
     assert "## Contents" in example
-    for section in REQUIRED_SECTIONS:
-        assert section in example, f"example missing section: {section}"
+    assert _numbered_section_titles(example) == REQUIRED_SECTIONS
     # Both required Mermaid diagrams (workflow + architecture) → at least 2.
     assert example.count("```mermaid") >= 2
     # Carries research citations.
@@ -295,7 +455,7 @@ def test_quality_gate_prompt_covers_new_checks() -> None:
 
 def test_manifest_skill_version_bumped() -> None:
     data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
-    assert data["version"] == "0.8.0"
+    assert data["version"] == "0.9.0"
 
 
 # --- v0.3.0 skill: thesis emphasis, MVP-0/MVP-1, gap-citation, actionable
@@ -463,11 +623,9 @@ def test_template_and_example_have_product_experience_direction() -> None:
 
 def test_template_and_example_are_now_20_sections() -> None:
     """§19 insert renumbers the tail; the document must run 1..20 in order."""
-    import re
-
     for rel in _PE_DOCS:
         text = _skill_root().joinpath(*rel).read_text(encoding="utf-8")
-        numbers = [int(m) for m in re.findall(r"^## (\d+)\. ", text, re.MULTILINE)]
+        numbers = [number for number, _ in _numbered_sections(text)]
         assert numbers == list(range(1, 21)), f"{rel} sections not 1..20: {numbers}"
 
 
@@ -788,3 +946,526 @@ def test_quality_gate_covers_v07_routing_clarity() -> None:
         "routing heuristic",
     ):
         assert needle in gate, f"quality gate missing v0.7.0 check: {needle}"
+
+
+# --- issue #81: deterministic cross-phase coherence guard ---
+#
+# The blueprint quality-gate is a pure-LLM stage; it silently passed
+# cross-phase-incoherent blueprints (an MVP-0 node whose required servicer is
+# staged MVP-1, or an MVP control gated on a non-blocking open question). A
+# deterministic guard (scripts/check_blueprint_coherence.py, wired as the
+# check-coherence manifest task between compose-blueprint and quality-gate)
+# now catches this. These tests pin that behaviour with a minimal
+# coherent/incoherent fixture pair.
+
+_COHERENCE_SCRIPT = _skill_root() / "scripts" / "check_blueprint_coherence.py"
+_COHERENCE_FIXTURES = _skill_root() / "tests" / "coherence_fixtures"
+
+
+def _run_coherence_guard(fixture: str) -> tuple[int, dict]:
+    """Run the guard over a fixture; return (exit_code, parsed JSON result)."""
+    proc = subprocess.run(
+        [sys.executable, str(_COHERENCE_SCRIPT), str(_COHERENCE_FIXTURES / fixture)],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def test_coherence_guard_script_exists_and_nonempty() -> None:
+    assert _COHERENCE_SCRIPT.exists(), "missing scripts/check_blueprint_coherence.py"
+    assert _COHERENCE_SCRIPT.read_text(encoding="utf-8").strip()
+
+
+def test_coherence_fixtures_exist() -> None:
+    assert (_COHERENCE_FIXTURES / "coherent_blueprint.md").exists()
+    assert (_COHERENCE_FIXTURES / "incoherent_blueprint.md").exists()
+
+
+def test_coherent_fixture_passes_guard() -> None:
+    code, result = _run_coherence_guard("coherent_blueprint.md")
+    assert code == 0, f"coherent fixture unexpectedly failed: {result['findings']}"
+    assert result["all_passed"] is True
+    assert result["fail_count"] == 0
+
+
+def test_incoherent_fixture_fails_on_phase_inversion_and_open_dependency() -> None:
+    code, result = _run_coherence_guard("incoherent_blueprint.md")
+    assert code == 1
+    assert result["all_passed"] is False
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    # Both known defect classes from issue #81 must be caught deterministically.
+    assert "phase_inversion" in failed_checks, failed_checks
+    assert "open_dependency" in failed_checks, failed_checks
+
+
+def test_manifest_has_coherence_gate_between_compose_and_quality() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    ids = [task["id"] for task in data["tasks"]]
+    assert "check-coherence" in ids, "manifest missing check-coherence task"
+    assert (
+        ids.index("compose-blueprint")
+        < ids.index("check-coherence")
+        < ids.index("quality-gate")
+    ), "check-coherence must sit between compose-blueprint and quality-gate"
+    task = next(t for t in data["tasks"] if t["id"] == "check-coherence")
+    assert task["executor"]["kind"] == "deterministic_script"
+    assert "check_blueprint_coherence.py" in task["executor"]["command"]
+    quality_gate = next(t for t in data["tasks"] if t["id"] == "quality-gate")
+    assert "check-coherence" in quality_gate["depends_on"]
+    assert "check-coherence" in data["mandatory_gates"]
+
+
+def test_template_documents_coherence_anchors() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "<!-- coherence:" in template, "template missing a coherence anchor example"
+    assert "phase inversion" in template.lower()
+
+
+def test_quality_gate_splits_conditions_atomically() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    # One-condition-per-check restructuring + the deterministic pre-gate.
+    assert "one condition per check" in gate.lower()
+    assert "check_blueprint_coherence" in gate
+    # The 3-clause release-gate condition is now split per clause (issue #81
+    # called out Gate 6's release-gate AND being verified holistically).
+    for clause in ("6b.i", "6b.ii", "6b.iii"):
+        assert clause in gate, f"release-gate clause not split: {clause}"
+
+
+# --- issue #85: citation fidelity, agent-mode authorization boundary, and
+# amend-without-new-research playbook ---
+
+
+def _run_coherence_guard_with_source(
+    blueprint: Path, source_report: Path
+) -> tuple[int, dict]:
+    """Run the deterministic guard with source-report citation validation."""
+    proc = subprocess.run(
+        [
+            sys.executable,
+            str(_COHERENCE_SCRIPT),
+            str(blueprint),
+            "--source-report",
+            str(source_report),
+        ],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def test_coherence_guard_fails_when_blueprint_citation_missing_from_references(
+    tmp_path: Path,
+) -> None:
+    source_report = tmp_path / "source-report.md"
+    source_report.write_text(
+        """# Source Report
+
+## References
+
+- [2312.01234] Evaluator-gated memory writes.
+""",
+        encoding="utf-8",
+    )
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+This thesis cites evidence that is absent from the source references.
+[9999.00000]
+""",
+        encoding="utf-8",
+    )
+
+    code, result = _run_coherence_guard_with_source(blueprint, source_report)
+
+    assert code == 1
+    assert result["all_passed"] is False
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "citation_not_in_references" in failed_checks
+
+
+def test_coherence_guard_accepts_blueprint_citation_present_in_references(
+    tmp_path: Path,
+) -> None:
+    source_report = tmp_path / "source-report.md"
+    source_report.write_text(
+        """# Source Report
+
+## References
+
+- [2312.01234] Evaluator-gated memory writes.
+""",
+        encoding="utf-8",
+    )
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+This thesis cites evidence present in the source references. [2312.01234]
+""",
+        encoding="utf-8",
+    )
+
+    code, result = _run_coherence_guard_with_source(blueprint, source_report)
+
+    assert code == 0
+    assert result["all_passed"] is True
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "citation_not_in_references" not in failed_checks
+
+
+def test_coherence_guard_fails_on_silent_confidence_upgrade(tmp_path: Path) -> None:
+    source_report = tmp_path / "source-report.md"
+    source_report.write_text(
+        """# Source Report
+
+## Confidence-Graded Findings
+
+- MEDIUM — Selective forgetting improves signal but has loss risk. [2402.01234]
+
+## References
+
+- [2402.01234] Selective forgetting.
+""",
+        encoding="utf-8",
+    )
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+| Claim | Confidence | Citation |
+|---|---|---|
+| Selective forgetting is release-ready. | HIGH | [2402.01234] |
+""",
+        encoding="utf-8",
+    )
+
+    code, result = _run_coherence_guard_with_source(blueprint, source_report)
+
+    assert code == 1
+    failed_checks = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "confidence_silently_upgraded" in failed_checks
+
+
+def test_manifest_wires_source_report_into_deterministic_guard() -> None:
+    data = json.loads((_skill_root() / "manifest.json").read_text(encoding="utf-8"))
+    task = next(t for t in data["tasks"] if t["id"] == "check-coherence")
+    command = task["executor"]["command"]
+    assert "--source-report" in command
+    assert "<topic-slug>-research-report.md" in command
+
+
+def test_quality_gate_covers_load_bearing_citation_fidelity() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "load-bearing claims",
+        "thesis emphasis",
+        "primary interaction mode",
+        "primary actor",
+        "re-read the cited source-report section",
+        "product-design decision",
+        "citation string exists in the source report's `## References`",
+        "confidence grade was not silently upgraded",
+    ):
+        assert needle in gate, f"Gate 2 missing citation-fidelity rule: {needle}"
+
+
+def test_product_experience_reference_requires_agent_authorization_boundary() -> None:
+    ref = (_skill_root() / "references" / "product-experience-direction.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "agent-callable / tool-driven",
+        "READ/ACT authorization boundary",
+        "matching §13 risk row",
+        "agent authority-confusion",
+        "prompt injection",
+        "do not define exact MCP tool schemas",
+    ):
+        assert needle in ref, f"product-experience reference missing: {needle}"
+
+
+def test_quality_gate_requires_agent_mode_authorization_boundary() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "agent-callable / tool-driven",
+        "READ/ACT authorization-boundary statement",
+        "promoted secondary",
+        "matching §13 risk row",
+        "agent authority-confusion",
+        "prompt injection",
+    ):
+        assert needle in gate, f"Gate 8 missing authorization-boundary rule: {needle}"
+
+
+def test_troubleshooting_has_amend_without_new_report_playbook() -> None:
+    text = (_skill_root() / "references" / "troubleshooting.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "Amend an existing blueprint with a new decision (no new research report)",
+        "load-bearing fact classes",
+        "interaction mode → §3, §8, §9.4/9.5, §10, §16, §18, §19, Appendix A",
+        "MVP roster → §7, §12, §13, §14, §15, Appendix A",
+        "surgical amendment",
+        "pre-delivery propagation check",
+    ):
+        assert needle in text, f"troubleshooting playbook missing: {needle}"
+
+
+def test_compose_prompt_has_pre_delivery_propagation_check() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "Pre-delivery propagation check",
+        "amend an existing blueprint",
+        "interaction mode → §3, §8, §9.4/9.5, §10, §16, §18, §19, Appendix A",
+        "MVP roster → §7, §12, §13, §14, §15, Appendix A",
+    ):
+        assert needle in prompt, f"compose prompt missing propagation check: {needle}"
+
+
+# --- issue #83: trustworthy golden fixture + labelled negative/adversarial
+# fixtures + weak-input output fixture ---
+#
+# The blueprint skill's only golden output fixture itself reproduced both
+# coherence defects the deterministic guard (issue #81) is meant to catch: an
+# MVP-0 admission gate whose contradiction servicer was staged MVP-1
+# (servicer-reachability → ``phase_inversion``) and an MVP-0 redundancy gate
+# whose dedup precondition was a non-blocking open question
+# (precondition-currency → ``open_dependency``). It also carried no coherence
+# anchors, so the guard passed it vacuously, and there were no negative fixtures
+# proving the checklists reject a violating document, nor a weak-input output
+# fixture. These tests pin the regenerated coherent oracle, the labelled
+# regression pairs, the mutation-derived negative set, and the weak-input
+# output fixture.
+
+_GOLDEN_EXAMPLE = (
+    _skill_root() / "tests" / "sample_outputs" / "product_blueprint_example.md"
+)
+_WEAK_OUTPUT = (
+    _skill_root() / "tests" / "sample_outputs" / "weak_input_blueprint_example.md"
+)
+_REGRESSIONS_DIR = _skill_root() / "tests" / "regressions"
+_MUTATIONS_DIR = _skill_root() / "tests" / "mutations"
+_MINI_SOURCE_REPORT = _MUTATIONS_DIR / "mini_source_report.md"
+_NEUTRALITY_FORBIDDEN_TERMS = frozenset(
+    {
+        "postgresql",
+        "mongodb",
+        "mysql",
+        "sqlite",
+        "redis",
+        "fastapi",
+        "django",
+        "react",
+        "aws",
+        "gcp",
+        "azure",
+        "docker",
+        "kubernetes",
+        "pinecone",
+    }
+)
+
+
+def _run_guard_over(blueprint: Path, source: Path | None = None) -> tuple[int, dict]:
+    """Run the deterministic coherence guard over a path (optional source)."""
+    args = [sys.executable, str(_COHERENCE_SCRIPT), str(blueprint)]
+    if source is not None:
+        args += ["--source-report", str(source)]
+    proc = subprocess.run(args, capture_output=True, text=True, check=False)
+    return proc.returncode, json.loads(proc.stdout)
+
+
+def _label_field(text: str, key: str) -> str | None:
+    """Read a ``key=value`` field from a fixture's leading label comment."""
+    match = re.search(rf"\b{re.escape(key)}=(\S+)", text)
+    return match.group(1) if match else None
+
+
+def _mutation_fixtures() -> list[Path]:
+    """Every single-mutation negative fixture (files with a mutation label)."""
+    if not _MUTATIONS_DIR.is_dir():
+        return []
+    return sorted(
+        path
+        for path in _MUTATIONS_DIR.glob("*.md")
+        if path.read_text(encoding="utf-8").lstrip().startswith("<!-- mutation:")
+    )
+
+
+def test_golden_example_passes_coherence_guard_with_anchors() -> None:
+    """The shipped exemplar is an independently-verified, phase-clean oracle.
+
+    Run without ``--source-report``: the cross-phase coherence graph is the
+    trustworthy-oracle requirement. Source citation/confidence fidelity is a
+    separate line-based heuristic covered by dedicated tests above.
+    """
+    code, result = _run_guard_over(_GOLDEN_EXAMPLE)
+    assert code == 0, result["findings"]
+    assert result["all_passed"] is True
+    # Must actually carry anchors — an anchorless fixture passes only vacuously
+    # (with a ``no_coherence_anchors`` warning) and cannot be a trustworthy
+    # expected-object. This is the assertion that fails on the pre-#83 fixture.
+    assert result["node_count"] > 0, "golden fixture carries no coherence anchors"
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert not fails, fails
+    warnings = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    assert "no_coherence_anchors" not in warnings
+
+
+def test_weak_input_output_fixture_is_coherent_and_disciplined() -> None:
+    """A weak-input OUTPUT fixture exists and models weak-input discipline."""
+    assert _WEAK_OUTPUT.exists(), "missing weak-input output fixture"
+    text = _WEAK_OUTPUT.read_text(encoding="utf-8")
+    # Follows the full template, like the strong exemplar.
+    assert "## Contents" in text
+    assert _numbered_section_titles(text) == REQUIRED_SECTIONS
+    # Declares the weak input and keeps assumption / open-question discipline
+    # instead of fabricating confidence grades.
+    assert "**Input quality:** weak" in text
+    assert "Assumption" in text
+    assert "confidence grade is invented" in text.lower()
+    assert "no invented confidence" in text.lower()
+    # A small product must not self-score as complex: it uses the lightweight
+    # routing band, unlike the strong exemplar's ``complex (13+)``.
+    assert "**Total Score:** 7 / 21" in text
+    assert "lightweight" in text
+    assert "complex (13+)" not in text
+    # Implementation-neutral, same gate as the strong exemplar.
+    lowered = text.lower()
+    for term in (
+        "postgresql",
+        "mongodb",
+        "fastapi",
+        "react",
+        " aws ",
+        "docker",
+        "kubernetes",
+        "redis",
+        "pinecone",
+        "create table",
+    ):
+        assert term not in lowered, f"weak fixture leaks tech-stack term: {term!r}"
+    # Phase-clean and anchored.
+    code, result = _run_guard_over(_WEAK_OUTPUT)
+    assert code == 0, result["findings"]
+    assert result["all_passed"] is True
+    assert result["node_count"] > 0, "weak fixture carries no coherence anchors"
+
+
+def test_issue83_negative_fixture_set_is_present() -> None:
+    """The regression pairs and the mutation set must all ship."""
+    for pair in ("servicer-reachability", "precondition-currency"):
+        assert (_REGRESSIONS_DIR / pair / "bad.md").exists(), pair
+        assert (_REGRESSIONS_DIR / pair / "fixed.md").exists(), pair
+    mutation_names = {path.name for path in _mutation_fixtures()}
+    for expected in (
+        "invert-mvp-tag.md",
+        "sever-servicer-edge.md",
+        "blank-citation.md",
+        "swap-confidence-grade.md",
+        "forbidden-term.md",
+    ):
+        assert expected in mutation_names, f"missing mutation fixture: {expected}"
+    assert _MINI_SOURCE_REPORT.exists()
+
+
+@pytest.mark.parametrize("pair", ["servicer-reachability", "precondition-currency"])
+def test_regression_pair_bad_fails_labelled_check_and_fixed_passes(pair: str) -> None:
+    """Each pair proves a named coherence check catches a real defect.
+
+    ``bad.md`` reproduces one golden-fixture defect and must FAIL its labelled
+    check; ``fixed.md`` applies the golden-fixture fix and must PASS cleanly.
+    """
+    bad = _REGRESSIONS_DIR / pair / "bad.md"
+    fixed = _REGRESSIONS_DIR / pair / "fixed.md"
+    expected_check = _label_field(bad.read_text(encoding="utf-8"), "check")
+    assert expected_check, f"{pair}/bad.md missing a `check=` label"
+
+    code, result = _run_guard_over(bad)
+    assert code == 1, f"{pair}/bad.md unexpectedly passed the guard"
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert expected_check in fails, (pair, expected_check, fails)
+
+    code_fixed, result_fixed = _run_guard_over(fixed)
+    assert code_fixed == 0, result_fixed["findings"]
+    assert result_fixed["all_passed"] is True
+    assert result_fixed["node_count"] > 0
+
+
+@pytest.mark.parametrize("path", _mutation_fixtures(), ids=lambda p: p.name)
+def test_mutation_negative_triggers_labelled_check(path: Path) -> None:
+    """Each single-mutation fixture triggers exactly the check it is labelled with.
+
+    Coherence mutations are caught by the deterministic guard at their labelled
+    level; the neutrality mutation is caught by the implementation-neutrality
+    gate (a forbidden tech-stack term), which the coherence guard deliberately
+    does not police.
+    """
+    text = path.read_text(encoding="utf-8")
+    detector = _label_field(text, "detector") or "coherence"
+
+    if detector == "neutrality":
+        term = _label_field(text, "term")
+        assert term, f"{path.name} neutrality mutation missing a `term=` label"
+        assert term.lower() in text.lower(), f"{path.name} missing its forbidden term"
+        assert term.lower() in _NEUTRALITY_FORBIDDEN_TERMS, (
+            f"{term!r} is not a known forbidden tech-stack term"
+        )
+        # The coherence guard must NOT flag a neutrality-only violation.
+        _code, result = _run_guard_over(path)
+        assert not {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+        return
+
+    expected_check = _label_field(text, "check")
+    level = (_label_field(text, "level") or "FAIL").upper()
+    assert expected_check, f"{path.name} missing a `check=` label"
+    source = _MINI_SOURCE_REPORT if "needs-source-report" in text else None
+
+    _code, result = _run_guard_over(path, source)
+    hits = {f["check"] for f in result["findings"] if f["level"] == level}
+    assert expected_check in hits, (
+        path.name,
+        expected_check,
+        level,
+        result["findings"],
+    )

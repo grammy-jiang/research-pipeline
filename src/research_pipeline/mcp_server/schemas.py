@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 class CommonParams(BaseModel):
@@ -16,6 +16,19 @@ class CommonParams(BaseModel):
         default="",
         description="Run identifier. Empty string means auto-generate.",
     )
+
+    @field_validator("run_id")
+    @classmethod
+    def _no_run_id_traversal(cls, value: str) -> str:
+        """Reject path traversal in a run identifier (#40).
+
+        ``run_id`` is joined onto the workspace root to locate a run directory,
+        so a value containing ``..`` / an absolute path / a NUL byte could
+        escape the workspace. The empty default (auto-generate) is allowed.
+        """
+        if ".." in value or value.startswith(("/", "\\")) or "\x00" in value:
+            raise ValueError("run_id must not contain path traversal")
+        return value
 
 
 class PlanTopicInput(CommonParams):
@@ -412,7 +425,7 @@ class CoherenceInput(BaseModel):
         min_length=2,
     )
     workspace: str = Field(
-        default="runs",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
 
@@ -425,7 +438,7 @@ class ConsolidationInput(BaseModel):
         description="Run IDs to ingest. If None, scans workspace.",
     )
     workspace: str = Field(
-        default="runs",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
     dry_run: bool = Field(
@@ -450,7 +463,7 @@ class BlindingAuditInput(BaseModel):
     """Input for the epistemic blinding audit tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
     run_id: str = Field(
@@ -471,7 +484,7 @@ class DualMetricsInput(BaseModel):
     """Input for the dual-metrics evaluation tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
     query: str = Field(
@@ -495,7 +508,7 @@ class CbrLookupInput(BaseModel):
     """Input for the CBR lookup tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory.",
     )
     topic: str = Field(
@@ -515,7 +528,7 @@ class CbrRetainInput(BaseModel):
     """Input for the CBR retain tool."""
 
     workspace: str = Field(
-        default="workspace",
+        default="./workspace",
         description="Workspace directory.",
     )
     run_id: str = Field(
@@ -878,7 +891,7 @@ class EvaluateInput(BaseModel):
         description="Specific stage to evaluate. Empty means all stages.",
     )
     workspace: str = Field(
-        default="runs",
+        default="./workspace",
         description="Workspace directory containing run outputs.",
     )
 

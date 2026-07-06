@@ -93,7 +93,7 @@ class OpenAIVisionBackend(ConverterBackend):
             )
 
         try:
-            import fitz  # type: ignore[import-not-found]  # PyMuPDF
+            import fitz
             from openai import OpenAI  # type: ignore[import-not-found]
 
             logger.info("Converting %s via OpenAI vision API...", pdf_path.name)
