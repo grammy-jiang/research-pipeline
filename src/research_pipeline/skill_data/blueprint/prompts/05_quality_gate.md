@@ -19,6 +19,14 @@ line. Do **not** collapse a multi-condition gate into a single AND verdict —
 a failure must localize to its check ID (e.g. `Gate 6b`) so the required fix
 is unambiguous. Each atomic check maps to one row in the self-check appendix.
 
+## Rule ownership
+
+prompts/04_generate_blueprint.md is the authoritative owner of generation rules.
+Use this prompt to verify outcomes; do not redefine generation rules or
+introduce competing thresholds. If an abbreviated check below appears to
+conflict with Prompt 04, Prompt 04 wins and this gate records the PASS / WARNING
+/ FAIL result plus the required fix.
+
 ## Gate 0 — Deterministic coherence pre-gate (runs before the LLM gates)
 
 Before these reasoning gates, the manifest runs
@@ -128,14 +136,12 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
   implied) by the product thesis. High-stakes/adjacent domains that appear
   only as research evidence must be Secondary/Future, not primary — flag a
   `WARNING` if such a domain appears as a primary actor or MVP requirement.
-- **5b — MVP structure:** §15 splits the core path into **MVP-0** (smallest
-  demonstrable end-to-end slice) and **MVP-1** (first usable version),
-  separates Safety and Evaluation baselines, and has an explicit pass/fail
-  success definition.
-- **5c — MVP-0 minimality:** **MVP-0** is minimal and proves the thesis;
-  safety and evaluation baselines are justified separately (they do not count
-  against MVP-0 size). Flag a `WARNING` if a large Phase-1 system is labelled
-  MVP-0, or if MVP-0/MVP-1 are split artificially for a trivial product.
+- **5b — MVP structure:** apply Prompt 04's §15 MVP scope rules and verify
+  that §15 separates MVP-0, MVP-1, Safety Baseline, Evaluation Baseline, and an
+  explicit pass/fail success definition.
+- **5c — MVP-0 minimality:** apply Prompt 04's MVP-0 minimality rule. Flag a
+  `WARNING` if the generated blueprint violates that rule; do not introduce a
+  different sizing threshold here.
 - **5d — ACADEMIC gaps:** `ACADEMIC`-gap items are not in MVP unless the
   product validates that gap.
 - **5e — MVP-0 budget:** flag a `WARNING` (not `FAIL`) when MVP-0 carries more

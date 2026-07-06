@@ -2,19 +2,20 @@
 name: blueprint
 description: >
   Convert a research synthesis report into an implementation-neutral product
-  blueprint. Transforms confidence-graded findings, gap classifications,
-  contradiction maps, and risk items into a product concept, target users,
-  workflow model, product experience direction, logical architecture,
-  information model, decision policies, MVP boundary, evaluation strategy, and
-  technical-design handoff. Use when
-  the user has a research report and asks to "create a blueprint", "design
-  the product", "turn this research into a product", "what should we build?",
-  "generate a product blueprint", "convert the research to an MVP plan", or
-  accepts the research-pipeline handover offer. Aliases: "product-blueprint",
-  "research-blueprint", "research-to-product". Do NOT use for more literature
-  research (use `research-pipeline`), tech-stack selection, detailed UI/UX
-  design or wireframes, requirements with user stories (use `req-analysis`),
-  or single-paper explanation (use `paper-analyzer`).
+  blueprint for product concept, users, workflow, product experience direction,
+  logical architecture, MVP, evaluation, handoff, and next-stage routing. Use
+  when the user has a research report and asks to
+  "Create a blueprint from this research report", "Design the product based on
+  this research", "Turn this research into a product design", "What should we
+  build?", "Generate a product blueprint", "Convert the research to an MVP
+  plan", "Define the product experience direction", "Define how users should
+  experience the product", "Define user trust/control/review expectations",
+  "What should we build next?", "Which design stages should we run next?", or
+  "Recommend the next stages after the blueprint"; or after research-pipeline
+  handover. Aliases: "product-blueprint", "research-blueprint",
+  "research-to-product". Do NOT use for more research, tech stack, detailed
+  UI/UX design or wireframes, user-story requirements, or single-paper
+  explanation.
 license: MIT
 ---
 
@@ -175,7 +176,7 @@ belongs to the later technical-design skill.
 
 ## Method
 
-Follow the staged method. The five prompt files under `prompts/` carry
+Follow the staged method. The prompt files under `prompts/` carry
 the detailed instructions for each stage; the `manifest.json` records the
 task graph, gate names, and failure policy.
 
@@ -185,7 +186,7 @@ task graph, gate names, and failure policy.
    (see `references/input-mapping.md`). If `insufficient`, STOP and emit
    the standardized insufficient-input failure (do not fabricate a
    blueprint). If `weak`, proceed but mark missing areas as assumptions
-   or open questions.
+   or open questions. Use `prompts/00_assess_input_quality.md`.
 3. **Resolve domain** — if the report spans multiple unrelated product
    domains, scope the blueprint to one. Proceed with the highest-coverage
    domain as a documented default; ask the user only when domains have

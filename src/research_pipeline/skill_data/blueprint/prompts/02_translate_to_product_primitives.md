@@ -10,8 +10,9 @@ You are translating research items into product primitives.
 - `ACADEMIC` gap items → translate to **validation requirements / open
   questions**, never product requirements (unless the product's purpose
   is to answer the research question).
-- `ENGINEERING` gap items → translate to **product requirements**, sized
-  by severity (HIGH → MVP candidate; MEDIUM → Phase 2; LOW → future).
+- `ENGINEERING` gap items → translate to **product requirements**, carrying
+  their severity as a priority signal. Final MVP inclusion is decided only in
+  Prompt 03.
 - `OUT_OF_SCOPE` gap items → note as a non-goal; do not translate.
 
 See `references/gap-type-mapping.md` for the full mapping.
@@ -31,7 +32,7 @@ See `references/gap-type-mapping.md` for the full mapping.
 | Assumption | Validation requirement |
 | Contradiction | Explicit design decision |
 | Academic gap | Research risk / future validation — NOT a requirement |
-| Engineering gap | Product requirement or MVP risk |
+| Engineering gap | Product requirement or delivery risk |
 | Risk | Mitigation and governance rule |
 | Operational implication | Runtime/product constraint |
 | Architecture hint | Logical component or integration surface |
@@ -48,7 +49,8 @@ Each primitive must capture:
 - type
 - derived_from (the source research item id(s) **with citation**)
 - rationale
-- MVP candidate: yes / no
+- priority signal: high / medium / low / validation_only / out_of_scope
+  (non-binding; final MVP inclusion is decided only in Prompt 03)
 
 ## Merge
 

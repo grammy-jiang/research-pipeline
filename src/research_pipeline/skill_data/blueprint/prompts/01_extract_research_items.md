@@ -7,26 +7,12 @@ The report uses confidence grades: 🟢 HIGH (3+ papers), 🟡 MEDIUM (1–2
 papers or with caveats), 🔴 LOW (preliminary or contradicted). Gaps are
 classified as `ACADEMIC`, `ENGINEERING`, or `OUT_OF_SCOPE`.
 
-## Step 0 — Intake and quality check
+## Preconditions
 
-1. Read the source `<topic-slug>-research-report.md` in full.
-2. Load supplementary artifacts if present (`gaps.json`,
-   `synthesis_report.json`, `screened.jsonl`, `query_plan.json`). The
-   Markdown report is authoritative; JSON is supplementary.
-3. Detect which canonical sections exist (see
-   `references/input-mapping.md`).
-4. Classify input quality using the thresholds in
-   `references/input-mapping.md`:
-   - `insufficient` → STOP. Emit the standardized insufficient-input
-     failure document (see `references/troubleshooting.md`). Do not
-     continue.
-   - `weak` → proceed, but record missing areas to surface later as
-     assumptions or open questions.
-   - `usable` / `strong` → proceed.
-5. Detect domain count. If the report spans multiple unrelated product
-   domains, choose the highest-coverage domain as a documented default;
-   ask the user only when domains have similar coverage and would yield
-   materially different theses.
+`prompts/00_assess_input_quality.md` has already performed intake and produced
+`intermediate/input_quality.json`. Consume that result. Do not reclassify input
+quality or decide whether the input is sufficient here; the manifest stops before
+this prompt when the assessment is `insufficient`.
 
 ## Step 1 — Extract
 
