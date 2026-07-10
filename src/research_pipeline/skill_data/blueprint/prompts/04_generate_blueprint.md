@@ -50,6 +50,23 @@ preconditions, decision gates, steps, outputs, failure modes, success
 criteria, related capabilities, and traceability. See
 `templates/workflow_template.md`.
 
+## Actor-channel completeness (§3, §8)
+
+Tag every §3 actor with its **actor channel** class —
+**interactive human / headless automation / non-human client**. Then, for each
+workflow (§8), define the success path **and every** exception / escalation /
+authorization path **for each channel the workflow can reach**, not only the
+interactive one.
+
+- A "human accepts residual risk" or "escalate to a reviewer" step is meaningful
+  only on an interactive-human channel. On a **headless automation** or
+  **non-human client** channel, either route human authorization to an
+  **explicit out-of-band human**, or **scope the triggering condition off that
+  channel**.
+- **Never emit an escalation that assumes an inline human on a headless channel**
+  — that leaves the channel with an undefined (or impossible) authorization
+  path, the exact defect this rule closes.
+
 ## Product experience direction (§9)
 
 Capture **UX intent**, not UX design. This section exists so the later

@@ -258,6 +258,24 @@ Recommendation Gate rows in the self-check.
 - Confirm §9 Product Experience Direction signals are reflected in the
   UX/security/test decisions.
 
+## Gate 10 — Actor-channel completeness (§3, §8)
+
+This gate enforces **actor-channel completeness**. When the blueprint has more
+than one actor channel — an **interactive human**, a **headless automation**
+caller, or a distinct **non-human client** — every escalation / accept /
+authorization path must be defined **for each channel**, not only the
+interactive one.
+
+- **10a — Channel enumeration:** §3 tags every actor with its channel class
+  (interactive human / headless automation / non-human client). `WARNING` if a
+  multi-channel product leaves an actor's channel class unstated.
+- **10b — Per-channel paths:** `FAIL` if an escalation / accept / authorization
+  step is defined only for the interactive channel while a **headless** or
+  non-human channel can reach it. The non-human channel must either route human
+  authorization to an **explicit out-of-band human**, or the triggering
+  condition must be **scoped off that channel** — never an escalation that
+  assumes an inline human on a headless channel.
+
 ## Immediate-fail conditions
 
 - Any tech-stack choice, code, or implementation ticket.

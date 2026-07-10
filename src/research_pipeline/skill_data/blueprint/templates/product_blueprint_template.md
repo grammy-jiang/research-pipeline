@@ -200,10 +200,20 @@ is added.)`
 > docs) are **Secondary** or **Future** — keep them out of the primary
 > actor set and the MVP unless the thesis makes them primary. Evidence-only
 > examples should not become actors at all.
+>
+> **Channel Class (mandatory).** Tag every actor with its channel class:
+> **interactive human** (a person present in the loop), **headless automation**
+> (a scheduled/CI/agent caller with no human present), or **non-human client**
+> (a distinct system/service consumer). The class determines which
+> authorization and escalation paths §8 must define for that actor: a
+> "human accepts residual risk" or "escalate to a reviewer" step is meaningful
+> only on an interactive-human channel — a headless or non-human channel must
+> route it to an **explicit out-of-band human** or have the triggering
+> condition **scoped off that channel**.
 
-| Actor | Scope | Role | Needs | Interaction with Product |
-|---|---|---|---|---|
-| ... | Primary / Secondary / Future / System actor | ... | ... | ... |
+| Actor | Scope | Channel Class | Role | Needs | Interaction with Product |
+|---|---|---|---|---|---|
+| ... | Primary / Secondary / Future / System actor | interactive human / headless automation / non-human client | ... | ... | ... |
 
 ---
 
@@ -280,6 +290,21 @@ is added.)`
 **Outputs:** ...
 
 **Failure Modes:** ...
+
+**Authorization / Escalation Paths (per channel):**
+
+> Define the success path **and every** exception / escalation / authorization
+> path **for each actor channel** the workflow can reach (§3), not only the
+> interactive one. A step that needs a human decision on a **headless
+> automation** or **non-human client** channel must name an **explicit
+> out-of-band human**, or the triggering condition must be **scoped off that
+> channel**. Never emit an escalation that assumes an inline human on a headless
+> channel.
+
+| Channel | Success Path | Exception / Escalation / Authorization Path |
+|---|---|---|
+| interactive human | ... | ... |
+| headless automation | ... | out-of-band human OR scoped off this channel |
 
 **Success Criteria:** ...
 

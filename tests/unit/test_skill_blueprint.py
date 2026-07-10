@@ -1921,3 +1921,62 @@ def test_quality_gate_has_altitude_gate() -> None:
     )
     assert "mechanism_altitude" in gate
     assert "authority class" in gate
+
+
+# --- issue #95: actor-channel completeness ---
+#
+# When a blueprint has more than one actor channel (interactive human, headless
+# automation, non-human client) the skill did not enforce that EVERY escalation
+# / accept / authorization path is defined for EACH channel. The recurring
+# defect: a "human accepts residual risk" step silently assumes an inline
+# interactive human, leaving a headless channel with an undefined authorization
+# path. These tests pin the §3 channel enumeration, the §8 per-channel path
+# requirement, and the completeness gate.
+
+
+def test_template_enumerates_actor_channels() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    for needle in (
+        "Channel Class",
+        "interactive human",
+        "headless automation",
+        "non-human client",
+    ):
+        assert needle in template, f"template §3 missing channel class: {needle}"
+
+
+def test_template_workflow_requires_per_channel_paths() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "Authorization / Escalation Paths (per channel)" in template
+
+
+def test_compose_prompt_requires_actor_channel_completeness() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "actor channel",
+        "interactive human / headless automation / non-human client",
+        "out-of-band human",
+        "inline human on a headless channel",
+    ):
+        assert needle in prompt, f"compose prompt missing channel rule: {needle}"
+
+
+def test_quality_gate_enforces_actor_channel_completeness() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "actor-channel completeness",
+        "out-of-band human",
+        "scoped off",
+        "headless",
+    ):
+        assert needle in gate, (
+            f"quality gate missing channel-completeness rule: {needle}"
+        )
