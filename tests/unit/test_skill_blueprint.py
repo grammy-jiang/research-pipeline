@@ -1802,3 +1802,122 @@ def test_template_documents_consumes_edge() -> None:
         _skill_root() / "templates" / "product_blueprint_template.md"
     ).read_text(encoding="utf-8")
     assert "consumes=" in template, "template does not document the consumes edge"
+
+
+# --- issue #94: altitude ceiling for agent/tool-surface sections ---
+#
+# Agent/tool-decomposed blueprints kept leaking mechanism (dedup keys,
+# compaction, single-PEP, retry-bounding, transport) into the body and keying
+# policy/MVP/eval to named tool identifiers rather than READ/ACT/AUTH authority
+# classes. A dedup-key discussion names no vendor, so Gate 3 (vendors) passes it
+# while it sits a full altitude below the blueprint. These tests pin a
+# WARNING-tier mechanism-vocabulary linter (exempt inside the §18 handoff) and a
+# named-tool-identifier linter over the policy/eval/MVP sections.
+
+
+def test_coherence_guard_warns_on_mechanism_vocab_outside_handoff(
+    tmp_path: Path,
+) -> None:
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Logical Architecture](#1-logical-architecture)
+
+---
+
+## 1. Logical Architecture
+
+A retried submit is deduplicated by a dedup key at a single PEP, with
+wire-level idempotency and bounded transport retries.
+""",
+        encoding="utf-8",
+    )
+    _code, result = _run_guard_over(blueprint)
+    warns = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    assert "mechanism_altitude" in warns, result["findings"]
+
+
+def test_coherence_guard_allows_mechanism_vocab_in_handoff(tmp_path: Path) -> None:
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+- [18. Handoff Notes for Technical Design](#18-handoff-notes-for-technical-design)
+
+---
+
+## 1. Executive Product Thesis
+
+A trustworthy memory keeper that never double-egresses a retried submit.
+
+## 18. Handoff Notes for Technical Design
+
+Technical design owns the dedup key, compaction strategy, single-PEP locus,
+retry-bounding, and transport.
+""",
+        encoding="utf-8",
+    )
+    _code, result = _run_guard_over(blueprint)
+    warns = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    assert "mechanism_altitude" not in warns, result["findings"]
+
+
+def test_coherence_guard_warns_on_tool_identifier_in_policy_row(
+    tmp_path: Path,
+) -> None:
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [12. Decision Policies](#12-decision-policies)
+
+---
+
+## 12. Decision Policies
+
+| Policy | Inputs | Default |
+|---|---|---|
+| Depth | `set_depth` and `get_risk_report` gate the ACT path | conservative |
+""",
+        encoding="utf-8",
+    )
+    _code, result = _run_guard_over(blueprint)
+    warns = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    assert "tool_identifier_altitude" in warns, result["findings"]
+
+
+def test_golden_example_has_no_altitude_warnings() -> None:
+    """The shipped exemplar stays above the mechanism/tool-identifier altitude."""
+    _code, result = _run_guard_over(_GOLDEN_EXAMPLE)
+    warns = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    assert "mechanism_altitude" not in warns, result["findings"]
+    assert "tool_identifier_altitude" not in warns, result["findings"]
+
+
+def test_compose_prompt_has_tool_surface_altitude_ceiling() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "authority class",
+        "READ / ACT / AUTH",
+        "invariant, not the realization",
+        "example-tool map",
+    ):
+        assert needle in prompt, f"compose prompt missing altitude ceiling: {needle}"
+
+
+def test_quality_gate_has_altitude_gate() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    assert "mechanism_altitude" in gate
+    assert "authority class" in gate

@@ -56,6 +56,13 @@ Checks (deterministic, stdlib only, no network, no LLM):
                           flag appears in the blueprint body (the deterministic
                           half of implementation-neutrality); a line carrying a
                           paper-style citation is an allowed research anchor.
+    mechanism_altitude    Mechanism vocabulary (dedup key, compaction, single
+                          PEP, retry-bounding, transport, …) must not appear
+                          outside the §18 handoff (``WARNING``).
+    tool_identifier_altitude
+                          A named tool identifier in a policy / evaluation / MVP
+                          row should be an authority class, not a tool name
+                          (``WARNING``).
     citation_not_in_refs  If a source report is supplied, every paper-style
                           citation in the blueprint must exist verbatim in the
                           source report's ``## References`` section.
@@ -161,6 +168,29 @@ _VENDOR_LEAK_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
     ("allowed-tools", re.compile(r"\ballowed-tools\b")),
     ("SKILL.md", re.compile(r"\bSKILL\.md\b")),
 )
+
+# Mechanism vocabulary that sits an altitude below the blueprint: the blueprint
+# should carry the *invariant*, not the *realization*. Allowed only inside the
+# §18 architecture-defer handoff. WARNING-tier — it guides, it does not block.
+_MECHANISM_VOCAB: tuple[str, ...] = (
+    "dedup key",
+    "idempoten",  # idempotent / idempotency
+    "compaction",
+    "single pep",
+    "policy-enforcement-point",
+    "policy enforcement point",
+    "retry-bound",
+    "retry bound",
+    "wire-level",
+    "wire level",
+    "transport",
+)
+# A backtick-wrapped snake_case identifier — a named tool identifier. In a
+# policy / evaluation / MVP row it should be an authority CLASS (READ/ACT/AUTH),
+# not a concrete tool name. WARNING-tier.
+_TOOL_IDENTIFIER_RE = re.compile(r"`([a-z][a-z0-9]*_[a-z0-9_]+)`")
+# Section titles whose rows must bind to authority classes, not tool names.
+_AUTHORITY_CLASS_SECTIONS = ("decision policies", "evaluation", "mvp scope")
 
 
 def _finding(level: str, check: str, message: str, **extra: object) -> dict:
@@ -512,6 +542,59 @@ def check_vendor_leak(text: str) -> list[dict]:
     return findings
 
 
+def check_altitude(text: str) -> list[dict]:
+    """Flag mechanism / named-tool leaks that sit below the blueprint altitude.
+
+    Two WARNING-tier linters for agent/tool-surface blueprints (issue #94):
+
+    * ``mechanism_altitude`` — mechanism vocabulary (dedup key, compaction,
+      single PEP, retry-bounding, transport, …) anywhere except the §18
+      architecture-defer handoff, where deferring mechanism is the point.
+    * ``tool_identifier_altitude`` — a named tool identifier (a backtick
+      snake_case token) in a policy / evaluation / MVP row, which should bind to
+      an authority CLASS (READ / ACT / AUTH), not a concrete tool name.
+
+    Both are ``WARNING`` — they guide the author toward the blueprint altitude
+    rather than blocking delivery.
+    """
+    findings: list[dict] = []
+    in_handoff = False
+    section_title = ""
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        heading = re.match(r"^##\s+(?P<title>.*\S)\s*$", line)
+        if heading:
+            section_title = heading.group("title").lower()
+            in_handoff = "handoff" in section_title
+        if not in_handoff:
+            lowered = line.lower()
+            for term in _MECHANISM_VOCAB:
+                if term in lowered:
+                    findings.append(
+                        _finding(
+                            WARNING,
+                            "mechanism_altitude",
+                            f"Mechanism vocabulary {term!r} appears in the "
+                            "blueprint body; carry the invariant, not the "
+                            "realization — defer the mechanism to §18.",
+                            line=lineno,
+                        )
+                    )
+                    break
+        if any(name in section_title for name in _AUTHORITY_CLASS_SECTIONS):
+            for match in _TOOL_IDENTIFIER_RE.finditer(line):
+                findings.append(
+                    _finding(
+                        WARNING,
+                        "tool_identifier_altitude",
+                        f"Named tool identifier `{match.group(1)}` appears in a "
+                        "policy / evaluation / MVP row; bind it to an authority "
+                        "class (READ / ACT / AUTH), not a concrete tool name.",
+                        line=lineno,
+                    )
+                )
+    return findings
+
+
 def _strip_fenced_blocks(text: str) -> str:
     """Remove fenced code blocks so diagram labels are not parsed as citations."""
     return _FENCED_BLOCK_RE.sub("", text)
@@ -636,6 +719,7 @@ def run_checks(text: str, source_report_text: str | None = None) -> dict:
     findings.extend(check_contents_vs_headings(text))
     findings.extend(check_placeholder_citations(text))
     findings.extend(check_vendor_leak(text))
+    findings.extend(check_altitude(text))
     if source_report_text is not None:
         findings.extend(check_source_citation_fidelity(text, source_report_text))
     fail_count = sum(1 for f in findings if f["level"] == FAIL)

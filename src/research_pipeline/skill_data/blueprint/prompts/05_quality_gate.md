@@ -62,6 +62,14 @@ document — most importantly **phase inversion**:
   half of Gate 3 — it re-derives the neutrality verdict from the **final body**
   on every run, so a leak reintroduced by a later edit cannot survive behind a
   stale `PASS`.
+- **0i — Altitude ceiling (`mechanism_altitude` / `tool_identifier_altitude`,
+  `WARNING`):** for agent/tool-surface blueprints, mechanism vocabulary (dedup
+  key, compaction, single PEP / policy-enforcement-point, retry-bounding,
+  transport) must not appear outside the §18 handoff, and a policy / evaluation /
+  MVP row must bind to an **authority class** (READ / ACT / AUTH), not a named
+  tool identifier. These are `WARNING`-tier — they guide the author back to the
+  blueprint altitude rather than blocking delivery; rephrase to the invariant or
+  defer the mechanism to §18.
 
 If this pre-gate exits non-zero, **stop and fix the staging or the coherence
 anchors** before the reasoning gates — do not re-derive the def→use graph by
