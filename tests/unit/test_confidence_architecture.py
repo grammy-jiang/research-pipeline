@@ -225,16 +225,25 @@ class TestFitPlattScaling:
 
 class TestDampedFusion:
     def test_uniform_signals(self) -> None:
-        # 0.5^0.8 ≈ 0.574 (power damping raises sub-1.0 scores)
+        # True power mean of identical signals is that value (#105): the fixed
+        # (Σ w·s^p)^(1/p) form returns 0.5, not the pre-fix inflated 0.574.
         result = damped_fusion([0.5, 0.5, 0.5])
-        assert abs(result - 0.574) < 0.01
+        assert abs(result - 0.5) < 0.01
 
     def test_empty_signals(self) -> None:
         assert damped_fusion([]) == 0.0
 
     def test_single_signal(self) -> None:
+        # A single signal must be returned unchanged (power mean is the identity).
         result = damped_fusion([0.8])
-        assert result > 0
+        assert abs(result - 0.8) < 0.01
+
+    def test_pulls_toward_weaker_signal(self) -> None:
+        # A true generalized power mean with damping < 1 is <= the arithmetic
+        # mean, pulling a mixed set toward the weaker signal (de-biasing) — the
+        # opposite of the pre-fix behaviour that inflated sub-1.0 signals (#105).
+        result = damped_fusion([0.9, 0.3])
+        assert result < 0.6  # arithmetic mean is 0.6
 
     def test_weighted(self) -> None:
         result = damped_fusion([0.9, 0.1], [0.9, 0.1])
@@ -485,6 +494,17 @@ class TestBatchCalibrationReport:
         results = score_batch_layered(claims)
         report = batch_calibration_report(results, ground_truth=[1.0, 0.0, 1.0, 0.0])
         assert report.n_samples == 4
+        assert report.ground_truth_provided is True
+
+    def test_without_ground_truth_is_flagged_self_consistency(self) -> None:
+        # No outcome labels: metrics are self-referential (computed against an
+        # input signal), so the report must say so rather than imply calibration.
+        claims = [_make_claim(claim_id=f"CL-{i:03d}") for i in range(3)]
+        results = score_batch_layered(claims)
+        report = batch_calibration_report(results)
+        assert report.ground_truth_provided is False
+        assert "SELF-CONSISTENCY" in report.note
+        assert report.to_dict()["ground_truth_provided"] is False
 
 
 # ---------------------------------------------------------------------------
