@@ -37,6 +37,10 @@ Checks (deterministic, stdlib only, no network, no LLM):
     contents_vs_headings  ``## Contents`` numbered entries must equal the
                           ``## N. Title`` headings, in order.
     placeholder_citation  No blank / ``TODO`` / ``TBD`` citations remain.
+    vendor_leak           No named deployment product / vendor CLI / config
+                          flag appears in the blueprint body (the deterministic
+                          half of implementation-neutrality); a line carrying a
+                          paper-style citation is an allowed research anchor.
     citation_not_in_refs  If a source report is supplied, every paper-style
                           citation in the blueprint must exist verbatim in the
                           source report's ``## References`` section.
@@ -110,6 +114,24 @@ _CONFIDENCE_RE = re.compile(
 
 _OPEN_STAGES = {"open", "open-question", "unresolved"}
 _FUTURE_STAGES = {"future", "later", "backlog"}
+
+# Named deployment products, vendor CLIs, and their wire-level config flags.
+# These must never appear in the implementation-neutral blueprint body; the LLM
+# neutrality gate demonstrably missed a body full of them and then restated a
+# stale ``PASS``. Each entry is ``(human label, compiled pattern)``. A match on
+# a line that also carries a paper-style citation is allowed as a cited
+# research-evaluation anchor (e.g. the Codex code-model paper).
+_VENDOR_LEAK_PATTERNS: tuple[tuple[str, re.Pattern[str]], ...] = (
+    ("Claude Code", re.compile(r"\bClaude Code\b")),
+    ("Copilot", re.compile(r"\bCopilot\b")),
+    ("Codex", re.compile(r"\bCodex\b")),
+    ("permissions.deny", re.compile(r"\bpermissions\.deny\b")),
+    ("execpolicy", re.compile(r"\bexecpolicy\b")),
+    ("--sandbox", re.compile(r"--sandbox\b")),
+    ("--available-tools", re.compile(r"--available-tools\b")),
+    ("allowed-tools", re.compile(r"\ballowed-tools\b")),
+    ("SKILL.md", re.compile(r"\bSKILL\.md\b")),
+)
 
 
 def _finding(level: str, check: str, message: str, **extra: object) -> dict:
@@ -319,6 +341,36 @@ def check_placeholder_citations(text: str) -> list[dict]:
     return findings
 
 
+def check_vendor_leak(text: str) -> list[dict]:
+    """Flag named deployment products / vendor CLIs / config flags in the body.
+
+    The deterministic half of the implementation-neutrality gate. Scans every
+    line (fenced code included — wire-level config leaks live there) for the
+    vendor denylist. A line that carries a paper-style citation is treated as an
+    allowed cited research-evaluation anchor and skipped, so a legitimately
+    cited research subject (e.g. the Codex code model) does not FAIL while an
+    uncited vendor mechanism does.
+    """
+    findings: list[dict] = []
+    for lineno, line in enumerate(text.splitlines(), start=1):
+        if _paper_citations(line):
+            continue
+        for label, pattern in _VENDOR_LEAK_PATTERNS:
+            if pattern.search(line):
+                findings.append(
+                    _finding(
+                        FAIL,
+                        "vendor_leak",
+                        f"Named deployment product / vendor CLI / config flag "
+                        f"{label!r} appears in the blueprint body; carry the "
+                        "invariant, not the vendor mechanism — remove it or "
+                        "defer to the architecture stage (§18).",
+                        line=lineno,
+                    )
+                )
+    return findings
+
+
 def _strip_fenced_blocks(text: str) -> str:
     """Remove fenced code blocks so diagram labels are not parsed as citations."""
     return _FENCED_BLOCK_RE.sub("", text)
@@ -441,6 +493,7 @@ def run_checks(text: str, source_report_text: str | None = None) -> dict:
     findings.extend(check_graph(nodes))
     findings.extend(check_contents_vs_headings(text))
     findings.extend(check_placeholder_citations(text))
+    findings.extend(check_vendor_leak(text))
     if source_report_text is not None:
         findings.extend(check_source_citation_fidelity(text, source_report_text))
     fail_count = sum(1 for f in findings if f["level"] == FAIL)

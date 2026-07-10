@@ -1469,3 +1469,117 @@ def test_mutation_negative_triggers_labelled_check(path: Path) -> None:
         level,
         result["findings"],
     )
+
+
+# --- issue #92: recompute self-check against the body (deterministic vendor /
+# mechanism leak scan) ---
+#
+# The blueprint self-check (Appendix A) recorded each gate's status as a
+# generation-time narrated verdict that was never recomputed against the final
+# body, so an implementation-neutrality row could read ``PASS`` while the body
+# carried named deployment products, vendor CLIs, and wire-level config flags
+# (``Claude Code`` ``permissions.deny``, ``Codex`` ``execpolicy``,
+# ``--available-tools``, ``SKILL.md``). The deterministic guard now re-derives
+# the neutrality verdict from a fresh body scan so the Appendix A row is a
+# computed result, not a stale generation-time claim.
+
+
+def _vendor_leak_blueprint(body_line: str) -> str:
+    """A minimal, otherwise-coherent blueprint carrying one extra body line."""
+    return f"""# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+Gated admission over durable agent memory. [2312.01234]
+
+{body_line}
+
+<!-- coherence: id=wf1.gate stage=MVP-0 requires=wf1.servicer -->
+<!-- coherence: id=wf1.servicer stage=MVP-0 -->
+"""
+
+
+def test_coherence_guard_fails_on_vendor_cli_and_config_leak(tmp_path: Path) -> None:
+    """A named vendor CLI plus its wire-level config flags FAIL the body scan."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        _vendor_leak_blueprint(
+            "Gate egress by configuring Claude Code `permissions.deny` and "
+            "`--sandbox`; the Codex `execpolicy` mirrors it."
+        ),
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    assert code == 1
+    assert result["all_passed"] is False
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "vendor_leak" in fails, result["findings"]
+
+
+def test_coherence_guard_fails_on_skill_infra_token_leak(tmp_path: Path) -> None:
+    """Skill-infrastructure tokens (``SKILL.md``, ``allowed-tools``) also leak."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        _vendor_leak_blueprint(
+            "Register the capability in `SKILL.md` under `allowed-tools`."
+        ),
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    assert code == 1
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "vendor_leak" in fails, result["findings"]
+
+
+def test_coherence_guard_allows_vendor_name_as_cited_research_anchor(
+    tmp_path: Path,
+) -> None:
+    """A vendor name on a line that cites a paper is an allowed research anchor.
+
+    ``Codex`` is a legitimate research subject; a cited line is a
+    research-evaluation anchor, not an implementation leak.
+    """
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        _vendor_leak_blueprint(
+            "The Codex code model established the code-generation baseline "
+            "[2107.03374]."
+        ),
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "vendor_leak" not in fails, result["findings"]
+    assert code == 0, result["findings"]
+
+
+def test_golden_and_weak_fixtures_have_no_vendor_leak() -> None:
+    """The shipped exemplars must not themselves trip the neutrality body scan."""
+    for fixture in (_GOLDEN_EXAMPLE, _WEAK_OUTPUT):
+        _code, result = _run_guard_over(fixture)
+        fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+        assert "vendor_leak" not in fails, (fixture.name, result["findings"])
+
+
+def test_quality_gate_recomputes_self_check_against_body() -> None:
+    """Gate 0 scans for vendor leaks; Appendix A rows are recomputed, not restated."""
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    # The deterministic vendor/mechanism leak scan is wired into the Gate 0
+    # pre-gate alongside the phase-inversion checks.
+    assert "vendor_leak" in gate
+    # Appendix A neutrality / traceability / MVP-discipline rows are the
+    # post-repair body-scan result, never a restated generation-time claim.
+    for needle in (
+        "post-repair body-scan result",
+        "never a restated generation-time",
+        "recomputed",
+    ):
+        assert needle in gate, f"quality gate missing recompute rule: {needle}"
