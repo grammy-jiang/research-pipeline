@@ -43,7 +43,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install research-pipeline
-        run: uv sync
+        run: uv sync --locked
 
       - name: Determine run date
         id: date
@@ -83,10 +83,14 @@ jobs:
             --workspace ./workspace \
             --date ${{ steps.date.outputs.value }}
 
-      - name: Show validation result
+      - name: Check validation result
         run: |
+          set -euo pipefail
           DATE=${{ steps.date.outputs.value }}
-          cat ./workspace/briefings/$DATE/validation/validation.json
+          VJSON=./workspace/briefings/$DATE/validation/validation.json
+          cat "$VJSON"
+          # Gate: never commit a failing/invalid brief to the persistent branch.
+          uv run python -c "import json,sys; sys.exit(0 if json.load(open('$VJSON')).get('passed') else 1)"
 
       - name: Commit brief and state to briefs branch
         env:

@@ -26,7 +26,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
 
       - name: Run pre-commit
         run: uv run pre-commit run --all-files
@@ -49,7 +49,7 @@ jobs:
         run: uv python install ${{ matrix.python-version }}
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
 
       - name: Run unit tests
         run: uv run pytest tests/unit/ -x -q --tb=short --cov=src/research_pipeline --cov-fail-under=83 --cov-report=term-missing --cov-report=xml
@@ -77,7 +77,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
 
       - name: Run mypy
         run: uv run mypy src/
@@ -97,10 +97,11 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
 
       - name: Audit dependencies for vulnerabilities
-        run: uv run pip-audit --skip-editable --ignore-vuln CVE-2026-3219 --ignore-vuln CVE-2025-3000  # torch: no fix yet (transitive)
+        # CVE-ignore list is single-sourced in the Makefile (`PIP_AUDIT_IGNORE`).
+        run: make audit-deps
 
       - name: Check license compatibility
         run: |
