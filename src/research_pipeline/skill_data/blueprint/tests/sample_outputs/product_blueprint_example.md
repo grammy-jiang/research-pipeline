@@ -197,6 +197,14 @@ promotion. **Derived From:** [2401.05678]. **Confidence Basis:** HIGH 🟢.
 ENGINEERING gap. **Confidence Basis:** Design + engineering gap.
 **Required for MVP:** Yes (safety baseline).
 
+<!-- Capability catalog registration — §15 MVP staging and §12 policies resolve
+     their references to these ids, so an orphan reference (a capability minted
+     in §15 but absent here) fails the deterministic guard. -->
+<!-- coherence: id=cap.admission stage=MVP-0 -->
+<!-- coherence: id=cap.retrieval stage=MVP-0 -->
+<!-- coherence: id=cap.scoping stage=MVP-1 -->
+<!-- coherence: id=cap.deletion stage=MVP-1 -->
+
 ---
 
 ## 8. Workflow Model
@@ -411,6 +419,12 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 | Audit Event | Decision record | actor, decision, rationale | created (immutable) | references record |
 | Tombstone | Deletion proof | record id, verified-at | created→verified | replaces Memory Record |
 
+<!-- Information-object registration — a §12 policy that consumes a field
+     resolves to one of these ids; a policy field with no §11 object is an
+     orphan reference. -->
+<!-- coherence: id=obj.candidate stage=MVP-0 -->
+<!-- coherence: id=obj.record stage=MVP-0 -->
+
 ---
 
 ## 12. Decision Policies
@@ -421,6 +435,10 @@ crosses them only via the Scope Controller. The Audit Layer is append-only.
 | Retrieval | Rank in scope | query, scope, freshness | return/empty | in-scope only | — | [Park et al., 2023] |
 | Promotion | Widen scope | record, target scope | allow/deny | deny | developer approval | [2401.05678] |
 | Forgetting | Remove records | request, references | tombstone/keep | manual-only (MVP) | flag if referenced | [2402.01234] |
+
+<!-- The MVP-0 Admission policy consumes the Candidate Memory object (§11); the
+     signal edge resolves and is phase-clean (producer MVP-0 <= consumer MVP-0). -->
+<!-- coherence: id=pol.admission stage=MVP-0 consumes=obj.candidate -->
 
 ---
 
@@ -460,11 +478,20 @@ and retrieves it within one scope.
   servicers ship at MVP-0.
 - Hybrid Retrieval, local scope only.
 
+<!-- MVP-0 requires the two MVP-0 capabilities registered in §7; both resolve
+     and are phase-clean. -->
+<!-- coherence: id=mvp0.core stage=MVP-0 requires=cap.admission,cap.retrieval -->
+
 ### 15.2 MVP-1 — First Usable Version
 
 - Human contradiction review over the MVP-0 quarantined contradictions.
 - Scoped records (local/project) with explicit promotion.
 - Verified deletion promoted to a first-class workflow.
+
+<!-- MVP-1 requires the MVP-1 capabilities (§7) and CONSUMES the MVP-0
+     quarantine signal produced in §8 — the review depends only on an
+     already-available earlier-stage signal, so no signal inversion. -->
+<!-- coherence: id=mvp1.first stage=MVP-1 requires=cap.scoping,cap.deletion consumes=wf1.servicer.quarantine -->
 
 ### 15.3 Safety Baseline
 
