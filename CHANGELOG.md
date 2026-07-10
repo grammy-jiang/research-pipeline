@@ -2,6 +2,36 @@
 
 All notable changes to research-pipeline.
 
+## [v0.32.0] — 2026-07-10
+
+Continued the bundled `blueprint` design-chain skill review: closed a second
+5-issue batch (#92–#96) hardening the coherence guard, the self-check, and the
+template/prompt discipline, each fix shipped with tests. The skill manifest moved
+0.9.0 → 0.10.0.
+
+### blueprint skill
+
+- Recompute the quality-gate self-check against the final body: a deterministic
+  `vendor_leak` scan (named products, vendor CLIs, wire-level config flags) now
+  re-derives the implementation-neutrality verdict on every revision, so a leak
+  reintroduced by a later edit cannot survive behind a stale `PASS` (#92).
+- Strengthen the coherence guard — anchor coverage is enforced (MVP-staging prose
+  with no anchors, or an Open Questions section with no `stage=open` anchor, now
+  FAILs), a `consumes=` signal edge catches signal inversions, and
+  `orphan_reference` catches a consumed signal whose producer is never registered
+  (#93).
+- Add an altitude ceiling for agent/tool-surface sections: WARNING-tier
+  `mechanism_altitude` (dedup keys, compaction, single-PEP, retry-bounding,
+  transport outside the §18 handoff) and `tool_identifier_altitude` (a named tool
+  in a policy/eval/MVP row that should bind to a READ/ACT/AUTH class) (#94).
+- Enforce actor-channel completeness: §3 tags every actor's channel class and §8
+  defines every escalation/authorization path per channel, with a new Gate 10
+  that FAILs an escalation assuming an inline human on a headless channel (#95).
+- Template discipline: one authoritative home per decision (Appendix B, keyed by
+  a stable ID) and a conservative MVP-0 default that keeps an unvalidated,
+  non-research-derived capability out of the smallest core behind a cheap gating
+  test (#96).
+
 ## [v0.31.0] — 2026-07-06
 
 Hardened the bundled `blueprint` design-chain skill: closed a 5-issue review
