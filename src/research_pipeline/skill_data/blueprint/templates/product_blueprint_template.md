@@ -56,6 +56,15 @@
 > MVP reference to it resolves — a capability minted in §15 but never registered
 > in §7, or a policy field with no §11 object, is an orphan reference.
 
+> **One authoritative home per decision.** Each design decision and open
+> question has exactly **one canonical home** — the Appendix B Design Decision
+> Register, keyed by a **stable ID** (`D1`, `D2`, … for decisions; `OQ1`, … for
+> open questions). Every other section (the §6 decisions table, §13 risks, §15
+> MVP, §17 open questions, §19 routing) **reference it by ID**, not by restating
+> it. A decision-oriented table cell holds a **one-line statement + the ID**,
+> never a rationale essay. This keeps a single copy authoritative, so a later
+> edit cannot leave a stale copy behind that falsifies a self-check.
+
 ---
 
 ## 1. Executive Product Thesis
@@ -767,12 +776,15 @@ judgement.
 
 ## Appendix B: Design Decision Register *(optional — include only for technical-architecture handoff)*
 
-> Optional. Add this only when handing off to technical architecture and the
-> blueprint is detailed enough to warrant it. Do **not** duplicate the §6
-> Adopt/Adapt/Merge/Defer/Reject table — list only decisions that materially
+> This register is the **one authoritative home** for each decision and open
+> question: the full rationale, evidence, reversibility, and revisit trigger
+> live here, keyed by a **stable ID** (`D1`, `D2`, … / `OQ1`, …). Every other
+> section **reference it by ID** with a **one-line statement** rather than a
+> restated rationale, so a single copy stays authoritative. Do **not** duplicate
+> the §6 Adopt/Adapt/Merge/Defer/Reject table — list decisions that materially
 > affect downstream architecture, and add the **reversibility** and
 > **revisit-trigger** view that §6 lacks. If included, add it to Contents.
 
-| Decision | Type | Rationale | Evidence | Reversible? | Revisit Trigger |
-|---|---|---|---|---|---|
-| ... | Research-backed / Scope / MVP-staging / Safety / Evaluation / Deferred-technical | ... | [arxiv_id] / [Source Report: Research Gaps — <name>] | Yes/No | ... |
+| ID | Decision | Type | Rationale | Evidence | Reversible? | Revisit Trigger |
+|---|---|---|---|---|---|---|
+| D1 | ... | Research-backed / Scope / MVP-staging / Safety / Evaluation / Deferred-technical | ... | [arxiv_id] / [Source Report: Research Gaps — <name>] | Yes/No | ... |

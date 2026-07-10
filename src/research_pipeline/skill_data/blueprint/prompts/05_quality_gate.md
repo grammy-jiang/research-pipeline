@@ -168,6 +168,12 @@ steps (or a Mermaid flow), outputs, failure modes, and success criteria.
   than 6 capabilities without justification, or when `standard` output exceeds
   the §04 length budgets. `FAIL` only if the MVP no longer represents a small,
   testable core value path.
+- **5f — Conservative MVP-0 default:** apply Prompt 04's conservative MVP-0
+  default rule. Flag a `WARNING` when an
+  **unvalidated capability is the MVP-0 default** with no **gating test** and the
+  thesis is surface-agnostic — it should default OUT of MVP-0, be gated on a
+  named cheap test (e.g. wizard-of-oz), and surface as an explicit owner gate
+  rather than settled normative prose.
 
 ## Gate 6 — Risk honesty
 
