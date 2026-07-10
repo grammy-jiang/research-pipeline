@@ -596,3 +596,91 @@ class TestFormatAggregationText:
         )
         text = format_aggregation_text(agg)
         assert "and 10 more" in text
+
+
+# --- issue #112: preserve the uncertainty signal + source-distinct agreement ---
+
+
+class TestUncertaintyPreservation:
+    """strip_rhetoric must carry stripped hedging into a confidence field (#112)."""
+
+    def test_hedging_maps_to_low_confidence(self) -> None:
+        from research_pipeline.models.summary import ConfidenceLevel
+        from research_pipeline.summarization.evidence_aggregation import (
+            infer_confidence_from_spans,
+        )
+
+        _clean, spans = strip_rhetoric("X might reduce latency in some cases.")
+        assert infer_confidence_from_spans(spans) == ConfidenceLevel.LOW
+
+    def test_confidence_claim_maps_to_high(self) -> None:
+        from research_pipeline.models.summary import ConfidenceLevel
+        from research_pipeline.summarization.evidence_aggregation import (
+            infer_confidence_from_spans,
+        )
+
+        _clean, spans = strip_rhetoric("X clearly reduces latency substantially.")
+        assert infer_confidence_from_spans(spans) == ConfidenceLevel.HIGH
+
+    def test_no_rhetoric_leaves_confidence_unknown(self) -> None:
+        from research_pipeline.summarization.evidence_aggregation import (
+            infer_confidence_from_spans,
+        )
+
+        _clean, spans = strip_rhetoric("X reduces latency by forty percent.")
+        assert infer_confidence_from_spans(spans) is None
+
+    def test_aggregate_sets_confidence_on_hedged_statement(self) -> None:
+        from research_pipeline.models.summary import ConfidenceLevel
+
+        report = _make_report(
+            [
+                _make_summary(
+                    arxiv_id="2301.11111",
+                    findings=[
+                        "The method might improve recall in [Section 3] evaluations."
+                    ],
+                )
+            ]
+        )
+        result = aggregate_evidence(report, min_pointers=0)
+        hedged = [s for s in result.statements if "recall" in s.text]
+        assert hedged
+        assert hedged[0].confidence == ConfidenceLevel.LOW
+
+
+class TestSourceDistinctAgreement:
+    """agreement_count must count distinct sources, not lexical near-dupes (#112)."""
+
+    def _stmt(self, sid: str, text: str, paper_id: str) -> EvidenceStatement:
+        return EvidenceStatement(
+            statement_id=sid,
+            text=text,
+            pointers=[EvidencePointer(paper_id=paper_id, quote=f"q-{sid}")],
+        )
+
+    def test_same_source_near_dupes_do_not_inflate(self) -> None:
+        from research_pipeline.summarization.evidence_aggregation import (
+            _merge_similar_statements,
+        )
+
+        stmts = [
+            self._stmt("ES-001", "The model improves recall on benchmark tasks.", "P1"),
+            self._stmt("ES-002", "The model improves recall on benchmark task.", "P1"),
+        ]
+        merged, _count = _merge_similar_statements(stmts, threshold=0.7)
+        assert len(merged) == 1
+        assert merged[0].agreement_count == 1  # one source, not two
+
+    def test_distinct_sources_are_counted(self) -> None:
+        from research_pipeline.summarization.evidence_aggregation import (
+            _merge_similar_statements,
+        )
+
+        stmts = [
+            self._stmt("ES-001", "The model improves recall on benchmark tasks.", "P1"),
+            self._stmt("ES-002", "The model improves recall on benchmark task.", "P2"),
+        ]
+        merged, _count = _merge_similar_statements(stmts, threshold=0.7)
+        assert len(merged) == 1
+        assert merged[0].agreement_count == 2  # two distinct sources

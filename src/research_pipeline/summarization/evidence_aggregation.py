@@ -35,6 +35,7 @@ from research_pipeline.models.evidence import (
     RhetoricType,
 )
 from research_pipeline.models.summary import (
+    ConfidenceLevel,
     PaperSummary,
     SynthesisReport,
 )
@@ -164,6 +165,27 @@ def strip_rhetoric(text: str) -> tuple[str, list[RhetoricSpan]]:
     result = result.strip()
 
     return result, spans
+
+
+def infer_confidence_from_spans(spans: list[RhetoricSpan]) -> ConfidenceLevel | None:
+    """Map stripped hedging / confidence rhetoric to a confidence level (#112).
+
+    ``strip_rhetoric`` deletes the surface hedging ("might", "may") and
+    confidence-claim words ("clearly", "certainly"); this preserves that
+    epistemic signal so a hedged claim stays distinguishable from an asserted
+    one downstream. Hedging dominates a mixed signal — an uncertain claim is
+    uncertain regardless of any bravado. Returns ``None`` when neither is
+    present (no signal to assert).
+    """
+    has_hedging = any(s.rhetoric_type == RhetoricType.HEDGING for s in spans)
+    has_confidence = any(
+        s.rhetoric_type == RhetoricType.CONFIDENCE_CLAIM for s in spans
+    )
+    if has_hedging:
+        return ConfidenceLevel.LOW
+    if has_confidence:
+        return ConfidenceLevel.HIGH
+    return None
 
 
 def normalize_length(
@@ -304,17 +326,24 @@ def _merge_similar_statements(
             if _similarity(si.text, sj.text) >= threshold:
                 used.add(j)
                 merge_count += 1
-                # Merge pointers
+                # Merge pointers (dedup by quote). A textual merge is NOT itself
+                # corroboration — agreement is recomputed from distinct sources
+                # below (#112), so near-duplicate phrasings of one source's claim
+                # no longer inflate the count.
                 existing_quotes = {p.quote for p in best.pointers}
-                for p in sj.pointers:
-                    if p.quote not in existing_quotes:
-                        best = best.model_copy(
-                            update={
-                                "pointers": [*best.pointers, p],
-                                "agreement_count": best.agreement_count + 1,
-                            }
-                        )
-                        existing_quotes.add(p.quote)
+                new_pointers = [
+                    p for p in sj.pointers if p.quote not in existing_quotes
+                ]
+                if new_pointers:
+                    best = best.model_copy(
+                        update={"pointers": [*best.pointers, *new_pointers]}
+                    )
+        # Corroboration = number of distinct sources (paper_ids), not lexical
+        # near-dupes of a single source (#112).
+        distinct_sources = {p.paper_id for p in best.pointers if p.paper_id}
+        best = best.model_copy(
+            update={"agreement_count": max(best.agreement_count, len(distinct_sources))}
+        )
         merged.append(best)
 
     return merged, merge_count
@@ -506,7 +535,14 @@ def aggregate_evidence(
             clean_text, spans = strip_rhetoric(stmt.text)
             total_rhetoric += len(spans)
             if clean_text:
-                cleaned.append(stmt.model_copy(update={"text": clean_text}))
+                # Carry the stripped uncertainty signal into a structured field
+                # rather than discarding it with the surface text (#112).
+                confidence = infer_confidence_from_spans(spans) or stmt.confidence
+                cleaned.append(
+                    stmt.model_copy(
+                        update={"text": clean_text, "confidence": confidence}
+                    )
+                )
             else:
                 dropped.append(f"[rhetoric-empty] {stmt.text[:80]}")
         all_statements = cleaned

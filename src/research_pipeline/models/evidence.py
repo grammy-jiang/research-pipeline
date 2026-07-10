@@ -11,6 +11,8 @@ from enum import StrEnum
 
 from pydantic import BaseModel, Field
 
+from research_pipeline.models.summary import ConfidenceLevel
+
 
 class RhetoricType(StrEnum):
     """Classification of rhetoric patterns detected in text."""
@@ -56,7 +58,14 @@ class EvidenceStatement(BaseModel):
     )
     agreement_count: int = Field(
         default=1,
-        description="Number of independent sources supporting this statement.",
+        description="Number of independent sources (distinct paper_ids) "
+        "supporting this statement.",
+    )
+    confidence: ConfidenceLevel | None = Field(
+        default=None,
+        description="Source-expressed epistemic confidence carried over from "
+        "hedging / confidence rhetoric stripped from the surface text (#112). "
+        "None means no uncertainty signal was detected.",
     )
 
 
