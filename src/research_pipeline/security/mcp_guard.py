@@ -304,6 +304,9 @@ class McpGuard:
         self._audit: list[AuditEntry] = []
         self._max_audit = max_audit_entries
         self._call_counts: dict[str, list[float]] = {}
+        # SHA-256 of each tool's description, populated at wiring time for the
+        # tool-poisoning integrity defense (#114).
+        self.description_hashes: dict[str, str] = {}
 
     @property
     def registry(self) -> ToolRegistry:

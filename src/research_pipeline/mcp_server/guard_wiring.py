@@ -19,9 +19,16 @@ classification is retained so a future policy can tighten write/execute tools.
 
 from __future__ import annotations
 
+import json
 import logging
+import os
+from pathlib import Path
 from typing import TYPE_CHECKING, Any
 
+from research_pipeline.mcp_server.integrity import (
+    compute_tool_hashes,
+    verify_tool_integrity,
+)
 from research_pipeline.security.mcp_guard import (
     AuthDecision,
     CapabilityPolicy,
@@ -39,6 +46,9 @@ logger = logging.getLogger(__name__)
 # interactive/workflow use, low enough to cap a runaway loop.
 _MAX_CALLS_PER_MINUTE = 300
 _DEFAULT_CALLER = "anonymous"
+# Optional committed reference of tool-description hashes; when set, the guard
+# verifies live descriptions against it at startup (tool-poisoning defense, #114).
+_TOOL_HASHES_ENV = "RESEARCH_PIPELINE_TOOL_HASHES"
 
 
 def _domain_for(tool: Any) -> TrustDomain:
@@ -52,23 +62,72 @@ def _domain_for(tool: Any) -> TrustDomain:
 
 
 def build_guard(mcp: FastMCP) -> McpGuard:
-    """Build an :class:`McpGuard` registering every tool on *mcp*."""
+    """Build an :class:`McpGuard` registering every tool on *mcp*.
+
+    Activates two integrity controls that were previously inert (#114): each
+    tool's schema hash is **pinned** at registration so the per-call
+    schema-integrity layer actually enforces (an unpinned tool was a no-op), and
+    a SHA-256 of every tool **description** is computed and attached to the guard
+    (``description_hashes``) so the tool-poisoning defense is live, not dead code.
+    """
     registry = ToolRegistry()
+    tool_defs: list[dict[str, str]] = []
     for name, tool in mcp._tool_manager._tools.items():
+        description = getattr(tool, "description", "") or ""
         registry.register(
             name,
             schema=getattr(tool, "parameters", None) or {},
             domain=_domain_for(tool),
+            description=description,
             max_calls_per_minute=_MAX_CALLS_PER_MINUTE,
         )
+        # Pin the freshly-registered schema so verify_integrity has a baseline.
+        registry.pin_tool(name)
+        tool_defs.append({"name": name, "description": description})
     policy = CapabilityPolicy()
     policy.grant_all(_DEFAULT_CALLER)
-    return McpGuard(registry, policy)
+    guard = McpGuard(registry, policy)
+    guard.description_hashes = compute_tool_hashes(tool_defs)
+    return guard
+
+
+def _verify_description_hashes(guard: McpGuard) -> None:
+    """Verify live tool descriptions against a committed reference, if configured.
+
+    When ``RESEARCH_PIPELINE_TOOL_HASHES`` points at a JSON ``{name: hash}``
+    reference, warn on any tool whose description no longer matches (a
+    tool-poisoning signal). Non-fatal: a legitimate description update should not
+    take the server down, so this logs rather than raises.
+    """
+    ref_path = os.environ.get(_TOOL_HASHES_ENV)
+    if not ref_path:
+        return
+    path = Path(ref_path).expanduser()
+    if not path.is_file():
+        logger.warning(
+            "Tool-hash reference %s not found; skipping integrity check", path
+        )
+        return
+    try:
+        reference = json.loads(path.read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        logger.warning("Could not read tool-hash reference %s: %s", path, exc)
+        return
+    tampered = verify_tool_integrity(guard.description_hashes, reference)
+    if tampered:
+        logger.warning(
+            "Tool-description integrity check FAILED for %d tool(s): %s",
+            len(tampered),
+            ", ".join(sorted(tampered)),
+        )
+    else:
+        logger.info("Tool-description integrity verified for %d tools", len(reference))
 
 
 def install_guard(mcp: FastMCP) -> McpGuard:
     """Wrap *mcp*'s tool dispatch so every call is authorized by the guard."""
     guard = build_guard(mcp)
+    _verify_description_hashes(guard)
     original = mcp._tool_manager.call_tool
 
     async def guarded_call_tool(
