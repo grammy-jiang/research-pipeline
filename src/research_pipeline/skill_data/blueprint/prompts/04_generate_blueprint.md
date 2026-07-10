@@ -217,6 +217,18 @@ Explicitly Deferred / Success Definition.
   required moves to a §16 phase with a one-line reason.
 - `ACADEMIC`-gap items stay out of MVP unless the product's purpose is to
   validate that gap.
+- **Conservative MVP-0 default.** When a capability is **unvalidated** /
+  non-research-derived **and** its host thesis is **surface-agnostic** (the core
+  value path does not depend on it), **default it OUT of MVP-0**. Do not weave
+  the scope-expanding bet into §8/§9/§12 as settled normative prose. Instead:
+  - gate it on a **named cheap test** (e.g. a **wizard-of-oz** trial or a manual
+    baseline) that would cheaply disprove it, and
+  - surface the provisional default as an explicit **owner gate** (an Appendix B
+    open question with an owner) feeding the next stage — not as a decision the
+    reader takes as settled.
+
+  This is the build-trap default polarity: keep MVP-0 the smallest demonstrable
+  core and prove the unvalidated bet before inflating the core with it.
 
 ## Coherence anchors (mandatory on every staged node)
 

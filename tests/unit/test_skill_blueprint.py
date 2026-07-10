@@ -1980,3 +1980,51 @@ def test_quality_gate_enforces_actor_channel_completeness() -> None:
         assert needle in gate, (
             f"quality gate missing channel-completeness rule: {needle}"
         )
+
+
+# --- issue #96: one authoritative home per decision + conservative MVP-0 default
+#
+# The template scattered each decision across the decisions/risk/MVP/routing
+# tables and appendices, so one decision was restated ~12 times and a stale copy
+# falsified a self-check. And an unvalidated, non-research-derived capability was
+# recorded as the normative MVP-0 default instead of defaulting conservative and
+# surfacing an owner gate — the classic build-trap default polarity. These tests
+# pin the single-decision-home convention and the conservative MVP-0 default.
+
+
+def test_template_has_single_decision_home_convention() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    for needle in (
+        "one authoritative home",
+        "stable ID",
+        "reference it by ID",
+        "one-line statement",
+    ):
+        assert needle in template, f"template missing decision-home rule: {needle}"
+
+
+def test_compose_prompt_has_conservative_mvp0_default() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "unvalidated",
+        "surface-agnostic",
+        "default it OUT of MVP-0",
+        "wizard-of-oz",
+        "owner gate",
+    ):
+        assert needle in prompt, f"compose prompt missing MVP-0 default rule: {needle}"
+
+
+def test_quality_gate_warns_on_unvalidated_mvp0_default() -> None:
+    gate = (_skill_root() / "prompts" / "05_quality_gate.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "unvalidated capability is the MVP-0 default",
+        "gating test",
+    ):
+        assert needle in gate, f"quality gate missing MVP-0 default warning: {needle}"
