@@ -1,9 +1,16 @@
 """Tests for MCP server registration."""
 
 from datetime import UTC, datetime
+from pathlib import Path
 
+from research_pipeline.mcp_server.schemas import EvalLogInput, GetRunManifestInput
 from research_pipeline.mcp_server.server import mcp
-from research_pipeline.mcp_server.tools import _sanitize_candidates
+from research_pipeline.mcp_server.tools import (
+    _resolve_latest_run_id,
+    _sanitize_candidates,
+    get_run_manifest,
+    query_eval_log,
+)
 from research_pipeline.models.candidate import CandidateRecord
 
 
@@ -159,3 +166,40 @@ class TestCandidateSanitizationGate:
         _sanitize_candidates(records)
         assert records[0].title == "A Clean Title"
         assert records[0].abstract == "A clean abstract."
+
+
+class TestRunIdResolution:
+    """run_id="" must resolve to latest / fail, never read the workspace root (#110)."""
+
+    def test_resolve_latest_prefers_explicit_id(self, tmp_path: Path) -> None:
+        assert _resolve_latest_run_id(tmp_path, "run-abc") == "run-abc"
+
+    def test_resolve_latest_empty_when_no_runs(self, tmp_path: Path) -> None:
+        assert _resolve_latest_run_id(tmp_path, "") == ""
+
+    def test_get_run_manifest_empty_run_id_no_runs_fails_cleanly(
+        self, tmp_path: Path
+    ) -> None:
+        result = get_run_manifest(
+            GetRunManifestInput(workspace=str(tmp_path), run_id="")
+        )
+        assert result.success is False
+        assert "No runs found" in result.message
+
+    def test_query_eval_log_empty_run_id_no_runs_fails_cleanly(
+        self, tmp_path: Path
+    ) -> None:
+        result = query_eval_log(EvalLogInput(workspace=str(tmp_path), run_id=""))
+        assert result.success is False
+        assert "No runs found" in result.message
+
+
+class TestResearchWorkflowEnvelope:
+    """tool_research_workflow must use the uniform ToolResult output schema (#110)."""
+
+    def test_output_schema_matches_a_toolresult_tool(self) -> None:
+        tools = mcp._tool_manager._tools
+        assert (
+            tools["tool_research_workflow"].output_schema
+            == tools["tool_search"].output_schema
+        )

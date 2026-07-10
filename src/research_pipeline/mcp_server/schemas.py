@@ -384,6 +384,11 @@ class FeedbackInput(CommonParams):
 class EvalLogInput(CommonParams):
     """Input for the query_eval_log tool."""
 
+    # Read tool: an empty run_id means the latest run, not auto-generate (#110).
+    run_id: str = Field(
+        default="",
+        description="Run identifier to query. Empty means the latest run.",
+    )
     channel: str = Field(
         default="all",
         description=("Channel to query: traces, audit, snapshots, summary, or all."),

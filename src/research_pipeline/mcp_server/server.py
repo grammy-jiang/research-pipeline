@@ -1354,7 +1354,7 @@ async def tool_research_workflow(
     source: str = "",
     max_iterations: int = 3,
     resume: bool = False,
-) -> dict:
+) -> ToolResult:
     """Run a full harness-engineered research workflow.
 
     Orchestrates the entire pipeline: plan → search → screen → download →
@@ -1375,7 +1375,7 @@ async def tool_research_workflow(
     """
     from research_pipeline.mcp_server.workflow.research import run_research_workflow
 
-    return await run_research_workflow(
+    result = await run_research_workflow(
         topic=topic,
         ctx=ctx,
         workspace=workspace,
@@ -1386,6 +1386,14 @@ async def tool_research_workflow(
         max_iterations=max_iterations,
         resume=resume,
     )
+    # Wrap the workflow's dict in the uniform ToolResult envelope every other
+    # tool returns, so structuredContent always carries success/message/artifacts
+    # (#110). The full workflow payload is preserved under artifacts.
+    success = bool(result.get("success", "error" not in result))
+    message = str(
+        result.get("message") or result.get("error") or "Research workflow complete."
+    )
+    return ToolResult(success=success, message=message, artifacts=result)
 
 
 @mcp.tool(
