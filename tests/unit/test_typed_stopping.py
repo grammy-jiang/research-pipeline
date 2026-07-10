@@ -109,6 +109,22 @@ class TestClassifyQueryType:
         result = classify_query_type("verify this comprehensive review claim")
         assert result in (ExtendedQueryType.VERIFICATION, ExtendedQueryType.RECALL)
 
+    def test_tie_break_respects_documented_priority(self) -> None:
+        # "verify" (VERIFICATION) + "survey" (RECALL) tie 1-1. The documented
+        # priority is verification-first, so the tie must resolve to VERIFICATION,
+        # not RECALL (which enum/dict iteration order would pick) (#111).
+        assert (
+            classify_query_type("verify the survey") == ExtendedQueryType.VERIFICATION
+        )
+
+    def test_tie_break_verification_over_recall_multi(self) -> None:
+        # "verify"+"claim" (2 VERIFICATION) vs "comprehensive"+"review" (2 RECALL)
+        # is a 2-2 tie → VERIFICATION by _KEYWORD_MAP priority.
+        assert (
+            classify_query_type("verify this comprehensive review claim")
+            == ExtendedQueryType.VERIFICATION
+        )
+
 
 # ---------------------------------------------------------------------------
 # get_profile
