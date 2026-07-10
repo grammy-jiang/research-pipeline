@@ -1,9 +1,12 @@
 """Tests for MCP server schemas."""
 
+from pathlib import Path
+
 import pytest
 from pydantic import ValidationError
 
 from research_pipeline.mcp_server.schemas import (
+    _MCP_ROOT_ENV,
     CommonParams,
     ConvertFileInput,
     ConvertFineInput,
@@ -21,6 +24,7 @@ from research_pipeline.mcp_server.schemas import (
     SearchInput,
     SummarizePapersInput,
     ToolResult,
+    _validate_tool_path,
 )
 
 
@@ -214,3 +218,63 @@ class TestRunIdTraversalValidator:
         assert PlanTopicInput(topic="x", run_id="run-001").run_id == "run-001"
         # empty is the auto-generate sentinel
         assert PlanTopicInput(topic="x").run_id == ""
+
+
+class TestValidateToolPath:
+    """The PathStr validator confines every path-shaped tool argument (#103)."""
+
+    def test_allows_empty(self) -> None:
+        assert _validate_tool_path("") == ""
+
+    def test_allows_normal_relative(self) -> None:
+        assert _validate_tool_path("workspace/run1") == "workspace/run1"
+
+    def test_allows_absolute_without_root(self, tmp_path: Path) -> None:
+        assert _validate_tool_path(str(tmp_path)) == str(tmp_path)
+
+    @pytest.mark.parametrize("bad", ["../etc/passwd", "a/../../b", "..", "foo/.."])
+    def test_rejects_traversal(self, bad: str) -> None:
+        with pytest.raises(ValueError, match="traversal"):
+            _validate_tool_path(bad)
+
+    def test_rejects_nul_byte(self) -> None:
+        with pytest.raises(ValueError, match="NUL"):
+            _validate_tool_path("a\x00b")
+
+    def test_configured_root_allows_inside(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv(_MCP_ROOT_ENV, str(tmp_path))
+        inside = str(tmp_path / "sub" / "file.pdf")
+        assert _validate_tool_path(inside) == inside
+
+    def test_configured_root_rejects_outside(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        monkeypatch.setenv(_MCP_ROOT_ENV, str(tmp_path))
+        with pytest.raises(ValueError, match="escapes"):
+            _validate_tool_path("/etc/passwd")
+
+
+class TestSchemaPathContainment:
+    """Path-shaped schema fields reject traversal at construction (#103)."""
+
+    def test_convert_file_rejects_traversal_pdf_path(self) -> None:
+        with pytest.raises(ValidationError):
+            ConvertFileInput(pdf_path="../../etc/passwd")
+
+    def test_convert_file_rejects_traversal_output_dir(self) -> None:
+        with pytest.raises(ValidationError):
+            ConvertFileInput(pdf_path="paper.pdf", output_dir="../../tmp")
+
+    def test_convert_file_accepts_normal(self, tmp_path: Path) -> None:
+        model = ConvertFileInput(pdf_path=str(tmp_path / "x.pdf"))
+        assert model.pdf_path.endswith("x.pdf")
+
+    def test_search_rejects_traversal_workspace(self) -> None:
+        with pytest.raises(ValidationError):
+            SearchInput(workspace="../secret")
+
+    def test_manage_index_rejects_traversal_db_path(self) -> None:
+        with pytest.raises(ValidationError):
+            ManageIndexInput(db_path="../../root/.ssh/id_rsa")

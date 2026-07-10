@@ -2,13 +2,54 @@
 
 from __future__ import annotations
 
-from pydantic import BaseModel, Field, field_validator
+import os
+from pathlib import Path
+from typing import Annotated
+
+from pydantic import AfterValidator, BaseModel, Field, field_validator
+
+# When set, confines every path-shaped tool argument under this root — a
+# deterministic in-code enforcement of HC2's write-allowlist (issue #103).
+_MCP_ROOT_ENV = "RESEARCH_PIPELINE_MCP_ROOT"
+
+
+def _validate_tool_path(value: str) -> str:
+    """Reject path traversal in a filesystem tool argument; optionally confine it.
+
+    Path-shaped MCP tool arguments (``workspace``, ``pdf_path``, ``db_path``, …)
+    flow straight into ``Path(...).resolve()`` and a read/write, so a
+    model-chosen (possibly injection-steered) value could reach anywhere the OS
+    user can (issue #103). This validator always rejects ``..`` traversal and
+    NUL bytes; when ``RESEARCH_PIPELINE_MCP_ROOT`` is configured it also requires
+    the resolved path to stay under that root. The empty default (auto / unset)
+    is passed through.
+    """
+    if not value:
+        return value
+    if "\x00" in value:
+        raise ValueError("path must not contain a NUL byte")
+    if ".." in value:
+        raise ValueError("path must not contain '..' traversal")
+    root = os.environ.get(_MCP_ROOT_ENV)
+    if root:
+        base = Path(root).expanduser().resolve()
+        try:
+            target = Path(value).expanduser().resolve()
+        except (OSError, RuntimeError) as exc:
+            raise ValueError(f"invalid path {value!r}") from exc
+        if not target.is_relative_to(base):
+            raise ValueError(f"path {value!r} escapes the configured MCP root {base}")
+    return value
+
+
+# A ``str`` field carrying a filesystem path, containment-checked at validation.
+PathStr = Annotated[str, AfterValidator(_validate_tool_path)]
 
 
 class CommonParams(BaseModel):
     """Parameters shared by all MCP tools."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Path to the workspace directory for artifacts.",
     )
@@ -113,7 +154,7 @@ class RunPipelineInput(CommonParams):
 class GetRunManifestInput(BaseModel):
     """Input for the get_run_manifest tool."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Path to the workspace directory.",
     )
@@ -126,8 +167,8 @@ class GetRunManifestInput(BaseModel):
 class ConvertFileInput(BaseModel):
     """Input for the convert_file tool (standalone single-file conversion)."""
 
-    pdf_path: str = Field(description="Path to a PDF file to convert.")
-    output_dir: str = Field(
+    pdf_path: PathStr = Field(description="Path to a PDF file to convert.")
+    output_dir: PathStr = Field(
         default="",
         description="Output directory for Markdown. Default: same dir as PDF.",
     )
@@ -246,7 +287,7 @@ class ManageIndexInput(BaseModel):
         default=False,
         description="Garbage collect stale entries.",
     )
-    db_path: str = Field(
+    db_path: PathStr = Field(
         default="",
         description="Path to index database. Empty uses default.",
     )
@@ -271,13 +312,13 @@ class AnalyzePapersInput(CommonParams):
 class ValidateReportInput(BaseModel):
     """Input for the validate_report tool."""
 
-    report_path: str = Field(
+    report_path: PathStr = Field(
         default="",
         description=(
             "Path to the report markdown file. If empty, uses run_id to find synthesis."
         ),
     )
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Path to the workspace directory.",
     )
@@ -292,7 +333,7 @@ class ValidateReportInput(BaseModel):
 class CompareRunsInput(BaseModel):
     """Input for the compare_runs tool."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Path to the workspace directory.",
     )
@@ -385,7 +426,7 @@ class EvidenceAggregateInput(CommonParams):
 class ExportHtmlInput(CommonParams):
     """Input for the export_html tool."""
 
-    markdown_file: str = Field(
+    markdown_file: PathStr = Field(
         default="",
         description="Path to Markdown report (alternative to run_id).",
     )
@@ -402,7 +443,7 @@ class ExportHtmlInput(CommonParams):
 class ModelRoutingInfoInput(BaseModel):
     """Input for the model_routing_info tool."""
 
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
@@ -411,7 +452,7 @@ class ModelRoutingInfoInput(BaseModel):
 class GateInfoInput(BaseModel):
     """Input for the gate_info tool."""
 
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
@@ -424,7 +465,7 @@ class CoherenceInput(BaseModel):
         description="Two or more run IDs to evaluate coherence across.",
         min_length=2,
     )
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory containing run outputs.",
     )
@@ -437,7 +478,7 @@ class ConsolidationInput(BaseModel):
         default=None,
         description="Run IDs to ingest. If None, scans workspace.",
     )
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory containing run outputs.",
     )
@@ -462,7 +503,7 @@ class ConsolidationInput(BaseModel):
 class BlindingAuditInput(BaseModel):
     """Input for the epistemic blinding audit tool."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory containing run outputs.",
     )
@@ -483,7 +524,7 @@ class BlindingAuditInput(BaseModel):
 class DualMetricsInput(BaseModel):
     """Input for the dual-metrics evaluation tool."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory containing run outputs.",
     )
@@ -507,7 +548,7 @@ class DualMetricsInput(BaseModel):
 class CbrLookupInput(BaseModel):
     """Input for the CBR lookup tool."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory.",
     )
@@ -527,7 +568,7 @@ class CbrLookupInput(BaseModel):
 class CbrRetainInput(BaseModel):
     """Input for the CBR retain tool."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory.",
     )
@@ -554,7 +595,7 @@ class KGQualityInput(BaseModel):
     three-layer composable architecture (TKDE 2022 + Text2KGBench).
     """
 
-    db_path: str = Field(
+    db_path: PathStr = Field(
         default="",
         description="Path to KG SQLite database. Empty uses default.",
     )
@@ -612,11 +653,11 @@ class ConfidenceLayersInput(BaseModel):
     """
 
     run_id: str = Field(description="Run ID containing claim decompositions.")
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="",
         description="Workspace directory. Empty uses config default.",
     )
@@ -656,7 +697,7 @@ class ReportInput(CommonParams):
             "Report template: survey, gap_analysis, lit_review, or executive."
         ),
     )
-    custom_template: str = Field(
+    custom_template: PathStr = Field(
         default="",
         description="Path to a custom Jinja2 template file.",
     )
@@ -692,7 +733,7 @@ class EnrichInput(CommonParams):
         default="candidates",
         description="Stage to read candidates from: 'candidates' or 'screened'.",
     )
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
@@ -713,7 +754,7 @@ class CiteContextInput(CommonParams):
             "Output JSON file path (default: <convert_dir>/citation_contexts.json)."
         ),
     )
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
@@ -741,7 +782,7 @@ class WatchInput(BaseModel):
         default="",
         description="Output JSON file path for new papers found.",
     )
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
@@ -755,7 +796,7 @@ class ResearchWorkflowInput(CommonParams):
     """
 
     topic: str = Field(description="Natural language research topic.")
-    config_path: str = Field(
+    config_path: PathStr = Field(
         default="",
         description="Path to config.toml. Empty uses defaults.",
     )
@@ -803,7 +844,7 @@ class ScoreClaimsInput(CommonParams):
 class KGStatsInput(BaseModel):
     """Input for the kg_stats tool."""
 
-    db_path: str = Field(
+    db_path: PathStr = Field(
         default="",
         description="Path to KG SQLite database. Empty uses default.",
     )
@@ -815,7 +856,7 @@ class KGQueryInput(BaseModel):
     entity_id: str = Field(
         description="Entity identifier to look up in the knowledge graph.",
     )
-    db_path: str = Field(
+    db_path: PathStr = Field(
         default="",
         description="Path to KG SQLite database. Empty uses default.",
     )
@@ -828,7 +869,7 @@ class KGIngestInput(CommonParams):
     and populates the knowledge graph with entities and relations.
     """
 
-    db_path: str = Field(
+    db_path: PathStr = Field(
         default="",
         description="Path to KG SQLite database. Empty uses default.",
     )
@@ -837,11 +878,11 @@ class KGIngestInput(CommonParams):
 class MemoryStatsInput(BaseModel):
     """Input for the memory_stats tool."""
 
-    episodic_db: str = Field(
+    episodic_db: PathStr = Field(
         default="",
         description="Path to episodic memory database. Empty uses default.",
     )
-    kg_db: str = Field(
+    kg_db: PathStr = Field(
         default="",
         description="Path to KG database. Empty uses default.",
     )
@@ -854,7 +895,7 @@ class MemoryEpisodesInput(BaseModel):
         default=10,
         description="Maximum number of episodes to return.",
     )
-    episodic_db: str = Field(
+    episodic_db: PathStr = Field(
         default="",
         description="Path to episodic memory database. Empty uses default.",
     )
@@ -870,7 +911,7 @@ class MemorySearchInput(BaseModel):
         default=10,
         description="Maximum number of results to return.",
     )
-    episodic_db: str = Field(
+    episodic_db: PathStr = Field(
         default="",
         description="Path to episodic memory database. Empty uses default.",
     )
@@ -890,7 +931,7 @@ class EvaluateInput(BaseModel):
         default="",
         description="Specific stage to evaluate. Empty means all stages.",
     )
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace directory containing run outputs.",
     )
@@ -926,7 +967,7 @@ class RRPDiagnosticInput(BaseModel):
 class BriefCommonInput(BaseModel):
     """Shared input for daily AI intelligence briefing MCP tools."""
 
-    workspace: str = Field(
+    workspace: PathStr = Field(
         default="./workspace",
         description="Workspace root for briefing artifacts.",
     )
@@ -939,7 +980,7 @@ class BriefCommonInput(BaseModel):
 class BriefPollSourcesInput(BriefCommonInput):
     """Input for ``brief_poll_sources``."""
 
-    registry_path: str = Field(
+    registry_path: PathStr = Field(
         default="",
         description="Path to briefing source registry JSON/TOML.",
     )
@@ -952,7 +993,9 @@ class BriefPollSourcesInput(BriefCommonInput):
 class BriefRankEventsInput(BriefCommonInput):
     """Input for ``brief_rank_events``."""
 
-    registry_path: str = Field(default="", description="Optional source registry path.")
+    registry_path: PathStr = Field(
+        default="", description="Optional source registry path."
+    )
     use_memory: bool = Field(default=True, description="Apply topic-memory fatigue.")
     use_feedback: bool = Field(default=True, description="Apply explicit feedback.")
 
@@ -972,8 +1015,10 @@ class BriefRunInput(BriefPollSourcesInput):
 class BriefExportObsidianInput(BriefCommonInput):
     """Input for ``brief_export_obsidian``."""
 
-    vault_path: str = Field(description="Configured Obsidian vault root.")
-    registry_path: str = Field(default="", description="Optional source registry path.")
+    vault_path: PathStr = Field(description="Configured Obsidian vault root.")
+    registry_path: PathStr = Field(
+        default="", description="Optional source registry path."
+    )
 
 
 class BriefRecordFeedbackInput(BriefCommonInput):
@@ -995,9 +1040,11 @@ class BriefGenerateDossierInput(BriefCommonInput):
 class BriefWeeklySynthesisInput(BaseModel):
     """Input for ``brief_weekly_synthesis``."""
 
-    workspace: str = Field(default="./workspace", description="Workspace root.")
+    workspace: PathStr = Field(default="./workspace", description="Workspace root.")
     week: str = Field(description="Week ID, e.g. 2026-W18.")
-    output_path: str = Field(default="", description="Optional Markdown output path.")
+    output_path: PathStr = Field(
+        default="", description="Optional Markdown output path."
+    )
 
 
 class ToolResult(BaseModel):
