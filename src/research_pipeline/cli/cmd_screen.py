@@ -135,7 +135,10 @@ def run_screen(
     from research_pipeline.screening.query_feedback import compute_query_refinement
 
     top_papers = [c for c, _ in top[: config.screen.download_top_n]]
-    refinement = compute_query_refinement(plan, top_papers)
+    # Pass the full screened pool so a right-but-unretrieved term (present in the
+    # pool, absent from the top-K) is not pruned as a self-confirming loop (#123).
+    screened_pool = [c for c, _ in top]
+    refinement = compute_query_refinement(plan, top_papers, screened_pool=screened_pool)
     refinement_path = screen_dir / "query_refinement.json"
     refinement_path.write_text(refinement.model_dump_json(indent=2), encoding="utf-8")
     if refinement.suggested_additions:

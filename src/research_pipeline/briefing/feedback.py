@@ -74,6 +74,10 @@ NEGATIVE_SIGNALS = {
 
 NEUTRAL_SIGNALS = {FeedbackSignal.NEUTRAL}
 
+# Saturating bound on the per-target explicit-feedback weight, so repeated
+# feedback on one target cannot compound into an ever-growing rank boost (#123).
+_WEIGHT_CAP = 1.0
+
 
 def classify_signal(signal: FeedbackSignal) -> SignalClass:
     """Classify a feedback signal as positive, negative, or neutral.
@@ -261,7 +265,14 @@ class BriefingFeedbackStore:
         }
 
     def weights_by_target(self) -> dict[str, float]:
-        """Compute reversible explicit-feedback weights by target key."""
+        """Compute reversible explicit-feedback weights by target key.
+
+        The per-target weight is clamped to ``[-_WEIGHT_CAP, _WEIGHT_CAP]`` so an
+        early-liked target cannot accumulate an ever-growing boost as it keeps
+        resurfacing and drawing more feedback — the echo-chamber loop the
+        unbounded sum created (#123). Repeated feedback now *saturates* rather
+        than compounds.
+        """
         weights: dict[str, float] = {}
         for feedback in self.list_feedback():
             key = f"{feedback.target_type}:{feedback.target_id}"
@@ -271,7 +282,10 @@ class BriefingFeedbackStore:
             elif feedback.signal_type in NEGATIVE_SIGNALS:
                 delta = -0.35 * feedback.strength
             weights[key] = weights.get(key, 0.0) + delta
-        return weights
+        return {
+            key: max(-_WEIGHT_CAP, min(_WEIGHT_CAP, value))
+            for key, value in weights.items()
+        }
 
     def create_adjustments(self, min_feedback: int = 3) -> list[dict[str, object]]:
         """Create auditable preference adjustments from explicit feedback."""

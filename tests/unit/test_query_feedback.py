@@ -364,3 +364,44 @@ class TestQueryRefinementModel:
         data = ref.model_dump()
         restored = QueryRefinement.model_validate(data)
         assert restored == ref
+
+
+class TestBroaderPoolPrunesConfirmationLoop:
+    """A right-but-unretrieved term is kept, not pruned (#123)."""
+
+    def test_term_present_in_pool_is_not_removed(self) -> None:
+        plan = _make_plan(must_terms=["retrieval"], nice_terms=["graph"])
+        # top-K never mentions "graph" → coverage 0 there.
+        top_k = [
+            _make_paper(title="Retrieval methods", abstract="retrieval retrieval"),
+            _make_paper(
+                title="More retrieval", abstract="retrieval systems", arxiv_id="2501.2"
+            ),
+        ]
+        # …but the broader screened pool does mention "graph".
+        pool = [
+            *top_k,
+            _make_paper(
+                title="Graph retrieval",
+                abstract="graph graph retrieval",
+                arxiv_id="2501.3",
+            ),
+        ]
+        without_pool = compute_query_refinement(plan, top_k)
+        with_pool = compute_query_refinement(plan, top_k, screened_pool=pool)
+        # Legacy behavior would prune "graph"; the pool-aware check keeps it.
+        assert "graph" in without_pool.suggested_removals
+        assert "graph" not in with_pool.suggested_removals
+
+    def test_term_absent_everywhere_is_still_removed(self) -> None:
+        plan = _make_plan(must_terms=["retrieval"], nice_terms=["quantum"])
+        top_k = [
+            _make_paper(title="Retrieval", abstract="retrieval retrieval"),
+            _make_paper(title="Retrieval 2", abstract="retrieval", arxiv_id="2501.2"),
+        ]
+        pool = [
+            *top_k,
+            _make_paper(title="Retrieval 3", abstract="retrieval", arxiv_id="2501.3"),
+        ]
+        with_pool = compute_query_refinement(plan, top_k, screened_pool=pool)
+        assert "quantum" in with_pool.suggested_removals
