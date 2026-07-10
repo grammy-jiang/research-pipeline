@@ -280,9 +280,16 @@ def classify_query_type(query: str) -> ExtendedQueryType:
             if kw in lower:
                 scores[qtype] += 1
 
-    best_type = max(scores, key=scores.get)  # type: ignore[arg-type]
-    if scores[best_type] == 0:
+    best_score = max(scores.values())
+    if best_score == 0:
         return ExtendedQueryType.RECALL
+
+    # Break ties by _KEYWORD_MAP priority (verification first, exploratory last)
+    # as documented — NOT by enum/dict iteration order, which put RECALL first
+    # and silently won every tie (#111).
+    best_type = next(
+        qtype for _keywords, qtype in _KEYWORD_MAP if scores[qtype] == best_score
+    )
 
     logger.debug(
         "Query classified as %s (score=%d): %s",
