@@ -222,6 +222,25 @@ FAILs (`missing_coherence_anchors`), and an Open Questions section with no
 - An MVP node may depend on an open question only when it is `blocking=yes` or
   the edge carries an explicit `qualifier`.
 
+## Agent / tool-surface altitude ceiling (§9 tool surface, §10, §12)
+
+When the product is an agent orchestrating tools, the tool-surface sections have
+an **altitude ceiling**: cap their content at **authority class + capability +
+invariant**. Carry the **invariant, not the realization** — state "a retried
+submit must not double-egress confidential content", never the dedup key,
+compaction strategy, single policy-enforcement-point locus, retry-bounding, or
+per-host transport config. A "→ architecture" disclaimer does **not** license
+inline mechanism prose; route names, schemas, transport, and mechanism to the
+§18 architecture-defer handoff.
+
+- Bind every **policy, MVP, and evaluation** statement to an **authority class**
+  — **READ / ACT / AUTH** — not to a named tool identifier (`translate_document`,
+  `get_risk_report`, `set_depth`, …). A named tool in a policy / eval / MVP row
+  reads as a fixed inventory and drags schema/granularity to blueprint altitude.
+- State the illustrative **class→example-tool map** **exactly once** (as
+  illustration), then refer only to the classes. The tool inventory is
+  provisional; the architecture stage owns names, schemas, and transport.
+
 ## Release-gate discipline (§13)
 
 A release gate derived from a MEDIUM- or LOW-confidence mechanism is
