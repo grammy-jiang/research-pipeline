@@ -25,7 +25,7 @@ jobs:
         run: uv python install 3.12
 
       - name: Install dependencies
-        run: uv sync --extra dev
+        run: uv sync --locked --extra dev
 
       - name: Build and deploy docs
         run: uv run mkdocs gh-deploy --force
