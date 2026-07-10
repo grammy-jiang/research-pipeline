@@ -179,6 +179,22 @@ def _get_run_root(ws: Path, rid: str) -> Path:
     return run_dir(ws, rid)
 
 
+def _resolve_latest_run_id(ws: Path, run_id: str) -> str:
+    """Resolve an inspect/read tool's ``run_id``: explicit id, else latest run.
+
+    Read tools document ``run_id=""`` as "latest". Unlike ``_resolve_run_id``
+    (which auto-GENERATES a new id for write tools), this resolves the empty
+    value to the most recent existing run — never joins ``""`` onto the
+    workspace and silently reads the workspace root (#110). Returns ``""`` only
+    when the workspace holds no run.
+    """
+    if run_id:
+        return run_id
+    from research_pipeline.infra.paths import latest_run_id
+
+    return latest_run_id(ws)
+
+
 def _sanitize_candidates(records: list) -> None:  # type: ignore[type-arg]
     """Sanitize untrusted scraped title/abstract in place at the stage boundary.
 
@@ -850,7 +866,12 @@ def get_run_manifest(
         from research_pipeline.storage.manifests import load_manifest
 
         ws = _resolve_workspace(params.workspace)
-        rid = params.run_id
+        rid = _resolve_latest_run_id(ws, params.run_id)
+        if not rid:
+            return ToolResult(
+                success=False,
+                message="No runs found in workspace; specify a run_id.",
+            )
         run_root = _get_run_root(ws, rid)
 
         manifest = load_manifest(run_root)
@@ -1735,18 +1756,26 @@ def query_eval_log(params: EvalLogInput, ctx: Context | None = None) -> ToolResu
     """
     try:
         from research_pipeline.infra.eval_logging import EvalLogger
-        from research_pipeline.storage.workspace import resolve_workspace
 
-        ws = resolve_workspace(Path(params.workspace) if params.workspace else None)
-        run_root = ws / params.run_id
+        # Use the shared workspace resolver like every other tool — the previous
+        # `storage.workspace.resolve_workspace` import did not exist, so this tool
+        # raised on every call (surfaced while fixing run_id resolution, #110).
+        ws = _resolve_workspace(params.workspace)
+        rid = _resolve_latest_run_id(ws, params.run_id)
+        if not rid:
+            return ToolResult(
+                success=False,
+                message="No runs found in workspace; specify a run_id.",
+            )
+        run_root = ws / rid
         if not run_root.exists():
             return ToolResult(
                 success=False,
-                message=f"Run not found: {params.run_id}",
+                message=f"Run not found: {rid}",
             )
 
         eval_log = EvalLogger(run_root)
-        result: dict = {"run_id": params.run_id}
+        result: dict = {"run_id": rid}
 
         if params.channel in ("traces", "all"):
             traces = eval_log.tracer.read_traces(stage=params.stage)

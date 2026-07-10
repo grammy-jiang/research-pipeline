@@ -1,10 +1,12 @@
 """Unit tests for infra.paths module."""
 
+import os
 from pathlib import Path
 
 from research_pipeline.infra.paths import (
     STAGE_NAMES,
     generate_run_id,
+    latest_run_id,
     logs_dir,
     run_dir,
     stage_dir,
@@ -66,3 +68,30 @@ class TestStageNames:
             "summarize",
         ]
         assert expected == STAGE_NAMES
+
+
+class TestLatestRunId:
+    """latest_run_id resolves run_id="" to the newest real run, not the root (#110)."""
+
+    def _make_run(self, ws: Path, name: str, mtime: float) -> None:
+        run = ws / name
+        run.mkdir(parents=True)
+        manifest = run / "run_manifest.json"
+        manifest.write_text("{}")
+        os.utime(manifest, (mtime, mtime))
+
+    def test_empty_workspace_returns_empty(self, tmp_path: Path) -> None:
+        assert latest_run_id(tmp_path) == ""
+
+    def test_missing_workspace_returns_empty(self, tmp_path: Path) -> None:
+        assert latest_run_id(tmp_path / "nope") == ""
+
+    def test_picks_newest_by_manifest_mtime(self, tmp_path: Path) -> None:
+        self._make_run(tmp_path, "run-old", mtime=1000)
+        self._make_run(tmp_path, "run-new", mtime=2000)
+        assert latest_run_id(tmp_path) == "run-new"
+
+    def test_ignores_dirs_without_manifest(self, tmp_path: Path) -> None:
+        (tmp_path / "not-a-run").mkdir()
+        self._make_run(tmp_path, "real-run", mtime=1500)
+        assert latest_run_id(tmp_path) == "real-run"
