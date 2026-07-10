@@ -1,8 +1,10 @@
 """Rate-limited, idempotent PDF downloader for arXiv papers."""
 
+import ipaddress
 import logging
 import tempfile
 from pathlib import Path
+from urllib.parse import urlparse
 
 import requests
 
@@ -13,6 +15,54 @@ from research_pipeline.infra.retry import retry
 from research_pipeline.models.download import DownloadManifestEntry
 
 logger = logging.getLogger(__name__)
+
+# Hostnames that always name an internal target.
+_BLOCKED_HOSTNAMES = frozenset({"localhost"})
+
+
+class UnsafeURLError(ValueError):
+    """A download URL failed the SSRF scheme/host guard (issue #104)."""
+
+
+def _is_blocked_ip_literal(host: str) -> bool:
+    """True if *host* is an IP literal in a private / internal range.
+
+    DNS-free by design: a bare hostname is left to the caller's allow decision,
+    so the guard stays offline and does not break the no-network unit tests. It
+    still blocks the primary SSRF vectors — loopback, private, link-local,
+    reserved (incl. cloud-metadata 169.254.169.254), multicast, unspecified.
+    """
+    try:
+        ip = ipaddress.ip_address(host)
+    except ValueError:
+        return False
+    return (
+        ip.is_private
+        or ip.is_loopback
+        or ip.is_link_local
+        or ip.is_reserved
+        or ip.is_multicast
+        or ip.is_unspecified
+    )
+
+
+def validate_download_url(pdf_url: str) -> None:
+    """Reject non-http(s) schemes and private/internal IP-literal / localhost hosts.
+
+    SSRF guard for the download path (issue #104): a candidate-supplied
+    ``pdf_url`` must use http(s) and must not point the fetcher at an internal
+    address. Raises :class:`UnsafeURLError` on a blocked URL.
+    """
+    parsed = urlparse(pdf_url)
+    if parsed.scheme not in ("http", "https"):
+        raise UnsafeURLError(f"unsupported URL scheme {parsed.scheme!r} in {pdf_url!r}")
+    host = parsed.hostname
+    if not host:
+        raise UnsafeURLError(f"URL has no host: {pdf_url!r}")
+    if host.lower() in _BLOCKED_HOSTNAMES:
+        raise UnsafeURLError(f"blocked internal host {host!r}")
+    if _is_blocked_ip_literal(host):
+        raise UnsafeURLError(f"blocked private/internal IP host {host!r}")
 
 
 @retry(
@@ -80,6 +130,24 @@ def download_pdf(
             size_bytes=size,
             downloaded_at=utc_now(),
             status="skipped_exists",
+        )
+
+    # SSRF guard: reject non-http(s) / private-internal targets before fetching
+    # (issue #104). A poisoned candidate must not steer the fetcher internally.
+    try:
+        validate_download_url(pdf_url)
+    except UnsafeURLError as exc:
+        logger.warning("Blocked unsafe pdf_url %r: %s", pdf_url, exc)
+        return DownloadManifestEntry(
+            arxiv_id=arxiv_id,
+            version=version,
+            pdf_url=pdf_url,
+            local_path=str(target_path),
+            sha256="",
+            size_bytes=0,
+            downloaded_at=utc_now(),
+            status="failed",
+            error=f"blocked: {exc}",
         )
 
     # Rate-limited download
