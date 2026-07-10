@@ -29,20 +29,32 @@
 > is actually present** (Appendix A is always present; include the
 > Appendix B line only when you include that appendix).
 
-> **Cross-phase coherence anchors.** A deterministic guard
-> (`scripts/check_blueprint_coherence.py`) runs between compose and the
-> quality-gate to catch **phase inversion** — an MVP-N node whose required
-> servicer or precondition is itself staged later, or an MVP control gated on
-> a non-blocking open question. Tag each staged workflow gate, servicer, and
-> open question with a single-line coherence anchor so the cross-check is
-> exact, not fuzzy-text:
+> **Cross-phase coherence anchors (mandatory on every staged node).** A
+> deterministic guard (`scripts/check_blueprint_coherence.py`) runs between
+> compose and the quality-gate to catch **phase inversion** — an MVP-N node
+> whose required servicer or precondition is itself staged later, or an MVP
+> control gated on a non-blocking open question. Anchoring is **not optional**:
+> a blueprint that uses MVP-staging language but carries no anchors now FAILs
+> (`missing_coherence_anchors`), and an Open Questions section with no
+> `stage=open` anchor FAILs (`unanchored_open_questions`). Tag **every** staged
+> workflow gate, servicer row, **consumed-signal producer**, and open question
+> with a single-line coherence anchor so the cross-check is exact, not
+> fuzzy-text:
 >
-> `<!-- coherence: id=<anchor> stage=MVP-0|MVP-1|open|future [requires=<id,...>] [blocking=yes|no] [qualifier="..."] -->`
+> `<!-- coherence: id=<anchor> stage=MVP-0|MVP-1|open|future [requires=<id,...>] [consumes=<id,...>] [blocking=yes|no] [qualifier="..."] -->`
 >
 > Every referenced id must resolve, and each MVP servicer must satisfy
 > `stage(servicer) <= stage(node)`. An MVP node may depend on an open question
 > only when that question is `blocking=yes` or the dependency carries an
 > explicit `qualifier`.
+>
+> Use two edge types. `requires=` is a **servicer / precondition** edge.
+> `consumes=` is a **signal / object** edge: an MVP-N node may only consume a
+> signal whose producer is staged `<= N` (else `signal_inversion`), and every
+> consumed id must resolve (else `orphan_reference`). Register each §7 capability
+> and §11 information object as its own anchor id so that a §12 policy or a §15
+> MVP reference to it resolves — a capability minted in §15 but never registered
+> in §7, or a policy field with no §11 object, is an orphan reference.
 
 ---
 

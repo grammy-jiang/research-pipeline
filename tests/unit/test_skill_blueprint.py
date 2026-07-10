@@ -1583,3 +1583,222 @@ def test_quality_gate_recomputes_self_check_against_body() -> None:
         "recomputed",
     ):
         assert needle in gate, f"quality gate missing recompute rule: {needle}"
+
+
+# --- issue #93: strengthen the coherence guard ---
+#
+# The deterministic guard was toothless on under-anchored blueprints: a document
+# full of MVP-0/MVP-1 staging prose but zero anchors emitted only a WARNING, so
+# the phase-inversion graph never ran. And the graph saw only ``requires`` edges,
+# missing consumed-signal inversions and orphan references (a consumed signal
+# whose producer is undeclared or staged later). These tests pin: (1) an
+# anchor-coverage FAIL when staging language is present but no anchors exist,
+# (2) an Open-Questions coverage FAIL, (3) a ``consumes=`` signal edge with a
+# phase check, and (4) orphan-reference resolution for consumed signals.
+
+
+def test_coherence_guard_fails_on_missing_anchors_when_staging_present(
+    tmp_path: Path,
+) -> None:
+    """MVP-staging prose with zero anchors is a FAIL, not a silent WARNING."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. MVP Scope](#1-mvp-scope)
+
+---
+
+## 1. MVP Scope
+
+The admission gate is a non-negotiable MVP-0 control; scoped promotion is
+deferred to MVP-1.
+""",
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    assert code == 1
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "missing_coherence_anchors" in fails, result["findings"]
+
+
+def test_coherence_guard_warns_not_fails_when_no_staging_and_no_anchors(
+    tmp_path: Path,
+) -> None:
+    """A doc with neither staging language nor anchors stays a WARNING."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. Executive Product Thesis](#1-executive-product-thesis)
+
+---
+
+## 1. Executive Product Thesis
+
+A conceptual overview with no phased commitments.
+""",
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    warnings = {f["check"] for f in result["findings"] if f["level"] == "WARNING"}
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "no_coherence_anchors" in warnings
+    assert "missing_coherence_anchors" not in fails
+    assert code == 0
+
+
+def test_coherence_guard_fails_on_unanchored_open_questions(tmp_path: Path) -> None:
+    """An Open Questions section without a stage=open anchor FAILs coverage."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. MVP Scope](#1-mvp-scope)
+- [2. Open Questions and Validation Plan](#2-open-questions-and-validation-plan)
+
+---
+
+## 1. MVP Scope
+
+<!-- coherence: id=mvp0.core stage=MVP-0 -->
+
+The MVP-0 core is a gated admission path.
+
+## 2. Open Questions and Validation Plan
+
+| Question | Blocks MVP? |
+|---|---|
+| Optimal dedup similarity threshold | No |
+""",
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    assert code == 1
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "unanchored_open_questions" in fails, result["findings"]
+
+
+def test_coherence_guard_fails_on_signal_inversion_via_consumes(
+    tmp_path: Path,
+) -> None:
+    """An MVP-0 node consuming a signal produced at MVP-1 is a signal inversion."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. MVP Scope](#1-mvp-scope)
+
+---
+
+## 1. MVP Scope
+
+<!-- coherence: id=mvp0.gate stage=MVP-0 consumes=sig.debiased -->
+<!-- coherence: id=sig.debiased stage=MVP-1 -->
+
+The MVP-0 gate consumes a de-biased segment signal.
+""",
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    assert code == 1
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "signal_inversion" in fails, result["findings"]
+
+
+def test_coherence_guard_accepts_consumes_from_earlier_stage(tmp_path: Path) -> None:
+    """An MVP-1 node consuming an MVP-0 signal is phase-clean."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. MVP Scope](#1-mvp-scope)
+
+---
+
+## 1. MVP Scope
+
+<!-- coherence: id=mvp1.review stage=MVP-1 consumes=sig.quarantine -->
+<!-- coherence: id=sig.quarantine stage=MVP-0 -->
+
+The MVP-1 review consumes the MVP-0 quarantine signal.
+""",
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "signal_inversion" not in fails, result["findings"]
+    assert code == 0, result["findings"]
+
+
+def test_coherence_guard_fails_on_orphan_consumes_reference(tmp_path: Path) -> None:
+    """A consumed signal whose producer is undeclared is an orphan reference."""
+    blueprint = tmp_path / "blueprint.md"
+    blueprint.write_text(
+        """# Product Blueprint
+
+## Contents
+
+- [1. MVP Scope](#1-mvp-scope)
+
+---
+
+## 1. MVP Scope
+
+<!-- coherence: id=mvp0.gate stage=MVP-0 consumes=sig.missing -->
+
+The MVP-0 gate consumes a signal no producer registers.
+""",
+        encoding="utf-8",
+    )
+    code, result = _run_guard_over(blueprint)
+    assert code == 1
+    fails = {f["check"] for f in result["findings"] if f["level"] == "FAIL"}
+    assert "orphan_reference" in fails, result["findings"]
+
+
+def test_golden_example_models_full_anchor_coverage() -> None:
+    """The golden exemplar demonstrates consumes edges + capability registration.
+
+    Issue #93 requires the golden fixture to carry full anchor coverage so it
+    still passes the strengthened guard: a ``consumes=`` signal edge and
+    capability/object registration anchors that §12/§15 references resolve to.
+    """
+    text = _GOLDEN_EXAMPLE.read_text(encoding="utf-8")
+    assert "consumes=" in text, "golden fixture models no consumes edge"
+    assert re.search(r"id=cap\.", text), "golden fixture registers no capabilities"
+    code, result = _run_guard_over(_GOLDEN_EXAMPLE)
+    assert code == 0, result["findings"]
+    assert result["all_passed"] is True
+
+
+def test_compose_prompt_mandates_full_anchor_coverage() -> None:
+    prompt = (_skill_root() / "prompts" / "04_generate_blueprint.md").read_text(
+        encoding="utf-8"
+    )
+    for needle in (
+        "consumes=",
+        "every staged",
+        "consumed-signal producer",
+        "open question",
+    ):
+        assert needle in prompt, (
+            f"compose prompt missing anchor-coverage rule: {needle}"
+        )
+
+
+def test_template_documents_consumes_edge() -> None:
+    template = (
+        _skill_root() / "templates" / "product_blueprint_template.md"
+    ).read_text(encoding="utf-8")
+    assert "consumes=" in template, "template does not document the consumes edge"

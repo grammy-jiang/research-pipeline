@@ -16,11 +16,16 @@ incoherence is caught deterministically rather than re-reasoned by the LLM.
 Coherence anchor format (one HTML comment per node, single line)::
 
     <!-- coherence: id=<anchor> stage=<stage> [requires=<id,id,...>]
-                    [blocking=yes|no] [qualifier="<free text>"] -->
+                    [consumes=<id,id,...>] [blocking=yes|no]
+                    [qualifier="<free text>"] -->
 
     id         Stable anchor, e.g. ``wf1.gate.contradicts`` or ``sec9.7.r1``.
     stage      ``MVP-0`` .. ``MVP-N`` | ``open`` | ``future``.
-    requires   Comma-separated ids this node depends on / escalates to.
+    requires   Comma-separated ids this node depends on / escalates to
+               (servicer / precondition edges).
+    consumes   Comma-separated ids of signals / objects this node consumes
+               (signal-dependency edges). Use to register a §7 capability or
+               §11 information object and resolve a §12/§15 reference to it.
     blocking   For ``stage=open`` nodes: does the open item block the MVP?
     qualifier  Free text; its presence marks an MVP->open dependency as an
                explicit, intentional phase/condition qualifier.
@@ -29,10 +34,20 @@ Checks (deterministic, stdlib only, no network, no LLM):
 
     phase_inversion       For every MVP-staged node, every required servicer
                           must have ``stage(servicer) <= stage(node)``.
-    open_dependency       An MVP-staged node may depend on an open question
-                          only if that question is ``blocking=yes`` or the
+    signal_inversion      For every MVP-staged node, every ``consumes`` signal
+                          producer must have ``stage(producer) <= stage(node)``.
+    open_dependency       An MVP-staged node may depend on (require or consume)
+                          an open question only if it is ``blocking=yes`` or the
                           edge carries an explicit ``qualifier``.
     dangling_reference    Every ``requires`` id must resolve to a declared node.
+    orphan_reference      Every ``consumes`` id must resolve to a declared node
+                          (a consumed signal whose producer is never registered).
+    missing_coherence_anchors
+                          The body carries MVP-staging language but no anchors,
+                          so the phase-inversion graph could not be built.
+    unanchored_open_questions
+                          An Open Questions section has content but no
+                          ``stage=open`` anchor to place it on the graph.
     duplicate_anchor      Each anchor id is declared at most once.
     contents_vs_headings  ``## Contents`` numbered entries must equal the
                           ``## N. Title`` headings, in order.
@@ -115,6 +130,20 @@ _CONFIDENCE_RE = re.compile(
 _OPEN_STAGES = {"open", "open-question", "unresolved"}
 _FUTURE_STAGES = {"future", "later", "backlog"}
 
+# MVP-staging language: its presence means the blueprint makes phased
+# commitments, so it MUST carry coherence anchors for the graph to be built.
+_STAGING_LANGUAGE_RE = re.compile(
+    r"\bMVP-\d\b|non-negotiable|deferred to MVP", re.IGNORECASE
+)
+# A level-2 Open Questions section heading (``## 17. Open Questions ...``).
+_OPEN_QUESTIONS_HEADING_RE = re.compile(
+    r"^##\s+.*Open Questions", re.IGNORECASE | re.MULTILINE
+)
+# A ``stage=open`` coherence anchor (used to check open-question coverage).
+_OPEN_ANCHOR_RE = re.compile(r"<!--\s*coherence:[^>]*stage=open")
+# A ``##`` level-2 heading, used to bound a section.
+_SECTION_BOUNDARY_RE = re.compile(r"^##\s+\S", re.MULTILINE)
+
 # Named deployment products, vendor CLIs, and their wire-level config flags.
 # These must never appear in the implementation-neutral blueprint body; the LLM
 # neutrality gate demonstrably missed a body full of them and then restated a
@@ -175,6 +204,9 @@ def parse_nodes(text: str) -> list[dict]:
         requires = [
             r.strip() for r in attrs.get("requires", "").split(",") if r.strip()
         ]
+        consumes = [
+            c.strip() for c in attrs.get("consumes", "").split(",") if c.strip()
+        ]
         blocking_raw = attrs.get("blocking")
         blocking: bool | None = None
         if blocking_raw is not None:
@@ -186,6 +218,7 @@ def parse_nodes(text: str) -> list[dict]:
                 "kind": kind,
                 "rank": rank,
                 "requires": requires,
+                "consumes": consumes,
                 "blocking": blocking,
                 "qualifier": attrs.get("qualifier"),
                 "line": text.count("\n", 0, match.start()) + 1,
@@ -216,6 +249,24 @@ def check_graph(nodes: list[dict]) -> list[dict]:
             )
             continue
         by_id[node["id"]] = node
+
+    # Orphan references: every consumed signal must resolve to a declared
+    # producer, regardless of the consumer's stage (a capability referenced in
+    # §12/§15 that no §7 anchor registers, or a policy field with no §11 object).
+    for node in nodes:
+        for target_id in node["consumes"]:
+            if target_id not in by_id:
+                findings.append(
+                    _finding(
+                        FAIL,
+                        "orphan_reference",
+                        f"{node['id']!r} (stage {node['stage']}) consumes "
+                        f"{target_id!r}, which is not a declared coherence anchor "
+                        "(a consumed signal whose producer is never registered).",
+                        id=node["id"],
+                        line=node["line"],
+                    )
+                )
 
     for node in nodes:
         # Only concrete MVP-staged nodes constrain their servicers' staging.
@@ -265,17 +316,107 @@ def check_graph(nodes: list[dict]) -> list[dict]:
                         line=node["line"],
                     )
                 )
+        # Consumed signals obey the same staging rule as required servicers:
+        # an MVP-N node may not consume a signal produced at MVP-N+1 or later.
+        for target_id in node["consumes"]:
+            target = by_id.get(target_id)
+            if target is None:
+                continue  # already reported as an orphan_reference above
+            if target["kind"] == "open":
+                if not target["blocking"] and not node["qualifier"]:
+                    findings.append(
+                        _finding(
+                            FAIL,
+                            "open_dependency",
+                            f"{node['id']!r} (stage {node['stage']}) consumes open "
+                            f"question {target_id!r}, which is not blocking and the "
+                            f"dependency carries no explicit phase qualifier.",
+                            id=node["id"],
+                            line=node["line"],
+                        )
+                    )
+            elif target["kind"] == "future" or (
+                target["kind"] == "mvp"
+                and target["rank"] is not None
+                and node["rank"] is not None
+                and target["rank"] > node["rank"]
+            ):
+                findings.append(
+                    _finding(
+                        FAIL,
+                        "signal_inversion",
+                        f"{node['id']!r} (stage {node['stage']}) consumes "
+                        f"{target_id!r} (stage {target['stage']}), whose producer is "
+                        "staged later — the signal is unavailable when the node runs.",
+                        id=node["id"],
+                        line=node["line"],
+                    )
+                )
 
+    return findings
+
+
+def _open_questions_section(text: str) -> str | None:
+    """Return the body of the Open Questions section, if the heading is present."""
+    match = _OPEN_QUESTIONS_HEADING_RE.search(text)
+    if match is None:
+        return None
+    rest = text[match.end() :]
+    boundary = _SECTION_BOUNDARY_RE.search(rest)
+    return rest if boundary is None else rest[: boundary.start()]
+
+
+def check_anchor_coverage(text: str, nodes: list[dict]) -> list[dict]:
+    """Enforce that staged / open-question content is actually anchored.
+
+    The phase-inversion graph can only see anchored nodes. A blueprint full of
+    MVP-staging prose but carrying zero anchors would pass vacuously, so this
+    upgrades that case to a ``FAIL`` (it was a silent ``WARNING``) and also
+    fails an Open Questions section that has content but no ``stage=open``
+    anchor to place it on the graph.
+    """
+    findings: list[dict] = []
     if not nodes:
-        findings.append(
-            _finding(
-                WARNING,
-                "no_coherence_anchors",
-                "No coherence anchors found; the phase-inversion graph could not "
-                "be checked. Tag staged workflow gates, servicers, and open "
-                "questions so cross-phase coherence can be verified.",
+        if _STAGING_LANGUAGE_RE.search(text):
+            findings.append(
+                _finding(
+                    FAIL,
+                    "missing_coherence_anchors",
+                    "The blueprint uses MVP-staging language (MVP-N / "
+                    "non-negotiable / deferred to MVP) but carries no coherence "
+                    "anchors, so the phase-inversion graph could not be built. "
+                    "Anchor every staged gate, servicer, consumed-signal "
+                    "producer, and open question.",
+                )
             )
+        else:
+            findings.append(
+                _finding(
+                    WARNING,
+                    "no_coherence_anchors",
+                    "No coherence anchors found; the phase-inversion graph could "
+                    "not be checked. Tag staged workflow gates, servicers, and "
+                    "open questions so cross-phase coherence can be verified.",
+                )
+            )
+
+    section = _open_questions_section(text)
+    if section is not None:
+        has_content = bool(
+            re.search(r"^\s*\|", section, re.MULTILINE)
+            or re.search(r"^\s*[-*]\s+\S", section, re.MULTILINE)
         )
+        if has_content and not _OPEN_ANCHOR_RE.search(section):
+            findings.append(
+                _finding(
+                    FAIL,
+                    "unanchored_open_questions",
+                    "The Open Questions section lists questions but carries no "
+                    "`stage=open` coherence anchor, so no MVP control's "
+                    "dependency on them can be checked. Anchor each open "
+                    "question with its `blocking=yes|no` status.",
+                )
+            )
     return findings
 
 
@@ -491,6 +632,7 @@ def run_checks(text: str, source_report_text: str | None = None) -> dict:
     nodes = parse_nodes(text)
     findings: list[dict] = []
     findings.extend(check_graph(nodes))
+    findings.extend(check_anchor_coverage(text, nodes))
     findings.extend(check_contents_vs_headings(text))
     findings.extend(check_placeholder_citations(text))
     findings.extend(check_vendor_leak(text))

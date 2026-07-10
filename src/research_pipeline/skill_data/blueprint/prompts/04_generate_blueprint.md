@@ -201,6 +201,27 @@ Explicitly Deferred / Success Definition.
 - `ACADEMIC`-gap items stay out of MVP unless the product's purpose is to
   validate that gap.
 
+## Coherence anchors (mandatory on every staged node)
+
+The deterministic guard (`scripts/check_blueprint_coherence.py`) builds a
+phase-inversion graph from single-line coherence anchors. Anchoring is **not
+optional**: if the blueprint uses MVP-staging language but carries no anchors it
+FAILs (`missing_coherence_anchors`), and an Open Questions section with no
+`stage=open` anchor FAILs (`unanchored_open_questions`).
+
+- Anchor **every staged** workflow gate, servicer row, every
+  **consumed-signal producer**, and every **open question**. Format:
+  `<!-- coherence: id=<anchor> stage=MVP-0|MVP-1|open|future [requires=<id,...>] [consumes=<id,...>] [blocking=yes|no] [qualifier="..."] -->`
+- Use two edge types: `requires=` for a **servicer / precondition** edge, and
+  `consumes=` for a **signal / object** edge. An MVP-N node may only require or
+  consume a node staged `<= N` (else `phase_inversion` / `signal_inversion`).
+- Register each §7 capability and §11 information object as its own anchor id so
+  every §12 policy field and §15 MVP reference resolves to it — a capability
+  named in §15 but not registered in §7, or a policy field with no §11 object,
+  is an `orphan_reference`.
+- An MVP node may depend on an open question only when it is `blocking=yes` or
+  the edge carries an explicit `qualifier`.
+
 ## Release-gate discipline (§13)
 
 A release gate derived from a MEDIUM- or LOW-confidence mechanism is
