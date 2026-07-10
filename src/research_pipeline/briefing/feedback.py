@@ -149,6 +149,10 @@ class BriefingFeedbackStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(db_path))
         self._conn.row_factory = sqlite3.Row
+        # Durability + referential integrity at the DB, not only in Python (#119):
+        # WAL for concurrent-reader safety, and enforce any FK constraints.
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(_SCHEMA)
         self._conn.commit()
 
@@ -279,10 +283,18 @@ class BriefingFeedbackStore:
         adjustments: list[dict[str, object]] = []
         for key, after_weight in sorted(weights.items()):
             target_type, target_id = key.split(":", 1)
-            adjustment_id = stable_hash(key, after_weight, prefix="adjustment_")
+            # Unique per event: an audit row is append-only, so the id must not
+            # collide when the same (target, weight) is recomputed later — a
+            # deterministic hash + INSERT OR REPLACE silently destroyed the prior
+            # row's created_at (#119). Mirror feedback.record()'s timestamp+nonce.
+            created_at = utc_now_iso()
+            nonce = uuid.uuid4().hex
+            adjustment_id = stable_hash(
+                key, after_weight, created_at, nonce, prefix="adjustment_"
+            )
             row = {
                 "adjustment_id": adjustment_id,
-                "created_at": utc_now_iso(),
+                "created_at": created_at,
                 "target_type": target_type,
                 "target_id": target_id,
                 "before_weight": 0.0,
@@ -293,7 +305,7 @@ class BriefingFeedbackStore:
             }
             self._conn.execute(
                 """
-                INSERT OR REPLACE INTO preference_adjustments
+                INSERT INTO preference_adjustments
                     (adjustment_id, created_at, target_type, target_id,
                      before_weight, after_weight, trigger, rollback_json)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?)

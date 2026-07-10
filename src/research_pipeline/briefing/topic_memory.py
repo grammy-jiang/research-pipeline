@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import json
 import sqlite3
+from collections.abc import Iterable
 from datetime import date, datetime
 from pathlib import Path
 from typing import Literal, cast
@@ -17,6 +19,26 @@ from research_pipeline.briefing.normalize import (
     stable_hash,
     utc_now_iso,
 )
+
+
+def _encode_list(values: Iterable[str]) -> str:
+    """Serialize a multivalued field as a JSON array (comma-safe, #119)."""
+    return json.dumps(list(values))
+
+
+def _decode_list(raw: str) -> tuple[str, ...]:
+    """Parse a multivalued field, tolerating legacy comma-joined values (#119)."""
+    if not raw:
+        return ()
+    try:
+        data = json.loads(raw)
+    except (ValueError, TypeError):
+        data = None
+    if isinstance(data, list):
+        return tuple(str(v) for v in data)
+    # Backward-compat: rows written before JSON encoding used comma-join.
+    return tuple(filter(None, raw.split(",")))
+
 
 _SCHEMA = """
 CREATE TABLE IF NOT EXISTS topic_memory (
@@ -72,6 +94,9 @@ class TopicMemoryStore:
         self.db_path.parent.mkdir(parents=True, exist_ok=True)
         self._conn = sqlite3.connect(str(db_path))
         self._conn.row_factory = sqlite3.Row
+        # Durability + referential integrity at the DB, not only in Python (#119).
+        self._conn.execute("PRAGMA journal_mode=WAL")
+        self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(_SCHEMA)
         self._conn.commit()
 
@@ -294,13 +319,13 @@ class TopicMemoryStore:
             (
                 memory.topic_id,
                 memory.name,
-                ",".join(memory.aliases),
+                _encode_list(memory.aliases),
                 memory.first_seen_at,
                 memory.last_seen_at,
                 memory.status,
                 memory.summary,
-                ",".join(memory.key_entities),
-                ",".join(memory.canonical_clusters),
+                _encode_list(memory.key_entities),
+                _encode_list(memory.canonical_clusters),
                 memory.obsidian_note,
                 memory.interest_score,
                 memory.fatigue_score,
@@ -326,15 +351,13 @@ class TopicMemoryStore:
         return TopicMemory(
             topic_id=row["topic_id"],
             name=row["name"],
-            aliases=tuple(filter(None, row["aliases"].split(","))),
+            aliases=_decode_list(row["aliases"]),
             first_seen_at=row["first_seen_at"],
             last_seen_at=row["last_seen_at"],
             status=row["status"],
             summary=row["summary"],
-            key_entities=tuple(filter(None, row["key_entities"].split(","))),
-            canonical_clusters=tuple(
-                filter(None, row["canonical_clusters"].split(","))
-            ),
+            key_entities=_decode_list(row["key_entities"]),
+            canonical_clusters=_decode_list(row["canonical_clusters"]),
             obsidian_note=row["obsidian_note"],
             interest_score=float(row["interest_score"]),
             fatigue_score=float(row["fatigue_score"]),

@@ -172,3 +172,26 @@ def test_current_evidence_updates_last_seen_and_canonical_clusters(
         assert set(memory.canonical_clusters) == {"cluster_a", "cluster_b"}
     finally:
         store.close()
+
+
+# --- issue #119: comma-safe multivalue storage ---
+
+
+def test_encode_decode_preserves_comma_bearing_values() -> None:
+    from research_pipeline.briefing.topic_memory import _decode_list, _encode_list
+
+    values = ("agent, memory", "MCP", "retrieval-augmented, generation")
+    assert _decode_list(_encode_list(values)) == values
+
+
+def test_decode_empty_is_empty_tuple() -> None:
+    from research_pipeline.briefing.topic_memory import _decode_list
+
+    assert _decode_list("") == ()
+
+
+def test_decode_falls_back_to_legacy_comma_format() -> None:
+    # Rows written before JSON encoding used comma-join; still readable.
+    from research_pipeline.briefing.topic_memory import _decode_list
+
+    assert _decode_list("agent memory,MCP") == ("agent memory", "MCP")

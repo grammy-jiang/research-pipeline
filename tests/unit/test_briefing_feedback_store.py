@@ -193,3 +193,32 @@ def test_no_behavioral_signals_accepted(tmp_path: Path) -> None:
                 )
     finally:
         store.close()
+
+
+def test_create_adjustments_appends_audit_history(tmp_path: Path) -> None:
+    """Re-running with the same weights appends rows; it never overwrites (#119)."""
+    store = BriefingFeedbackStore(tmp_path / "feedback.db")
+    try:
+        for _ in range(3):
+            store.record(
+                target_type="topic",
+                target_id="topic_a",
+                signal=FeedbackSignal.KEEP,
+            )
+        first = store.create_adjustments(min_feedback=3)
+        assert first
+        second = store.create_adjustments(min_feedback=3)
+        assert second
+        count = store._conn.execute(
+            "SELECT COUNT(*) FROM preference_adjustments"
+        ).fetchone()[0]
+        assert count == len(first) + len(second)
+        ids = {
+            r[0]
+            for r in store._conn.execute(
+                "SELECT adjustment_id FROM preference_adjustments"
+            )
+        }
+        assert len(ids) == count  # unique per event, no PK collisions
+    finally:
+        store.close()
