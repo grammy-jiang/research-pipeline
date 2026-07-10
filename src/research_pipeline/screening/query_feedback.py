@@ -188,6 +188,7 @@ def compute_query_refinement(
     query_plan: QueryPlan,
     top_k_papers: list[CandidateRecord],
     k_threshold: float = 0.3,
+    screened_pool: list[CandidateRecord] | None = None,
 ) -> QueryRefinement:
     """Analyze term overlap and suggest query refinements.
 
@@ -197,6 +198,12 @@ def compute_query_refinement(
         k_threshold: Minimum fraction of top-K papers a query term must
             appear in to be retained. Terms below this are suggested for
             removal.
+        screened_pool: The broader screened pool (all screened candidates, not
+            just the shortlist). A term is only suggested for removal when it is
+            low-coverage in this pool too — otherwise a right-but-unretrieved
+            term (present in the pool, absent from the current top-K) would be
+            pruned, a self-confirming refinement loop (#123). Defaults to
+            ``top_k_papers`` (legacy behavior) when not supplied.
 
     Returns:
         A ``QueryRefinement`` with coverage stats and suggestions.
@@ -233,9 +240,28 @@ def compute_query_refinement(
         )
         term_coverage[term] = count / n_papers
 
-    # 4. Suggested removals: query terms below k_threshold.
+    # 4. Suggested removals: query terms below k_threshold in top-K *and* in the
+    #    broader screened pool. A term still present in the pool is retrievable —
+    #    just not in the current top-K — so pruning it would confirm the current
+    #    query rather than test it (#123).
+    pool = screened_pool if screened_pool is not None else top_k_papers
+    pool_token_sets: list[set[str]] = [_tokenize_paper(p) for p in pool]
+    n_pool = len(pool_token_sets) or 1
+
+    def _pool_coverage(term: str) -> float:
+        term_tokens = _tokenize(term.lower())
+        if not term_tokens:
+            return 0.0
+        count = sum(
+            1 for ts in pool_token_sets if all(tok in ts for tok in term_tokens)
+        )
+        return count / n_pool
+
     suggested_removals: list[str] = [
-        term for term in all_query_terms if term_coverage.get(term, 0.0) < k_threshold
+        term
+        for term in all_query_terms
+        if term_coverage.get(term, 0.0) < k_threshold
+        and _pool_coverage(term) < k_threshold
     ]
 
     # 5. Emergent terms: high-DF terms not in the query (top 10 by DF).

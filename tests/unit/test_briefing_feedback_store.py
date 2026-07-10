@@ -222,3 +222,21 @@ def test_create_adjustments_appends_audit_history(tmp_path: Path) -> None:
         assert len(ids) == count  # unique per event, no PK collisions
     finally:
         store.close()
+
+
+def test_weights_by_target_saturate_and_do_not_compound(tmp_path: Path) -> None:
+    """Repeated likes saturate at the cap, breaking the echo-chamber loop (#123)."""
+    from research_pipeline.briefing.feedback import _WEIGHT_CAP
+
+    store = BriefingFeedbackStore(tmp_path / "feedback.db")
+    try:
+        for _ in range(50):
+            store.record(
+                target_type="topic",
+                target_id="topic_a",
+                signal=FeedbackSignal.KEEP,
+            )
+        weight = store.weights_by_target()["topic:topic_a"]
+        assert weight == _WEIGHT_CAP  # bounded, not 50 * 0.25
+    finally:
+        store.close()
