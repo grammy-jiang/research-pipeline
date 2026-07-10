@@ -179,6 +179,21 @@ def _get_run_root(ws: Path, rid: str) -> Path:
     return run_dir(ws, rid)
 
 
+def _sanitize_candidates(records: list) -> None:  # type: ignore[type-arg]
+    """Sanitize untrusted scraped title/abstract in place at the stage boundary.
+
+    ``docs/security-model.md`` §6.3 requires the content-sanitization gate at
+    each stage boundary, but the MCP ``search`` / ``enrich`` path persisted
+    scraped candidate fields raw — unlike the CLI orchestrator (issue #104).
+    Neutralize prompt-injection patterns before the records are written and
+    flow into downstream summarization / synthesis prompts.
+    """
+    from research_pipeline.infra.sanitize import sanitize_candidate_fields
+
+    for r in records:
+        r.title, r.abstract = sanitize_candidate_fields(r.title, r.abstract)
+
+
 def plan_topic(params: PlanTopicInput, ctx: Context | None = None) -> ToolResult:
     """Create a query plan from a natural language topic."""
     try:
@@ -364,6 +379,10 @@ def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
                 )
 
         deduped = dedup_cross_source(all_candidates)
+
+        # Sanitize untrusted scraped fields before persisting (issue #104) — the
+        # CLI orchestrator does the same at this stage boundary.
+        _sanitize_candidates(deduped)
 
         stage_dir.mkdir(parents=True, exist_ok=True)
         with candidates_path.open("w") as fh:
@@ -2675,6 +2694,10 @@ def enrich_tool(
         _report_progress(ctx, 1, 3, "Enriching via Semantic Scholar")
         s2_api_key = getattr(config, "semantic_scholar_api_key", "") or ""
         enriched_count = enrich_candidates(records, s2_api_key=s2_api_key)
+
+        # Enrichment pulls abstracts from Semantic Scholar (untrusted external
+        # content); sanitize at this stage boundary before persisting (#104).
+        _sanitize_candidates(records)
 
         _report_progress(ctx, 2, 3, "Writing results")
         output_file = stage_dir / f"{jsonl_file.stem}_enriched.jsonl"
