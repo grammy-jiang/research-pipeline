@@ -53,6 +53,15 @@ document — most importantly **phase inversion**:
 - **0g — Confidence not upgraded:** when the source report path is available,
   a cited blueprint claim does not assign a higher confidence grade than the
   source report assigned to the same citation (`FAIL`).
+- **0h — Implementation-neutrality body scan (`vendor_leak`):** no named
+  deployment product / vendor CLI / wire-level config flag appears in the
+  blueprint body (`Claude Code`, `Copilot`, `Codex`, `permissions.deny`,
+  `execpolicy`, `--sandbox`, `--available-tools`, `allowed-tools`, `SKILL.md`,
+  …). A line carrying a paper-style citation is an allowed research-evaluation
+  anchor; an uncited vendor mechanism is a `FAIL`. This is the deterministic
+  half of Gate 3 — it re-derives the neutrality verdict from the **final body**
+  on every run, so a leak reintroduced by a later edit cannot survive behind a
+  stale `PASS`.
 
 If this pre-gate exits non-zero, **stop and fix the staging or the coherence
 anchors** before the reasoning gates — do not re-derive the def→use graph by
@@ -113,7 +122,10 @@ the outcome in the self-check appendix (Cross-phase coherence row).
 
 ## Gate 3 — Implementation neutrality (with warning tier)
 
-Classify implementation-leaning wording using `references/borderline-cases.md`:
+The deterministic pre-gate `0h — vendor_leak` already FAILed the obvious tokens
+(named products, vendor CLIs, config flags) from a fresh body scan; this gate is
+the LLM reasoning layer over the residue it cannot enumerate. Classify
+implementation-leaning wording using `references/borderline-cases.md`:
 
 - **Forbidden** → `FAIL`: programming language, framework, database
   (incl. specific products), cloud provider, vendor service, package/module
@@ -282,7 +294,19 @@ Quality-Gate Self-Check`: a compact table with columns **Gate · Status ·
 Finding · Required Action · Blocks Technical Design?**. Mark each gate
 `PASS` / `WARNING` / `FAIL`. Every `WARNING` raised above must appear with
 a concrete required action and a yes/no blocks-technical-design verdict —
-never a passive note. Example rows:
+never a passive note.
+
+**Recompute, do not restate.** Any Appendix A row whose truth can flip false
+after an edit — implementation-neutrality, traceability, and MVP-discipline
+above all — is **the post-repair body-scan result**, and is
+**never a restated generation-time claim**. A row that read `PASS` at
+generation and whose section
+was edited afterwards must be **recomputed** against the final body before
+delivery: re-run `check_blueprint_coherence.py` (its `0h — vendor_leak` scan is
+the neutrality row's deterministic input) and re-read the cited sections. A
+`PASS` that the final body contradicts is a gate failure, not a formatting slip.
+
+Example rows:
 
 | Gate | Status | Finding | Required Action | Blocks TD? |
 |---|---|---|---|---|
