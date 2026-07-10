@@ -256,12 +256,20 @@ def compute_auroc(predictions: list[float], actuals: list[float]) -> float:
 
 @dataclass
 class CalibrationReport:
-    """Multi-metric calibration evaluation."""
+    """Multi-metric calibration evaluation.
+
+    ``ground_truth_provided`` records whether ECE/Brier/AUROC were computed
+    against independent outcome labels. When it is ``False`` the metrics are a
+    self-consistency proxy (computed against an input signal) and validate
+    nothing about accuracy — ``note`` says so (#105).
+    """
 
     ece: float = 0.0
     brier: float = 0.0
     auroc: float = 0.5
     n_samples: int = 0
+    ground_truth_provided: bool = False
+    note: str = ""
 
     def to_dict(self) -> dict[str, Any]:
         """Serialize to dictionary."""
@@ -270,6 +278,8 @@ class CalibrationReport:
             "brier": round(self.brier, 6),
             "auroc": round(self.auroc, 6),
             "n_samples": self.n_samples,
+            "ground_truth_provided": self.ground_truth_provided,
+            "note": self.note,
         }
 
 
@@ -449,10 +459,15 @@ def damped_fusion(
         return 0.0
     weights = [w / w_sum for w in weights]
 
-    # Power-damped weighted average
+    # Generalized weighted power mean: (Σ w·s^p)^(1/p) with p = damping ∈ (0, 1].
+    # For p < 1 this is <= the weighted arithmetic mean, pulling the fused score
+    # toward the weaker signals — which reduces overconfidence. The previous form
+    # omitted the outer 1/p root, so it summed w·s^p and INFLATED sub-1.0 signals
+    # (0.5^0.8 = 0.574 > 0.5), the opposite of the intended damping (#105).
     damping = max(0.01, min(damping, 1.0))
     weighted = sum(w * (s**damping) for w, s in zip(weights, signals, strict=False))
-    return round(min(max(weighted, 0.0), 1.0), 4)  # type: ignore[no-any-return]
+    fused = weighted ** (1.0 / damping)
+    return round(min(max(fused, 0.0), 1.0), 4)  # type: ignore[no-any-return]
 
 
 # ---------------------------------------------------------------------------
@@ -616,7 +631,15 @@ def _run_l3(
     config: ArchitectureConfig,
     distractor_scores: list[float] | None = None,
 ) -> L3Result:
-    """Layer 3: Calibration correction (DINCO + optional Platt)."""
+    """Layer 3: consistency regularization (DINCO + optional Platt).
+
+    Despite the historical ``L3_CALIBRATION`` label, this stage is **consistency
+    regularization, not ground-truth calibration** (#105): DINCO is training-free
+    self-consistency smoothing and Platt is fitted against a proxy, not against
+    verified outcome labels. It does not move scores toward measured accuracy —
+    treat the ``calibrated_score`` as a regularized score until independent
+    outcome labels exist.
+    """
     # Try Platt scaling if parameters are available
     if config.platt_params is not None:
         calibrated = config.platt_params.transform(raw_score)
@@ -818,10 +841,27 @@ def batch_calibration_report(
     """
     predictions = [r.final_score for r in results]
     if ground_truth is None:
-        # Use evidence signal as proxy for ground truth
+        # No outcome labels supplied. The evidence signal is itself an INPUT to
+        # final_score (weighted into it), so metrics computed against it measure
+        # self-consistency, not accuracy — they can never show the confidence
+        # numbers are wrong. Compute them (for shape) but flag them plainly
+        # rather than presenting a self-referential proxy as calibration (#105).
         ground_truth = [r.l1.evidence_signal for r in results]
+        provided = False
+        note = (
+            "SELF-CONSISTENCY, NOT CALIBRATION: no ground-truth outcome labels "
+            "were supplied, so ECE/Brier/AUROC are computed against an input "
+            "signal and validate nothing about accuracy. Supply verified-true / "
+            "verified-false labels for real calibration."
+        )
+    else:
+        provided = True
+        note = ""
 
     # Binarize ground truth for AUROC
     binary_truth = [1.0 if g >= 0.5 else 0.0 for g in ground_truth]
 
-    return evaluate_calibration(predictions, binary_truth)
+    report = evaluate_calibration(predictions, binary_truth)
+    report.ground_truth_provided = provided
+    report.note = note
+    return report
