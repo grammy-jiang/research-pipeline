@@ -13,6 +13,7 @@ from pathlib import Path
 from mcp.types import (
     Completion,
     CompletionArgument,
+    CompletionContext,
     PromptReference,
     ResourceTemplateReference,
 )
@@ -74,7 +75,7 @@ SOURCE_VALUES = ["arxiv", "scholar", "semantic_scholar", "openalex", "dblp", "al
 async def handle_completion(
     ref: PromptReference | ResourceTemplateReference,
     argument: CompletionArgument,
-    context: dict | None = None,
+    context: CompletionContext | None = None,
 ) -> Completion | None:
     """Route completion requests to appropriate handlers."""
     partial = argument.value or ""
@@ -85,18 +86,14 @@ async def handle_completion(
         return Completion(values=values[:100], hasMore=len(values) > 100)
 
     if name == "paper_id":
-        # Need run_id from context to scope paper lookup
+        # Scope the paper lookup by the already-resolved run_id argument.
+        # ``context`` is a Pydantic ``CompletionContext`` (no ``.get()``); its
+        # resolved sibling arguments live under ``.arguments`` (#121). The old
+        # ``context.get`` raised, and the URI-parse fallback only ever extracted
+        # the literal ``"runs:"`` scheme, so it is dropped.
         run_id = ""
-        if context:
-            run_id = context.get("run_id", "")
-        if isinstance(ref, ResourceTemplateReference):
-            # Try to extract run_id from the URI
-            uri = str(ref.uri)
-            parts = uri.split("/")
-            for i, part in enumerate(parts):
-                if part == "" and i > 0:
-                    run_id = parts[i - 1]
-                    break
+        if context is not None and context.arguments:
+            run_id = context.arguments.get("run_id", "")
         if run_id:
             values = _list_paper_ids(run_id, partial)
             return Completion(values=values[:100], hasMore=len(values) > 100)

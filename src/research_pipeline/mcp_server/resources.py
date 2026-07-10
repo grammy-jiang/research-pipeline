@@ -34,6 +34,38 @@ def _cap_text(text: str, source: str) -> str:
     )
 
 
+def _cap_jsonl(text: str, source: str) -> str:
+    """Truncate an oversized JSONL resource on a record (line) boundary.
+
+    Unlike :func:`_cap_text`, this must not slice mid-record or append a prose
+    notice — either corrupts the declared ``application/jsonl`` content type
+    (#121). Keep whole lines up to the cap and drop the remainder; the dropped
+    count is logged, not embedded inline.
+    """
+    raw = text.encode("utf-8")
+    if len(raw) <= _MAX_RESOURCE_BYTES:
+        return text
+    lines = text.splitlines(keepends=True)
+    kept: list[str] = []
+    size = 0
+    for line in lines:
+        encoded = len(line.encode("utf-8"))
+        if size + encoded > _MAX_RESOURCE_BYTES:
+            break
+        kept.append(line)
+        size += encoded
+    logger.warning(
+        "%s is %d bytes; truncated to %d whole JSONL record(s) under the "
+        "%d-byte cap (%d dropped)",
+        source,
+        len(raw),
+        len(kept),
+        _MAX_RESOURCE_BYTES,
+        len(lines) - len(kept),
+    )
+    return "".join(kept)
+
+
 def _cap_bytes(data: bytes, source: str) -> bytes:
     """Truncate an oversized binary resource, logging the truncation."""
     if len(data) <= _MAX_RESOURCE_BYTES:
@@ -141,7 +173,7 @@ def get_run_candidates(run_id: str) -> str:
     candidates_path = run_root / "search" / "candidates.jsonl"
     if not candidates_path.exists():
         raise ValueError(f"No candidates for run '{run_id}'")
-    return _cap_text(candidates_path.read_text(), f"candidates for run '{run_id}'")
+    return _cap_jsonl(candidates_path.read_text(), f"candidates for run '{run_id}'")
 
 
 def get_run_shortlist(run_id: str) -> str:

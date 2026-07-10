@@ -180,3 +180,21 @@ class TestResourceCaps:
         assert (
             len(resources._cap_bytes(big, "big.pdf")) == resources._MAX_RESOURCE_BYTES
         )
+
+
+class TestCapJsonl:
+    """JSONL truncation must stay on record boundaries (#121)."""
+
+    def test_under_cap_is_unchanged(self) -> None:
+        text = '{"a": 1}\n{"b": 2}\n'
+        assert resources._cap_jsonl(text, "candidates") == text
+
+    def test_keeps_only_whole_records(self, monkeypatch: pytest.MonkeyPatch) -> None:
+        monkeypatch.setattr(resources, "_MAX_RESOURCE_BYTES", 60)
+        text = "".join(json.dumps({"i": i, "pad": "xxxx"}) + "\n" for i in range(20))
+        out = resources._cap_jsonl(text, "candidates")
+        # Every returned line is still valid JSON — no mid-record slice, no prose.
+        assert out  # kept at least one record
+        for line in out.splitlines():
+            json.loads(line)
+        assert len(out.encode("utf-8")) <= 60

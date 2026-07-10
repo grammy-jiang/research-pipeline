@@ -105,6 +105,32 @@ class TestHandleCompletion:
         assert result is None
 
     @pytest.mark.anyio
+    async def test_paper_id_completion_reads_run_id_from_context(self) -> None:
+        # Regression: a CompletionContext has no `.get()`; the old code raised
+        # AttributeError. It must read run_id from `.arguments` and not crash (#121).
+        from mcp.types import CompletionContext, ResourceTemplateReference
+
+        ref = ResourceTemplateReference(
+            type="ref/resource", uri="runs://{run_id}/papers/{paper_id}"
+        )
+        arg = CompletionArgument(name="paper_id", value="")
+        ctx = CompletionContext(arguments={"run_id": "missing-run"})
+        result = await handle_completion(ref, arg, ctx)  # must not raise
+        assert result is not None  # a Completion (empty for a missing run)
+
+    @pytest.mark.anyio
+    async def test_paper_id_completion_without_context_is_empty(self) -> None:
+        from mcp.types import ResourceTemplateReference
+
+        ref = ResourceTemplateReference(
+            type="ref/resource", uri="runs://{run_id}/papers/{paper_id}"
+        )
+        arg = CompletionArgument(name="paper_id", value="")
+        result = await handle_completion(ref, arg, None)
+        assert result is not None
+        assert result.values == []
+
+    @pytest.mark.anyio
     async def test_run_id_completion(
         self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
     ) -> None:
