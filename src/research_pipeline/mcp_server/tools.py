@@ -1491,10 +1491,10 @@ def analyze_papers(
 ) -> ToolResult:
     """Prepare per-paper analysis tasks or validate collected analysis results."""
     try:
-        from research_pipeline.cli.cmd_analyze import (
-            _discover_papers,
-            _generate_prompt,
-            _load_research_topic,
+        from research_pipeline.analysis.tasks import (
+            discover_papers,
+            generate_prompt,
+            load_research_topic,
         )
         from research_pipeline.storage.workspace import get_stage_dir, init_run
 
@@ -1512,13 +1512,13 @@ def analyze_papers(
                     success=False,
                     message="No analysis JSON files found. Run paper-analyzer first.",
                 )
-            from research_pipeline.cli.cmd_analyze import _validate_analysis_json
+            from research_pipeline.analysis.tasks import validate_analysis_json
 
             valid = 0
             total_errs = 0
             results_list = []
             for jf in json_files:
-                errs = _validate_analysis_json(jf)
+                errs = validate_analysis_json(jf)
                 results_list.append(
                     {"file": jf.name, "valid": not errs, "errors": errs}
                 )
@@ -1554,7 +1554,7 @@ def analyze_papers(
                 },
             )
 
-        papers = _discover_papers(run_root)
+        papers = discover_papers(run_root)
         if params.paper_ids:
             papers = [p for p in papers if p["arxiv_id"] in params.paper_ids]
         if not papers:
@@ -1563,8 +1563,8 @@ def analyze_papers(
                 message="No converted papers found. Run convert first.",
             )
 
-        topic = _load_research_topic(run_root)
-        prompts = [_generate_prompt(p, topic, run_root) for p in papers]
+        topic = load_research_topic(run_root)
+        prompts = [generate_prompt(p, topic, run_root) for p in papers]
 
         prompts_path = analysis_dir / "analysis_tasks.json"
         prompts_path.write_text(json.dumps(prompts, indent=2))
