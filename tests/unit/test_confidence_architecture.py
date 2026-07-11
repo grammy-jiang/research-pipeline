@@ -11,6 +11,7 @@ from research_pipeline.confidence.architecture import (
     L1Result,
     LayeredConfidenceResult,
     PlattParams,
+    _is_audited,
     _run_l1,
     _run_l2,
     _run_l3,
@@ -412,6 +413,38 @@ class TestL4:
         l4 = _run_l4(claim, 0.2, config, llm_provider=None)
         assert l4.triggered
         assert l4.samples_used == 0
+
+    def test_high_confidence_audited_when_rate_set(self) -> None:
+        # With an audit rate, a fraction of HIGH-confidence claims are still
+        # verified — they are no longer structurally exempt (#122).
+        claim = _make_claim()
+        # rate=1 audits every claim.
+        config = ArchitectureConfig(l4_threshold=0.5, l4_audit_rate=1)
+        l4 = _run_l4(claim, 0.9, config)
+        assert l4.triggered
+
+    def test_high_confidence_not_audited_when_rate_zero(self) -> None:
+        claim = _make_claim()
+        config = ArchitectureConfig(l4_threshold=0.5, l4_audit_rate=0)
+        l4 = _run_l4(claim, 0.9, config)
+        assert not l4.triggered
+
+
+class TestIsAudited:
+    """Deterministic 1-in-N sampling of high-confidence claims (#122)."""
+
+    def test_rate_zero_never_audits(self) -> None:
+        assert _is_audited("CL-001", 0) is False
+
+    def test_rate_one_always_audits(self) -> None:
+        assert _is_audited("CL-001", 1) is True
+
+    def test_deterministic_and_partial(self) -> None:
+        ids = [f"CL-{i:03d}" for i in range(200)]
+        audited = [cid for cid in ids if _is_audited(cid, 5)]
+        # A ~1-in-5 sample: some but not all, and stable across calls.
+        assert 0 < len(audited) < len(ids)
+        assert all(_is_audited(cid, 5) for cid in audited)
 
 
 # ---------------------------------------------------------------------------
