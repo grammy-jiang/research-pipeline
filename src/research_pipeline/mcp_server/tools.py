@@ -10,7 +10,7 @@ import contextlib
 import json
 import logging
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, NoReturn
 
 if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
@@ -121,6 +121,30 @@ def _scrub_exc(exc: object) -> str:
         if base and base != "/":
             text = text.replace(base, "…")
     return redact_secrets(text)
+
+
+class McpToolError(RuntimeError):
+    """An MCP tool wrapper caught an unexpected error (#108).
+
+    Subclasses :class:`RuntimeError` so existing handlers keep working, but is a
+    distinct type; the triggering exception is preserved as ``__cause__`` so
+    callers and logs can still discriminate the underlying failure mode.
+    """
+
+
+def _raise_tool_error(label: str, exc: Exception) -> NoReturn:
+    """Single MCP-tool error boundary (#108): log, path/secret-scrub, re-raise.
+
+    This log + redaction + re-raise contract was copy-pasted at ~63 tool call
+    sites; centralising it means a change to the contract touches one place, and
+    every boundary now raises the same :class:`McpToolError` type.
+
+    Args:
+        label: Human phrase for the failing operation (used in the log line).
+        exc: The caught exception (preserved as ``__cause__``).
+    """
+    logger.error("%s failed: %s", label, exc)
+    raise McpToolError(_scrub_exc(exc)) from exc
 
 
 def _backend_kwargs(
@@ -247,8 +271,7 @@ def plan_topic(params: PlanTopicInput, ctx: Context | None = None) -> ToolResult
             artifacts={"query_plan": str(plan_path), "run_id": rid},
         )
     except Exception as exc:
-        logger.error("plan_topic failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("plan_topic", exc)
 
 
 def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
@@ -423,8 +446,7 @@ def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
             },
         )
     except Exception as exc:
-        logger.error("search failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("search", exc)
 
 
 def screen_candidates(
@@ -501,8 +523,7 @@ def screen_candidates(
             },
         )
     except Exception as exc:
-        logger.error("screen_candidates failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("screen_candidates", exc)
 
 
 def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> ToolResult:
@@ -559,8 +580,7 @@ def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> Tool
             },
         )
     except Exception as exc:
-        logger.error("download_pdfs failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("download_pdfs", exc)
 
 
 def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolResult:
@@ -650,8 +670,7 @@ def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolRe
             ),
         )
     except Exception as exc:
-        logger.error("convert_pdfs failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("convert_pdfs", exc)
 
 
 def extract_content(
@@ -707,8 +726,7 @@ def extract_content(
             },
         )
     except Exception as exc:
-        logger.error("extract_content failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("extract_content", exc)
 
 
 def summarize_papers(
@@ -829,8 +847,7 @@ def summarize_papers(
             },
         )
     except Exception as exc:
-        logger.error("summarize_papers failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("summarize_papers", exc)
 
 
 def run_pipeline(params: RunPipelineInput, ctx: Context | None = None) -> ToolResult:
@@ -858,8 +875,7 @@ def run_pipeline(params: RunPipelineInput, ctx: Context | None = None) -> ToolRe
             },
         )
     except Exception as exc:
-        logger.error("run_pipeline failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("run_pipeline", exc)
 
 
 def get_run_manifest(
@@ -891,8 +907,7 @@ def get_run_manifest(
             artifacts={"manifest": manifest.model_dump()},
         )
     except Exception as exc:
-        logger.error("get_run_manifest failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("get_run_manifest", exc)
 
 
 def convert_file(params: ConvertFileInput, ctx: Context | None = None) -> ToolResult:
@@ -953,8 +968,7 @@ def convert_file(params: ConvertFileInput, ctx: Context | None = None) -> ToolRe
             ),
         )
     except Exception as exc:
-        logger.error("convert_file failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("convert_file", exc)
 
 
 def list_backends(params: ListBackendsInput, ctx: Context | None = None) -> ToolResult:
@@ -973,8 +987,7 @@ def list_backends(params: ListBackendsInput, ctx: Context | None = None) -> Tool
             artifacts={"backends": backends},
         )
     except Exception as exc:
-        logger.error("list_backends failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("list_backends", exc)
 
 
 def expand_citations(
@@ -1094,8 +1107,7 @@ def expand_citations(
             artifacts=artifacts,
         )
     except Exception as exc:
-        logger.error("expand_citations failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("expand_citations", exc)
 
 
 def evaluate_quality(
@@ -1171,8 +1183,7 @@ def evaluate_quality(
             },
         )
     except Exception as exc:
-        logger.error("evaluate_quality failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("evaluate_quality", exc)
 
 
 def get_venue_tier(params: GetVenueTierInput, ctx: Context | None = None) -> ToolResult:
@@ -1197,8 +1208,7 @@ def get_venue_tier(params: GetVenueTierInput, ctx: Context | None = None) -> Too
             artifacts={"venue": params.venue_name, "tier": tier, "score": score},
         )
     except Exception as exc:
-        logger.error("get_venue_tier failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("get_venue_tier", exc)
 
 
 def compute_semantic_scores(
@@ -1263,8 +1273,7 @@ def compute_semantic_scores(
             },
         )
     except Exception as exc:
-        logger.error("compute_semantic_scores failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("compute_semantic_scores", exc)
 
 
 def convert_rough(params: ConvertRoughInput, ctx: Context | None = None) -> ToolResult:
@@ -1346,8 +1355,7 @@ def convert_rough(params: ConvertRoughInput, ctx: Context | None = None) -> Tool
             },
         )
     except Exception as exc:
-        logger.error("convert_rough failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("convert_rough", exc)
 
 
 def convert_fine(params: ConvertFineInput, ctx: Context | None = None) -> ToolResult:
@@ -1444,8 +1452,7 @@ def convert_fine(params: ConvertFineInput, ctx: Context | None = None) -> ToolRe
             },
         )
     except Exception as exc:
-        logger.error("convert_fine failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("convert_fine", exc)
 
 
 def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolResult:
@@ -1482,8 +1489,7 @@ def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolRe
         finally:
             index.close()
     except Exception as exc:
-        logger.error("manage_index failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("manage_index", exc)
 
 
 def analyze_papers(
@@ -1583,8 +1589,7 @@ def analyze_papers(
             },
         )
     except Exception as exc:
-        logger.error("analyze_papers failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("analyze_papers", exc)
 
 
 def validate_report(
@@ -1630,8 +1635,7 @@ def validate_report(
             artifacts=result,
         )
     except Exception as exc:
-        logger.error("validate_report failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("validate_report", exc)
 
 
 def compare_runs(params: CompareRunsInput, ctx: Context | None = None) -> ToolResult:
@@ -1659,8 +1663,7 @@ def compare_runs(params: CompareRunsInput, ctx: Context | None = None) -> ToolRe
             artifacts=result,
         )
     except Exception as exc:
-        logger.error("compare_runs failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("compare_runs", exc)
 
 
 def verify_stage(params: VerifyStageInput, ctx: Context | None = None) -> ToolResult:
@@ -1690,8 +1693,7 @@ def verify_stage(params: VerifyStageInput, ctx: Context | None = None) -> ToolRe
             artifacts={"stage": params.stage, "errors": []},
         )
     except Exception as exc:
-        logger.error("verify_stage failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("verify_stage", exc)
 
 
 def record_feedback(params: FeedbackInput, ctx: Context | None = None) -> ToolResult:
@@ -1751,8 +1753,7 @@ def record_feedback(params: FeedbackInput, ctx: Context | None = None) -> ToolRe
             artifacts=result,
         )
     except Exception as exc:
-        logger.error("record_feedback failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("record_feedback", exc)
 
 
 def query_eval_log(params: EvalLogInput, ctx: Context | None = None) -> ToolResult:
@@ -1806,8 +1807,7 @@ def query_eval_log(params: EvalLogInput, ctx: Context | None = None) -> ToolResu
             artifacts=result,
         )
     except Exception as exc:
-        logger.error("query_eval_log failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("query_eval_log", exc)
 
 
 def aggregate_evidence_tool(
@@ -1894,8 +1894,7 @@ def aggregate_evidence_tool(
             artifacts=content,
         )
     except Exception as exc:
-        logger.error("aggregate_evidence failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("aggregate_evidence", exc)
 
 
 def export_html_tool(
@@ -1979,8 +1978,7 @@ def export_html_tool(
             artifacts={"path": str(out_path), "size_bytes": len(html_str)},
         )
     except Exception as exc:
-        logger.error("export_html failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("export_html", exc)
 
 
 def model_routing_info_tool(
@@ -2023,8 +2021,7 @@ def model_routing_info_tool(
             },
         )
     except Exception as exc:
-        logger.error("model_routing_info failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("model_routing_info", exc)
 
 
 def gate_info_tool(
@@ -2061,8 +2058,7 @@ def gate_info_tool(
             },
         )
     except Exception as exc:
-        logger.error("gate_info failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("gate_info", exc)
 
 
 def coherence_tool(
@@ -2093,8 +2089,7 @@ def coherence_tool(
             artifacts=report.to_dict(),
         )
     except Exception as exc:
-        logger.error("coherence evaluation failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("coherence evaluation", exc)
 
 
 def consolidation_tool(
@@ -2132,8 +2127,7 @@ def consolidation_tool(
             artifacts=asdict(result),
         )
     except Exception as exc:
-        logger.error("consolidation failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("consolidation", exc)
 
 
 def blinding_audit_tool(
@@ -2169,8 +2163,7 @@ def blinding_audit_tool(
             artifacts=result.to_dict(),
         )
     except Exception as exc:
-        logger.error("blinding audit failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("blinding audit", exc)
 
 
 def dual_metrics_tool(
@@ -2208,8 +2201,7 @@ def dual_metrics_tool(
             artifacts=result.to_dict(),
         )
     except Exception as exc:
-        logger.error("dual metrics failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("dual metrics", exc)
 
 
 def cbr_lookup_tool(
@@ -2244,8 +2236,7 @@ def cbr_lookup_tool(
             artifacts=rec.to_dict(),
         )
     except Exception as exc:
-        logger.error("CBR lookup failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("CBR lookup", exc)
 
 
 def cbr_retain_tool(
@@ -2280,8 +2271,7 @@ def cbr_retain_tool(
             artifacts=case.to_dict(),
         )
     except Exception as exc:
-        logger.error("CBR retain failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("CBR retain", exc)
 
 
 def kg_quality_tool(
@@ -2335,8 +2325,7 @@ def kg_quality_tool(
             conn.close()
 
     except Exception as exc:
-        logger.error("KG quality evaluation failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("KG quality evaluation", exc)
 
 
 def adaptive_stopping_tool(
@@ -2395,8 +2384,7 @@ def adaptive_stopping_tool(
         )
 
     except Exception as exc:
-        logger.error("Adaptive stopping evaluation failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("Adaptive stopping evaluation", exc)
 
 
 def confidence_layers_tool(
@@ -2440,8 +2428,7 @@ def confidence_layers_tool(
         )
 
     except Exception as exc:
-        logger.error("Confidence layers scoring failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("Confidence layers scoring", exc)
 
 
 def export_bibtex_tool(
@@ -2507,8 +2494,7 @@ def export_bibtex_tool(
             },
         )
     except Exception as exc:
-        logger.error("export_bibtex failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("export_bibtex", exc)
 
 
 def report_tool(
@@ -2609,8 +2595,7 @@ def report_tool(
             },
         )
     except Exception as exc:
-        logger.error("report failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("report", exc)
 
 
 def cluster_tool(
@@ -2687,8 +2672,7 @@ def cluster_tool(
             },
         )
     except Exception as exc:
-        logger.error("cluster failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("cluster", exc)
 
 
 def enrich_tool(
@@ -2763,8 +2747,7 @@ def enrich_tool(
             },
         )
     except Exception as exc:
-        logger.error("enrich failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("enrich", exc)
 
 
 def cite_context_tool(
@@ -2830,8 +2813,7 @@ def cite_context_tool(
             },
         )
     except Exception as exc:
-        logger.error("cite_context failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("cite_context", exc)
 
 
 def watch_tool(
@@ -2936,8 +2918,7 @@ def watch_tool(
             },
         )
     except Exception as exc:
-        logger.error("watch failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("watch", exc)
 
 
 def analyze_claims_tool(
@@ -3015,8 +2996,7 @@ def analyze_claims_tool(
             },
         )
     except Exception as exc:
-        logger.error("analyze_claims failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("analyze_claims", exc)
 
 
 def score_claims_tool(
@@ -3080,8 +3060,7 @@ def score_claims_tool(
             },
         )
     except Exception as exc:
-        logger.error("score_claims failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("score_claims", exc)
 
 
 def kg_stats_tool(params: KGStatsInput, ctx: Context | None = None) -> ToolResult:
@@ -3105,8 +3084,7 @@ def kg_stats_tool(params: KGStatsInput, ctx: Context | None = None) -> ToolResul
             artifacts=stats,
         )
     except Exception as exc:
-        logger.error("kg_stats failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("kg_stats", exc)
 
 
 def kg_query_tool(params: KGQueryInput, ctx: Context | None = None) -> ToolResult:
@@ -3164,8 +3142,7 @@ def kg_query_tool(params: KGQueryInput, ctx: Context | None = None) -> ToolResul
             },
         )
     except Exception as exc:
-        logger.error("kg_query failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("kg_query", exc)
 
 
 def kg_ingest_tool(params: KGIngestInput, ctx: Context | None = None) -> ToolResult:
@@ -3231,8 +3208,7 @@ def kg_ingest_tool(params: KGIngestInput, ctx: Context | None = None) -> ToolRes
             },
         )
     except Exception as exc:
-        logger.error("kg_ingest failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("kg_ingest", exc)
 
 
 def memory_stats_tool(
@@ -3257,8 +3233,7 @@ def memory_stats_tool(
             artifacts=stats,
         )
     except Exception as exc:
-        logger.error("memory_stats failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("memory_stats", exc)
 
 
 def memory_episodes_tool(
@@ -3294,8 +3269,7 @@ def memory_episodes_tool(
             artifacts={"episodes": episode_list},
         )
     except Exception as exc:
-        logger.error("memory_episodes failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("memory_episodes", exc)
 
 
 def memory_search_tool(
@@ -3333,8 +3307,7 @@ def memory_search_tool(
             artifacts={"episodes": episode_list, "query": params.topic},
         )
     except Exception as exc:
-        logger.error("memory_search failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("memory_search", exc)
 
 
 def evaluate_tool(params: EvaluateInput, ctx: Context | None = None) -> ToolResult:
@@ -3400,8 +3373,7 @@ def evaluate_tool(params: EvaluateInput, ctx: Context | None = None) -> ToolResu
             },
         )
     except Exception as exc:
-        logger.error("evaluate failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("evaluate", exc)
 
 
 def horizon_metric_tool(
@@ -3435,8 +3407,7 @@ def horizon_metric_tool(
             artifacts=result.to_dict(),
         )
     except Exception as exc:
-        logger.error("horizon_metric failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("horizon_metric", exc)
 
 
 def rrp_diagnostic_tool(
@@ -3471,8 +3442,7 @@ def rrp_diagnostic_tool(
             artifacts=diagnostic.to_dict(),
         )
     except Exception as exc:
-        logger.error("rrp_diagnostic failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("rrp_diagnostic", exc)
 
 
 def brief_poll_sources_tool(
@@ -3500,8 +3470,7 @@ def brief_poll_sources_tool(
             artifacts={"root": str(paths.root), "events": str(paths.events_path)},
         )
     except Exception as exc:
-        logger.error("brief_poll_sources failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_poll_sources", exc)
 
 
 def brief_rank_events_tool(
@@ -3535,8 +3504,7 @@ def brief_rank_events_tool(
             artifacts={"ranked_clusters": str(paths.ranked_clusters_path)},
         )
     except Exception as exc:
-        logger.error("brief_rank_events failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_rank_events", exc)
 
 
 def brief_generate_daily_tool(
@@ -3556,8 +3524,7 @@ def brief_generate_daily_tool(
             artifacts={"daily_report": str(paths.daily_report_path)},
         )
     except Exception as exc:
-        logger.error("brief_generate_daily failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_generate_daily", exc)
 
 
 def brief_validate_report_tool(
@@ -3577,8 +3544,7 @@ def brief_validate_report_tool(
             artifacts={"validation": validation, "path": str(paths.validation_path)},
         )
     except Exception as exc:
-        logger.error("brief_validate_report failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_validate_report", exc)
 
 
 def brief_run_tool(params: BriefRunInput, ctx: Context | None = None) -> ToolResult:
@@ -3608,8 +3574,7 @@ def brief_run_tool(params: BriefRunInput, ctx: Context | None = None) -> ToolRes
             },
         )
     except Exception as exc:
-        logger.error("brief_run failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_run", exc)
 
 
 def brief_export_obsidian_tool(
@@ -3650,8 +3615,7 @@ def brief_export_obsidian_tool(
             artifacts={"notes": [str(path) for path in changed]},
         )
     except Exception as exc:
-        logger.error("brief_export_obsidian failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_export_obsidian", exc)
 
 
 def brief_record_feedback_tool(
@@ -3681,8 +3645,7 @@ def brief_record_feedback_tool(
             artifacts={"feedback": feedback.model_dump(mode="json")},
         )
     except Exception as exc:
-        logger.error("brief_record_feedback failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_record_feedback", exc)
 
 
 def brief_generate_dossier_tool(
@@ -3716,8 +3679,7 @@ def brief_generate_dossier_tool(
             artifacts={"dossier": str(output), "dossier_id": dossier.dossier_id},
         )
     except Exception as exc:
-        logger.error("brief_generate_dossier failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_generate_dossier", exc)
 
 
 def brief_weekly_synthesis_tool(
@@ -3748,5 +3710,4 @@ def brief_weekly_synthesis_tool(
             artifacts={"weekly_synthesis": str(output)},
         )
     except Exception as exc:
-        logger.error("brief_weekly_synthesis failed: %s", exc)
-        raise RuntimeError(_scrub_exc(exc)) from exc
+        _raise_tool_error("brief_weekly_synthesis", exc)
