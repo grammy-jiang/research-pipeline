@@ -38,8 +38,9 @@ Do **not** trigger for general web search, single PDF conversion
 **Always launch through the manifest-governed runner. Never bypass it.**
 
 ```bash
-SKILL_DIR=~/.claude/skills/research-pipeline    # Claude Code / Copilot
-# SKILL_DIR=~/.codex/skills/research-pipeline   # Codex
+SKILL_DIR=~/.claude/skills/research-pipeline     # Claude Code
+# SKILL_DIR=~/.copilot/skills/research-pipeline  # Copilot CLI
+# SKILL_DIR=~/.agents/skills/research-pipeline   # Codex CLI
 CFG=$SKILL_DIR/config.toml
 
 python3 $SKILL_DIR/runners/runner.py "<topic>" --config "$CFG"
@@ -71,6 +72,7 @@ proved by artifact existence + schema validation — not by agent claim.
 
 | File | Load when |
 |------|-----------|
+| `references/workflow-steps.md` | Per-agent SKILL_DIR paths, or understanding/diagnosing an orchestrated task |
 | `references/command-reference.md` | CLI options, profiles, MCP tool map, advanced flags |
 | `references/query-optimization.md` | Editing `query_plan.json` or weak recall |
 | `references/sub-agents.md` | Launching screener, analyzer, synthesizer |
