@@ -76,6 +76,35 @@ def _clamp(value: float, lo: float, hi: float) -> float:
     return max(lo, min(hi, value))
 
 
+# Second-pass blend weight (#117): the final relevance score is a fixed convex
+# combination of the cheap heuristic score and the LLM judgment score. The cheap
+# signal is weighted higher (0.6) because it aggregates several orthogonal
+# heuristics; the LLM pass (0.4) refines that estimate rather than overriding it.
+CHEAP_SCORE_WEIGHT: float = 0.6
+
+
+def blend_final_score(
+    cheap_score: float,
+    llm_score: float,
+    cheap_weight: float = CHEAP_SCORE_WEIGHT,
+) -> float:
+    """Blend the cheap heuristic score with the LLM judgment score.
+
+    Extracted from the orchestrator's screen stage so the blend policy has a
+    single tested home instead of an inline magic-number expression (#117).
+
+    Args:
+        cheap_score: Aggregated heuristic score (``CheapScore.cheap_score``).
+        llm_score: LLM second-pass relevance score (``LLMJudgment.llm_score``).
+        cheap_weight: Weight on the cheap score; the LLM score receives the
+            complementary ``1 - cheap_weight``.
+
+    Returns:
+        Convex combination of the two scores, in the same range as its inputs.
+    """
+    return cheap_weight * cheap_score + (1.0 - cheap_weight) * llm_score
+
+
 def _parse_response(raw: dict[str, object]) -> LLMJudgment | None:
     """Parse an LLM response dict into an LLMJudgment.
 

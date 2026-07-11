@@ -10,9 +10,11 @@ from research_pipeline.llm.base import LLMProvider
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.screening import EvidenceQuote, LLMJudgment
 from research_pipeline.screening.llm_judge import (
+    CHEAP_SCORE_WEIGHT,
     _build_prompt,
     _clamp,
     _parse_response,
+    blend_final_score,
     judge_batch,
     judge_candidate,
     verify_evidence_quotes,
@@ -276,6 +278,35 @@ class TestClamp:
 
     def test_above_range(self) -> None:
         assert _clamp(2.0, 0.0, 1.0) == 1.0
+
+
+# ---------------------------------------------------------------------------
+# blend_final_score
+# ---------------------------------------------------------------------------
+
+
+class TestBlendFinalScore:
+    """Tests for the extracted cheap/LLM score blend (#117)."""
+
+    def test_default_weight_matches_prior_inline_formula(self) -> None:
+        # The orchestrator previously inlined 0.6 * cheap + 0.4 * llm; the
+        # extraction must preserve that exact behaviour.
+        assert blend_final_score(0.8, 0.4) == 0.6 * 0.8 + 0.4 * 0.4
+
+    def test_default_weight_is_cheap_heavy(self) -> None:
+        assert CHEAP_SCORE_WEIGHT == 0.6
+
+    def test_convex_endpoints(self) -> None:
+        # Equal inputs pass through unchanged for any weight.
+        assert blend_final_score(0.5, 0.5) == 0.5
+        assert blend_final_score(1.0, 1.0) == 1.0
+        assert blend_final_score(0.0, 0.0) == 0.0
+
+    def test_custom_weight(self) -> None:
+        # All-LLM weighting ignores the cheap score entirely.
+        assert blend_final_score(0.2, 0.9, cheap_weight=0.0) == 0.9
+        # All-cheap weighting ignores the LLM score entirely.
+        assert blend_final_score(0.2, 0.9, cheap_weight=1.0) == 0.2
 
 
 # ---------------------------------------------------------------------------
