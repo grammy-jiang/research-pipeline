@@ -385,7 +385,7 @@ class TestCmdConvertFine:
             )
 
     @patch("research_pipeline.cli.cmd_convert_fine.write_jsonl")
-    @patch("research_pipeline.cli.cmd_convert_fine._create_converter")
+    @patch("research_pipeline.cli.cmd_convert_fine.create_converter")
     @patch("research_pipeline.cli.cmd_convert_fine.read_jsonl")
     @patch("research_pipeline.cli.cmd_convert_fine.init_run")
     @patch("research_pipeline.cli.cmd_convert_fine.load_config")
@@ -416,7 +416,7 @@ class TestCmdConvertFine:
             )
 
     @patch("research_pipeline.cli.cmd_convert_fine.write_jsonl")
-    @patch("research_pipeline.cli.cmd_convert_fine._create_converter")
+    @patch("research_pipeline.cli.cmd_convert_fine.create_converter")
     @patch("research_pipeline.cli.cmd_convert_fine.read_jsonl")
     @patch("research_pipeline.cli.cmd_convert_fine.init_run")
     @patch("research_pipeline.cli.cmd_convert_fine.load_config")

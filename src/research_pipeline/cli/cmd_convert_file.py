@@ -5,7 +5,7 @@ from pathlib import Path
 
 import typer
 
-from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+from research_pipeline.conversion.factory import backend_kwargs_list
 
 logger = logging.getLogger(__name__)
 
@@ -52,7 +52,7 @@ def run_convert_file(
     backend_names = [backend_name, *list(config.conversion.fallback_backends)]
     all_backends: list[ConverterBackend] = []
     for name in backend_names:
-        kwargs_list = _backend_kwargs_list(name, config)
+        kwargs_list = backend_kwargs_list(name, config)
         for kwargs in kwargs_list:
             try:
                 all_backends.append(get_backend(name, **kwargs))

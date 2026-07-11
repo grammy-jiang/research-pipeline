@@ -26,11 +26,7 @@ from research_pipeline.cli.cmd_quality import run_quality
 from research_pipeline.cli.cmd_score_claims import run_score_claims
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
-from research_pipeline.conversion.base import ConverterBackend
-from research_pipeline.conversion.registry import (
-    _ensure_builtins_registered,
-    get_backend,
-)
+from research_pipeline.conversion.factory import create_converter
 from research_pipeline.download.pdf import download_batch
 from research_pipeline.extraction.extractor import extract_from_markdown
 from research_pipeline.infra.audit import AuditLogger, EventType
@@ -83,25 +79,6 @@ from research_pipeline.summarization.synthesis import (
 )
 
 logger = logging.getLogger(__name__)
-
-
-def _create_converter(config: PipelineConfig) -> ConverterBackend:
-    """Create a converter backend from pipeline config."""
-    _ensure_builtins_registered()
-    backend_name = config.conversion.backend
-    kwargs: dict[str, object] = {}
-    if backend_name == "docling":
-        kwargs["timeout_seconds"] = config.conversion.timeout_seconds
-    elif backend_name == "marker":
-        mc = config.conversion.marker
-        kwargs["force_ocr"] = mc.force_ocr
-        if mc.use_llm:
-            kwargs["use_llm"] = True
-            if mc.llm_service:
-                kwargs["llm_service"] = mc.llm_service
-            if mc.llm_api_key:
-                kwargs["llm_api_key"] = mc.llm_api_key
-    return get_backend(backend_name, **kwargs)
 
 
 def _is_stage_complete(manifest: RunManifest, stage: str) -> bool:
@@ -1244,7 +1221,7 @@ def run_pipeline(
             if eval_log is not None:
                 eval_log.trace("stage_started", stage="convert")
             md_dir = get_stage_dir(run_root, "convert")
-            converter = _create_converter(config)
+            converter = create_converter(config)
 
             # Page dispatch: classify PDFs by difficulty
             dispatch_plans: list[DocumentDispatchPlan] = []

@@ -224,7 +224,7 @@ class TestConvertPdfs:
         assert "download" in result.message.lower()
 
     def test_uses_fallback_converter(self, tmp_path: Path) -> None:
-        """convert_pdfs delegates to _create_converter, enabling FallbackConverter."""
+        """convert_pdfs delegates to create_converter, enabling FallbackConverter."""
         from unittest.mock import MagicMock, patch
 
         run_root = tmp_path / "test-convert"
@@ -242,7 +242,9 @@ class TestConvertPdfs:
         )
 
         with (
-            patch("research_pipeline.cli.cmd_convert._create_converter") as mock_create,
+            patch(
+                "research_pipeline.conversion.factory.create_converter"
+            ) as mock_create,
             patch("research_pipeline.config.loader.load_config") as mock_cfg,
         ):
             mock_cfg.return_value = MagicMock(
