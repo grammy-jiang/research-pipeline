@@ -439,7 +439,7 @@ def quality(
 
     Example: research-pipeline quality --run-id <RUN_ID>
     """
-    from research_pipeline.cli.cmd_quality import run_quality
+    from research_pipeline.quality.runner import run_quality
 
     opts = _common_options(verbose, config, workspace, run_id)
     run_quality(**opts)

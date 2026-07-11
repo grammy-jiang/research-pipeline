@@ -1488,23 +1488,23 @@ class TestCmdKgQuality:
 class TestCmdQuality:
     """Tests for cmd_quality."""
 
-    @patch("research_pipeline.cli.cmd_quality.load_config")
+    @patch("research_pipeline.quality.runner.load_config")
     def test_no_run_id_returns(self, mock_cfg, tmp_path):
-        from research_pipeline.cli.cmd_quality import run_quality
+        from research_pipeline.quality.runner import run_quality
 
         mock_cfg.return_value = _make_config(tmp_path)
         # Should return early without error
         run_quality(config_path=None, workspace=tmp_path, run_id=None)
 
-    @patch("research_pipeline.cli.cmd_quality.write_jsonl")
-    @patch("research_pipeline.cli.cmd_quality.compute_quality_score")
-    @patch("research_pipeline.cli.cmd_quality.read_jsonl")
-    @patch("research_pipeline.cli.cmd_quality.init_run")
-    @patch("research_pipeline.cli.cmd_quality.load_config")
+    @patch("research_pipeline.quality.runner.write_jsonl")
+    @patch("research_pipeline.quality.runner.compute_quality_score")
+    @patch("research_pipeline.quality.runner.read_jsonl")
+    @patch("research_pipeline.quality.runner.init_run")
+    @patch("research_pipeline.quality.runner.load_config")
     def test_no_candidates_returns(
         self, mock_cfg, mock_init, mock_read, mock_score, mock_write, tmp_path
     ):
-        from research_pipeline.cli.cmd_quality import run_quality
+        from research_pipeline.quality.runner import run_quality
 
         mock_cfg.return_value = _make_config(tmp_path)
         run_dir = tmp_path / "run1"
@@ -1516,14 +1516,14 @@ class TestCmdQuality:
         run_quality(config_path=None, workspace=tmp_path, run_id="run1")
         mock_score.assert_not_called()
 
-    @patch("research_pipeline.cli.cmd_quality.write_jsonl")
-    @patch("research_pipeline.cli.cmd_quality.compute_quality_score")
-    @patch("research_pipeline.cli.cmd_quality.init_run")
-    @patch("research_pipeline.cli.cmd_quality.load_config")
+    @patch("research_pipeline.quality.runner.write_jsonl")
+    @patch("research_pipeline.quality.runner.compute_quality_score")
+    @patch("research_pipeline.quality.runner.init_run")
+    @patch("research_pipeline.quality.runner.load_config")
     def test_happy_path_from_candidates_jsonl(
         self, mock_cfg, mock_init, mock_score, mock_write, tmp_path
     ):
-        from research_pipeline.cli.cmd_quality import run_quality
+        from research_pipeline.quality.runner import run_quality
 
         mock_cfg.return_value = _make_config(tmp_path)
         run_dir = tmp_path / "run1"
@@ -1541,7 +1541,7 @@ class TestCmdQuality:
         )
 
         with patch(
-            "research_pipeline.cli.cmd_quality.read_jsonl",
+            "research_pipeline.quality.runner.read_jsonl",
             return_value=[candidate_data],
         ):
             qs = MagicMock()
@@ -1555,14 +1555,14 @@ class TestCmdQuality:
 
             mock_score.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_quality.write_jsonl")
-    @patch("research_pipeline.cli.cmd_quality.compute_quality_score")
-    @patch("research_pipeline.cli.cmd_quality.init_run")
-    @patch("research_pipeline.cli.cmd_quality.load_config")
+    @patch("research_pipeline.quality.runner.write_jsonl")
+    @patch("research_pipeline.quality.runner.compute_quality_score")
+    @patch("research_pipeline.quality.runner.init_run")
+    @patch("research_pipeline.quality.runner.load_config")
     def test_shortlist_json_path(
         self, mock_cfg, mock_init, mock_score, mock_write, tmp_path
     ):
-        from research_pipeline.cli.cmd_quality import run_quality
+        from research_pipeline.quality.runner import run_quality
 
         mock_cfg.return_value = _make_config(tmp_path)
         run_dir = tmp_path / "run1"

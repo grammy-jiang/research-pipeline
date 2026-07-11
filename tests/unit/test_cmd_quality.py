@@ -6,9 +6,9 @@ import json
 from datetime import UTC, datetime
 from pathlib import Path
 
-from research_pipeline.cli.cmd_quality import run_quality
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.screening import CheapScoreBreakdown, RelevanceDecision
+from research_pipeline.quality.runner import run_quality
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 

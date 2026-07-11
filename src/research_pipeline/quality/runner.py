@@ -1,7 +1,9 @@
-"""CLI handler for the 'quality' command.
+"""Quality-scoring stage runner (#109).
 
-Computes multi-dimensional quality scores for paper candidates
-using citation metrics, venue reputation, and author credibility.
+Computes multi-dimensional quality scores for paper candidates using citation
+metrics, venue reputation, and author credibility. Core stage logic shared by the
+CLI (`quality` command) and the pipeline orchestrator, so it no longer lives in
+the presentation layer.
 """
 
 import json
