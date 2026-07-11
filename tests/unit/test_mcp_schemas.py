@@ -7,6 +7,7 @@ from pydantic import ValidationError
 
 from research_pipeline.mcp_server.schemas import (
     _MCP_ROOT_ENV,
+    AnalyzePapersInput,
     CommonParams,
     ConvertFileInput,
     ConvertFineInput,
@@ -204,6 +205,33 @@ class TestManageIndexInput:
     def test_gc_mode(self) -> None:
         p = ManageIndexInput(gc=True)
         assert p.gc is True
+
+    def test_action_defaults_empty(self) -> None:
+        assert ManageIndexInput().action == ""
+
+    def test_action_accepts_list_and_gc(self) -> None:
+        assert ManageIndexInput(action="list").action == "list"
+        assert ManageIndexInput(action="gc").action == "gc"
+
+    def test_action_rejects_unknown(self) -> None:
+        with pytest.raises(ValidationError):
+            ManageIndexInput(action="delete")
+
+
+class TestAnalyzePapersInput:
+    def test_defaults(self) -> None:
+        p = AnalyzePapersInput()
+        assert p.mode == ""
+        assert p.collect is False
+        assert p.paper_ids == []
+
+    def test_mode_accepts_prepare_and_collect(self) -> None:
+        assert AnalyzePapersInput(mode="prepare").mode == "prepare"
+        assert AnalyzePapersInput(mode="collect").mode == "collect"
+
+    def test_mode_rejects_unknown(self) -> None:
+        with pytest.raises(ValidationError):
+            AnalyzePapersInput(mode="analyze")
 
 
 class TestRunIdTraversalValidator:

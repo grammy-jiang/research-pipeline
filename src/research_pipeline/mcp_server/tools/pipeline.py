@@ -800,11 +800,15 @@ def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolRe
     try:
         from research_pipeline.storage.global_index import GlobalPaperIndex
 
+        action = params.action or (
+            "gc" if params.gc else "list" if params.list_papers else ""
+        )
+
         db_path_val = Path(params.db_path) if params.db_path else None
         index = GlobalPaperIndex(db_path=db_path_val)
 
         try:
-            if params.gc:
+            if action == "gc":
                 removed = index.garbage_collect()
                 return ToolResult(
                     success=True,
@@ -812,7 +816,7 @@ def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolRe
                     artifacts={"removed": removed},
                 )
 
-            if params.list_papers:
+            if action == "list":
                 papers = index.list_papers(limit=100)
                 return ToolResult(
                     success=True,
@@ -823,7 +827,7 @@ def manage_index(params: ManageIndexInput, ctx: Context | None = None) -> ToolRe
             return ToolResult(
                 success=True,
                 message=(
-                    "Use list_papers=true to browse or gc=true to clean stale entries."
+                    "Use action='list' to browse or action='gc' to clean stale entries."
                 ),
             )
         finally:

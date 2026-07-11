@@ -301,13 +301,22 @@ class ComputeSemanticScoresInput(CommonParams):
 class ManageIndexInput(BaseModel):
     """Input for the manage_index tool."""
 
+    action: Literal["", "list", "gc"] = Field(
+        default="",
+        description=(
+            "Explicit action: 'list' to browse indexed papers, 'gc' to clean "
+            "stale entries. Preferred over the deprecated list_papers/gc "
+            "booleans; if set it wins. Empty derives the action from those "
+            "booleans."
+        ),
+    )
     list_papers: bool = Field(
         default=False,
-        description="List indexed papers (up to 100).",
+        description="List indexed papers (up to 100). (deprecated: use action='list')",
     )
     gc: bool = Field(
         default=False,
-        description="Garbage collect stale entries.",
+        description="Garbage collect stale entries. (deprecated: use action='gc')",
     )
     db_path: PathStr = Field(
         default="",
@@ -318,11 +327,20 @@ class ManageIndexInput(BaseModel):
 class AnalyzePapersInput(CommonParams):
     """Input for the analyze_papers tool."""
 
+    mode: Literal["", "prepare", "collect"] = Field(
+        default="",
+        description=(
+            "Explicit mode: 'prepare' generates per-paper analysis tasks, "
+            "'collect' validates collected results. Preferred over the "
+            "deprecated collect boolean; if set it wins. Empty derives the "
+            "mode from collect."
+        ),
+    )
     collect: bool = Field(
         default=False,
         description=(
             "If True, validate collected analysis JSON files "
-            "instead of generating prompts."
+            "instead of generating prompts. (deprecated: use mode='collect')"
         ),
     )
     paper_ids: list[str] = Field(
