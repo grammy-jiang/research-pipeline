@@ -198,3 +198,53 @@ class TestCapJsonl:
         for line in out.splitlines():
             json.loads(line)
         assert len(out.encode("utf-8")) <= 60
+
+
+class TestResourceNotFoundBoundary:
+    """Resource-read failures surface the spec -32002 error + uri (#121)."""
+
+    def test_missing_run_raises_mcp_error_32002(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from mcp.shared.exceptions import McpError
+
+        from research_pipeline.mcp_server import server
+
+        monkeypatch.setattr(resources, "DEFAULT_RUNS_DIR", str(tmp_path))
+        monkeypatch.setattr(resources, "DEFAULT_WORKSPACE", str(tmp_path))
+        with pytest.raises(McpError) as excinfo:
+            server.resource_run_manifest(run_id="does-not-exist")
+        err = excinfo.value.error
+        assert err.code == -32002
+        assert err.data == {"uri": "runs://does-not-exist/manifest"}
+
+    def test_paper_resource_resolves_both_params_in_uri(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        from mcp.shared.exceptions import McpError
+
+        from research_pipeline.mcp_server import server
+
+        monkeypatch.setattr(resources, "DEFAULT_RUNS_DIR", str(tmp_path))
+        with pytest.raises(McpError) as excinfo:
+            server.resource_paper_markdown(run_id="r1", paper_id="2401.00001")
+        assert excinfo.value.error.data == {"uri": "runs://r1/markdown/2401.00001"}
+
+
+class TestListResourceCaps:
+    """List resources are size-capped like every other large read (#121)."""
+
+    def test_list_runs_is_capped(
+        self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+    ) -> None:
+        runs_dir = tmp_path / "runs"
+        runs_dir.mkdir()
+        for i in range(50):
+            run = runs_dir / f"run-{i:04d}"
+            run.mkdir()
+            (run / "run_manifest.json").write_text(json.dumps({"topic": "x" * 200}))
+        monkeypatch.setattr(resources, "DEFAULT_RUNS_DIR", str(runs_dir))
+        monkeypatch.setattr(resources, "_MAX_RESOURCE_BYTES", 500)
+        out = resources.list_runs()
+        assert "truncated" in out
+        assert len(out.encode("utf-8")) < 5000
