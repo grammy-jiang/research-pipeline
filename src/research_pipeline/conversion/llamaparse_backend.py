@@ -13,7 +13,11 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from research_pipeline.conversion.base import PROGRAMMING_ERRORS, ConverterBackend
+from research_pipeline.conversion.base import (
+    PROGRAMMING_ERRORS,
+    ConverterBackend,
+    parse_arxiv_stem,
+)
 from research_pipeline.conversion.registry import register_backend
 from research_pipeline.infra.clock import utc_now
 from research_pipeline.infra.hashing import sha256_file, sha256_str
@@ -56,12 +60,7 @@ class LlamaParseBackend(ConverterBackend):
         md_path = output_dir / md_filename
         pdf_hash = sha256_file(pdf_path)
 
-        stem = pdf_path.stem
-        arxiv_id = stem
-        version = "v1"
-        if stem[-2] == "v" and stem[-1].isdigit():
-            arxiv_id = stem[:-2]
-            version = stem[-2:]
+        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
 
         if force and md_path.exists():
             logger.info("Force mode: removing existing %s", md_path)
