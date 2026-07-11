@@ -153,7 +153,11 @@ def check_recall_stopping(
     Returns:
         StoppingDecision with knee detection result.
     """
-    all_scores = sorted(state.all_scores, reverse=True)
+    # Arrival order, NOT sorted-descending: sorting first makes the marginal
+    # gains non-increasing BY CONSTRUCTION, so a "knee" fires regardless of
+    # whether more retrieval would help (#111). Arrival order lets the knee
+    # actually signal diminishing returns across the retrieved sequence.
+    all_scores = list(state.all_scores)
     if len(all_scores) < state.min_results:
         return StoppingDecision(
             should_stop=False,

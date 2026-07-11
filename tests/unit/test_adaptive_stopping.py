@@ -81,6 +81,16 @@ class TestRecallStopping:
         # Actually first gain is 0.5, rest are 0.5 → gains are constant → no knee
         assert not decision.should_stop
 
+    def test_improving_retrieval_does_not_knee_in_arrival_order(self) -> None:
+        # Low scores early, high scores late — retrieval is still improving, so
+        # it must not stop. Sorting-descending (the pre-#111 behaviour) would put
+        # the lows in a tail and fabricate a knee; arrival order does not.
+        scores = [0.01, 0.01, 0.02, 0.9, 0.9, 0.9, 0.9, 0.9]
+        state = StoppingState(min_results=5)
+        state.batches = [BatchScores(0, scores)]
+        decision = check_recall_stopping(state, knee_threshold=0.05)
+        assert not decision.should_stop
+
     def test_empty_scores(self) -> None:
         state = StoppingState(min_results=1)
         state.batches = []
