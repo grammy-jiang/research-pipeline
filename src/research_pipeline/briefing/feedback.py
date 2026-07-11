@@ -35,10 +35,10 @@ _SCHEMA = """
 CREATE TABLE IF NOT EXISTS feedback_events (
     feedback_id TEXT PRIMARY KEY,
     timestamp TEXT NOT NULL,
-    target_type TEXT NOT NULL,
-    target_id TEXT NOT NULL,
+    target_type TEXT NOT NULL CHECK (target_type <> ''),
+    target_id TEXT NOT NULL CHECK (target_id <> ''),
     signal_type TEXT NOT NULL,
-    strength REAL NOT NULL,
+    strength REAL NOT NULL CHECK (strength >= 0 AND strength <= 5),
     reason TEXT DEFAULT '',
     context_json TEXT DEFAULT '{}'
 );
@@ -56,6 +56,9 @@ CREATE TABLE IF NOT EXISTS preference_adjustments (
     rollback_json TEXT NOT NULL
 );
 """
+
+# Bump when _SCHEMA changes; drives PRAGMA user_version migration.
+_SCHEMA_VERSION = 1
 
 POSITIVE_SIGNALS = {
     FeedbackSignal.KEEP,
@@ -158,6 +161,10 @@ class BriefingFeedbackStore:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(_SCHEMA)
+        # Track the schema version so future changes have a migration path (#119).
+        current = self._conn.execute("PRAGMA user_version").fetchone()[0]
+        if current == 0:
+            self._conn.execute(f"PRAGMA user_version = {_SCHEMA_VERSION}")
         self._conn.commit()
 
     def close(self) -> None:
