@@ -161,7 +161,9 @@ def analyze_papers(
         analysis_dir = get_stage_dir(run_root, "analysis")
         analysis_dir.mkdir(parents=True, exist_ok=True)
 
-        if params.collect:
+        collect_mode = params.mode == "collect" or (not params.mode and params.collect)
+
+        if collect_mode:
             json_files = sorted(analysis_dir.glob("*_analysis.json"))
             if not json_files:
                 return ToolResult(

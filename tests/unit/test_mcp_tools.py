@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 
 from research_pipeline.mcp_server.schemas import (
+    AnalyzePapersInput,
     ConvertFileInput,
     ConvertFineInput,
     ConvertPdfsInput,
@@ -19,6 +20,7 @@ from research_pipeline.mcp_server.schemas import (
 from research_pipeline.mcp_server.tools import (
     _resolve_run_id,
     _resolve_workspace,
+    analyze_papers,
     convert_file,
     convert_fine,
     convert_pdfs,
@@ -210,6 +212,89 @@ class TestManageIndex:
         )
         assert result.success is True
         assert result.artifacts.get("count") == 0
+
+    def test_action_gc_drives_gc(self, tmp_path: Path) -> None:
+        result = manage_index(
+            ManageIndexInput(action="gc", db_path=str(tmp_path / "idx.db"))
+        )
+        assert result.success is True
+        assert "removed" in result.artifacts
+        assert "garbage collected" in result.message.lower()
+
+    def test_action_list_drives_list(self, tmp_path: Path) -> None:
+        result = manage_index(
+            ManageIndexInput(action="list", db_path=str(tmp_path / "idx.db"))
+        )
+        assert result.success is True
+        assert result.artifacts.get("count") == 0
+
+    def test_action_wins_over_conflicting_gc_bool(self, tmp_path: Path) -> None:
+        # action='list' must win over the deprecated gc=True (list, not gc).
+        result = manage_index(
+            ManageIndexInput(action="list", gc=True, db_path=str(tmp_path / "idx.db"))
+        )
+        assert result.success is True
+        assert "count" in result.artifacts
+        assert "removed" not in result.artifacts
+
+    def test_empty_action_honours_gc_bool(self, tmp_path: Path) -> None:
+        # With no explicit action, the deprecated gc bool still drives gc.
+        result = manage_index(
+            ManageIndexInput(gc=True, db_path=str(tmp_path / "idx.db"))
+        )
+        assert result.success is True
+        assert "removed" in result.artifacts
+
+
+class TestAnalyzePapers:
+    def test_mode_collect_drives_collect(self, tmp_path: Path) -> None:
+        result = analyze_papers(
+            AnalyzePapersInput(
+                workspace=str(tmp_path), run_id="test-analyze", mode="collect"
+            )
+        )
+        assert result.success is False
+        assert "no analysis json files" in result.message.lower()
+
+    def test_mode_prepare_drives_prepare(self, tmp_path: Path) -> None:
+        result = analyze_papers(
+            AnalyzePapersInput(
+                workspace=str(tmp_path), run_id="test-analyze", mode="prepare"
+            )
+        )
+        assert result.success is False
+        assert "no converted papers" in result.message.lower()
+
+    def test_mode_wins_over_conflicting_collect_bool(self, tmp_path: Path) -> None:
+        # mode='prepare' must win over the deprecated collect=True (prepare path).
+        result = analyze_papers(
+            AnalyzePapersInput(
+                workspace=str(tmp_path),
+                run_id="test-analyze",
+                mode="prepare",
+                collect=True,
+            )
+        )
+        assert result.success is False
+        assert "no converted papers" in result.message.lower()
+
+    def test_empty_mode_honours_collect_bool(self, tmp_path: Path) -> None:
+        # With no explicit mode, the deprecated collect bool still drives collect.
+        result = analyze_papers(
+            AnalyzePapersInput(
+                workspace=str(tmp_path), run_id="test-analyze", collect=True
+            )
+        )
+        assert result.success is False
+        assert "no analysis json files" in result.message.lower()
+
+    def test_empty_mode_defaults_to_prepare(self, tmp_path: Path) -> None:
+        # No mode and no collect bool → prepare path.
+        result = analyze_papers(
+            AnalyzePapersInput(workspace=str(tmp_path), run_id="test-analyze")
+        )
+        assert result.success is False
+        assert "no converted papers" in result.message.lower()
 
 
 class TestConvertPdfs:

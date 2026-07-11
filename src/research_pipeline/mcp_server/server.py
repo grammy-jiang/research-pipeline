@@ -11,7 +11,7 @@ import json
 import logging
 from collections.abc import Callable
 from pathlib import Path
-from typing import Any, TypeVar
+from typing import Any, Literal, TypeVar
 
 from mcp.server.fastmcp import Context, FastMCP
 from mcp.shared.exceptions import McpError
@@ -739,17 +739,23 @@ def tool_convert_fine(
 )
 def tool_manage_index(
     ctx: Context,
+    action: Literal["", "list", "gc"] = "",
     list_papers: bool = False,
     gc: bool = False,
     db_path: str = "",
 ) -> ToolResult:
     """Manage the global paper index for incremental runs.
 
-    Browse indexed papers (list_papers=true) or clean stale entries
-    (gc=true). The global index deduplicates papers across runs.
+    Preferred: pass action='list' to browse indexed papers or action='gc'
+    to clean stale entries. The list_papers/gc booleans are deprecated
+    aliases kept for backward compatibility; action wins when both are
+    given. The global index deduplicates papers across runs.
     """
     result = manage_index(
-        ManageIndexInput(list_papers=list_papers, gc=gc, db_path=db_path), ctx=ctx
+        ManageIndexInput(
+            action=action, list_papers=list_papers, gc=gc, db_path=db_path
+        ),
+        ctx=ctx,
     )
     return result
 
@@ -766,19 +772,23 @@ def tool_analyze_papers(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
+    mode: Literal["", "prepare", "collect"] = "",
     collect: bool = False,
     paper_ids: list[str] | None = None,
 ) -> ToolResult:
     """Prepare per-paper analysis tasks or validate collected results.
 
-    Without collect=True: discovers converted papers, generates analysis
-    prompts/tasks for sub-agents. With collect=True: validates collected
-    analysis JSON files against the required schema.
+    Preferred: pass mode='prepare' to discover converted papers and
+    generate analysis prompts/tasks for sub-agents, or mode='collect' to
+    validate collected analysis JSON files against the required schema.
+    The collect boolean is a deprecated alias kept for backward
+    compatibility; mode wins when both are given.
     """
     result = analyze_papers(
         AnalyzePapersInput(
             workspace=workspace,
             run_id=run_id,
+            mode=mode,
             collect=collect,
             paper_ids=paper_ids or [],
         ),
