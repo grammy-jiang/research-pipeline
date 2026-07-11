@@ -6,7 +6,11 @@ Keywords: multi-account, account rotation, quota rotation.
 import logging
 from pathlib import Path
 
-from research_pipeline.conversion.base import PROGRAMMING_ERRORS, ConverterBackend
+from research_pipeline.conversion.base import (
+    PROGRAMMING_ERRORS,
+    ConverterBackend,
+    parse_arxiv_stem,
+)
 from research_pipeline.conversion.registry import register_backend
 from research_pipeline.infra.clock import utc_now
 from research_pipeline.infra.hashing import sha256_file, sha256_str
@@ -59,12 +63,7 @@ class DoclingBackend(ConverterBackend):
         pdf_hash = sha256_file(pdf_path)
 
         # Parse arXiv ID and version from filename
-        stem = pdf_path.stem
-        arxiv_id = stem
-        version = "v1"
-        if stem[-2] == "v" and stem[-1].isdigit():
-            arxiv_id = stem[:-2]
-            version = stem[-2:]
+        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
 
         # Remove existing output when force is set
         if force and md_path.exists():
