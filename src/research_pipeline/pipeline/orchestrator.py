@@ -14,14 +14,14 @@ if TYPE_CHECKING:
 from research_pipeline import __version__
 from research_pipeline.arxiv.client import ArxivClient
 from research_pipeline.arxiv.dedup import dedup_across_queries
-from research_pipeline.arxiv.query_builder import build_query_from_plan
+from research_pipeline.arxiv.query_builder import (
+    build_query_from_plan,
+    generate_query_variants,
+    split_topic_terms,
+)
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.cli.cmd_analyze_claims import run_analyze_claims
 from research_pipeline.cli.cmd_expand import run_expand
-from research_pipeline.cli.cmd_plan import (
-    _generate_query_variants,
-    _split_topic_terms,
-)
 from research_pipeline.cli.cmd_quality import run_quality
 from research_pipeline.cli.cmd_score_claims import run_score_claims
 from research_pipeline.config.loader import load_config
@@ -633,8 +633,8 @@ def run_pipeline(
             eval_log.trace("stage_started", stage="plan")
         plan_dir = get_stage_dir(run_root, "plan")
 
-        must_terms, nice_terms = _split_topic_terms(topic)
-        query_variants = _generate_query_variants(
+        must_terms, nice_terms = split_topic_terms(topic)
+        query_variants = generate_query_variants(
             must_terms,
             nice_terms,
             max_variants=config.search.max_query_variants,
