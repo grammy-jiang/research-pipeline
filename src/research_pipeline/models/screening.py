@@ -58,6 +58,12 @@ class LLMJudgment(BaseModel):
         default_factory=list,
         description="Claims that need full-text validation.",
     )
+    parse_degraded: bool = Field(
+        default=False,
+        description="True when the LLM response was missing required fields "
+        "(llm_score / label) and defaults were substituted — this judgment is "
+        "not a real score and downstream fusion should discount or skip it.",
+    )
 
 
 class RelevanceDecision(BaseModel):
