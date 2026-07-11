@@ -67,6 +67,7 @@ TOOLSETS: dict[str, frozenset[str]] = {
             "tool_export_bibtex",
             "tool_export_html",
             "tool_aggregate_evidence",
+            "tool_score_quality",
             "tool_evaluate_quality",
             "tool_get_venue_tier",
             "tool_compute_semantic_scores",
@@ -75,6 +76,7 @@ TOOLSETS: dict[str, frozenset[str]] = {
             "tool_validate_report",
             "tool_verify_stage",
             "tool_record_feedback",
+            "tool_validate_output",
             "tool_evaluate",
         }
     ),
