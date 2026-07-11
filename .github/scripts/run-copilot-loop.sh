@@ -49,6 +49,16 @@ if ! git rev-parse --is-inside-work-tree &>/dev/null; then
     exit 1
 fi
 
+# Mask obvious secrets in agent output before it is tee'd to a plaintext log
+# (HC6): well-known token prefixes, Bearer tokens, and key/token/password
+# assignments. Best-effort, streaming; over-masking a label is harmless.
+redact() {
+    sed -E \
+        -e 's/\b([Bb]earer[[:space:]]+)[A-Za-z0-9._~+/=-]+/\1***REDACTED***/g' \
+        -e 's/\b(sk-[A-Za-z]*|ghp_|gho_|ghs_|ghu_|github_pat_|xox[bapr]-|AKIA)[A-Za-z0-9_-]{6,}/\1***REDACTED***/g' \
+        -e 's/((api[_-]?key|token|secret|password|passwd)["'"'"' ]*[:=]["'"'"' ]*)[^[:space:]"'"'"']+/\1***REDACTED***/gI'
+}
+
 require_clean_tree() {
     if [[ -n "$(git status --porcelain)" ]]; then
         echo "ERROR: working tree is dirty — refusing to start an iteration on an" >&2
@@ -129,7 +139,7 @@ run_iteration() {
         --prompt "$PROMPT" \
         --allow-all \
         --autopilot \
-        2>&1 | tee "$log_file"
+        2>&1 | redact | tee "$log_file"
 
     local status=${PIPESTATUS[0]}
     echo ""

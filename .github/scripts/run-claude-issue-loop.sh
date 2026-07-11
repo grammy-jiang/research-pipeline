@@ -51,7 +51,11 @@
 
 set -euo pipefail
 
+# The script lives in-tree under .github/scripts/; operate from the repo ROOT so
+# git commands and the relative LOG_DIR resolve there, not the script's own dir
+# (which they would after the #125 relocation).
 cd "$(dirname "$(readlink -f "$0")")"
+cd "$(git rev-parse --show-toplevel)"
 
 # --- config ----------------------------------------------------------------
 CLAUDE_MODEL="${CLAUDE_MODEL:-claude-opus-4-8[1m]}"
@@ -67,6 +71,19 @@ DRY_RUN="${DRY_RUN:-0}"
 SKIP_PERMISSIONS="${SKIP_PERMISSIONS:-1}"
 BRANCH_PREFIX="${BRANCH_PREFIX:-fix/issue-}"
 LOG_DIR="claude-issue-loop-logs"
+
+# Restore the checkout to the base branch however the script exits — a failed
+# or aborted issue otherwise strands the worktree on a fix branch (#125). Only
+# fires if the script actually switched to a fix branch (so a DRY_RUN, which
+# never switches, leaves the caller's checkout untouched). Tolerant: detach if
+# PR_BASE is checked out in another worktree.
+_SWITCHED=0
+_restore_base() {
+    [[ "$_SWITCHED" == "1" ]] || return 0
+    git switch "$PR_BASE" >/dev/null 2>&1 \
+        || git switch --detach >/dev/null 2>&1 || true
+}
+trap _restore_base EXIT
 
 DEFAULT_ORDER=(82 81 85 83 84)
 if [[ $# -gt 0 ]]; then ISSUES=("$@"); else ISSUES=("${DEFAULT_ORDER[@]}"); fi
@@ -154,22 +171,38 @@ invoke_codex() {
     codex exec --model "$CODEX_MODEL" $perm --color never "$prompt"
 }
 
+# --- credential redaction --------------------------------------------------
+# Mask obvious secrets in agent output before it is tee'd to a plaintext log
+# (HC6): well-known token prefixes, Bearer tokens, and key/token/password
+# assignments. Best-effort, streaming; over-masking a label is harmless, a
+# leaked value is not.
+redact() {
+    sed -E \
+        -e 's/\b([Bb]earer[[:space:]]+)[A-Za-z0-9._~+/=-]+/\1***REDACTED***/g' \
+        -e 's/\b(sk-[A-Za-z]*|ghp_|gho_|ghs_|ghu_|github_pat_|xox[bapr]-|AKIA)[A-Za-z0-9_-]{6,}/\1***REDACTED***/g' \
+        -e 's/((api[_-]?key|token|secret|password|passwd)["'"'"' ]*[:=]["'"'"' ]*)[^[:space:]"'"'"']+/\1***REDACTED***/gI'
+}
+
 # --- wait for CI to complete on a PR ---------------------------------------
 # Returns 0 iff every check succeeded. Handles the "checks not registered yet"
 # race by waiting for at least one check row to appear before watching.
+# Exit codes are meaningful to the caller: 0 = every check passed, 1 = a check
+# failed, 3 = checks never registered (runner queue / infra) — a distinct signal
+# so a slow-to-register run is not mistaken for a CI failure (#125).
 wait_for_ci() {
-    local pr="$1" tries=0
+    local pr="$1" tries=0 max="${CI_REGISTER_TRIES:-18}"
     echo "   waiting for CI checks to register…"
     until gh pr checks "$pr" 2>/dev/null | grep -qiE 'pass|fail|pending|skipping'; do
         tries=$((tries + 1))
-        if [[ $tries -ge 18 ]]; then
-            echo "   ERROR: no CI checks appeared after ~3m." >&2
+        if [[ $tries -ge $max ]]; then
+            echo "   WARN: no CI checks registered after ~$((max * 10 / 60))m." >&2
             return 3
         fi
         sleep 10
     done
     echo "   checks registered — watching until complete…"
-    gh pr checks "$pr" --watch --fail-fast --interval "$CI_INTERVAL"
+    gh pr checks "$pr" --watch --fail-fast --interval "$CI_INTERVAL" || return 1
+    return 0
 }
 
 # --- one full cycle for one issue ------------------------------------------
@@ -196,6 +229,15 @@ run_issue() {
         return 0
     fi
 
+    # Cross-run checkpoint (#125): a prior run may have already merged this
+    # issue. GitHub is the source of truth — skip an already-CLOSED issue so a
+    # rerun resumes instead of redoing merged work (FORCE_CLOSED=1 overrides).
+    if [[ "${FORCE_CLOSED:-0}" != "1" ]] \
+        && [[ "$(gh issue view "$n" --json state --jq .state 2>/dev/null)" == "CLOSED" ]]; then
+        echo "   issue #$n is already CLOSED — skipping (set FORCE_CLOSED=1 to override)."
+        return 0
+    fi
+
     # 1. fresh branch off the latest trunk
     echo "-> fetch ${REMOTE}/${PR_BASE} and branch $branch"
     git fetch "$REMOTE" "$PR_BASE" --quiet
@@ -204,12 +246,13 @@ run_issue() {
         return 1
     fi
     git switch -C "$branch" "${REMOTE}/${PR_BASE}"
+    _SWITCHED=1   # the EXIT trap will now restore the base branch
 
     # 2. agent fixes + commits (local only)
     echo "-> running $engine on issue #$n (log: $log_file)"
     case "$engine" in
-        claude) invoke_claude "$prompt" "$n" 2>&1 | tee "$log_file" ;;
-        codex)  invoke_codex  "$prompt"      2>&1 | tee "$log_file" ;;
+        claude) invoke_claude "$prompt" "$n" 2>&1 | redact | tee "$log_file" ;;
+        codex)  invoke_codex  "$prompt"      2>&1 | redact | tee "$log_file" ;;
         *) echo "   ERROR: unknown engine '$engine'." >&2; return 2 ;;
     esac
     local astatus=${PIPESTATUS[0]}
@@ -222,8 +265,17 @@ run_issue() {
     fi
     echo "   commit: $(git --no-pager log --oneline -1)"
 
-    # 3. push
+    # 3. push — never clobber a fix pushed to the branch between runs. If the
+    # remote branch carries commits not in this run's history, stop rather than
+    # force-push over them (#125).
     echo "-> push $branch"
+    git fetch "$REMOTE" "$branch" --quiet 2>/dev/null || true
+    if git rev-parse --verify --quiet "refs/remotes/${REMOTE}/${branch}" >/dev/null \
+        && ! git merge-base --is-ancestor "${REMOTE}/${branch}" HEAD; then
+        echo "   ERROR: ${REMOTE}/${branch} has commits not in this run — refusing to" >&2
+        echo "   force-push over a possible manual fix. Reconcile by hand, then rerun." >&2
+        return 1
+    fi
     git push -u "$REMOTE" "$branch" --force-with-lease
 
     # 4. PR (Closes #n so a squash-merge auto-closes the issue)
@@ -237,9 +289,22 @@ run_issue() {
     fi
     echo "   PR: $pr_url"
 
-    # 5. wait for CI
-    if ! wait_for_ci "$pr_url"; then
-        echo "   ✗ CI failed / did not pass for #$n — NOT merging. Inspect: $pr_url" >&2
+    # 5. wait for CI — a registration stall (runner queue) is infra, not a CI
+    # failure, so retry it with backoff; only a real check failure blocks merge.
+    local ci_rc=0 attempt
+    for attempt in 1 2 3; do
+        if wait_for_ci "$pr_url"; then ci_rc=0; break; fi
+        ci_rc=$?
+        [[ $ci_rc -eq 3 ]] || break   # 1 = a check failed — do not retry
+        echo "   checks not registered (attempt $attempt/3) — backing off $((attempt * 30))s…" >&2
+        sleep $((attempt * 30))
+    done
+    if [[ $ci_rc -ne 0 ]]; then
+        if [[ $ci_rc -eq 3 ]]; then
+            echo "   ✗ CI never registered for #$n after retries (infra?) — NOT merging. Inspect: $pr_url" >&2
+        else
+            echo "   ✗ CI failed for #$n — NOT merging. Inspect: $pr_url" >&2
+        fi
         return 1
     fi
     echo "   ✓ CI green"
