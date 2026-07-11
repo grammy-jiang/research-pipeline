@@ -656,9 +656,13 @@ class TypedStoppingEvaluator:
                     cost_so_far=n * prof.cost_weight,
                 )
 
-        # Top-1 stability: check if top score is stable
-        if len(self._top1_history) >= prof.stability_window:
-            window = self._top1_history[-prof.stability_window :]
+        # Top-1 stability: require at least three observations (mirroring the
+        # knee floor above) so the aggressive profiles — PRECISION and
+        # VERIFICATION set stability_window=2 — cannot stop on a two-sample
+        # window, which a single small-sample coincidence could satisfy (#123).
+        stability_window = max(prof.stability_window, 3)
+        if len(self._top1_history) >= stability_window:
+            window = self._top1_history[-stability_window:]
             if max(window) - min(window) < prof.knee_threshold:
                 win_range = max(window) - min(window)
                 return TypedStoppingResult(
