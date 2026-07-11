@@ -2,6 +2,7 @@
 
 import logging
 from pathlib import Path
+from typing import Annotated
 
 import typer
 
@@ -10,6 +11,23 @@ from research_pipeline.cli.cmd_brief import brief_app
 from research_pipeline.infra.logging import setup_logging
 
 logger = logging.getLogger(__name__)
+
+# Shared Typer option aliases — defined once and reused across command
+# signatures so the flag, short option, default, and help text stay consistent
+# (DRY; see issue #124). Command-specific variants (required run IDs, custom
+# per-command help, ``-r`` short flags, ``str``-typed workspaces) intentionally
+# stay inline.
+ConfigOption = Annotated[
+    Path | None, typer.Option("--config", "-c", help="Path to config TOML file.")
+]
+WorkspaceOption = Annotated[
+    Path | None,
+    typer.Option("--workspace", "-w", help="Workspace directory for artifacts."),
+]
+RunIdOption = Annotated[
+    str | None,
+    typer.Option("--run-id", help="Pipeline run ID (default: latest / auto)."),
+]
 
 app = typer.Typer(
     name="research-pipeline",
@@ -129,9 +147,9 @@ app.add_typer(brief_app, name="brief")
 def plan(
     topic: str = typer.Argument(..., help="Research topic (natural language)."),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
-    run_id: str | None = typer.Option(None, "--run-id"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
+    run_id: RunIdOption = None,
 ) -> None:
     """Normalize a topic into a structured query plan.
 
@@ -152,9 +170,9 @@ def search(
         None, help="Research topic (or use --run-id to resume)."
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
-    run_id: str | None = typer.Option(None, "--run-id"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
+    run_id: RunIdOption = None,
     resume: bool = typer.Option(False, "--resume"),
     source: str = typer.Option(
         None,
@@ -189,8 +207,8 @@ def search(
 @app.command()
 def screen(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with search results."),
     resume: bool = typer.Option(False, "--resume"),
     diversity: bool | None = typer.Option(
@@ -225,8 +243,8 @@ def screen(
 @app.command()
 def download(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with screened shortlist."),
     force: bool = typer.Option(False, "--force"),
     retry_failed: bool = typer.Option(
@@ -252,8 +270,8 @@ def download(
 @app.command()
 def convert(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with downloaded PDFs."),
     force: bool = typer.Option(False, "--force"),
     backend: str | None = typer.Option(
@@ -280,8 +298,8 @@ def convert(
 @app.command()
 def extract(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with converted Markdown."),
     cross_encoder: bool | None = typer.Option(
         None,
@@ -309,8 +327,8 @@ def extract(
 @app.command()
 def summarize(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with extractions."),
     output_format: str = typer.Option(
         "markdown",
@@ -346,9 +364,9 @@ def summarize(
 def run(
     topic: str = typer.Argument(..., help="Research topic (natural language)."),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
-    run_id: str | None = typer.Option(None, "--run-id"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
+    run_id: RunIdOption = None,
     resume: bool = typer.Option(False, "--resume"),
     source: str = typer.Option(
         None,
@@ -405,7 +423,7 @@ def run(
 @app.command()
 def inspect(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    workspace: WorkspaceOption = None,
     run_id: str | None = typer.Option(
         None, "--run-id", help="Specific run to inspect."
     ),
@@ -426,8 +444,8 @@ def inspect(
 @app.command()
 def quality(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(
         ..., "--run-id", help="Run ID with search/screen results."
     ),
@@ -457,7 +475,7 @@ def convert_file(
         "-b",
         help="Converter backend: docling, marker, pymupdf4llm (default: from config).",
     ),
-    config: Path | None = typer.Option(None, "--config", "-c"),
+    config: ConfigOption = None,
 ) -> None:
     """Convert a single PDF to Markdown (standalone, no pipeline).
 
@@ -476,8 +494,8 @@ def convert_file(
 @app.command()
 def expand(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(
         ..., "--run-id", help="Run ID to store expanded candidates."
     ),
@@ -610,8 +628,8 @@ def expand(
 @app.command(name="convert-rough")
 def convert_rough(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with downloaded PDFs."),
     force: bool = typer.Option(False, "--force"),
 ) -> None:
@@ -631,8 +649,8 @@ def convert_rough(
 @app.command(name="convert-fine")
 def convert_fine(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with downloaded PDFs."),
     paper_ids: str = typer.Option(
         ...,
@@ -1023,8 +1041,8 @@ def install_skill(
 @app.command()
 def analyze(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with converted papers."),
     collect: bool = typer.Option(
         False, "--collect", help="Validate collected analysis JSON files."
@@ -1059,8 +1077,8 @@ def validate(
         None, "--report", "-r", help="Path to report markdown file."
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str | None = typer.Option(
         None, "--run-id", help="Run ID to find synthesis report."
     ),
@@ -1096,8 +1114,8 @@ def compare(
     run_a: str = typer.Option(..., "--run-a", help="First run ID (baseline)."),
     run_b: str = typer.Option(..., "--run-b", help="Second run ID (latest)."),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     output: Path | None = typer.Option(
         None, "--output", "-o", help="Output path for comparison JSON."
     ),
@@ -1131,8 +1149,8 @@ def coherence(
         ..., help="Two or more run IDs to evaluate coherence across."
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     output: Path | None = typer.Option(
         None, "--output", "-o", help="Output path for coherence report JSON."
     ),
@@ -1164,8 +1182,8 @@ def consolidate(
         None, help="Run IDs to ingest. If omitted, scans workspace."
     ),
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     output: Path | None = typer.Option(
         None, "--output", "-o", help="Output path for consolidation report JSON."
     ),
@@ -1216,8 +1234,8 @@ def consolidate(
 @app.command("analyze-claims")
 def analyze_claims(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(..., "--run-id", help="Run ID with paper summaries."),
 ) -> None:
     """Decompose paper summaries into atomic claims with evidence classification.
@@ -1237,8 +1255,8 @@ def analyze_claims(
 @app.command("score-claims")
 def score_claims(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str | None = typer.Option(None, "--run-id", "-r", help="Run ID."),
 ) -> None:
     """Score confidence for decomposed claims using multi-signal aggregation.
@@ -1297,8 +1315,8 @@ def kg_query(
 @app.command("kg-ingest")
 def kg_ingest(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    config: Path | None = typer.Option(None, "--config", "-c"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    config: ConfigOption = None,
+    workspace: WorkspaceOption = None,
     run_id: str | None = typer.Option(None, "--run-id", "-r", help="Run ID."),
     db_path: Path | None = typer.Option(None, "--db", help="KG database path."),
 ) -> None:
@@ -1419,7 +1437,7 @@ def verify(
     config: Path | None = typer.Option(
         None, "--config", "-c", help="Config TOML (for workspace resolution)."
     ),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    workspace: WorkspaceOption = None,
     verbose: bool = typer.Option(False, "--verbose", "-v"),
 ) -> None:
     """Verify pipeline outputs against their schemas, exiting non-zero on failure.
@@ -1508,7 +1526,7 @@ def rrp(
 @app.command()
 def feedback(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(
         ..., "--run-id", help="Run ID whose screened papers to give feedback on."
     ),
@@ -1557,7 +1575,7 @@ def feedback(
 @app.command(name="eval-log")
 def eval_log(
     verbose: bool = typer.Option(False, "--verbose", "-v"),
-    workspace: Path | None = typer.Option(None, "--workspace", "-w"),
+    workspace: WorkspaceOption = None,
     run_id: str = typer.Option(
         ..., "--run-id", help="Run ID to inspect evaluation logs for."
     ),
