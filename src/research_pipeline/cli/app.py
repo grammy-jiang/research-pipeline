@@ -583,7 +583,7 @@ def expand(
     Example: research-pipeline expand --run-id <ID> \\
         --paper-ids 2401.12345 --snowball --bfs-query "harness,engineering"
     """
-    from research_pipeline.cli.cmd_expand import run_expand
+    from research_pipeline.pipeline.expand import run_expand
 
     opts = _common_options(verbose, config, workspace, run_id)
     ids = [p.strip() for p in paper_ids.split(",") if p.strip()]

@@ -21,7 +21,6 @@ from research_pipeline.arxiv.query_builder import (
 )
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.cli.cmd_analyze_claims import run_analyze_claims
-from research_pipeline.cli.cmd_expand import run_expand
 from research_pipeline.cli.cmd_score_claims import run_score_claims
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
@@ -43,6 +42,7 @@ from research_pipeline.models.screening import (
     parse_shortlist_lenient,
 )
 from research_pipeline.models.summary import PaperExtractionRecord, PaperSummary
+from research_pipeline.pipeline.expand import run_expand
 from research_pipeline.pipeline.gates import (
     AutoApproveGate,
     CliGate,
