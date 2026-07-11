@@ -74,6 +74,7 @@ from research_pipeline.mcp_server.schemas import (
     ScoreClaimsInput,
     ScreenCandidatesInput,
     SearchInput,
+    SearchToolsInput,
     SummarizePapersInput,
     ToolResult,
     ValidateReportInput,
@@ -140,6 +141,7 @@ from research_pipeline.mcp_server.tools import (
     score_claims_tool,
     screen_candidates,
     search,
+    search_tools,
     summarize_papers,
     validate_report,
     verify_stage,
@@ -461,6 +463,29 @@ def tool_get_run_manifest(
         GetRunManifestInput(workspace=workspace, run_id=run_id), ctx=ctx
     )
     return result
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_search_tools(query: str, limit: int = 10) -> ToolResult:
+    """Discover this server's tools by keyword.
+
+    Returns tools whose name or description matches the query, ranked by
+    relevance — a lightweight index over the full tool surface so you can find
+    the right tool without loading every schema. Example: query="convert pdf".
+    """
+    params = SearchToolsInput(query=query, limit=limit)
+    catalog = {
+        name: (getattr(tool, "description", "") or "")
+        for name, tool in mcp._tool_manager._tools.items()
+    }
+    return search_tools(params=params, catalog=catalog)
 
 
 @mcp.tool(
