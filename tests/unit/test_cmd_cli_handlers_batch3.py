@@ -626,16 +626,16 @@ class TestCmdAnalyze:
         assert result["valid"] == 1
 
     def test_validate_analysis_json_missing_fields(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_analyze import _validate_analysis_json
+        from research_pipeline.analysis.tasks import validate_analysis_json
 
         f = tmp_path / "test.json"
         f.write_text(json.dumps({"arxiv_id": "123"}))
-        errors = _validate_analysis_json(f)
+        errors = validate_analysis_json(f)
         assert len(errors) > 0
         assert any("Missing required fields" in e for e in errors)
 
     def test_validate_analysis_json_bad_rating(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_analyze import _validate_analysis_json
+        from research_pipeline.analysis.tasks import validate_analysis_json
 
         data = {
             "arxiv_id": "123",
@@ -662,21 +662,21 @@ class TestCmdAnalyze:
         }
         f = tmp_path / "test.json"
         f.write_text(json.dumps(data))
-        errors = _validate_analysis_json(f)
+        errors = validate_analysis_json(f)
         assert any("score must be int 1-5" in e for e in errors)
         assert any("confidence must be high/medium/low" in e for e in errors)
 
     def test_validate_analysis_json_invalid_json(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_analyze import _validate_analysis_json
+        from research_pipeline.analysis.tasks import validate_analysis_json
 
         f = tmp_path / "bad.json"
         f.write_text("not json")
-        errors = _validate_analysis_json(f)
+        errors = validate_analysis_json(f)
         assert len(errors) == 1
         assert "Cannot read" in errors[0]
 
     def test_validate_analysis_json_ratings_not_dict(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_analyze import _validate_analysis_json
+        from research_pipeline.analysis.tasks import validate_analysis_json
 
         data = {
             "arxiv_id": "123",
@@ -694,7 +694,7 @@ class TestCmdAnalyze:
         }
         f = tmp_path / "test.json"
         f.write_text(json.dumps(data))
-        errors = _validate_analysis_json(f)
+        errors = validate_analysis_json(f)
         assert any("must be a dict" in e for e in errors)
 
 

@@ -5,12 +5,12 @@ from pathlib import Path
 
 import pytest
 
-from research_pipeline.cli.cmd_analyze import (
+from research_pipeline.analysis.tasks import (
     RATING_DIMENSIONS,
-    _discover_papers,
-    _generate_prompt,
-    _load_research_topic,
-    _validate_analysis_json,
+    discover_papers,
+    generate_prompt,
+    load_research_topic,
+    validate_analysis_json,
 )
 
 
@@ -38,39 +38,39 @@ def run_root(tmp_path: Path) -> Path:
 
 class TestDiscoverPapers:
     def test_finds_papers_in_convert_dir(self, run_root: Path) -> None:
-        papers = _discover_papers(run_root)
+        papers = discover_papers(run_root)
         assert len(papers) == 2
         ids = {p["arxiv_id"] for p in papers}
         assert ids == {"2401.12345", "2401.67890"}
 
     def test_empty_when_no_convert_dir(self, tmp_path: Path) -> None:
-        papers = _discover_papers(tmp_path)
+        papers = discover_papers(tmp_path)
         assert papers == []
 
     def test_finds_papers_in_convert_rough(self, tmp_path: Path) -> None:
         rough_dir = tmp_path / "convert_rough"
         rough_dir.mkdir()
         (rough_dir / "2401.99999.md").write_text("# rough converted")
-        papers = _discover_papers(tmp_path)
+        papers = discover_papers(tmp_path)
         assert len(papers) == 1
         assert papers[0]["arxiv_id"] == "2401.99999"
 
 
 class TestLoadResearchTopic:
     def test_loads_topic(self, run_root: Path) -> None:
-        topic = _load_research_topic(run_root)
+        topic = load_research_topic(run_root)
         assert topic == "memory systems for AI agents"
 
     def test_empty_when_no_plan(self, tmp_path: Path) -> None:
         (tmp_path / "plan").mkdir()
-        topic = _load_research_topic(tmp_path)
+        topic = load_research_topic(tmp_path)
         assert topic == ""
 
 
 class TestGeneratePrompt:
     def test_prompt_structure(self, run_root: Path) -> None:
         paper = {"arxiv_id": "2401.12345", "path": "/tmp/paper.md"}
-        prompt = _generate_prompt(paper, "AI memory", run_root)
+        prompt = generate_prompt(paper, "AI memory", run_root)
         assert prompt["arxiv_id"] == "2401.12345"
         assert prompt["research_topic"] == "AI memory"
         assert "paper_path" in prompt
@@ -109,14 +109,14 @@ class TestValidateAnalysisJson:
     def test_valid_analysis(self, tmp_path: Path) -> None:
         path = tmp_path / "test_analysis.json"
         path.write_text(json.dumps(self._make_valid_analysis()))
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert errors == []
 
     def test_missing_required_fields(self, tmp_path: Path) -> None:
         data = {"arxiv_id": "2401.12345", "title": "Test"}
         path = tmp_path / "test_analysis.json"
         path.write_text(json.dumps(data))
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert any("Missing required fields" in e for e in errors)
 
     def test_invalid_rating_score(self, tmp_path: Path) -> None:
@@ -124,7 +124,7 @@ class TestValidateAnalysisJson:
         data["ratings"]["methodology"]["score"] = 10
         path = tmp_path / "test_analysis.json"
         path.write_text(json.dumps(data))
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert any("must be int 1-5" in e for e in errors)
 
     def test_short_justification(self, tmp_path: Path) -> None:
@@ -132,7 +132,7 @@ class TestValidateAnalysisJson:
         data["ratings"]["methodology"]["justification"] = "ok"
         path = tmp_path / "test_analysis.json"
         path.write_text(json.dumps(data))
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert any("justification too short" in e for e in errors)
 
     def test_invalid_confidence(self, tmp_path: Path) -> None:
@@ -140,7 +140,7 @@ class TestValidateAnalysisJson:
         data["key_findings"] = [{"finding": "F1", "confidence": "maybe"}]
         path = tmp_path / "test_analysis.json"
         path.write_text(json.dumps(data))
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert any("confidence must be high/medium/low" in e for e in errors)
 
     def test_empty_evidence_quotes(self, tmp_path: Path) -> None:
@@ -148,18 +148,18 @@ class TestValidateAnalysisJson:
         data["evidence_quotes"] = []
         path = tmp_path / "test_analysis.json"
         path.write_text(json.dumps(data))
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert any("evidence_quotes should not be empty" in e for e in errors)
 
     def test_unreadable_file(self, tmp_path: Path) -> None:
         path = tmp_path / "nonexistent.json"
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert len(errors) == 1
         assert "Cannot read" in errors[0]
 
     def test_invalid_json(self, tmp_path: Path) -> None:
         path = tmp_path / "bad.json"
         path.write_text("not json {{{")
-        errors = _validate_analysis_json(path)
+        errors = validate_analysis_json(path)
         assert len(errors) == 1
         assert "Cannot read" in errors[0]
