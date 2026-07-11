@@ -2412,7 +2412,7 @@ def confidence_layers_tool(
     try:
         from pathlib import Path
 
-        from research_pipeline.cli.cmd_confidence_layers import (
+        from research_pipeline.confidence.layers_runner import (
             run_confidence_layers,
         )
 
