@@ -53,7 +53,10 @@ class TestServerRegistration:
         # + 2 tool-coherence/consolidation + 9 daily briefing tools = 62
         # + 2 spec-required tools (get_venue_tier, compute_semantic_scores) = 64
         # + 1 search_tools meta-tool (#120) = 65
-        assert len(mcp._tool_manager._tools) == 65
+        # + 2 deprecated aliases kept after the verb-clarity renames
+        #   tool_evaluate -> tool_validate_output and
+        #   tool_evaluate_quality -> tool_score_quality (#120) = 67
+        assert len(mcp._tool_manager._tools) == 67
 
     def test_all_tools_have_annotations(self) -> None:
         """Every registered tool must have ToolAnnotations set."""
@@ -131,6 +134,33 @@ class TestServerRegistration:
         for name in openworld_tools:
             tool = mcp._tool_manager._tools[name]
             assert tool.annotations.openWorldHint is True, f"{name} should be openWorld"
+
+
+class TestEvalClusterRenameAliases:
+    """#120: verb-clarity renames keep the old names as deprecated aliases.
+
+    tool_evaluate -> tool_validate_output and
+    tool_evaluate_quality -> tool_score_quality. The old names stay
+    registered as thin aliases so existing callers do not break.
+    """
+
+    def test_canonical_names_registered(self) -> None:
+        registered = set(mcp._tool_manager._tools)
+        assert {"tool_validate_output", "tool_score_quality"} <= registered
+
+    def test_deprecated_aliases_still_registered(self) -> None:
+        registered = set(mcp._tool_manager._tools)
+        assert {"tool_evaluate", "tool_evaluate_quality"} <= registered
+
+    def test_score_quality_and_alias_are_openworld(self) -> None:
+        tools = mcp._tool_manager._tools
+        assert tools["tool_score_quality"].annotations.openWorldHint is True
+        assert tools["tool_evaluate_quality"].annotations.openWorldHint is True
+
+    def test_validate_output_and_alias_are_not_openworld(self) -> None:
+        tools = mcp._tool_manager._tools
+        assert tools["tool_validate_output"].annotations.openWorldHint is False
+        assert tools["tool_evaluate"].annotations.openWorldHint is False
 
 
 class TestCandidateSanitizationGate:

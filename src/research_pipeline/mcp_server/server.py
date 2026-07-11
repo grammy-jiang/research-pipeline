@@ -583,7 +583,7 @@ def tool_expand_citations(
         openWorldHint=True,
     ),
 )
-def tool_evaluate_quality(
+def tool_score_quality(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
@@ -593,6 +593,30 @@ def tool_evaluate_quality(
     Evaluates papers on citation impact, venue reputation (CORE rankings),
     author h-index credibility, and recency. Requires a completed search
     or screen stage.
+    """
+    result = evaluate_quality(
+        EvaluateQualityInput(workspace=workspace, run_id=run_id), ctx=ctx
+    )
+    return result
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=True,
+    ),
+)
+def tool_evaluate_quality(
+    ctx: Context,
+    workspace: str = "./workspace",
+    run_id: str = "",
+) -> ToolResult:
+    """Deprecated alias for tool_score_quality.
+
+    Use tool_score_quality; this name is kept only for backward
+    compatibility.
     """
     result = evaluate_quality(
         EvaluateQualityInput(workspace=workspace, run_id=run_id), ctx=ctx
@@ -1950,12 +1974,12 @@ def tool_memory_search(
         openWorldHint=False,
     ),
 )
-def tool_evaluate(
+def tool_validate_output(
     run_id: str,
     workspace: str = "./workspace",
     stage: str = "",
 ) -> ToolResult:
-    """Evaluate pipeline outputs against their schemas.
+    """Validate pipeline outputs against their schemas.
 
     Validates that pipeline stage outputs conform to expected
     formats and schemas. Can check a single stage or all stages.
@@ -1964,6 +1988,30 @@ def tool_evaluate(
         run_id: Pipeline run ID to evaluate.
         workspace: Workspace directory.
         stage: Specific stage to evaluate. Empty checks all.
+    """
+    result = evaluate_tool(
+        EvaluateInput(run_id=run_id, workspace=workspace, stage=stage)
+    )
+    return result
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=True,
+        destructiveHint=False,
+        idempotentHint=True,
+        openWorldHint=False,
+    ),
+)
+def tool_evaluate(
+    run_id: str,
+    workspace: str = "./workspace",
+    stage: str = "",
+) -> ToolResult:
+    """Deprecated alias for tool_validate_output.
+
+    Use tool_validate_output; this name is kept only for backward
+    compatibility.
     """
     result = evaluate_tool(
         EvaluateInput(run_id=run_id, workspace=workspace, stage=stage)
