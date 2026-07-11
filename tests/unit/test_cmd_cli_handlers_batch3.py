@@ -260,145 +260,145 @@ class TestCmdSearch:
 
 
 # ---------------------------------------------------------------------------
-# cmd_convert — _backend_kwargs_list + _create_converter + run_convert
+# conversion.factory — backend_kwargs_list + cmd_convert.run_convert (#109)
 # ---------------------------------------------------------------------------
 class TestCmdConvert:
     """Tests for the convert CLI handler."""
 
     def test_backend_kwargs_list_docling(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("docling", cfg)
+        result = backend_kwargs_list("docling", cfg)
         assert len(result) == 1
         assert "timeout_seconds" in result[0]
 
     def test_backend_kwargs_list_marker(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("marker", cfg)
+        result = backend_kwargs_list("marker", cfg)
         assert len(result) == 1
         assert "force_ocr" in result[0]
 
     def test_backend_kwargs_list_pymupdf4llm(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("pymupdf4llm", cfg)
+        result = backend_kwargs_list("pymupdf4llm", cfg)
         assert result == [{}]
 
     def test_backend_kwargs_list_mathpix_default(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("mathpix", cfg)
+        result = backend_kwargs_list("mathpix", cfg)
         assert len(result) == 1
         assert "app_id" in result[0]
 
     def test_backend_kwargs_list_datalab_default(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("datalab", cfg)
+        result = backend_kwargs_list("datalab", cfg)
         assert len(result) == 1
         assert "api_key" in result[0]
 
     def test_backend_kwargs_list_llamaparse_default(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("llamaparse", cfg)
+        result = backend_kwargs_list("llamaparse", cfg)
         assert len(result) == 1
         assert "api_key" in result[0]
 
     def test_backend_kwargs_list_mistral_ocr_default(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("mistral_ocr", cfg)
+        result = backend_kwargs_list("mistral_ocr", cfg)
         assert len(result) == 1
         assert "api_key" in result[0]
 
     def test_backend_kwargs_list_openai_vision_default(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("openai_vision", cfg)
+        result = backend_kwargs_list("openai_vision", cfg)
         assert len(result) == 1
         assert "api_key" in result[0]
 
     def test_backend_kwargs_list_mineru(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
-        result = _backend_kwargs_list("mineru", cfg)
+        result = backend_kwargs_list("mineru", cfg)
         assert len(result) == 1
         assert "parse_method" in result[0]
 
     def test_backend_kwargs_list_mathpix_multi_account(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
         acct1 = MagicMock(app_id="id1", app_key="key1")
         acct2 = MagicMock(app_id="id2", app_key="key2")
         cfg.conversion.mathpix.accounts = [acct1, acct2]
-        result = _backend_kwargs_list("mathpix", cfg)
+        result = backend_kwargs_list("mathpix", cfg)
         assert len(result) == 2
         assert result[0]["app_id"] == "id1"
         assert result[1]["app_id"] == "id2"
 
     def test_backend_kwargs_list_datalab_multi_account(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
         acct = MagicMock(api_key="k1", mode="fast")
         cfg.conversion.datalab.accounts = [acct]
-        result = _backend_kwargs_list("datalab", cfg)
+        result = backend_kwargs_list("datalab", cfg)
         assert len(result) == 1
         assert result[0]["api_key"] == "k1"
 
     def test_backend_kwargs_list_llamaparse_multi_account(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
         acct = MagicMock(api_key="k1", tier="premium")
         cfg.conversion.llamaparse.accounts = [acct]
-        result = _backend_kwargs_list("llamaparse", cfg)
+        result = backend_kwargs_list("llamaparse", cfg)
         assert result[0]["api_key"] == "k1"
 
     def test_backend_kwargs_list_mistral_multi_account(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
         acct = MagicMock(api_key="k1", model="m1")
         cfg.conversion.mistral_ocr.accounts = [acct]
-        result = _backend_kwargs_list("mistral_ocr", cfg)
+        result = backend_kwargs_list("mistral_ocr", cfg)
         assert result[0]["api_key"] == "k1"
 
     def test_backend_kwargs_list_openai_multi_account(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
         acct = MagicMock(api_key="k1", model="gpt-4o")
         cfg.conversion.openai_vision.accounts = [acct]
-        result = _backend_kwargs_list("openai_vision", cfg)
+        result = backend_kwargs_list("openai_vision", cfg)
         assert result[0]["api_key"] == "k1"
 
     def test_backend_kwargs_marker_with_llm(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         cfg = _make_config(Path("/fake"))
         cfg.conversion.marker.use_llm = True
         cfg.conversion.marker.llm_service = "openai"
         cfg.conversion.marker.llm_api_key = "sk-test"
-        result = _backend_kwargs_list("marker", cfg)
+        result = backend_kwargs_list("marker", cfg)
         assert result[0]["use_llm"] is True
         assert result[0]["llm_service"] == "openai"
         assert result[0]["llm_api_key"] == "sk-test"
 
-    @patch("research_pipeline.cli.cmd_convert.get_backend")
-    @patch("research_pipeline.cli.cmd_convert._ensure_builtins_registered")
+    @patch("research_pipeline.conversion.factory.get_backend")
+    @patch("research_pipeline.conversion.factory._ensure_builtins_registered")
     @patch("research_pipeline.cli.cmd_convert.load_config")
     def test_run_convert_no_manifest_exits(
         self,
@@ -414,8 +414,8 @@ class TestCmdConvert:
         with pytest.raises(click.exceptions.Exit):
             run_convert(workspace=tmp_path, run_id="test-convert-001")
 
-    @patch("research_pipeline.cli.cmd_convert.get_backend")
-    @patch("research_pipeline.cli.cmd_convert._ensure_builtins_registered")
+    @patch("research_pipeline.conversion.factory.get_backend")
+    @patch("research_pipeline.conversion.factory._ensure_builtins_registered")
     @patch("research_pipeline.cli.cmd_convert.load_config")
     def test_run_convert_with_entries(
         self,

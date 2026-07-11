@@ -566,8 +566,8 @@ def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> Tool
 def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolResult:
     """Convert downloaded PDFs to Markdown using FallbackConverter."""
     try:
-        from research_pipeline.cli.cmd_convert import _create_converter
         from research_pipeline.config.loader import load_config
+        from research_pipeline.conversion.factory import create_converter
         from research_pipeline.models.download import DownloadManifestEntry
         from research_pipeline.storage.manifests import read_jsonl, write_jsonl
         from research_pipeline.storage.workspace import get_stage_dir, init_run
@@ -592,7 +592,7 @@ def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolRe
         raw = read_jsonl(dl_manifest_path)
         entries = [DownloadManifestEntry.model_validate(d) for d in raw]
 
-        converter = _create_converter(config)
+        converter = create_converter(config)
         convert_dir = get_stage_dir(run_root, "convert")
         convert_dir.mkdir(parents=True, exist_ok=True)
 
@@ -1353,8 +1353,8 @@ def convert_rough(params: ConvertRoughInput, ctx: Context | None = None) -> Tool
 def convert_fine(params: ConvertFineInput, ctx: Context | None = None) -> ToolResult:
     """High-quality Tier 3 conversion of selected PDFs."""
     try:
-        from research_pipeline.cli.cmd_convert import _create_converter
         from research_pipeline.config.loader import load_config
+        from research_pipeline.conversion.factory import create_converter
         from research_pipeline.models.download import DownloadManifestEntry
         from research_pipeline.storage.manifests import read_jsonl, write_jsonl
         from research_pipeline.storage.workspace import get_stage_dir, init_run
@@ -1394,7 +1394,7 @@ def convert_fine(params: ConvertFineInput, ctx: Context | None = None) -> ToolRe
                 message="No matching downloaded papers found for given IDs.",
             )
 
-        converter = _create_converter(config)
+        converter = create_converter(config)
 
         fine_dir = get_stage_dir(run_root, "convert_fine")
         fine_dir.mkdir(parents=True, exist_ok=True)

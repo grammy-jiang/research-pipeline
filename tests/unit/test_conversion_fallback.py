@@ -298,23 +298,23 @@ class TestMultiAccountConfig:
 
 
 # ---------------------------------------------------------------------------
-# _backend_kwargs_list
+# backend_kwargs_list (conversion.factory, #109)
 # ---------------------------------------------------------------------------
 
 
 class TestBackendKwargsList:
     def test_single_account_mathpix(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.mathpix = MathpixConfig(app_id="id1", app_key="key1")
-        result = _backend_kwargs_list("mathpix", config)
+        result = backend_kwargs_list("mathpix", config)
         assert result == [{"app_id": "id1", "app_key": "key1"}]
 
     def test_multi_account_mathpix(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.mathpix = MathpixConfig(
@@ -323,14 +323,14 @@ class TestBackendKwargsList:
                 MathpixAccount(app_id="id2", app_key="key2"),
             ]
         )
-        result = _backend_kwargs_list("mathpix", config)
+        result = backend_kwargs_list("mathpix", config)
         assert len(result) == 2
         assert result[0] == {"app_id": "id1", "app_key": "key1"}
         assert result[1] == {"app_id": "id2", "app_key": "key2"}
 
     def test_multi_account_datalab(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.datalab = DatalabConfig(
@@ -339,14 +339,14 @@ class TestBackendKwargsList:
                 DatalabAccount(api_key="k2", mode="accurate"),
             ]
         )
-        result = _backend_kwargs_list("datalab", config)
+        result = backend_kwargs_list("datalab", config)
         assert len(result) == 2
         assert result[0] == {"api_key": "k1", "mode": "fast"}
         assert result[1] == {"api_key": "k2", "mode": "accurate"}
 
     def test_multi_account_llamaparse(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.llamaparse = LlamaParseConfig(
@@ -355,14 +355,14 @@ class TestBackendKwargsList:
                 LlamaParseAccount(api_key="k2"),
             ]
         )
-        result = _backend_kwargs_list("llamaparse", config)
+        result = backend_kwargs_list("llamaparse", config)
         assert len(result) == 2
         assert result[0] == {"api_key": "k1", "tier": "agentic"}
         assert result[1] == {"api_key": "k2", "tier": "agentic"}
 
     def test_multi_account_llamaparse_with_tier(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.llamaparse = LlamaParseConfig(
@@ -371,14 +371,14 @@ class TestBackendKwargsList:
                 LlamaParseAccount(api_key="k2", tier="agentic-plus"),
             ]
         )
-        result = _backend_kwargs_list("llamaparse", config)
+        result = backend_kwargs_list("llamaparse", config)
         assert len(result) == 2
         assert result[0] == {"api_key": "k1", "tier": "fast"}
         assert result[1] == {"api_key": "k2", "tier": "agentic-plus"}
 
     def test_multi_account_mistral_ocr(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.mistral_ocr = MistralOcrConfig(
@@ -387,14 +387,14 @@ class TestBackendKwargsList:
                 MistralOcrAccount(api_key="k2", model="custom"),
             ]
         )
-        result = _backend_kwargs_list("mistral_ocr", config)
+        result = backend_kwargs_list("mistral_ocr", config)
         assert len(result) == 2
         assert result[0]["model"] == "mistral-ocr-latest"
         assert result[1]["model"] == "custom"
 
     def test_multi_account_openai_vision(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
         config.conversion.openai_vision = OpenAIVisionConfig(
@@ -403,22 +403,22 @@ class TestBackendKwargsList:
                 OpenAIVisionAccount(api_key="k2", model="gpt-4o-mini"),
             ]
         )
-        result = _backend_kwargs_list("openai_vision", config)
+        result = backend_kwargs_list("openai_vision", config)
         assert len(result) == 2
         assert result[1]["model"] == "gpt-4o-mini"
 
     def test_local_backend_returns_single(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
-        result = _backend_kwargs_list("pymupdf4llm", config)
+        result = backend_kwargs_list("pymupdf4llm", config)
         assert result == [{}]
 
     def test_docling_returns_single(self) -> None:
-        from research_pipeline.cli.cmd_convert import _backend_kwargs_list
         from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.conversion.factory import backend_kwargs_list
 
         config = PipelineConfig()
-        result = _backend_kwargs_list("docling", config)
+        result = backend_kwargs_list("docling", config)
         assert result == [{"timeout_seconds": 300}]

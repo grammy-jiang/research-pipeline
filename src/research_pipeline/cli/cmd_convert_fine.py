@@ -11,8 +11,8 @@ from pathlib import Path
 
 import typer
 
-from research_pipeline.cli.cmd_convert import _create_converter
 from research_pipeline.config.loader import load_config
+from research_pipeline.conversion.factory import create_converter
 from research_pipeline.models.download import DownloadManifestEntry
 from research_pipeline.storage.manifests import read_jsonl, write_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
@@ -70,7 +70,7 @@ def run_convert_fine(
         typer.echo("No matching downloaded papers found for given IDs.", err=True)
         raise typer.Exit(1)
 
-    converter = _create_converter(config)
+    converter = create_converter(config)
 
     fine_dir = get_stage_dir(run_root, "convert_fine")
     fine_dir.mkdir(parents=True, exist_ok=True)
