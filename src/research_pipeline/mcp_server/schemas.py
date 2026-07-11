@@ -631,7 +631,10 @@ class AdaptiveStoppingInput(BaseModel):
     )
     query_type: str = Field(
         default="auto",
-        description="Query type: recall, precision, judgment, or auto.",
+        description=(
+            "Query type: recall, precision, judgment, exploratory, "
+            "verification, or auto."
+        ),
     )
     min_results: int = Field(
         default=5,

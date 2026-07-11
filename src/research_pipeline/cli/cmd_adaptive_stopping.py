@@ -71,7 +71,7 @@ def adaptive_stopping_command(
     except ValueError:
         typer.echo(
             f"Error: invalid query type '{query_type}'. "
-            f"Use: recall, precision, judgment, auto",
+            f"Use: recall, precision, judgment, exploratory, verification, auto",
             err=True,
         )
         raise typer.Exit(1) from None
