@@ -20,6 +20,7 @@ References:
 
 from __future__ import annotations
 
+import hashlib
 import logging
 import math
 from dataclasses import dataclass, field
@@ -562,6 +563,10 @@ class ArchitectureConfig:
     # L4 verification
     l4_threshold: float = 0.50
     l4_samples: int = 5
+    # Sparse audit of HIGH-confidence claims: 1-in-N above-threshold claims are
+    # still sampling-verified so the claims most likely acted on are not
+    # structurally exempt from the overconfidence check (#122). 0 disables it.
+    l4_audit_rate: int = 0
 
     # Fusion
     damping: float = 0.8
@@ -664,14 +669,34 @@ def _run_l3(
     )
 
 
+def _is_audited(claim_id: str, audit_rate: int) -> bool:
+    """Deterministically select a 1-in-``audit_rate`` sample of claims (#122).
+
+    Stable per claim_id (no RNG), so the same claim is always audited or not.
+    ``audit_rate`` <= 0 disables the audit.
+    """
+    if audit_rate <= 0:
+        return False
+    digest = hashlib.sha256(claim_id.encode("utf-8")).hexdigest()
+    return int(digest, 16) % audit_rate == 0
+
+
 def _run_l4(
     claim: AtomicClaim,
     l3_score: float,
     config: ArchitectureConfig,
     llm_provider: Any | None = None,
 ) -> L4Result:
-    """Layer 4: Selective verification for low-confidence claims."""
-    if l3_score >= config.l4_threshold:
+    """Layer 4: Selective verification for low-confidence claims.
+
+    Low-confidence claims (below ``l4_threshold``) are always verified. When
+    ``l4_audit_rate`` > 0, a deterministic 1-in-N sample of HIGH-confidence
+    claims is also verified, so the claims most likely to be acted on are not
+    structurally exempt from the sampling check (#122).
+    """
+    if l3_score >= config.l4_threshold and not _is_audited(
+        claim.claim_id, config.l4_audit_rate
+    ):
         return L4Result(triggered=False)
 
     if llm_provider is None:
