@@ -17,7 +17,7 @@ def _fake_mcp(names: list[str]) -> SimpleNamespace:
 def test_map_has_no_duplicates_and_expected_size() -> None:
     seen = [n for names in toolsets.TOOLSETS.values() for n in names]
     assert len(seen) == len(set(seen)), "a tool appears in multiple domains"
-    assert len(set(seen)) == 64
+    assert len(set(seen)) == 65
 
 
 def test_map_covers_every_registered_tool() -> None:

@@ -51,6 +51,7 @@ from research_pipeline.mcp_server.tools.evaluation import (
     consolidation_tool,
     dual_metrics_tool,
     evaluate_tool,
+    search_tools,
 )
 from research_pipeline.mcp_server.tools.knowledge_graph import (
     kg_ingest_tool,
@@ -173,6 +174,7 @@ __all__ = [
     "score_claims_tool",
     "screen_candidates",
     "search",
+    "search_tools",
     "summarize_papers",
     "validate_report",
     "verify_stage",

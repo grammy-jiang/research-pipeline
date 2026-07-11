@@ -56,6 +56,7 @@ TOOLSETS: dict[str, frozenset[str]] = {
             "tool_model_routing_info",
             "tool_gate_info",
             "tool_query_eval_log",
+            "tool_search_tools",
         }
     ),
     "quality": frozenset(

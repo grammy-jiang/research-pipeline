@@ -9,6 +9,7 @@ from research_pipeline.mcp_server.schemas import (
     ConsolidationInput,
     DualMetricsInput,
     EvaluateInput,
+    SearchToolsInput,
     ToolResult,
 )
 from research_pipeline.mcp_server.tools._common import (
@@ -228,3 +229,42 @@ def evaluate_tool(params: EvaluateInput, ctx: Context | None = None) -> ToolResu
         )
     except Exception as exc:
         _raise_tool_error("evaluate", exc)
+
+
+def search_tools(
+    params: SearchToolsInput,
+    catalog: dict[str, str],
+) -> ToolResult:
+    """Rank the server's own tools by keyword relevance (#120).
+
+    ``catalog`` maps tool-name -> description; the server wrapper builds it
+    from the live registry and passes it in so this stays a pure function.
+    A term hit in the tool *name* is weighted above a hit in the description.
+    """
+    terms = [t for t in params.query.lower().split() if t]
+    if not terms:
+        return ToolResult(
+            success=False,
+            message="Empty query — provide keywords to match.",
+            artifacts={"matches": []},
+        )
+    scored: list[tuple[int, str, str]] = []
+    for name, desc in catalog.items():
+        name_l = name.lower()
+        hay = f"{name_l} {(desc or '').lower()}"
+        score = sum(hay.count(t) for t in terms)
+        if any(t in name_l for t in terms):
+            score += 5
+        if score > 0:
+            summary = (desc or "").strip().split("\n")[0]
+            scored.append((score, name, summary))
+    scored.sort(key=lambda m: (-m[0], m[1]))
+    matches = [
+        {"tool": name, "summary": summary}
+        for _, name, summary in scored[: params.limit]
+    ]
+    return ToolResult(
+        success=True,
+        message=f"{len(matches)} tool(s) match {params.query!r}.",
+        artifacts={"matches": matches, "query": params.query},
+    )

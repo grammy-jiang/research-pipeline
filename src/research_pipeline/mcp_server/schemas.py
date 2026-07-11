@@ -1079,6 +1079,20 @@ class BriefWeeklySynthesisInput(BaseModel):
     )
 
 
+class SearchToolsInput(BaseModel):
+    """Input for the search_tools meta-tool."""
+
+    query: str = Field(
+        description="Keywords to match against tool names and descriptions."
+    )
+    limit: int = Field(
+        default=10,
+        ge=1,
+        le=64,
+        description="Maximum number of matching tools to return.",
+    )
+
+
 class ToolResult(BaseModel):
     """Standard result envelope for MCP tool outputs."""
 
