@@ -2342,7 +2342,7 @@ class TestAppWrappers:
         )
         mock_run.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_quality.run_quality")
+    @patch("research_pipeline.quality.runner.run_quality")
     def test_app_quality_dispatches(self, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import quality
 
