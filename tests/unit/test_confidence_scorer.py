@@ -8,8 +8,8 @@ import pytest
 
 from research_pipeline.confidence.scorer import (
     ConfidenceSignals,
-    _compute_consistency,
     compute_citation_density,
+    compute_consistency,
     compute_evidence_signal,
     compute_hedging_signal,
     compute_retrieval_quality,
@@ -314,7 +314,7 @@ class TestScoreClaim:
         mock_llm.call.side_effect = RuntimeError("LLM unavailable")
 
         score, signals = score_claim(claim, llm_provider=mock_llm)
-        # All LLM samples fail → _compute_consistency returns 0.5 (neutral)
+        # All LLM samples fail → compute_consistency returns 0.5 (neutral)
         assert signals.consistency_signal == 0.5
         assert 0.0 <= score <= 1.0
 
@@ -370,7 +370,7 @@ class TestScoreDecomposition:
 
 
 # ---------------------------------------------------------------------------
-# _compute_consistency
+# compute_consistency
 # ---------------------------------------------------------------------------
 
 
@@ -379,14 +379,14 @@ class TestComputeConsistency:
         claim = _make_claim()
         mock_llm = MagicMock()
         mock_llm.call.return_value = {"supported": True, "reasoning": "ok"}
-        result = _compute_consistency(claim, mock_llm, samples=5)
+        result = compute_consistency(claim, mock_llm, samples=5)
         assert result == 1.0
 
     def test_all_disagree(self) -> None:
         claim = _make_claim()
         mock_llm = MagicMock()
         mock_llm.call.return_value = {"supported": False, "reasoning": "no"}
-        result = _compute_consistency(claim, mock_llm, samples=5)
+        result = compute_consistency(claim, mock_llm, samples=5)
         assert result == 0.0
 
     def test_mixed_agreement(self) -> None:
@@ -400,21 +400,21 @@ class TestComputeConsistency:
             {"supported": False, "reasoning": "no"},
         ]
         mock_llm.call.side_effect = responses
-        result = _compute_consistency(claim, mock_llm, samples=5)
+        result = compute_consistency(claim, mock_llm, samples=5)
         assert result == pytest.approx(0.6, abs=0.01)
 
     def test_no_valid_samples(self) -> None:
         claim = _make_claim()
         mock_llm = MagicMock()
         mock_llm.call.return_value = {"invalid": "response"}
-        result = _compute_consistency(claim, mock_llm, samples=5)
+        result = compute_consistency(claim, mock_llm, samples=5)
         assert result == 0.5
 
     def test_llm_exceptions_handled(self) -> None:
         claim = _make_claim()
         mock_llm = MagicMock()
         mock_llm.call.side_effect = RuntimeError("boom")
-        result = _compute_consistency(claim, mock_llm, samples=3)
+        result = compute_consistency(claim, mock_llm, samples=3)
         # All fail → no valid samples → 0.5
         assert result == 0.5
 
@@ -426,6 +426,6 @@ class TestComputeConsistency:
             RuntimeError("fail"),
             {"supported": False, "reasoning": "no"},
         ]
-        result = _compute_consistency(claim, mock_llm, samples=3)
+        result = compute_consistency(claim, mock_llm, samples=3)
         # 1 agree out of 2 valid = 0.5
         assert result == 0.5

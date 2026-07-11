@@ -28,7 +28,11 @@ from research_pipeline.briefing.normalize import (
     topic_id_for_title,
     utc_now_iso,
 )
-from research_pipeline.briefing.sources.base import build_session, read_fixture_text
+from research_pipeline.briefing.sources.base import (
+    DEFAULT_HTTP_TIMEOUT,
+    build_session,
+    read_fixture_text,
+)
 
 
 class BlueskySource:
@@ -71,7 +75,7 @@ class BlueskySource:
         url = str(self.source.api_url or "")
         if not url:
             raise ValueError("bluesky source requires api_url when no fixture")
-        response = self.session.get(url, timeout=20)
+        response = self.session.get(url, timeout=DEFAULT_HTTP_TIMEOUT)
         response.raise_for_status()
         return response.json()
 

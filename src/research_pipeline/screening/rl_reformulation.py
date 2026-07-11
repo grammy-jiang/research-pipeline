@@ -281,11 +281,11 @@ class OperatorBandit:
 
     def select(self) -> ReformulationOp:
         """Select an operator via Thompson sampling."""
-        samples = {}
+        samples: dict[ReformulationOp, float] = {}
         for op in ReformulationOp:
             # Beta distribution sample
             samples[op] = self._rng.betavariate(self._alpha[op], self._beta[op])
-        return max(samples, key=samples.get)  # type: ignore[arg-type]
+        return max(samples, key=lambda op: samples[op])
 
     def update(self, op: ReformulationOp, reward: RewardSignal) -> None:
         """Update posterior based on reward."""

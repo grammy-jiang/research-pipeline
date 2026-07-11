@@ -22,7 +22,11 @@ from research_pipeline.briefing.normalize import (
     topic_id_for_title,
     utc_now_iso,
 )
-from research_pipeline.briefing.sources.base import build_session, read_fixture_text
+from research_pipeline.briefing.sources.base import (
+    DEFAULT_HTTP_TIMEOUT,
+    build_session,
+    read_fixture_text,
+)
 
 
 class HackerNewsSource:
@@ -57,7 +61,9 @@ class HackerNewsSource:
             return json.loads(fixture)
         query = self.source.query or "AI agent"
         url = str(self.source.api_url or "https://hn.algolia.com/api/v1/search")
-        response = self.session.get(url, params={"query": query}, timeout=20)
+        response = self.session.get(
+            url, params={"query": query}, timeout=DEFAULT_HTTP_TIMEOUT
+        )
         response.raise_for_status()
         return response.json()
 

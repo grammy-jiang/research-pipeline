@@ -160,7 +160,8 @@ class PagedMemory:
         if hasattr(semantic, "get"):
             try:
                 value = semantic.get(key)
-            except Exception:
+            except Exception as exc:
+                logger.warning("Semantic-tier lookup failed for %r: %s", key, exc)
                 value = None
             if value is not None:
                 self._stats.semantic_hits += 1
