@@ -45,7 +45,6 @@ from research_pipeline.models.summary import PaperExtractionRecord, PaperSummary
 from research_pipeline.pipeline.expand import run_expand
 from research_pipeline.pipeline.gates import (
     AutoApproveGate,
-    CliGate,
     GateCallback,
     GateDecision,
     check_gate,
@@ -402,6 +401,7 @@ def run_pipeline(
     run_id: str | None = None,
     resume: bool = False,
     workspace: Path | None = None,
+    interactive_gate: GateCallback | None = None,
 ) -> RunManifest:
     """Execute the full pipeline from topic to synthesis.
 
@@ -550,8 +550,12 @@ def run_pipeline(
     # Human-in-the-loop gates
     gate: GateCallback
     gate_stages = config.gates.gate_after
-    if config.gates.enabled and not config.gates.auto_approve:
-        gate = CliGate()
+    if (
+        config.gates.enabled
+        and not config.gates.auto_approve
+        and interactive_gate is not None
+    ):
+        gate = interactive_gate
         logger.info("HITL gates enabled after: %s", gate_stages)
     else:
         gate = AutoApproveGate()

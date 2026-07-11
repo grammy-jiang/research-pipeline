@@ -58,12 +58,15 @@ def run_full(
         config.gates.enabled = True
         config.gates.auto_approve = False
 
+    from research_pipeline.cli.gates import CliGate
+
     manifest = run_pipeline(
         topic=topic,
         config=config,
         run_id=run_id,
         resume=resume,
         workspace=ws,
+        interactive_gate=CliGate(),
     )
 
     typer.echo("Pipeline complete!")
