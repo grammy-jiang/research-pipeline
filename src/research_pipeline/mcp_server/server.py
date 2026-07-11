@@ -1455,6 +1455,7 @@ async def tool_research_workflow(
 )
 async def tool_export_bibtex(
     run_id: str,
+    ctx: Context,
     stage: str = "screen",
     output: str = "",
     workspace: str = "./workspace",
@@ -1476,7 +1477,7 @@ async def tool_export_bibtex(
         output=output,
         workspace=workspace,
     )
-    result = export_bibtex_tool(params=params)
+    result = export_bibtex_tool(params=params, ctx=ctx)
     return result
 
 
@@ -1490,6 +1491,7 @@ async def tool_export_bibtex(
 )
 async def tool_report(
     run_id: str,
+    ctx: Context,
     template: str = "survey",
     custom_template: str = "",
     output: str = "",
@@ -1515,7 +1517,7 @@ async def tool_report(
         output=output,
         workspace=workspace,
     )
-    result = report_tool(params=params)
+    result = report_tool(params=params, ctx=ctx)
     return result
 
 
@@ -1529,6 +1531,7 @@ async def tool_report(
 )
 async def tool_cluster(
     run_id: str,
+    ctx: Context,
     stage: str = "screen",
     threshold: float = 0.15,
     output: str = "",
@@ -1553,7 +1556,7 @@ async def tool_cluster(
         output=output,
         workspace=workspace,
     )
-    result = cluster_tool(params=params)
+    result = cluster_tool(params=params, ctx=ctx)
     return result
 
 
@@ -1567,6 +1570,7 @@ async def tool_cluster(
 )
 async def tool_enrich(
     run_id: str,
+    ctx: Context,
     stage: str = "candidates",
     workspace: str = "./workspace",
     config_path: str = "",
@@ -1588,7 +1592,7 @@ async def tool_enrich(
         workspace=workspace,
         config_path=config_path,
     )
-    result = enrich_tool(params=params)
+    result = enrich_tool(params=params, ctx=ctx)
     return result
 
 
@@ -1602,6 +1606,7 @@ async def tool_enrich(
 )
 async def tool_cite_context(
     run_id: str,
+    ctx: Context,
     window: int = 1,
     output: str = "",
     workspace: str = "./workspace",
@@ -1626,7 +1631,7 @@ async def tool_cite_context(
         workspace=workspace,
         config_path=config_path,
     )
-    result = cite_context_tool(params=params)
+    result = cite_context_tool(params=params, ctx=ctx)
     return result
 
 
@@ -1639,6 +1644,7 @@ async def tool_cite_context(
     ),
 )
 async def tool_watch(
+    ctx: Context,
     queries: str = "",
     lookback: int = 7,
     max_results: int = 20,
@@ -1664,7 +1670,7 @@ async def tool_watch(
         output=output,
         config_path=config_path,
     )
-    result = watch_tool(params=params)
+    result = watch_tool(params=params, ctx=ctx)
     return result
 
 
