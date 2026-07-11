@@ -10,12 +10,16 @@
 ## Environment setup
 
 ```bash
-# Claude Code / GitHub Copilot
+# Claude Code
 SKILL_DIR=~/.claude/skills/research-pipeline
 CFG=$SKILL_DIR/config.toml
 
-# Codex
-# SKILL_DIR=~/.codex/skills/research-pipeline
+# Copilot CLI
+# SKILL_DIR=~/.copilot/skills/research-pipeline
+# CFG=$SKILL_DIR/config.toml
+
+# Codex CLI
+# SKILL_DIR=~/.agents/skills/research-pipeline
 # CFG=$SKILL_DIR/config.toml
 ```
 

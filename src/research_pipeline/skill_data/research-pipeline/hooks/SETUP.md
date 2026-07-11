@@ -34,14 +34,12 @@ Before each user prompt is processed:
 
 ---
 
-## Claude Code (automatic — no setup required)
+## Claude Code (manual registration required)
 
-Both hooks are declared in the `hooks:` block in this skill's YAML frontmatter.
-Claude Code loads them whenever the skill is active. **No manual registration is needed.**
-
-To also activate the hooks outside of skill invocation (e.g., any session in a
-research directory), merge `hooks/claude-code-hooks.json` into
-`~/.claude/settings.json`:
+Claude Code does **not** auto-load hooks from a skill's frontmatter — this
+skill's `SKILL.md` frontmatter carries only `name` / `description` / `license`,
+with no `hooks:` block. To activate both hooks (Stop + UserPromptSubmit), merge
+`hooks/claude-code-hooks.json` into `~/.claude/settings.json`:
 
 ```bash
 # Backup existing settings
@@ -128,8 +126,8 @@ rm round_state.json
 
 ## Uninstalling
 
-- **Claude Code**: Remove both `hooks:` entries from `SKILL.md` frontmatter
-  (skill author action), or set `"disableAllHooks": true` in settings.
+- **Claude Code**: Remove the skill's `Stop` and `UserPromptSubmit` entries from
+  `~/.claude/settings.json`, or set `"disableAllHooks": true` in settings.
 - **Copilot CLI**: `rm .github/hooks/research-pipeline.json` in the project.
 - **Codex CLI**: `rm .codex/hooks.json` (or remove the hook blocks) and set
   `codex_hooks = false` in `.codex/config.toml` if no other hooks are configured.

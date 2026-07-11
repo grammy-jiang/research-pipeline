@@ -10,11 +10,14 @@
 ## Environment setup
 
 ```bash
-# Claude Code / GitHub Copilot
+# Claude Code
 SKILL_DIR=~/.claude/skills/daily-ai-intelligence
 
-# Codex
-# SKILL_DIR=~/.codex/skills/daily-ai-intelligence
+# Copilot CLI
+# SKILL_DIR=~/.copilot/skills/daily-ai-intelligence
+
+# Codex CLI
+# SKILL_DIR=~/.agents/skills/daily-ai-intelligence
 
 REG=~/my-daily-registry.toml   # user's reviewed registry
 WS=./workspace/briefing

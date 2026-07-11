@@ -1,6 +1,6 @@
 ---
 name: daily-ai-intelligence-implementer
-description: Use this skill when implementing the Daily AI Intelligence pipeline, especially Phase A thin daily briefing tickets.
+description: Use when implementing/building/coding the Daily AI Intelligence pipeline — Phase A thin daily-briefing tickets, source adapters, ranking, validation. Do NOT use to run, poll, or generate a daily brief — use the daily-ai-intelligence skill for that.
 ---
 
 # Daily AI Intelligence Implementer
@@ -61,31 +61,9 @@ Implement only Phase A until all A01-A12 tickets pass audit.
 
 # Verification Policy
 
-Verification must be deterministic.
-
-Prefer these layers:
-
-1. Unit tests.
-2. Offline integration tests.
-3. Offline end-to-end tests.
-4. Report validator.
-5. Artifact layout checks.
-6. Linting/type checks.
-7. Manual review only after deterministic checks pass.
-
-Do not rely only on snapshot tests.
-
-Tests must assert:
-
-- schema fields
-- stable IDs
-- link counts
-- item counts
-- required report sections
-- ranking scores
-- tie-breaker ordering
-- validation errors
-- telemetry records where relevant
+See `verification-policy.md` in this skill directory for the full verification
+policy — the preferred deterministic verification layers and the assertions
+every test must make.
 
 # Phase F Skill Addendum — Source Expansion
 

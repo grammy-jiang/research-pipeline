@@ -39,8 +39,9 @@ to `research-pipeline` (academic) as needed.
 **Always launch through the manifest-governed runner. Never bypass it.**
 
 ```bash
-SKILL_DIR=~/.claude/skills/daily-ai-intelligence   # Claude Code / Copilot
-# SKILL_DIR=~/.codex/skills/daily-ai-intelligence  # Codex
+SKILL_DIR=~/.claude/skills/daily-ai-intelligence     # Claude Code
+# SKILL_DIR=~/.copilot/skills/daily-ai-intelligence  # Copilot CLI
+# SKILL_DIR=~/.agents/skills/daily-ai-intelligence   # Codex CLI
 REG=~/my-daily-registry.toml   # user's reviewed registry
 WS=./workspace/briefing
 
@@ -77,6 +78,7 @@ existence + schema validation — not by agent claim.
 
 | File | Load when |
 |------|-----------|
+| `references/workflow-steps.md` | Per-agent SKILL_DIR paths, or understanding/diagnosing an orchestrated task |
 | `references/command-reference.md` | All `brief` subcommands, options, MCP tool map |
 | `references/source-policy.md` | Adding/enabling a source or refusing expansion |
 | `references/feedback-loop.md` | Recording feedback or computing preference adjustments |

@@ -19,12 +19,11 @@ At each turn end (`Stop` / `agentStop`):
 
 ---
 
-## Claude Code (automatic — no setup required)
+## Claude Code (manual registration required)
 
-The `hooks:` block in this skill's YAML frontmatter is loaded by Claude Code
-whenever the skill is active. **No manual registration is needed.**
-
-For global registration (hook active outside skill invocation), merge
+Claude Code does **not** auto-load hooks from a skill's frontmatter — this
+skill's `SKILL.md` frontmatter carries only `name` / `description` / `license`,
+with no `hooks:` block. To activate the Stop hook, merge
 `hooks/claude-code-hooks.json` into `~/.claude/settings.json`:
 
 ```bash
@@ -92,8 +91,8 @@ bash ~/.claude/skills/daily-ai-intelligence/hooks/stop-check.sh; echo "Exit: $?"
 
 ## Uninstalling
 
-- **Claude Code**: Remove `hooks:` block from `SKILL.md` or set
-  `"disableAllHooks": true` in settings.
+- **Claude Code**: Remove the skill's `Stop` entry from `~/.claude/settings.json`,
+  or set `"disableAllHooks": true` in settings.
 - **Copilot CLI**: `rm .github/hooks/daily-ai-intelligence.json` in the project.
 - **Codex CLI**: Remove the `Stop` block from `.codex/hooks.json` and set
   `codex_hooks = false` in `.codex/config.toml` if no other hooks are configured.
