@@ -166,7 +166,7 @@ def score_claim(
 
     if llm_provider is not None:
         try:
-            consistency = _compute_consistency(claim, llm_provider, samples=5)
+            consistency = compute_consistency(claim, llm_provider, samples=5)
             signals.consistency_signal = consistency
         except Exception as exc:
             logger.warning(
@@ -209,7 +209,7 @@ def score_decomposition(
     return decomposition.model_copy(update={"claims": scored_claims})
 
 
-def _compute_consistency(
+def compute_consistency(
     claim: AtomicClaim,
     llm_provider: LLMProvider,
     samples: int = 5,

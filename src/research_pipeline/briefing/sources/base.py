@@ -11,6 +11,9 @@ from research_pipeline.briefing.models import BriefingSourceConfig, Intelligence
 
 USER_AGENT = "research-pipeline-daily-ai-intelligence/1.0 (+https://github.com/grammy-jiang/research-pipeline)"
 
+# Default HTTP timeout (seconds) for briefing source fetches (#124).
+DEFAULT_HTTP_TIMEOUT = 20
+
 
 class BriefingSource(Protocol):
     """Protocol implemented by all briefing source adapters."""

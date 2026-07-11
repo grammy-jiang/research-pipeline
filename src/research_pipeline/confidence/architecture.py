@@ -29,6 +29,7 @@ from typing import Any
 
 from research_pipeline.confidence.scorer import (
     compute_citation_density,
+    compute_consistency,
     compute_evidence_signal,
     compute_hedging_signal,
     compute_retrieval_quality,
@@ -244,8 +245,8 @@ def compute_auroc(predictions: list[float], actuals: list[float]) -> float:
     # Pair-wise comparison
     concordant = 0
     tied = 0
-    for _i, (pi, ai) in enumerate(zip(predictions, actuals, strict=False)):
-        for _j, (pj, aj) in enumerate(zip(predictions, actuals, strict=False)):
+    for pi, ai in zip(predictions, actuals, strict=False):
+        for pj, aj in zip(predictions, actuals, strict=False):
             if ai >= 0.5 and aj < 0.5:
                 if pi > pj:
                     concordant += 1
@@ -703,11 +704,8 @@ def _run_l4(
         # No LLM → cannot verify, return as-is
         return L4Result(triggered=True, samples_used=0)
 
-    # Import here to avoid circular dependency
-    from research_pipeline.confidence.scorer import _compute_consistency
-
     try:
-        consistency = _compute_consistency(
+        consistency = compute_consistency(
             claim, llm_provider, samples=config.l4_samples
         )
         return L4Result(

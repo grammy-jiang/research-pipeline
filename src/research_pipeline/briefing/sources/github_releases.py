@@ -21,7 +21,11 @@ from research_pipeline.briefing.normalize import (
     topic_id_for_title,
     utc_now_iso,
 )
-from research_pipeline.briefing.sources.base import build_session, read_fixture_text
+from research_pipeline.briefing.sources.base import (
+    DEFAULT_HTTP_TIMEOUT,
+    build_session,
+    read_fixture_text,
+)
 
 
 class GitHubReleasesSource:
@@ -64,7 +68,7 @@ class GitHubReleasesSource:
             headers["If-None-Match"] = etag
         if last_modified := self.state.get("last_modified"):
             headers["If-Modified-Since"] = last_modified
-        response = self.session.get(url, headers=headers, timeout=20)
+        response = self.session.get(url, headers=headers, timeout=DEFAULT_HTTP_TIMEOUT)
         self.state["status_code"] = str(response.status_code)
         if response.status_code == 304:
             return []
