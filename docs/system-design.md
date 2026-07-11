@@ -837,7 +837,7 @@ All domain objects are Pydantic `BaseModel` subclasses in `src/research_pipeline
 | `knowledge_graph.db` | `~/.cache/research-pipeline/` | Semantic entity+triple knowledge graph |
 | `cbr_cases.db` | `~/.cache/research-pipeline/` | Case-Based Reasoning strategy store |
 | `feedback.db` | `~/.cache/research-pipeline/` | User screening feedback (ELO-style weights) |
-| `.blinding_audits.db` | `<workspace>/<run-id>/` | Per-run blinding audit results |
+| `.blinding_audits.db` | `<workspace>/` | Workspace-level blinding audit results (see `data-model.md` §5.6 for the authoritative storage-path table) |
 | `.dual_metrics.db` | `<workspace>/<run-id>/` | Per-run Pass@k / Pass[k] records |
 | `feedback.db` (briefing) | `<workspace>/briefings/<date>/feedback/` | Briefing ranking feedback signals |
 | `audit_db` (eval log) | `<workspace>/<run-id>/` | Three-channel evaluation log (traces + audit + snapshots) |

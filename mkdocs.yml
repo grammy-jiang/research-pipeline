@@ -44,7 +44,6 @@ nav:
     - Configuration: user-guide.md
   - Architecture:
     - System Design: system-design.md
-    - Architecture (legacy): architecture.md
     - Security Model: security-model.md
     - ADRs:
       - Overview: adr/README.md
@@ -61,6 +60,32 @@ nav:
     - Testing Strategy: testing-strategy.md
     - Operations Runbook: operations-runbook.md
   - Changelog: changelog.md
+
+# Keep the search plugin + build from indexing material that isn't part of the
+# shipped manual (#115): the _archive/ of old phase specs, and local research /
+# reference scratch (the "A Philosophy of Software Design" copies, subagent
+# design notes, conversion scripts, and image dumps).
+exclude_docs: |
+  _archive/
+  *.pdf
+  *.epub
+  *.py
+  pdf-images/
+  epub-images/
+  epub-docling/
+  ousterhout-docling.md/
+  ousterhout-*.md
+  *Ousterhout*.md
+  *Philosophy of Software Design*.md
+  dokumen.pub_*.md
+  aposd*.md
+  Designing *.md
+  Neutral Reusable*.md
+  Portable Source*.md
+  Technical-Source*.md
+  subagent-*.md
+  blueprint-skill-*.md
+  skills-improvement-*.md
 
 plugins:
   - search
