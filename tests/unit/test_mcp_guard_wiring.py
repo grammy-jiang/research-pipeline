@@ -10,6 +10,7 @@ import pytest
 
 from research_pipeline.mcp_server import server
 from research_pipeline.mcp_server.guard_wiring import (
+    _STRICT_ENV,
     _TOOL_HASHES_ENV,
     _verify_description_hashes,
     build_guard,
@@ -110,3 +111,32 @@ def test_verify_description_hashes_noop_without_reference(
     monkeypatch.delenv(_TOOL_HASHES_ENV, raising=False)
     guard = build_guard(mcp)
     _verify_description_hashes(guard)  # must not raise
+
+
+# --- issue #114: opt-in strict per-domain authorization ---
+
+
+def test_default_grants_all_domains(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv(_STRICT_ENV, raising=False)
+    guard = build_guard(mcp)
+    # A write/execute tool (openWorld search) is authorized by default.
+    assert guard.authorize("tool_search", {}).decision == AuthDecision.ALLOWED
+
+
+def test_strict_mode_grants_read_only(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.setenv(_STRICT_ENV, "1")
+    guard = build_guard(mcp)
+    # READ tools stay authorized …
+    read = guard.authorize("tool_get_run_manifest", {})
+    assert read.decision == AuthDecision.ALLOWED
+    # … but EXECUTE/WRITE tools are denied at the capability layer.
+    execute = guard.authorize("tool_search", {})
+    assert execute.decision == AuthDecision.DENIED
+    assert "capability" in execute.reason
+
+
+def test_strict_mode_off_by_default_value(monkeypatch: pytest.MonkeyPatch) -> None:
+    # A falsey value does not enable strict mode.
+    monkeypatch.setenv(_STRICT_ENV, "0")
+    guard = build_guard(mcp)
+    assert guard.authorize("tool_search", {}).decision == AuthDecision.ALLOWED

@@ -49,6 +49,15 @@ _DEFAULT_CALLER = "anonymous"
 # Optional committed reference of tool-description hashes; when set, the guard
 # verifies live descriptions against it at startup (tool-poisoning defense, #114).
 _TOOL_HASHES_ENV = "RESEARCH_PIPELINE_TOOL_HASHES"
+# Opt-in strict authorization: grant only READ, denying WRITE/EXECUTE/NETWORK/
+# SYSTEM tools, for locked-down / multi-caller deployments (#114). Off by default
+# so the local single-caller server stays fully functional.
+_STRICT_ENV = "RESEARCH_PIPELINE_MCP_STRICT"
+
+
+def _is_strict() -> bool:
+    """Whether the opt-in strict per-domain authorization policy is enabled."""
+    return os.environ.get(_STRICT_ENV, "").strip().lower() in {"1", "true", "yes"}
 
 
 def _domain_for(tool: Any) -> TrustDomain:
@@ -85,7 +94,20 @@ def build_guard(mcp: FastMCP) -> McpGuard:
         registry.pin_tool(name)
         tool_defs.append({"name": name, "description": description})
     policy = CapabilityPolicy()
-    policy.grant_all(_DEFAULT_CALLER)
+    if _is_strict():
+        # Locked-down / multi-caller posture: grant only READ, so WRITE /
+        # EXECUTE / NETWORK / SYSTEM tools are denied by the capability layer and
+        # the denial is audited (#114). Operators grant more domains explicitly.
+        policy.grant(_DEFAULT_CALLER, TrustDomain.READ)
+        logger.warning(
+            "MCP guard STRICT mode: only READ tools are authorized for %r",
+            _DEFAULT_CALLER,
+        )
+    else:
+        # Default local single-caller posture: the caller is trusted, so every
+        # domain is granted and the active controls are integrity + rate-limit +
+        # audit (not per-domain denial).
+        policy.grant_all(_DEFAULT_CALLER)
     guard = McpGuard(registry, policy)
     guard.description_hashes = compute_tool_hashes(tool_defs)
     return guard
