@@ -69,8 +69,9 @@ class HorizonInputs:
         reliability: Optional Pass[k] reliability floor in ``[0, 1]`` from
             ``evaluation.dual_metrics``. Defaults to ``1.0`` when only a
             single run is scored.
-        difficulty_boost: How much weight to give difficulty (default 0.5;
-            the difficulty-weighted score is ``score * (1 + boost * diff)``).
+        difficulty_boost: How much weight to give difficulty (default 0.5; the
+            difficulty-weighted score is ``score * (1 + boost * diff) /
+            (1 + boost)``, monotonic and bounded in ``[0, 1]``).
     """
 
     normalized_score: float
@@ -110,10 +111,18 @@ class UnifiedHorizonResult:
 def _difficulty_weighted_score(
     normalized_score: float, difficulty: float, boost: float
 ) -> float:
-    """Up-weight normalized score by difficulty, clamped to ``[0, 1]``."""
+    """Weight a normalized score by difficulty, staying within ``[0, 1]``.
+
+    The raw ``score * (1 + boost * diff)`` form saturated: any ``score`` above
+    ``1 / (1 + boost)`` clamped to 1.0 at high difficulty, flattening the signal
+    (#122). Dividing by the maximum multiplier ``(1 + boost)`` keeps the result
+    monotonic in both score and difficulty and bounded in ``[0, 1]`` without a
+    clamp cliff — a zero score still maps to zero, and higher difficulty still
+    ranks above lower difficulty for the same score.
+    """
     score = _clamp(normalized_score)
     diff = _clamp(difficulty)
-    boosted = score * (1.0 + boost * diff)
+    boosted = score * (1.0 + boost * diff) / (1.0 + boost)
     return _clamp(boosted)
 
 

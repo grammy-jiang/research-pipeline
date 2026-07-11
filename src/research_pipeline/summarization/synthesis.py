@@ -351,12 +351,16 @@ def _build_template_synthesis(
                 )
             )
 
-    # Consensus confidence: 1.0 when no disagreements, decreases with more
+    # Consensus confidence: 1.0 when no disagreements, decreasing as more
+    # findings oppose each other. With no findings at all there is no basis for
+    # consensus, so report 0.0 rather than a misleading 1.0 (absence is not
+    # agreement) (#122). Note this is a heuristic ratio (opposed-pair count over
+    # finding count) pending LLM-based agreement analysis; see open_questions.
     n_findings = sum(len(s.findings) for s in summaries)
     if n_findings > 0:
-        consensus_confidence = max(0.0, 1.0 - len(disagreements) / max(n_findings, 1))
+        consensus_confidence = max(0.0, 1.0 - len(disagreements) / n_findings)
     else:
-        consensus_confidence = 1.0
+        consensus_confidence = 0.0
 
     all_limitations: list[str] = []
     for s in summaries:

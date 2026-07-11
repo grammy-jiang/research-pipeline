@@ -337,12 +337,14 @@ def dinco_calibrate(
         Calibrated score in [0, 1].
     """
     if distractor_scores is None:
-        # Default: assume distractors cluster around 0.3-0.5
-        distractor_mean = 0.4
-    else:
-        if not distractor_scores:
-            return raw_score
-        distractor_mean = sum(distractor_scores) / len(distractor_scores)
+        # No distractor set to normalize against: DINCO is undefined, so return
+        # the raw score unchanged rather than softmax-ing it against a fabricated
+        # 0.4 baseline (which silently compressed every score toward the midpoint
+        # and was still reported as "dinco" calibration) (#122).
+        return raw_score
+    if not distractor_scores:
+        return raw_score
+    distractor_mean = sum(distractor_scores) / len(distractor_scores)
 
     if temperature <= 0:
         temperature = 1.0
