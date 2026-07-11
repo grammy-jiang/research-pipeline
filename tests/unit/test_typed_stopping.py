@@ -258,6 +258,22 @@ class TestTypedStoppingEvaluator:
         assert result.should_stop
         assert "top1_stable" in result.reason
 
+    def test_top1_stable_needs_three_samples_for_aggressive_profile(self) -> None:
+        # PRECISION sets stability_window=2, but the top-1 stability stop is
+        # floored at three observations (#123) so a two-sample coincidence can't
+        # trigger it. Top-1 is a constant 0.4; the means swing by > 0.15
+        # (PRECISION knee_threshold) to avoid the knee path, and all scores are
+        # below quality_floor=0.7 to avoid saturation.
+        ev = TypedStoppingEvaluator(query_type=ExtendedQueryType.PRECISION)
+        ev.add_batch([0.4, 0.4, 0.4])
+        ev.add_batch([0.4, 0.0, 0.0])
+        # Pre-fix this two-sample window (range 0 < 0.15) would have stopped.
+        assert not ev.evaluate().should_stop
+        ev.add_batch([0.4, 0.4, 0.4])
+        result = ev.evaluate()  # third stable top-1 sample → top1_stable fires
+        assert result.should_stop
+        assert "top1_stable" in result.reason
+
     def test_continue_when_improving(self) -> None:
         ev = TypedStoppingEvaluator(
             query_type=ExtendedQueryType.RECALL,
