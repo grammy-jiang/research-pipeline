@@ -705,7 +705,7 @@ class TestCmdValidate:
     """Tests for the validate CLI handler and helper functions."""
 
     def test_extract_headings(self) -> None:
-        from research_pipeline.cli.cmd_validate import _extract_headings
+        from research_pipeline.summarization.report_validation import _extract_headings
 
         text = "# Executive Summary\n## Research Question\nSome text\n### Methodology\n"
         headings = _extract_headings(text)
@@ -714,7 +714,7 @@ class TestCmdValidate:
         assert "methodology" in headings
 
     def test_check_sections_all_present(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_sections
+        from research_pipeline.summarization.report_validation import _check_sections
 
         text = "\n".join(
             f"# {s.title()}"
@@ -735,7 +735,7 @@ class TestCmdValidate:
         assert len(present) == 9
 
     def test_check_sections_some_missing(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_sections
+        from research_pipeline.summarization.report_validation import _check_sections
 
         text = "# Executive Summary\n# Research Question\n"
         present, missing, _, _ = _check_sections(text)
@@ -743,7 +743,9 @@ class TestCmdValidate:
         assert len(missing) > 0
 
     def test_check_confidence_levels(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_confidence_levels
+        from research_pipeline.summarization.report_validation import (
+            _check_confidence_levels,
+        )
 
         text = "🟢 high result\n🟡 medium result\n🔴 low result\nconfidence: high\n"
         counts = _check_confidence_levels(text)
@@ -752,14 +754,18 @@ class TestCmdValidate:
         assert counts["low"] >= 1
 
     def test_check_evidence_citations(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_evidence_citations
+        from research_pipeline.summarization.report_validation import (
+            _check_evidence_citations,
+        )
 
         text = "As shown in [2301.00001] and [Author, 2023], the results [xyz]."
         count = _check_evidence_citations(text)
         assert count == 3
 
     def test_check_gap_classification(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_gap_classification
+        from research_pipeline.summarization.report_validation import (
+            _check_gap_classification,
+        )
 
         text = "This is an ACADEMIC gap. Another ENGINEERING gap. ACADEMIC again."
         gaps = _check_gap_classification(text)
@@ -767,7 +773,7 @@ class TestCmdValidate:
         assert gaps["engineering_gaps"] == 1
 
     def test_check_tables(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_tables
+        from research_pipeline.summarization.report_validation import _check_tables
 
         text = (
             "| Col1 | Col2 |\n| --- | --- |\n| val | val |\n"
@@ -777,7 +783,7 @@ class TestCmdValidate:
         assert count == 2
 
     def test_check_mermaid(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_mermaid
+        from research_pipeline.summarization.report_validation import _check_mermaid
 
         text = (
             "```mermaid\ngraph TD\n```\nsome text\n```mermaid\nsequenceDiagram\n```\n"
@@ -785,21 +791,21 @@ class TestCmdValidate:
         assert _check_mermaid(text) == 2
 
     def test_check_latex(self) -> None:
-        from research_pipeline.cli.cmd_validate import _check_latex
+        from research_pipeline.summarization.report_validation import _check_latex
 
         text = "Inline $x^2$ and display $$E = mc^2$$"
         count = _check_latex(text)
         assert count >= 2
 
-    @patch("research_pipeline.cli.cmd_validate.compute_race_score")
-    @patch("research_pipeline.cli.cmd_validate.compute_fact_score")
+    @patch("research_pipeline.summarization.report_validation.compute_race_score")
+    @patch("research_pipeline.summarization.report_validation.compute_fact_score")
     def test_validate_report_pass(
         self,
         mock_fact: MagicMock,
         mock_race: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_validate import validate_report
+        from research_pipeline.summarization.report_validation import validate_report
 
         mock_race.return_value = MagicMock(model_dump=lambda: {"overall": 0.8})
 
@@ -830,13 +836,13 @@ class TestCmdValidate:
         assert result["verdict"] == "PASS"
         assert result["overall_score"] >= 0.7
 
-    @patch("research_pipeline.cli.cmd_validate.compute_race_score")
+    @patch("research_pipeline.summarization.report_validation.compute_race_score")
     def test_validate_report_fail_missing_sections(
         self,
         mock_race: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_validate import validate_report
+        from research_pipeline.summarization.report_validation import validate_report
 
         mock_race.return_value = MagicMock(model_dump=lambda: {"overall": 0.3})
 
@@ -847,15 +853,15 @@ class TestCmdValidate:
         assert result["verdict"] == "FAIL"
         assert len(result["sections"]["missing_required"]) > 0
 
-    @patch("research_pipeline.cli.cmd_validate.compute_race_score")
-    @patch("research_pipeline.cli.cmd_validate.compute_fact_score")
+    @patch("research_pipeline.summarization.report_validation.compute_race_score")
+    @patch("research_pipeline.summarization.report_validation.compute_fact_score")
     def test_validate_report_with_fact_score(
         self,
         mock_fact: MagicMock,
         mock_race: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_validate import validate_report
+        from research_pipeline.summarization.report_validation import validate_report
 
         mock_race.return_value = MagicMock(model_dump=lambda: {"overall": 0.8})
         mock_fact.return_value = MagicMock(
@@ -876,15 +882,15 @@ class TestCmdValidate:
         result = validate_report(report, paper_ids=["2301.00001", "2301.00002"])
         assert "fact_score" in result
 
-    @patch("research_pipeline.cli.cmd_validate.compute_race_score")
-    @patch("research_pipeline.cli.cmd_validate.compute_fact_score")
+    @patch("research_pipeline.summarization.report_validation.compute_race_score")
+    @patch("research_pipeline.summarization.report_validation.compute_fact_score")
     def test_validate_report_low_fact_score_issues(
         self,
         mock_fact: MagicMock,
         mock_race: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_validate import validate_report
+        from research_pipeline.summarization.report_validation import validate_report
 
         mock_race.return_value = MagicMock(model_dump=lambda: {"overall": 0.5})
         mock_fact.return_value = MagicMock(
@@ -905,18 +911,18 @@ class TestCmdValidate:
         assert any("Low citation coverage" in i for i in result["issues"])
 
     def test_run_validate_no_report_no_run_id(self) -> None:
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         # Should not crash — logs error and returns
         run_validate(report=None, workspace=None, run_id=None)
 
-    @patch("research_pipeline.cli.cmd_validate.compute_race_score")
+    @patch("research_pipeline.summarization.report_validation.compute_race_score")
     def test_run_validate_with_report_file(
         self,
         mock_race: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         mock_race.return_value = MagicMock(model_dump=lambda: {"overall": 0.5})
 
@@ -928,13 +934,13 @@ class TestCmdValidate:
         result_path = tmp_path / "validation_result.json"
         assert result_path.exists()
 
-    @patch("research_pipeline.cli.cmd_validate.compute_race_score")
+    @patch("research_pipeline.summarization.report_validation.compute_race_score")
     def test_run_validate_with_output_path(
         self,
         mock_race: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         mock_race.return_value = MagicMock(model_dump=lambda: {"overall": 0.5})
 
@@ -2450,7 +2456,7 @@ class TestAppWrappers:
         )
         mock_run.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_validate.run_validate")
+    @patch("research_pipeline.summarization.report_validation.run_validate")
     def test_app_validate_dispatches(self, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import validate
 
@@ -2464,7 +2470,7 @@ class TestAppWrappers:
         )
         mock_run.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_compare.run_compare")
+    @patch("research_pipeline.pipeline.compare.run_compare")
     def test_app_compare_dispatches(self, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import compare
 

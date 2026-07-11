@@ -2,7 +2,7 @@
 
 from pathlib import Path
 
-from research_pipeline.cli.cmd_validate import (
+from research_pipeline.summarization.report_validation import (
     REQUIRED_SECTIONS,
     _check_confidence_levels,
     _check_contents,

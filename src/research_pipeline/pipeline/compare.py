@@ -1,6 +1,7 @@
-"""CLI handler for the 'compare' command.
+"""Cross-run comparison logic (#109).
 
-Compares two pipeline runs to produce a structured diff of papers,
+Core logic shared by the CLI (`compare` command) and the MCP `compare_runs`
+tool. Compares two pipeline runs to produce a structured diff of papers,
 findings, gaps, and confidence-level changes.
 """
 

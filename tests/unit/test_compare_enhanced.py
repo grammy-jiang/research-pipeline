@@ -9,7 +9,7 @@ from pathlib import Path
 
 import pytest
 
-from research_pipeline.cli.cmd_compare import (
+from research_pipeline.pipeline.compare import (
     _compute_jaccard,
     _diff_query_plans,
     _diff_source_distributions,

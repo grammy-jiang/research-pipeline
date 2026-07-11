@@ -23,7 +23,7 @@ import pytest
 class TestRunValidateHandler:
     """Cover run_validate when run_id + workspace are provided."""
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     @patch("research_pipeline.storage.workspace.init_run")
     @patch("research_pipeline.storage.workspace.get_stage_dir")
     @patch("research_pipeline.config.loader.load_config")
@@ -36,7 +36,7 @@ class TestRunValidateHandler:
         tmp_path: Path,
     ) -> None:
         """Lines 378-410: run_id+workspace → finds synthesis_report.md."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         run_root = tmp_path / "runs" / "test-run"
         run_root.mkdir(parents=True)
@@ -81,7 +81,7 @@ class TestRunValidateHandler:
         assert call_kwargs[1]["paper_titles"] == ["Paper A", "Paper B"]
         assert (tmp_path / "out.json").exists()
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     @patch("research_pipeline.storage.workspace.init_run")
     @patch("research_pipeline.storage.workspace.get_stage_dir")
     @patch("research_pipeline.config.loader.load_config")
@@ -94,7 +94,7 @@ class TestRunValidateHandler:
         tmp_path: Path,
     ) -> None:
         """run_id+workspace but no synthesis_report.md → logs error, returns."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         run_root = tmp_path / "runs" / "test-run"
         run_root.mkdir(parents=True)
@@ -121,14 +121,14 @@ class TestRunValidateHandler:
         # validate_report should NOT be called — no report found
         mock_validate.assert_not_called()
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     def test_no_issues_log_path(
         self,
         mock_validate: MagicMock,
         tmp_path: Path,
     ) -> None:
         """Line 435: validation passes with zero issues."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         report_file = tmp_path / "report.md"
         report_file.write_text("# Report\n## Executive Summary\nOK")
@@ -144,14 +144,14 @@ class TestRunValidateHandler:
         # Verify output written next to report
         assert (tmp_path / "validation_result.json").exists()
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     def test_fact_score_logging(
         self,
         mock_validate: MagicMock,
         tmp_path: Path,
     ) -> None:
         """Lines 439-440: FACT score is logged when present in result."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         report_file = tmp_path / "report.md"
         report_file.write_text("# Report\n## Executive Summary\nOK")
@@ -171,14 +171,14 @@ class TestRunValidateHandler:
         run_validate(report=report_file)
         mock_validate.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     def test_issues_are_logged(
         self,
         mock_validate: MagicMock,
         tmp_path: Path,
     ) -> None:
         """Cover the issues iteration branch (line 432-433)."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         report_file = tmp_path / "report.md"
         report_file.write_text("# Report\n")
@@ -192,7 +192,7 @@ class TestRunValidateHandler:
         run_validate(report=report_file)
         mock_validate.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     @patch("research_pipeline.storage.workspace.init_run")
     @patch("research_pipeline.storage.workspace.get_stage_dir")
     @patch("research_pipeline.config.loader.load_config")
@@ -205,7 +205,7 @@ class TestRunValidateHandler:
         tmp_path: Path,
     ) -> None:
         """Line 411-412: JSONDecodeError when reading shortlist."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         run_root = tmp_path / "runs" / "test-run"
         run_root.mkdir(parents=True)
@@ -243,14 +243,14 @@ class TestRunValidateHandler:
         assert call_kwargs[1]["paper_ids"] is None
         assert call_kwargs[1]["paper_titles"] is None
 
-    @patch("research_pipeline.cli.cmd_validate.validate_report")
+    @patch("research_pipeline.summarization.report_validation.validate_report")
     def test_output_written_to_explicit_path(
         self,
         mock_validate: MagicMock,
         tmp_path: Path,
     ) -> None:
         """Cover the output write path (line 449-451)."""
-        from research_pipeline.cli.cmd_validate import run_validate
+        from research_pipeline.summarization.report_validation import run_validate
 
         report_file = tmp_path / "report.md"
         report_file.write_text("# Report\nContent")
@@ -277,7 +277,7 @@ class TestReadRecordsJson:
     """Line 26: _read_records JSON array branch."""
 
     def test_reads_json_file(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_compare import _read_records
+        from research_pipeline.pipeline.compare import _read_records
 
         p = tmp_path / "data.json"
         p.write_text(json.dumps([{"id": "a"}, {"id": "b"}]))
@@ -290,7 +290,7 @@ class TestLoadPaperIdsEmptyReturn:
     """Line 42: _load_paper_ids returns empty set when no files exist."""
 
     def test_returns_empty_set(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_compare import _load_paper_ids
+        from research_pipeline.pipeline.compare import _load_paper_ids
 
         # run_root with no screen or search dirs
         run_root = tmp_path / "empty-run"
@@ -303,7 +303,7 @@ class TestLoadSynthesisJsonDecodeError:
     """Lines 229-230: JSONDecodeError in _load_synthesis_json."""
 
     def test_json_decode_error_returns_none(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_compare import _load_synthesis_json
+        from research_pipeline.pipeline.compare import _load_synthesis_json
 
         run_root = tmp_path / "run"
         synth_dir = run_root / "synthesis"
@@ -318,7 +318,7 @@ class TestDiffReadinessNonDict:
     """Lines 348/350: readiness value is not a dict."""
 
     def test_non_dict_readiness_a(self) -> None:
-        from research_pipeline.cli.cmd_compare import _diff_readiness
+        from research_pipeline.pipeline.compare import _diff_readiness
 
         result = _diff_readiness(
             {"readiness": "READY"},  # non-dict
@@ -328,7 +328,7 @@ class TestDiffReadinessNonDict:
         assert result["verdict_run_b"] == "NOT_READY"
 
     def test_non_dict_readiness_b(self) -> None:
-        from research_pipeline.cli.cmd_compare import _diff_readiness
+        from research_pipeline.pipeline.compare import _diff_readiness
 
         result = _diff_readiness(
             {"readiness": {"verdict": "READY"}},
@@ -338,7 +338,7 @@ class TestDiffReadinessNonDict:
         assert result["verdict_run_b"] == "UNKNOWN"
 
     def test_both_non_dict(self) -> None:
-        from research_pipeline.cli.cmd_compare import _diff_readiness
+        from research_pipeline.pipeline.compare import _diff_readiness
 
         result = _diff_readiness(
             {"readiness": 42},
@@ -351,9 +351,9 @@ class TestDiffReadinessNonDict:
 class TestRunCompareHandler:
     """Lines 465-510: run_compare full handler."""
 
-    @patch("research_pipeline.cli.cmd_compare.compare_runs")
-    @patch("research_pipeline.cli.cmd_compare.init_run")
-    @patch("research_pipeline.cli.cmd_compare.load_config")
+    @patch("research_pipeline.pipeline.compare.compare_runs")
+    @patch("research_pipeline.pipeline.compare.init_run")
+    @patch("research_pipeline.pipeline.compare.load_config")
     def test_full_compare_flow(
         self,
         mock_config: MagicMock,
@@ -362,7 +362,7 @@ class TestRunCompareHandler:
         tmp_path: Path,
     ) -> None:
         """Both run IDs provided → loads config, inits runs, calls compare."""
-        from research_pipeline.cli.cmd_compare import run_compare
+        from research_pipeline.pipeline.compare import run_compare
 
         root_a = tmp_path / "run-a"
         root_b = tmp_path / "run-b"
@@ -414,13 +414,13 @@ class TestRunCompareHandler:
         data = json.loads(out_path.read_text())
         assert data["run_a"] == "run-a"
 
-    @patch("research_pipeline.cli.cmd_compare.load_config")
+    @patch("research_pipeline.pipeline.compare.load_config")
     def test_missing_run_ids(
         self,
         mock_config: MagicMock,
     ) -> None:
         """Lines 465-467: missing run IDs → logs error, returns early."""
-        from research_pipeline.cli.cmd_compare import run_compare
+        from research_pipeline.pipeline.compare import run_compare
 
         # Neither ID provided
         run_compare(run_id_a=None, run_id_b=None)
@@ -433,9 +433,9 @@ class TestRunCompareHandler:
         run_compare(run_id_a=None, run_id_b="run-b")
         mock_config.assert_not_called()
 
-    @patch("research_pipeline.cli.cmd_compare.compare_runs")
-    @patch("research_pipeline.cli.cmd_compare.init_run")
-    @patch("research_pipeline.cli.cmd_compare.load_config")
+    @patch("research_pipeline.pipeline.compare.compare_runs")
+    @patch("research_pipeline.pipeline.compare.init_run")
+    @patch("research_pipeline.pipeline.compare.load_config")
     def test_default_output_path(
         self,
         mock_config: MagicMock,
@@ -445,7 +445,7 @@ class TestRunCompareHandler:
         monkeypatch: pytest.MonkeyPatch,
     ) -> None:
         """Line 508: default output path when no output specified."""
-        from research_pipeline.cli.cmd_compare import run_compare
+        from research_pipeline.pipeline.compare import run_compare
 
         monkeypatch.chdir(tmp_path)
         mock_config.return_value = MagicMock(workspace=str(tmp_path))

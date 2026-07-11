@@ -3,7 +3,7 @@
 import json
 from pathlib import Path
 
-from research_pipeline.cli.cmd_compare import (
+from research_pipeline.pipeline.compare import (
     _diff_confidence,
     _diff_gaps,
     _diff_paper_sets,
