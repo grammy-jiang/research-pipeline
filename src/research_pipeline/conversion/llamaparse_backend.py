@@ -11,17 +11,9 @@ Keywords: multi-account, account rotation, quota rotation.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
-from research_pipeline.conversion.base import (
-    PROGRAMMING_ERRORS,
-    ConverterBackend,
-    parse_arxiv_stem,
-)
+from research_pipeline.conversion.base import ConversionContext, ConverterBackend
 from research_pipeline.conversion.registry import register_backend
-from research_pipeline.infra.clock import utc_now
-from research_pipeline.infra.hashing import sha256_file, sha256_str
-from research_pipeline.models.conversion import ConvertManifestEntry
 
 logger = logging.getLogger(__name__)
 
@@ -48,119 +40,64 @@ class LlamaParseBackend(ConverterBackend):
         self.api_key = api_key
         self.tier = tier
 
-    def fingerprint(self) -> str:
-        config_hash = sha256_str(f"llamaparse:{self.tier}")[:8]
-        return f"llamaparse/cloud/{config_hash}"
+    @property
+    def converter_name(self) -> str:
+        return "llamaparse"
 
-    def convert(
-        self, pdf_path: Path, output_dir: Path, *, force: bool = False
-    ) -> ConvertManifestEntry:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        md_filename = pdf_path.stem + ".md"
-        md_path = output_dir / md_filename
-        pdf_hash = sha256_file(pdf_path)
+    @property
+    def converter_version(self) -> str:
+        return "cloud"
 
-        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
+    def _config_string(self) -> str:
+        return f"llamaparse:{self.tier}"
 
-        if force and md_path.exists():
-            logger.info("Force mode: removing existing %s", md_path)
-            md_path.unlink()
+    def _run(self, ctx: ConversionContext) -> tuple[str, list[str]]:
+        import asyncio
 
-        config_hash = sha256_str(f"llamaparse:{self.tier}")[:8]
+        from llama_cloud import AsyncLlamaCloud  # type: ignore[import-not-found]
 
-        if md_path.exists():
-            logger.info("Markdown already exists, skipping: %s", md_path)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="llamaparse",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="skipped_exists",
+        logger.info(
+            "Converting %s via LlamaParse API (tier=%s)...",
+            ctx.pdf_path.name,
+            self.tier,
+        )
+
+        async def _parse() -> str:
+            client = AsyncLlamaCloud(api_key=self.api_key)
+            file_obj = await client.files.create(
+                file=str(ctx.pdf_path),
+                purpose="parse",
             )
+            result = await client.parsing.parse(
+                file_id=file_obj.id,
+                tier=self.tier,
+                version="latest",
+                expand=["markdown"],
+            )
+            pages = []
+            for page in result.markdown.pages:
+                pages.append(page.markdown)
+            return "\n\n---\n\n".join(pages)
 
+        # Run async in sync context
         try:
-            import asyncio
+            loop = asyncio.get_running_loop()
+        except RuntimeError:
+            loop = None
 
-            from llama_cloud import AsyncLlamaCloud  # type: ignore[import-not-found]
+        if loop and loop.is_running():
+            import concurrent.futures
 
-            logger.info(
-                "Converting %s via LlamaParse API (tier=%s)...",
-                pdf_path.name,
-                self.tier,
-            )
+            with concurrent.futures.ThreadPoolExecutor() as pool:
+                markdown_text = pool.submit(asyncio.run, _parse()).result()
+        else:
+            markdown_text = asyncio.run(_parse())
 
-            async def _parse() -> str:
-                client = AsyncLlamaCloud(api_key=self.api_key)
-                file_obj = await client.files.create(
-                    file=str(pdf_path),
-                    purpose="parse",
-                )
-                result = await client.parsing.parse(
-                    file_id=file_obj.id,
-                    tier=self.tier,
-                    version="latest",
-                    expand=["markdown"],
-                )
-                pages = []
-                for page in result.markdown.pages:
-                    pages.append(page.markdown)
-                return "\n\n---\n\n".join(pages)
+        ctx.md_path.write_text(markdown_text, encoding="utf-8")
+        logger.info(
+            "Converted %s → %s via LlamaParse",
+            ctx.pdf_path.name,
+            ctx.md_path.name,
+        )
 
-            # Run async in sync context
-            try:
-                loop = asyncio.get_running_loop()
-            except RuntimeError:
-                loop = None
-
-            if loop and loop.is_running():
-                import concurrent.futures
-
-                with concurrent.futures.ThreadPoolExecutor() as pool:
-                    markdown_text = pool.submit(asyncio.run, _parse()).result()
-            else:
-                markdown_text = asyncio.run(_parse())
-
-            md_path.write_text(markdown_text, encoding="utf-8")
-            logger.info(
-                "Converted %s → %s via LlamaParse",
-                pdf_path.name,
-                md_path.name,
-            )
-
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="llamaparse",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="converted",
-            )
-        except Exception as exc:
-            if isinstance(exc, PROGRAMMING_ERRORS):
-                raise
-            logger.error("LlamaParse conversion failed for %s: %s", pdf_path.name, exc)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path="",
-                converter_name="llamaparse",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[str(exc)],
-                status="failed",
-                error=str(exc),
-            )
+        return markdown_text, []

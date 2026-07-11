@@ -15,12 +15,11 @@ from pathlib import Path
 
 from research_pipeline.conversion.base import (
     PROGRAMMING_ERRORS,
+    ConversionContext,
     ConverterBackend,
-    parse_arxiv_stem,
 )
 from research_pipeline.conversion.registry import register_backend
 from research_pipeline.infra.clock import utc_now
-from research_pipeline.infra.hashing import sha256_file, sha256_str
 from research_pipeline.models.conversion import ConvertManifestEntry
 
 logger = logging.getLogger(__name__)
@@ -60,116 +59,55 @@ class MinerUBackend(ConverterBackend):
                 self._version = "unknown"
         return self._version
 
-    def fingerprint(self) -> str:
-        """Return converter fingerprint."""
-        config_hash = sha256_str(
-            f"parse_method={self.parse_method}|timeout={self.timeout_seconds}"
-        )[:8]
-        return f"mineru/{self.version}/{config_hash}"
+    @property
+    def converter_name(self) -> str:
+        return "mineru"
 
-    def convert(
-        self, pdf_path: Path, output_dir: Path, *, force: bool = False
-    ) -> ConvertManifestEntry:
-        """Convert a PDF to Markdown using MinerU (magic-pdf).
+    @property
+    def converter_version(self) -> str:
+        return self.version
 
-        Attempts the Python API first, falling back to the ``magic-pdf``
-        CLI if the API call fails.
+    def _config_string(self) -> str:
+        return f"parse_method={self.parse_method}|timeout={self.timeout_seconds}"
 
-        Args:
-            pdf_path: Path to the source PDF.
-            output_dir: Directory to write Markdown output.
-            force: Re-convert even if output already exists.
+    def _run(self, ctx: ConversionContext) -> tuple[str, list[str]]:
+        """Convert via the magic_pdf Python API.
 
-        Returns:
-            Conversion manifest entry.
+        Attempts the Python API; if it fails with a non-ImportError,
+        ``_on_convert_error`` falls back to the ``magic-pdf`` CLI.
         """
-        output_dir.mkdir(parents=True, exist_ok=True)
-        md_filename = pdf_path.stem + ".md"
-        md_path = output_dir / md_filename
-        pdf_hash = sha256_file(pdf_path)
+        markdown_text = self._convert_python_api(ctx.pdf_path, ctx.md_path.parent)
+        ctx.md_path.write_text(markdown_text, encoding="utf-8")
+        logger.info(
+            "Converted %s → %s (Python API)", ctx.pdf_path.name, ctx.md_path.name
+        )
+        return markdown_text, []
 
-        # Parse arxiv_id and version from filename
-        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
-
-        if force and md_path.exists():
-            logger.info("Force mode: removing existing %s", md_path)
-            md_path.unlink()
-
-        config_hash = sha256_str(
-            f"parse_method={self.parse_method}|timeout={self.timeout_seconds}"
-        )[:8]
-
-        if md_path.exists():
-            logger.info("Markdown already exists, skipping: %s", md_path)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="mineru",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="skipped_exists",
-            )
-
-        try:
-            markdown_text = self._convert_python_api(pdf_path, output_dir)
-            md_path.write_text(markdown_text, encoding="utf-8")
-            logger.info("Converted %s → %s (Python API)", pdf_path.name, md_path.name)
-
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="mineru",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="converted",
-            )
-
-        except ImportError:
+    def _on_convert_error(
+        self, exc: Exception, ctx: ConversionContext
+    ) -> ConvertManifestEntry:
+        if isinstance(exc, ImportError):
             msg = (
                 "magic-pdf is not installed. Install with: "
                 "pip install 'research-pipeline[mineru]'"
             )
             logger.error(msg)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="mineru",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[msg],
-                status="failed",
-                error=msg,
+            return ctx.entry(
+                "failed", markdown_path=str(ctx.md_path), warnings=[msg], error=msg
             )
-        except Exception as exc:
-            if isinstance(exc, PROGRAMMING_ERRORS):
-                raise
-            logger.warning(
-                "MinerU Python API failed for %s: %s — trying CLI fallback",
-                pdf_path.name,
-                exc,
-            )
-            return self._convert_cli_fallback(
-                pdf_path,
-                md_path,
-                pdf_hash,
-                arxiv_id,
-                version,
-                config_hash,
-            )
+        logger.warning(
+            "MinerU Python API failed for %s: %s — trying CLI fallback",
+            ctx.pdf_path.name,
+            exc,
+        )
+        return self._convert_cli_fallback(
+            ctx.pdf_path,
+            ctx.md_path,
+            ctx.pdf_hash,
+            ctx.arxiv_id,
+            ctx.version,
+            ctx.config_hash,
+        )
 
     def _convert_python_api(self, pdf_path: Path, output_dir: Path) -> str:
         """Attempt conversion via the magic_pdf Python API.
