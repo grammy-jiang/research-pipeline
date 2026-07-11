@@ -825,10 +825,7 @@ def score_batch_layered(
     if config is None:
         config = ArchitectureConfig()
 
-    results = []
-    for claim in claims:
-        result = score_claim_layered(claim, config, llm_provider)
-        results.append(result)
+    results = [score_claim_layered(claim, config, llm_provider) for claim in claims]
 
     # Log summary
     scores = [r.final_score for r in results]
