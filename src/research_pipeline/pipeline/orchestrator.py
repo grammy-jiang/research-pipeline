@@ -980,7 +980,10 @@ def run_pipeline(
 
         # Optional LLM second-pass screening
         if llm_provider is not None:
-            from research_pipeline.screening.llm_judge import judge_batch
+            from research_pipeline.screening.llm_judge import (
+                blend_final_score,
+                judge_batch,
+            )
 
             llm_candidates = [d.paper for d in shortlist]
             judgments = judge_batch(
@@ -994,9 +997,9 @@ def run_pipeline(
                     shortlist[i] = shortlist[i].model_copy(
                         update={
                             "llm": judgment,
-                            "final_score": (
-                                0.6 * shortlist[i].cheap.cheap_score
-                                + 0.4 * judgment.llm_score
+                            "final_score": blend_final_score(
+                                shortlist[i].cheap.cheap_score,
+                                judgment.llm_score,
                             ),
                         }
                     )
