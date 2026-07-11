@@ -50,13 +50,23 @@ def _validate_tool_path(value: str) -> str:
 # A ``str`` field carrying a filesystem path, containment-checked at validation.
 PathStr = Annotated[str, AfterValidator(_validate_tool_path)]
 
+# Canonical description for every ``workspace`` field (#120): a relative or empty
+# path resolves against the MCP *server's* working directory, not the caller's —
+# which is invisible to a remote client unless we say so. One constant keeps all
+# tool schemas from drifting into seven different phrasings.
+_WORKSPACE_DESC = (
+    "Workspace directory for run artifacts. A relative or empty path resolves "
+    "against the MCP server's working directory (not the caller's) — pass an "
+    "absolute path for a predictable output location."
+)
+
 
 class CommonParams(BaseModel):
     """Parameters shared by all MCP tools."""
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Path to the workspace directory for artifacts.",
+        description=_WORKSPACE_DESC,
     )
     run_id: str = Field(
         default="",
@@ -169,7 +179,7 @@ class GetRunManifestInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Path to the workspace directory.",
+        description=_WORKSPACE_DESC,
     )
     run_id: str = Field(
         default="",
@@ -332,7 +342,7 @@ class ValidateReportInput(BaseModel):
     )
     workspace: PathStr = Field(
         default="./workspace",
-        description="Path to the workspace directory.",
+        description=_WORKSPACE_DESC,
     )
     run_id: str = Field(
         default="",
@@ -347,7 +357,7 @@ class CompareRunsInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Path to the workspace directory.",
+        description=_WORKSPACE_DESC,
     )
     run_id_a: str = Field(
         description="First run ID (baseline).",
@@ -484,7 +494,7 @@ class CoherenceInput(BaseModel):
     )
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory containing run outputs.",
+        description=_WORKSPACE_DESC,
     )
 
 
@@ -497,7 +507,7 @@ class ConsolidationInput(BaseModel):
     )
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory containing run outputs.",
+        description=_WORKSPACE_DESC,
     )
     dry_run: bool = Field(
         default=False,
@@ -522,7 +532,7 @@ class BlindingAuditInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory containing run outputs.",
+        description=_WORKSPACE_DESC,
     )
     run_id: str = Field(
         default="",
@@ -543,7 +553,7 @@ class DualMetricsInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory containing run outputs.",
+        description=_WORKSPACE_DESC,
     )
     query: str = Field(
         description="Research query these runs address.",
@@ -567,7 +577,7 @@ class CbrLookupInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory.",
+        description=_WORKSPACE_DESC,
     )
     topic: str = Field(
         description="Research topic to look up similar past cases.",
@@ -587,7 +597,7 @@ class CbrRetainInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory.",
+        description=_WORKSPACE_DESC,
     )
     run_id: str = Field(
         description="Pipeline run ID to store as a case.",
@@ -681,7 +691,7 @@ class ConfidenceLayersInput(BaseModel):
     )
     workspace: PathStr = Field(
         default="",
-        description="Workspace directory. Empty uses config default.",
+        description=_WORKSPACE_DESC,
     )
     l4_threshold: float = Field(
         default=0.50,
@@ -955,7 +965,7 @@ class EvaluateInput(BaseModel):
     )
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace directory containing run outputs.",
+        description=_WORKSPACE_DESC,
     )
 
 
@@ -991,7 +1001,7 @@ class BriefCommonInput(BaseModel):
 
     workspace: PathStr = Field(
         default="./workspace",
-        description="Workspace root for briefing artifacts.",
+        description=_WORKSPACE_DESC,
     )
     date: str = Field(
         default="",
@@ -1062,7 +1072,7 @@ class BriefGenerateDossierInput(BriefCommonInput):
 class BriefWeeklySynthesisInput(BaseModel):
     """Input for ``brief_weekly_synthesis``."""
 
-    workspace: PathStr = Field(default="./workspace", description="Workspace root.")
+    workspace: PathStr = Field(default="./workspace", description=_WORKSPACE_DESC)
     week: str = Field(description="Week ID, e.g. 2026-W18.")
     output_path: PathStr = Field(
         default="", description="Optional Markdown output path."
