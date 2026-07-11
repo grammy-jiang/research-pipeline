@@ -342,12 +342,17 @@ def tool_convert_pdfs(
     force: bool = False,
     backend: str = "",
 ) -> ToolResult:
-    """Convert downloaded PDFs to Markdown.
+    """Convert downloaded PDFs to Markdown (single-pass, one backend for all).
 
     Supports multiple backends: docling, marker, pymupdf4llm (local) and
     mathpix, datalab, llamaparse, mistral_ocr, openai_vision (cloud/online).
     Use backend='' to use the config default.
     Requires the corresponding extra to be installed.
+
+    When to use: converts every downloaded PDF with a single backend. Prefer
+    the two-tier flow (convert_rough then convert_fine) when you want fast
+    triage before spending quality/quota budget; use convert_file for a
+    one-off PDF outside a run workspace.
     """
     result = convert_pdfs(
         ConvertPdfsInput(
@@ -478,6 +483,10 @@ def tool_convert_file(
     mathpix, datalab, llamaparse, mistral_ocr, openai_vision (cloud/online).
     Use backend='' to use the config default. Useful for ad-hoc
     document conversion without running the full pipeline.
+
+    When to use: a one-off file with no run/workspace. For papers already in a
+    run use convert_pdfs (single-pass) or convert_rough + convert_fine (the
+    two-tier fast-triage-then-quality flow).
     """
     result = convert_file(
         ConvertFileInput(pdf_path=pdf_path, output_dir=output_dir, backend=backend),
@@ -644,6 +653,11 @@ def tool_convert_rough(
     CPU-only, fast conversion for all papers. The agent reads rough
     markdown to decide which papers need fine conversion.
     Requires a completed download stage.
+
+    When to use: step 1 of the two-tier flow — run this first (fast, all
+    papers), then convert_fine on the subset you select. For a single backend
+    over everything in one pass use convert_pdfs; for a one-off file use
+    convert_file.
     """
     result = convert_rough(
         ConvertRoughInput(workspace=workspace, run_id=run_id, force=force), ctx=ctx
@@ -672,6 +686,10 @@ def tool_convert_fine(
     Converts agent-selected papers using docling, marker, or cloud
     backend. Requires explicit paper IDs and a completed download stage.
     Use backend='' for config default.
+
+    When to use: step 2 of the two-tier flow — run after convert_rough, on the
+    paper IDs you selected from the rough pass. For a single pass over all
+    papers use convert_pdfs; for a one-off file use convert_file.
     """
     result = convert_fine(
         ConvertFineInput(
