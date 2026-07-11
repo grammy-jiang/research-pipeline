@@ -13,6 +13,7 @@ from research_pipeline.screening.typed_stopping import (
     StoppingProfile,
     TypedStoppingEvaluator,
     TypedStoppingResult,
+    _enrichment_terms,
     classify_query_type,
     estimate_cost,
     get_profile,
@@ -349,3 +350,80 @@ class TestDefaultProfiles:
         # Exploratory/recall should allow more batches than precision/verification
         assert RECALL_PROFILE.max_batches > PRECISION_PROFILE.max_batches
         assert EXPLORATORY_PROFILE.max_batches > JUDGMENT_PROFILE.max_batches
+
+
+# ---------------------------------------------------------------------------
+# Opt-in mid-run re-classification (#111)
+# ---------------------------------------------------------------------------
+
+
+# Retrieved titles dominated by judgment markers (compare/versus/benchmark/best),
+# so the enriched signal contradicts a topic-only RECALL guess.
+_JUDGMENT_TITLES = [
+    "Compare BERT versus GPT on the GLUE benchmark",
+    "A benchmark comparison of transformer models",
+    "Which encoder is best: an evaluation across tasks",
+]
+
+
+class TestEnrichmentTerms:
+    def test_frequency_and_alpha_tiebreak(self) -> None:
+        terms = _enrichment_terms(["benchmark benchmark alpha", "alpha zeta"], k=3)
+        # benchmark (2) and alpha (2) outrank zeta (1); the two 2-counts tie and
+        # break alphabetically → alpha before benchmark.
+        assert terms == ["alpha", "benchmark", "zeta"]
+
+    def test_drops_short_words_and_stopwords(self) -> None:
+        terms = _enrichment_terms(["the vs of survey models based"], k=10)
+        # <4 chars ("the", "vs", "of") and stopwords ("models", "based") dropped;
+        # "survey" (a real content term) kept.
+        assert "survey" in terms
+        assert not ({"the", "vs", "of", "models", "based"} & set(terms))
+
+
+class TestReclassification:
+    def test_off_by_default_no_switch(self) -> None:
+        ev = TypedStoppingEvaluator(query="transformer models")  # default off
+        assert ev.query_type == ExtendedQueryType.RECALL
+        ev.add_batch([0.9, 0.8, 0.7, 0.6, 0.5], texts=_JUDGMENT_TITLES)
+        assert ev.query_type == ExtendedQueryType.RECALL
+        assert ev.reclassified is False
+        assert ev.evaluate().reclassified is False
+
+    def test_switches_type_after_n(self) -> None:
+        ev = TypedStoppingEvaluator(query="transformer models", reclassify_after_n=1)
+        assert ev.query_type == ExtendedQueryType.RECALL
+        ev.add_batch([0.9, 0.8, 0.7, 0.6, 0.5], texts=_JUDGMENT_TITLES)
+        # Evidence flips the type and swaps in the matching profile.
+        assert ev.query_type == ExtendedQueryType.JUDGMENT
+        assert ev.profile is JUDGMENT_PROFILE
+        result = ev.evaluate()
+        assert result.reclassified is True
+        assert result.reclassified_from == "recall"
+        assert result.query_type == ExtendedQueryType.JUDGMENT
+
+    def test_requires_n_batches(self) -> None:
+        ev = TypedStoppingEvaluator(query="transformer models", reclassify_after_n=2)
+        # First batch: threshold (2) not yet met → no switch.
+        ev.add_batch([0.9, 0.8], texts=_JUDGMENT_TITLES)
+        assert ev.query_type == ExtendedQueryType.RECALL
+        assert ev.reclassified is False
+        # Second batch: threshold met → switch.
+        ev.add_batch([0.7, 0.6], texts=_JUDGMENT_TITLES)
+        assert ev.query_type == ExtendedQueryType.JUDGMENT
+        assert ev.reclassified is True
+
+    def test_no_texts_is_noop(self) -> None:
+        ev = TypedStoppingEvaluator(query="transformer models", reclassify_after_n=1)
+        ev.add_batch([0.9, 0.8, 0.7])  # scores only, no texts
+        assert ev.query_type == ExtendedQueryType.RECALL
+        assert ev.reclassified is False
+
+    def test_records_original_type_once(self) -> None:
+        # The recorded origin is the *initial* type, preserved across further
+        # evidence, so the audit trail always points at the first guess.
+        ev = TypedStoppingEvaluator(query="transformer models", reclassify_after_n=1)
+        ev.add_batch([0.9, 0.8], texts=_JUDGMENT_TITLES)
+        ev.add_batch([0.7, 0.6], texts=["a specific exact formula for attention"])
+        assert ev.reclassified is True
+        assert ev.evaluate().reclassified_from == "recall"

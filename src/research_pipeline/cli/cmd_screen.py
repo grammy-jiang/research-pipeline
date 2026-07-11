@@ -114,21 +114,38 @@ def run_screen(
 
     query_type = classify_query_type(plan.topic_raw)
     cost_est = estimate_cost(plan.topic_raw)
-    evaluator = TypedStoppingEvaluator(query=plan.topic_raw, query_type=query_type)
+    evaluator = TypedStoppingEvaluator(
+        query=plan.topic_raw,
+        query_type=query_type,
+        reclassify_after_n=config.screen.reclassify_after_n,
+    )
     batch_scores = [s.cheap_score for s in scores]
     if batch_scores:
-        evaluator.add_batch(batch_scores)
+        # Feed retrieved titles + abstracts so opt-in re-classification can revise
+        # the topic-only query type from actual evidence (#111). Inert unless
+        # config.screen.reclassify_after_n > 0.
+        batch_texts = [
+            f"{candidate.title}. {candidate.abstract}" for candidate, _ in top
+        ]
+        evaluator.add_batch(batch_scores, texts=batch_texts)
 
+    final_type = evaluator.query_type
     stopping_metadata = {
-        "query_type": query_type.value,
+        "query_type": final_type.value,
         "stopping_profile": evaluator.profile.to_dict(),
         "cost_estimate": cost_est.to_dict(),
         "evaluation": evaluator.evaluate().to_dict(),
     }
     stopping_path = screen_dir / "typed_stopping.json"
     stopping_path.write_text(json.dumps(stopping_metadata, indent=2), encoding="utf-8")
+    if evaluator.reclassified:
+        logger.info(
+            "Re-classified query type from retrieved evidence: %s → %s",
+            query_type.value,
+            final_type.value,
+        )
     logger.info(
-        "Query type: %s (profile: %s)", query_type.value, evaluator.profile.description
+        "Query type: %s (profile: %s)", final_type.value, evaluator.profile.description
     )
 
     # Query refinement feedback — suggest terms for iterative improvement
@@ -153,7 +170,7 @@ def run_screen(
         )
 
     typer.echo(f"Screened {len(candidates)} → {len(shortlist)} shortlisted")
-    typer.echo(f"Query type: {query_type.value}")
+    typer.echo(f"Query type: {final_type.value}")
     typer.echo(f"Saved to: {shortlist_path}")
     if refinement.suggested_additions:
         typer.echo(
