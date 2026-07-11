@@ -200,10 +200,10 @@ class TestCmdCiteContext:
 class TestCmdConfidenceLayers:
     """Tests for cmd_confidence_layers."""
 
-    @patch("research_pipeline.cli.cmd_confidence_layers.create_llm_provider")
-    @patch("research_pipeline.cli.cmd_confidence_layers.read_jsonl")
-    @patch("research_pipeline.cli.cmd_confidence_layers.init_run")
-    @patch("research_pipeline.cli.cmd_confidence_layers.load_config")
+    @patch("research_pipeline.confidence.layers_runner.create_llm_provider")
+    @patch("research_pipeline.confidence.layers_runner.read_jsonl")
+    @patch("research_pipeline.confidence.layers_runner.init_run")
+    @patch("research_pipeline.confidence.layers_runner.load_config")
     def test_missing_claims_exits(
         self, mock_cfg, mock_init, mock_read, mock_llm, tmp_path
     ):
@@ -226,13 +226,13 @@ class TestCmdConfidenceLayers:
                 calibrate=False,
             )
 
-    @patch("research_pipeline.cli.cmd_confidence_layers.write_jsonl")
-    @patch("research_pipeline.cli.cmd_confidence_layers.batch_calibration_report")
-    @patch("research_pipeline.cli.cmd_confidence_layers.score_batch_layered")
-    @patch("research_pipeline.cli.cmd_confidence_layers.create_llm_provider")
-    @patch("research_pipeline.cli.cmd_confidence_layers.read_jsonl")
-    @patch("research_pipeline.cli.cmd_confidence_layers.init_run")
-    @patch("research_pipeline.cli.cmd_confidence_layers.load_config")
+    @patch("research_pipeline.confidence.layers_runner.write_jsonl")
+    @patch("research_pipeline.confidence.layers_runner.batch_calibration_report")
+    @patch("research_pipeline.confidence.layers_runner.score_batch_layered")
+    @patch("research_pipeline.confidence.layers_runner.create_llm_provider")
+    @patch("research_pipeline.confidence.layers_runner.read_jsonl")
+    @patch("research_pipeline.confidence.layers_runner.init_run")
+    @patch("research_pipeline.confidence.layers_runner.load_config")
     def test_happy_path(
         self,
         mock_cfg,
@@ -262,7 +262,7 @@ class TestCmdConfidenceLayers:
         mock_read.return_value = [{"paper_id": "p1", "claims": []}]
 
         with patch(
-            "research_pipeline.cli.cmd_confidence_layers.ClaimDecomposition"
+            "research_pipeline.confidence.layers_runner.ClaimDecomposition"
         ) as MockCD:
             MockCD.model_validate.return_value = decomp
             mock_llm.return_value = None
@@ -293,13 +293,13 @@ class TestCmdConfidenceLayers:
             mock_score.assert_called_once()
             mock_report.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_confidence_layers.write_jsonl")
-    @patch("research_pipeline.cli.cmd_confidence_layers.batch_calibration_report")
-    @patch("research_pipeline.cli.cmd_confidence_layers.score_batch_layered")
-    @patch("research_pipeline.cli.cmd_confidence_layers.create_llm_provider")
-    @patch("research_pipeline.cli.cmd_confidence_layers.read_jsonl")
-    @patch("research_pipeline.cli.cmd_confidence_layers.init_run")
-    @patch("research_pipeline.cli.cmd_confidence_layers.load_config")
+    @patch("research_pipeline.confidence.layers_runner.write_jsonl")
+    @patch("research_pipeline.confidence.layers_runner.batch_calibration_report")
+    @patch("research_pipeline.confidence.layers_runner.score_batch_layered")
+    @patch("research_pipeline.confidence.layers_runner.create_llm_provider")
+    @patch("research_pipeline.confidence.layers_runner.read_jsonl")
+    @patch("research_pipeline.confidence.layers_runner.init_run")
+    @patch("research_pipeline.confidence.layers_runner.load_config")
     def test_no_claims_exits_zero(
         self,
         mock_cfg,
@@ -326,21 +326,21 @@ class TestCmdConfidenceLayers:
         mock_read.return_value = [{}]
 
         with patch(
-            "research_pipeline.cli.cmd_confidence_layers.ClaimDecomposition"
+            "research_pipeline.confidence.layers_runner.ClaimDecomposition"
         ) as MockCD:
             MockCD.model_validate.return_value = decomp
 
-            with pytest.raises(click.exceptions.Exit) as exc_info:
-                run_confidence_layers(
-                    config_path=None,
-                    workspace=tmp_path,
-                    run_id="run1",
-                    l4_threshold=0.5,
-                    damping=0.8,
-                    calibrate=False,
-                )
-            # Exit code 0 for "no claims to score"
-            assert exc_info.value.exit_code == 0
+            # No claims: Core returns normally (was typer.Exit(0) pre-#109); the
+            # wrapper exits 0 without raising, so scoring is never reached.
+            run_confidence_layers(
+                config_path=None,
+                workspace=tmp_path,
+                run_id="run1",
+                l4_threshold=0.5,
+                damping=0.8,
+                calibrate=False,
+            )
+            mock_score.assert_not_called()
 
 
 # ── 3. cmd_convert_fine ──────────────────────────────────────────────────
