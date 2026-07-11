@@ -88,6 +88,11 @@ def _parse_response(raw: dict[str, object]) -> LLMJudgment | None:
         Parsed LLMJudgment, or None if parsing fails.
     """
     try:
+        # A degraded response is one missing the load-bearing fields; the
+        # substituted defaults (0.0 / "medium") would otherwise be indistinguishable
+        # from a real judgment when averaged into final_score (#122).
+        degraded = "llm_score" not in raw or "label" not in raw
+
         score = float(raw.get("llm_score", 0.0))  # type: ignore[arg-type]
         score = _clamp(score, 0.0, 1.0)
 
@@ -95,6 +100,7 @@ def _parse_response(raw: dict[str, object]) -> LLMJudgment | None:
         if label not in _VALID_LABELS:
             logger.warning("Invalid label %r, defaulting to 'medium'", label)
             label = "medium"
+            degraded = True
 
         rationale = raw.get("rationale", [])
         if not isinstance(rationale, list):
@@ -119,10 +125,48 @@ def _parse_response(raw: dict[str, object]) -> LLMJudgment | None:
             evidence_quotes=evidence_quotes,
             uncertainties=[str(u) for u in uncertainties],
             needs_fulltext_validation=[str(n) for n in needs_fulltext],
+            parse_degraded=degraded,
         )
     except (ValueError, TypeError, KeyError) as exc:
         logger.warning("Failed to parse LLM response: %s", exc)
         return None
+
+
+def _normalize_quote(text: str) -> str:
+    """Lowercase + collapse whitespace for tolerant substring matching."""
+    return " ".join(text.lower().split())
+
+
+def verify_evidence_quotes(
+    judgment: LLMJudgment, candidate: CandidateRecord
+) -> LLMJudgment:
+    """Drop evidence quotes that are not verbatim substrings of their source.
+
+    The LLM judge is asked for supporting quotes but nothing checked they were
+    real — a fabricated quote passed straight through (#122). Each quote must
+    appear (whitespace/case-normalized) in the field it cites; unverifiable
+    quotes are dropped so downstream evidence is grounded.
+    """
+    sources = {
+        "title": _normalize_quote(candidate.title),
+        "abstract": _normalize_quote(candidate.abstract),
+        "category": _normalize_quote(" ".join(candidate.categories)),
+        "date": _normalize_quote(str(candidate.published)),
+    }
+    verified = [
+        q
+        for q in judgment.evidence_quotes
+        if q.text and _normalize_quote(q.text) in sources.get(q.source, "")
+    ]
+    dropped = len(judgment.evidence_quotes) - len(verified)
+    if dropped:
+        logger.warning(
+            "Dropped %d unverifiable evidence quote(s) for %s",
+            dropped,
+            candidate.arxiv_id,
+        )
+        return judgment.model_copy(update={"evidence_quotes": verified})
+    return judgment
 
 
 def judge_candidate(
@@ -176,7 +220,8 @@ def judge_candidate(
             "Failed to parse LLM judgment for %s",
             candidate.arxiv_id,
         )
-    return judgment
+        return None
+    return verify_evidence_quotes(judgment, candidate)
 
 
 def judge_batch(

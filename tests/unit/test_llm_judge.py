@@ -8,13 +8,14 @@ from unittest.mock import MagicMock
 
 from research_pipeline.llm.base import LLMProvider
 from research_pipeline.models.candidate import CandidateRecord
-from research_pipeline.models.screening import LLMJudgment
+from research_pipeline.models.screening import EvidenceQuote, LLMJudgment
 from research_pipeline.screening.llm_judge import (
     _build_prompt,
     _clamp,
     _parse_response,
     judge_batch,
     judge_candidate,
+    verify_evidence_quotes,
 )
 
 
@@ -305,3 +306,66 @@ class TestParseResponse:
         result = _parse_response(_valid_response(llm_score="0.7"))
         assert result is not None
         assert result.llm_score == 0.7
+
+
+class TestParseDegraded:
+    """A degraded response (defaults substituted) must be flagged (#122)."""
+
+    def test_missing_llm_score_is_degraded(self) -> None:
+        raw = _valid_response()
+        del raw["llm_score"]
+        result = _parse_response(raw)
+        assert result is not None
+        assert result.parse_degraded is True
+        assert result.llm_score == 0.0
+
+    def test_missing_label_is_degraded(self) -> None:
+        raw = _valid_response()
+        del raw["label"]
+        result = _parse_response(raw)
+        assert result is not None
+        assert result.parse_degraded is True
+
+    def test_invalid_label_is_degraded(self) -> None:
+        result = _parse_response(_valid_response(label="banana"))
+        assert result is not None
+        assert result.parse_degraded is True
+        assert result.label == "medium"
+
+    def test_valid_response_not_degraded(self) -> None:
+        result = _parse_response(_valid_response())
+        assert result is not None
+        assert result.parse_degraded is False
+
+
+class TestVerifyEvidenceQuotes:
+    """Fabricated evidence quotes are dropped; grounded ones kept (#122)."""
+
+    def test_drops_fabricated_quote(self) -> None:
+        cand = _make_candidate(
+            abstract="We study attention mechanisms in transformer models."
+        )
+        judgment = LLMJudgment(
+            llm_score=0.8,
+            label="high",
+            evidence_quotes=[
+                EvidenceQuote(text="attention mechanisms", source="abstract"),
+                EvidenceQuote(text="quantum teleportation results", source="abstract"),
+            ],
+        )
+        out = verify_evidence_quotes(judgment, cand)
+        texts = [q.text for q in out.evidence_quotes]
+        assert "attention mechanisms" in texts
+        assert "quantum teleportation results" not in texts
+
+    def test_keeps_verified_quote(self) -> None:
+        cand = _make_candidate(title="Efficient Transformers for Retrieval")
+        judgment = LLMJudgment(
+            llm_score=0.8,
+            label="high",
+            evidence_quotes=[
+                EvidenceQuote(text="Efficient Transformers", source="title"),
+            ],
+        )
+        out = verify_evidence_quotes(judgment, cand)
+        assert len(out.evidence_quotes) == 1
