@@ -12,19 +12,15 @@ from __future__ import annotations
 
 import logging
 import time
-from pathlib import Path
 
 import requests
 
 from research_pipeline.conversion.base import (
     PROGRAMMING_ERRORS,
+    ConversionContext,
     ConverterBackend,
-    parse_arxiv_stem,
 )
 from research_pipeline.conversion.registry import register_backend
-from research_pipeline.infra.clock import utc_now
-from research_pipeline.infra.hashing import sha256_file, sha256_str
-from research_pipeline.models.conversion import ConvertManifestEntry
 
 logger = logging.getLogger(__name__)
 
@@ -56,9 +52,16 @@ class MathpixBackend(ConverterBackend):
         self.app_id = app_id
         self.app_key = app_key
 
-    def fingerprint(self) -> str:
-        config_hash = sha256_str(f"app_id={self.app_id}")[:8]
-        return f"mathpix/cloud/{config_hash}"
+    @property
+    def converter_name(self) -> str:
+        return "mathpix"
+
+    @property
+    def converter_version(self) -> str:
+        return "cloud"
+
+    def _config_string(self) -> str:
+        return f"app_id={self.app_id}"
 
     def _headers(self) -> dict[str, str]:
         return {
@@ -66,129 +69,67 @@ class MathpixBackend(ConverterBackend):
             "app_key": self.app_key,
         }
 
-    def convert(
-        self, pdf_path: Path, output_dir: Path, *, force: bool = False
-    ) -> ConvertManifestEntry:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        md_filename = pdf_path.stem + ".md"
-        md_path = output_dir / md_filename
-        pdf_hash = sha256_file(pdf_path)
-
-        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
-
-        if force and md_path.exists():
-            logger.info("Force mode: removing existing %s", md_path)
-            md_path.unlink()
-
-        config_hash = sha256_str(f"app_id={self.app_id}")[:8]
-
-        if md_path.exists():
-            logger.info("Markdown already exists, skipping: %s", md_path)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="mathpix",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="skipped_exists",
-            )
-
-        try:
-            # 1. Upload PDF
-            logger.info("Uploading %s to Mathpix API...", pdf_path.name)
-            with pdf_path.open("rb") as f:
-                resp = requests.post(
-                    f"{_API_BASE}/pdf",
-                    headers=self._headers(),
-                    files={"file": (pdf_path.name, f, "application/pdf")},
-                    data={"conversion_formats": '{"md": true}'},
-                    timeout=60,
-                )
-            resp.raise_for_status()
-            pdf_id = resp.json()["pdf_id"]
-            logger.info("Mathpix PDF ID: %s", pdf_id)
-
-            # 2. Poll until complete
-            elapsed = 0.0
-            while elapsed < _POLL_TIMEOUT:
-                time.sleep(_POLL_INTERVAL)
-                elapsed += _POLL_INTERVAL
-                status_resp = requests.get(
-                    f"{_API_BASE}/pdf/{pdf_id}",
-                    headers=self._headers(),
-                    timeout=30,
-                )
-                status_resp.raise_for_status()
-                status_data = status_resp.json()
-                status = status_data.get("status", "")
-                pct = status_data.get("percent_done", 0)
-                logger.debug("Mathpix status: %s (%.0f%%)", status, pct)
-                if status == "completed":
-                    break
-                if status == "error":
-                    raise RuntimeError(f"Mathpix processing error: {status_data}")
-            else:
-                raise TimeoutError(
-                    f"Mathpix processing timed out after {_POLL_TIMEOUT}s"
-                )
-
-            # 3. Download Markdown
-            md_resp = requests.get(
-                f"{_API_BASE}/pdf/{pdf_id}.md",
+    def _run(self, ctx: ConversionContext) -> tuple[str, list[str]]:
+        # 1. Upload PDF
+        logger.info("Uploading %s to Mathpix API...", ctx.pdf_path.name)
+        with ctx.pdf_path.open("rb") as f:
+            resp = requests.post(
+                f"{_API_BASE}/pdf",
                 headers=self._headers(),
+                files={"file": (ctx.pdf_path.name, f, "application/pdf")},
+                data={"conversion_formats": '{"md": true}'},
                 timeout=60,
             )
-            md_resp.raise_for_status()
-            markdown_text = md_resp.text
+        resp.raise_for_status()
+        pdf_id = resp.json()["pdf_id"]
+        logger.info("Mathpix PDF ID: %s", pdf_id)
 
-            md_path.write_text(markdown_text, encoding="utf-8")
-            logger.info("Converted %s → %s via Mathpix", pdf_path.name, md_path.name)
+        # 2. Poll until complete
+        elapsed = 0.0
+        while elapsed < _POLL_TIMEOUT:
+            time.sleep(_POLL_INTERVAL)
+            elapsed += _POLL_INTERVAL
+            status_resp = requests.get(
+                f"{_API_BASE}/pdf/{pdf_id}",
+                headers=self._headers(),
+                timeout=30,
+            )
+            status_resp.raise_for_status()
+            status_data = status_resp.json()
+            status = status_data.get("status", "")
+            pct = status_data.get("percent_done", 0)
+            logger.debug("Mathpix status: %s (%.0f%%)", status, pct)
+            if status == "completed":
+                break
+            if status == "error":
+                raise RuntimeError(f"Mathpix processing error: {status_data}")
+        else:
+            raise TimeoutError(f"Mathpix processing timed out after {_POLL_TIMEOUT}s")
 
-            # 4. Clean up remote
-            try:
-                requests.delete(
-                    f"{_API_BASE}/pdf/{pdf_id}",
-                    headers=self._headers(),
-                    timeout=10,
-                )
-            except Exception as exc:
-                if isinstance(exc, PROGRAMMING_ERRORS):
-                    raise
-                logger.debug("Failed to delete Mathpix PDF %s: %s", pdf_id, exc)
+        # 3. Download Markdown
+        md_resp = requests.get(
+            f"{_API_BASE}/pdf/{pdf_id}.md",
+            headers=self._headers(),
+            timeout=60,
+        )
+        md_resp.raise_for_status()
+        markdown_text = md_resp.text
 
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="mathpix",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="converted",
+        ctx.md_path.write_text(markdown_text, encoding="utf-8")
+        logger.info(
+            "Converted %s → %s via Mathpix", ctx.pdf_path.name, ctx.md_path.name
+        )
+
+        # 4. Clean up remote
+        try:
+            requests.delete(
+                f"{_API_BASE}/pdf/{pdf_id}",
+                headers=self._headers(),
+                timeout=10,
             )
         except Exception as exc:
             if isinstance(exc, PROGRAMMING_ERRORS):
                 raise
-            logger.error("Mathpix conversion failed for %s: %s", pdf_path.name, exc)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path="",
-                converter_name="mathpix",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[str(exc)],
-                status="failed",
-                error=str(exc),
-            )
+            logger.debug("Failed to delete Mathpix PDF %s: %s", pdf_id, exc)
+
+        return markdown_text, []

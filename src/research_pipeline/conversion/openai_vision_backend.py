@@ -11,17 +11,9 @@ from __future__ import annotations
 
 import base64
 import logging
-from pathlib import Path
 
-from research_pipeline.conversion.base import (
-    PROGRAMMING_ERRORS,
-    ConverterBackend,
-    parse_arxiv_stem,
-)
+from research_pipeline.conversion.base import ConversionContext, ConverterBackend
 from research_pipeline.conversion.registry import register_backend
-from research_pipeline.infra.clock import utc_now
-from research_pipeline.infra.hashing import sha256_file, sha256_str
-from research_pipeline.models.conversion import ConvertManifestEntry
 
 logger = logging.getLogger(__name__)
 
@@ -55,126 +47,69 @@ class OpenAIVisionBackend(ConverterBackend):
         self.api_key = api_key
         self.model = model
 
-    def fingerprint(self) -> str:
-        config_hash = sha256_str(f"model={self.model}")[:8]
-        return f"openai_vision/cloud/{config_hash}"
+    @property
+    def converter_name(self) -> str:
+        return "openai_vision"
 
-    def convert(
-        self, pdf_path: Path, output_dir: Path, *, force: bool = False
-    ) -> ConvertManifestEntry:
-        output_dir.mkdir(parents=True, exist_ok=True)
-        md_filename = pdf_path.stem + ".md"
-        md_path = output_dir / md_filename
-        pdf_hash = sha256_file(pdf_path)
+    @property
+    def converter_version(self) -> str:
+        return "cloud"
 
-        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
+    def _config_string(self) -> str:
+        return f"model={self.model}"
 
-        if force and md_path.exists():
-            logger.info("Force mode: removing existing %s", md_path)
-            md_path.unlink()
+    def _run(self, ctx: ConversionContext) -> tuple[str, list[str]]:
+        import fitz
+        from openai import OpenAI  # type: ignore[import-not-found]
 
-        config_hash = sha256_str(f"model={self.model}")[:8]
+        logger.info("Converting %s via OpenAI vision API...", ctx.pdf_path.name)
+        client = OpenAI(api_key=self.api_key)
+        doc = fitz.open(str(ctx.pdf_path))
+        pages_md: list[str] = []
 
-        if md_path.exists():
-            logger.info("Markdown already exists, skipping: %s", md_path)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="openai_vision",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="skipped_exists",
-            )
+        for page_num in range(len(doc)):
+            page = doc[page_num]
+            # Render page to PNG at 150 DPI for good quality/size balance
+            pix = page.get_pixmap(dpi=150)
+            img_bytes = pix.tobytes("png")
+            img_b64 = base64.standard_b64encode(img_bytes).decode("ascii")
 
-        try:
-            import fitz
-            from openai import OpenAI  # type: ignore[import-not-found]
-
-            logger.info("Converting %s via OpenAI vision API...", pdf_path.name)
-            client = OpenAI(api_key=self.api_key)
-            doc = fitz.open(str(pdf_path))
-            pages_md: list[str] = []
-
-            for page_num in range(len(doc)):
-                page = doc[page_num]
-                # Render page to PNG at 150 DPI for good quality/size balance
-                pix = page.get_pixmap(dpi=150)
-                img_bytes = pix.tobytes("png")
-                img_b64 = base64.standard_b64encode(img_bytes).decode("ascii")
-
-                response = client.chat.completions.create(
-                    model=self.model,
-                    messages=[
-                        {"role": "system", "content": _SYSTEM_PROMPT},
-                        {
-                            "role": "user",
-                            "content": [
-                                {
-                                    "type": "image_url",
-                                    "image_url": {
-                                        "url": f"data:image/png;base64,{img_b64}",
-                                    },
+            response = client.chat.completions.create(
+                model=self.model,
+                messages=[
+                    {"role": "system", "content": _SYSTEM_PROMPT},
+                    {
+                        "role": "user",
+                        "content": [
+                            {
+                                "type": "image_url",
+                                "image_url": {
+                                    "url": f"data:image/png;base64,{img_b64}",
                                 },
-                            ],
-                        },
-                    ],
-                    max_tokens=4096,
-                    temperature=0,
-                )
-                page_md = response.choices[0].message.content or ""
-                pages_md.append(page_md)
-                logger.debug(
-                    "Converted page %d/%d via OpenAI vision",
-                    page_num + 1,
-                    len(doc),
-                )
-
-            doc.close()
-            markdown_text = "\n\n---\n\n".join(pages_md)
-
-            md_path.write_text(markdown_text, encoding="utf-8")
-            logger.info(
-                "Converted %s → %s via OpenAI vision (%d pages)",
-                pdf_path.name,
-                md_path.name,
-                len(pages_md),
+                            },
+                        ],
+                    },
+                ],
+                max_tokens=4096,
+                temperature=0,
+            )
+            page_md = response.choices[0].message.content or ""
+            pages_md.append(page_md)
+            logger.debug(
+                "Converted page %d/%d via OpenAI vision",
+                page_num + 1,
+                len(doc),
             )
 
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="openai_vision",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="converted",
-            )
-        except Exception as exc:
-            if isinstance(exc, PROGRAMMING_ERRORS):
-                raise
-            logger.error(
-                "OpenAI vision conversion failed for %s: %s", pdf_path.name, exc
-            )
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path="",
-                converter_name="openai_vision",
-                converter_version="cloud",
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[str(exc)],
-                status="failed",
-                error=str(exc),
-            )
+        doc.close()
+        markdown_text = "\n\n---\n\n".join(pages_md)
+
+        ctx.md_path.write_text(markdown_text, encoding="utf-8")
+        logger.info(
+            "Converted %s → %s via OpenAI vision (%d pages)",
+            ctx.pdf_path.name,
+            ctx.md_path.name,
+            len(pages_md),
+        )
+
+        return markdown_text, []

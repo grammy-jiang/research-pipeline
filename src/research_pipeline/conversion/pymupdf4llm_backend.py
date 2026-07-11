@@ -10,16 +10,9 @@ Keywords: multi-account, account rotation, quota rotation.
 from __future__ import annotations
 
 import logging
-from pathlib import Path
 
-from research_pipeline.conversion.base import (
-    PROGRAMMING_ERRORS,
-    ConverterBackend,
-    parse_arxiv_stem,
-)
+from research_pipeline.conversion.base import ConversionContext, ConverterBackend
 from research_pipeline.conversion.registry import register_backend
-from research_pipeline.infra.clock import utc_now
-from research_pipeline.infra.hashing import sha256_file, sha256_str
 from research_pipeline.models.conversion import ConvertManifestEntry
 
 logger = logging.getLogger(__name__)
@@ -49,112 +42,44 @@ class PyMuPDF4LLMBackend(ConverterBackend):
                 self._version = "unknown"
         return self._version
 
-    def fingerprint(self) -> str:
-        """Return converter fingerprint."""
-        config_hash = sha256_str(f"page_chunks={self.page_chunks}")[:8]
-        return f"pymupdf4llm/{self.version}/{config_hash}"
+    @property
+    def converter_name(self) -> str:
+        return "pymupdf4llm"
 
-    def convert(
-        self, pdf_path: Path, output_dir: Path, *, force: bool = False
+    @property
+    def converter_version(self) -> str:
+        return self.version
+
+    def _config_string(self) -> str:
+        return f"page_chunks={self.page_chunks}"
+
+    def _run(self, ctx: ConversionContext) -> tuple[str, list[str]]:
+        import pymupdf4llm
+
+        markdown_text = pymupdf4llm.to_markdown(
+            str(ctx.pdf_path), page_chunks=self.page_chunks
+        )
+
+        ctx.md_path.write_text(markdown_text, encoding="utf-8")
+        logger.info("Converted %s → %s", ctx.pdf_path.name, ctx.md_path.name)
+        return markdown_text, []
+
+    def _on_convert_error(
+        self, exc: Exception, ctx: ConversionContext
     ) -> ConvertManifestEntry:
-        """Convert a PDF to Markdown using pymupdf4llm.
-
-        Args:
-            pdf_path: Path to the source PDF.
-            output_dir: Directory to write Markdown output.
-            force: Re-convert even if output already exists.
-
-        Returns:
-            Conversion manifest entry.
-        """
-        output_dir.mkdir(parents=True, exist_ok=True)
-        md_filename = pdf_path.stem + ".md"
-        md_path = output_dir / md_filename
-        pdf_hash = sha256_file(pdf_path)
-
-        arxiv_id, version = parse_arxiv_stem(pdf_path.stem)
-
-        if force and md_path.exists():
-            logger.info("Force mode: removing existing %s", md_path)
-            md_path.unlink()
-
-        config_hash = sha256_str(f"page_chunks={self.page_chunks}")[:8]
-
-        if md_path.exists():
-            logger.info("Markdown already exists, skipping: %s", md_path)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="pymupdf4llm",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="skipped_exists",
-            )
-
-        try:
-            import pymupdf4llm
-
-            markdown_text = pymupdf4llm.to_markdown(
-                str(pdf_path), page_chunks=self.page_chunks
-            )
-
-            md_path.write_text(markdown_text, encoding="utf-8")
-            logger.info("Converted %s → %s", pdf_path.name, md_path.name)
-
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="pymupdf4llm",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[],
-                status="converted",
-            )
-
-        except ImportError:
+        if isinstance(exc, ImportError):
             msg = (
                 "pymupdf4llm is not installed. Install with: "
                 "pip install 'research-pipeline[pymupdf4llm]'"
             )
             logger.error(msg)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="pymupdf4llm",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[msg],
-                status="failed",
-                error=msg,
+            return ctx.entry(
+                "failed", markdown_path=str(ctx.md_path), warnings=[msg], error=msg
             )
-        except Exception as exc:
-            if isinstance(exc, PROGRAMMING_ERRORS):
-                raise
-            logger.error("pymupdf4llm conversion failed for %s: %s", pdf_path.name, exc)
-            return ConvertManifestEntry(
-                arxiv_id=arxiv_id,
-                version=version,
-                pdf_path=str(pdf_path),
-                pdf_sha256=pdf_hash,
-                markdown_path=str(md_path),
-                converter_name="pymupdf4llm",
-                converter_version=self.version,
-                converter_config_hash=config_hash,
-                converted_at=utc_now(),
-                warnings=[str(exc)],
-                status="failed",
-                error=str(exc),
-            )
+        logger.error("pymupdf4llm conversion failed for %s: %s", ctx.pdf_path.name, exc)
+        return ctx.entry(
+            "failed",
+            markdown_path=str(ctx.md_path),
+            warnings=[str(exc)],
+            error=str(exc),
+        )
