@@ -15,6 +15,20 @@ from research_pipeline.conversion.registry import (
 )
 
 
+@pytest.fixture(autouse=True)
+def _clean_test_backends() -> object:
+    """Drop any ``_test_*`` backends a test registers, unconditionally (#117).
+
+    These tests register throwaway backends via ``@register_backend`` into the
+    process-global ``_BACKEND_REGISTRY``. Teardown here runs even if an assert
+    fails, so a test backend can no longer leak into every later test — while
+    leaving the builtins (registered once via a cached import) in place.
+    """
+    yield
+    for name in [n for n in _BACKEND_REGISTRY if n.startswith("_test")]:
+        del _BACKEND_REGISTRY[name]
+
+
 def test_known_backends_matches_registry() -> None:
     """KNOWN_BACKENDS must stay in lock-step with the @register_backend decorators.
 
@@ -42,9 +56,6 @@ class TestRegisterBackend:
         assert "_test_dummy" in _BACKEND_REGISTRY
         assert _BACKEND_REGISTRY["_test_dummy"] is _DummyBackend
 
-        # Cleanup
-        del _BACKEND_REGISTRY["_test_dummy"]
-
     def test_duplicate_registration_raises(self) -> None:
         """Registering the same name twice raises ValueError."""
 
@@ -65,9 +76,6 @@ class TestRegisterBackend:
 
                 def fingerprint(self) -> str:
                     return "second/0/000"
-
-        # Cleanup
-        del _BACKEND_REGISTRY["_test_dup"]
 
 
 class TestGetBackend:
@@ -94,9 +102,6 @@ class TestGetBackend:
 
         backend = get_backend("_test_kwargs", timeout=42)
         assert backend.timeout == 42  # type: ignore[attr-defined]
-
-        # Cleanup
-        del _BACKEND_REGISTRY["_test_kwargs"]
 
 
 class TestListBackends:

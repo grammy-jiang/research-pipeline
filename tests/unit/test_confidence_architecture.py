@@ -339,8 +339,10 @@ class TestL1:
         claim = _make_claim(relevance=1.0, n_evidence=5)
         config = ArchitectureConfig(l1_skip_high=0.7)
         l1 = _run_l1(claim, config)
-        if l1.fast_score >= 0.7:
-            assert l1.skip_deeper
+        # Guard the precondition so the test can't silently pass if the score
+        # drifts below the skip threshold (#117).
+        assert l1.fast_score >= 0.7
+        assert l1.skip_deeper
 
 
 class TestL2:
@@ -371,7 +373,7 @@ class TestL2:
         )
         config = ArchitectureConfig()
         l2 = _run_l2(claim, l1, config)
-        assert l2.decision in (GranularityDecision.KEEP, GranularityDecision.DECOMPOSE)
+        assert l2.decision == GranularityDecision.KEEP
 
 
 class TestL3:
