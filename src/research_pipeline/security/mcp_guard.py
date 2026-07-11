@@ -90,6 +90,9 @@ class AuditEntry:
     args_hash: str
     timestamp: float
     domain: TrustDomain | None = None
+    # Redacted actual arguments (secrets stripped) so an audit can show what
+    # path/URL a call carried, not only an opaque hash (#125).
+    args_redacted: str = ""
 
 
 def compute_schema_hash(schema: dict[str, Any]) -> str:
@@ -116,6 +119,22 @@ def compute_args_hash(args: dict[str, Any]) -> str:
     """
     canonical = json.dumps(args, sort_keys=True, separators=(",", ":"), default=str)
     return hashlib.sha256(canonical.encode("utf-8")).hexdigest()[:16]
+
+
+def redact_args(args: dict[str, Any], max_len: int = 500) -> str:
+    """Serialize tool args for audit with credentials redacted (#125).
+
+    Keeps the forensic value the bare hash lost — the actual path/URL a call
+    carried is visible — while ``redact_secrets`` strips any API key/token. The
+    result is length-capped so a huge argument cannot bloat the audit trail.
+    """
+    from research_pipeline.infra.sanitize import redact_secrets
+
+    canonical = json.dumps(args, sort_keys=True, separators=(",", ":"), default=str)
+    redacted = redact_secrets(canonical)
+    if len(redacted) > max_len:
+        redacted = redacted[:max_len] + "…"
+    return redacted
 
 
 class ToolRegistry:
@@ -471,6 +490,7 @@ class McpGuard:
             args_hash=compute_args_hash(result.args),
             timestamp=result.timestamp,
             domain=domain,
+            args_redacted=redact_args(result.args),
         )
         self._audit.append(entry)
 
