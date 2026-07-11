@@ -12,6 +12,7 @@ if TYPE_CHECKING:
     from research_pipeline.conversion.page_dispatch import DocumentDispatchPlan
 
 from research_pipeline import __version__
+from research_pipeline.analysis.runner import run_analyze_claims
 from research_pipeline.arxiv.client import ArxivClient
 from research_pipeline.arxiv.dedup import dedup_across_queries
 from research_pipeline.arxiv.query_builder import (
@@ -20,8 +21,7 @@ from research_pipeline.arxiv.query_builder import (
     split_topic_terms,
 )
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
-from research_pipeline.cli.cmd_analyze_claims import run_analyze_claims
-from research_pipeline.cli.cmd_score_claims import run_score_claims
+from research_pipeline.confidence.runner import run_score_claims
 from research_pipeline.config.loader import load_config
 from research_pipeline.config.models import PipelineConfig
 from research_pipeline.conversion.factory import create_converter

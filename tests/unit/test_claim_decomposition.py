@@ -489,13 +489,9 @@ class TestCLIHandler:
         from research_pipeline.cli.cmd_analyze_claims import run_analyze_claims
 
         with (
-            patch(
-                "research_pipeline.cli.cmd_analyze_claims.load_config"
-            ) as mock_config,
-            patch("research_pipeline.cli.cmd_analyze_claims.init_run") as mock_init,
-            patch(
-                "research_pipeline.cli.cmd_analyze_claims.get_stage_dir"
-            ) as mock_stage,
+            patch("research_pipeline.analysis.runner.load_config") as mock_config,
+            patch("research_pipeline.analysis.runner.init_run") as mock_init,
+            patch("research_pipeline.analysis.runner.get_stage_dir") as mock_stage,
         ):
             mock_config.return_value = MagicMock(workspace=str(tmp_path))
             mock_init.return_value = ("test-run", tmp_path / "runs" / "test-run")
@@ -536,15 +532,13 @@ class TestCLIHandler:
             return md_dir
 
         with (
+            patch("research_pipeline.analysis.runner.load_config") as mock_config,
+            patch("research_pipeline.analysis.runner.init_run") as mock_init,
             patch(
-                "research_pipeline.cli.cmd_analyze_claims.load_config"
-            ) as mock_config,
-            patch("research_pipeline.cli.cmd_analyze_claims.init_run") as mock_init,
-            patch(
-                "research_pipeline.cli.cmd_analyze_claims.get_stage_dir",
+                "research_pipeline.analysis.runner.get_stage_dir",
                 side_effect=mock_get_stage_dir,
             ),
-            patch("research_pipeline.cli.cmd_analyze_claims.write_jsonl") as mock_write,
+            patch("research_pipeline.analysis.runner.write_jsonl") as mock_write,
         ):
             mock_config.return_value = MagicMock(workspace=str(tmp_path))
             mock_init.return_value = ("test-run", tmp_path)

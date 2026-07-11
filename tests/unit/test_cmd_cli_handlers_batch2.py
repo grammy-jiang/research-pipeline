@@ -1596,9 +1596,9 @@ class TestCmdQuality:
 class TestCmdScoreClaims:
     """Tests for cmd_score_claims."""
 
-    @patch("research_pipeline.cli.cmd_score_claims.read_jsonl")
-    @patch("research_pipeline.cli.cmd_score_claims.init_run")
-    @patch("research_pipeline.cli.cmd_score_claims.load_config")
+    @patch("research_pipeline.confidence.runner.read_jsonl")
+    @patch("research_pipeline.confidence.runner.init_run")
+    @patch("research_pipeline.confidence.runner.load_config")
     def test_missing_claims_exits(self, mock_cfg, mock_init, mock_read, tmp_path):
         from research_pipeline.cli.cmd_score_claims import run_score_claims
 
@@ -1614,12 +1614,12 @@ class TestCmdScoreClaims:
                 run_id="run1",
             )
 
-    @patch("research_pipeline.cli.cmd_score_claims.write_jsonl")
-    @patch("research_pipeline.cli.cmd_score_claims.score_decomposition")
-    @patch("research_pipeline.cli.cmd_score_claims.create_llm_provider")
-    @patch("research_pipeline.cli.cmd_score_claims.read_jsonl")
-    @patch("research_pipeline.cli.cmd_score_claims.init_run")
-    @patch("research_pipeline.cli.cmd_score_claims.load_config")
+    @patch("research_pipeline.confidence.runner.write_jsonl")
+    @patch("research_pipeline.confidence.runner.score_decomposition")
+    @patch("research_pipeline.confidence.runner.create_llm_provider")
+    @patch("research_pipeline.confidence.runner.read_jsonl")
+    @patch("research_pipeline.confidence.runner.init_run")
+    @patch("research_pipeline.confidence.runner.load_config")
     def test_happy_path(
         self,
         mock_cfg,
@@ -1649,9 +1649,7 @@ class TestCmdScoreClaims:
         scored_decomp.paper_id = "p1"
         scored_decomp.model_dump.return_value = {"paper_id": "p1"}
 
-        with patch(
-            "research_pipeline.cli.cmd_score_claims.ClaimDecomposition"
-        ) as MockCD:
+        with patch("research_pipeline.confidence.runner.ClaimDecomposition") as MockCD:
             MockCD.model_validate.return_value = MagicMock(
                 paper_id="p1", claims=[claim_mock]
             )
