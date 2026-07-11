@@ -2,6 +2,8 @@
 
 from __future__ import annotations
 
+from unittest.mock import MagicMock
+
 from research_pipeline.confidence.architecture import (
     ArchitectureConfig,
     CalibrationMethod,
@@ -563,3 +565,45 @@ class TestEnums:
         assert CalibrationMethod.IDENTITY.value == "identity"
         assert CalibrationMethod.DINCO.value == "dinco"
         assert CalibrationMethod.PLATT.value == "platt"
+
+
+class TestLayeredWithLlm:
+    """The L3+L4 fusion path with a (mocked) llm_provider (#117).
+
+    The existing tests only exercise score_claim_layered / score_batch_layered
+    with llm_provider=None; these cover the branch where L4 selective verification
+    actually calls the model. ``l4_audit_rate=1`` forces L4 on every claim so the
+    llm path runs deterministically regardless of the L3 score.
+    """
+
+    @staticmethod
+    def _mock_llm(verdicts: list[bool]) -> MagicMock:
+        llm = MagicMock()
+        llm.call.side_effect = [{"supported": v, "reasoning": "x"} for v in verdicts]
+        return llm
+
+    def test_l4_runs_consistency_and_records_full_agreement(self) -> None:
+        llm = self._mock_llm([True, True, True, True, True])
+        config = ArchitectureConfig(l4_samples=5, l4_audit_rate=1)
+        result = score_claim_layered(_make_claim(), config, llm_provider=llm)
+        assert result.l4.triggered
+        assert result.l4.samples_used == 5
+        assert result.l4.agreement_ratio == 1.0
+        assert llm.call.call_count == 5
+        assert ConfidenceLayer.L4_VERIFICATION.value in result.layers_executed
+
+    def test_l4_records_mixed_agreement_ratio(self) -> None:
+        llm = self._mock_llm([True, False, True, True, False])  # 3 of 5
+        config = ArchitectureConfig(l4_samples=5, l4_audit_rate=1)
+        result = score_claim_layered(_make_claim(), config, llm_provider=llm)
+        assert result.l4.agreement_ratio == 0.6
+
+    def test_batch_layered_runs_l4_for_each_claim(self) -> None:
+        claims = [_make_claim(claim_id=f"CL-{i}") for i in range(3)]
+        llm = MagicMock()
+        llm.call.return_value = {"supported": True, "reasoning": "x"}
+        config = ArchitectureConfig(l4_samples=2, l4_audit_rate=1)
+        results = score_batch_layered(claims, config, llm_provider=llm)
+        assert len(results) == 3
+        assert all(r.l4.triggered for r in results)
+        assert llm.call.call_count == 6  # 3 claims x 2 samples
