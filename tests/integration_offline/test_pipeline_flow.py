@@ -268,7 +268,7 @@ class TestWatchCommandParsing:
     """Test watch command query file parsing."""
 
     def test_watch_loads_queries_from_json(self, tmp_path: Path) -> None:
-        from research_pipeline.cli.cmd_watch import _load_queries
+        from research_pipeline.infra.watch_state import load_queries
 
         queries_file = tmp_path / "queries.json"
         queries_file.write_text(
@@ -280,6 +280,6 @@ class TestWatchCommandParsing:
             )
         )
 
-        queries = _load_queries(queries_file)
+        queries = load_queries(queries_file)
         assert len(queries) == 2
         assert queries[0]["query"] == "transformer attention"

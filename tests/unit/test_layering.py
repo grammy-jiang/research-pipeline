@@ -11,6 +11,8 @@ from __future__ import annotations
 import ast
 from pathlib import Path
 
+import pytest
+
 _SRC = Path(__file__).resolve().parents[2] / "src" / "research_pipeline"
 
 
@@ -36,12 +38,17 @@ def _cli_imports(py: Path) -> list[str]:
     return hits
 
 
-def test_pipeline_core_does_not_import_cli() -> None:
-    """No module under pipeline/ may import the CLI layer (#109 cycle guard)."""
+@pytest.mark.parametrize("package", ["pipeline", "mcp_server"])
+def test_core_package_does_not_import_cli(package: str) -> None:
+    """Neither Core surface may import the CLI layer (#109).
+
+    ``pipeline/`` is Core (the orchestrator cycle); ``mcp_server/`` is the other
+    presentation surface, which must depend on Core rather than reach into
+    ``cli/`` privates. Both are pinned so the boundary can't erode again.
+    """
     offenders: list[str] = []
-    for py in sorted((_SRC / "pipeline").rglob("*.py")):
+    for py in sorted((_SRC / package).rglob("*.py")):
         offenders.extend(_cli_imports(py))
     assert not offenders, (
-        "pipeline/ must not import the CLI layer (#109 layering inversion); "
-        f"found: {offenders}"
+        f"{package}/ must not import the CLI layer (#109 layering); found: {offenders}"
     )

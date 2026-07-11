@@ -7,11 +7,11 @@ from unittest.mock import MagicMock, patch
 
 import pytest
 
-from research_pipeline.cli.cmd_watch import (
-    _load_queries,
-    _load_watch_state,
-    _save_watch_state,
-    watch_command,
+from research_pipeline.cli.cmd_watch import watch_command
+from research_pipeline.infra.watch_state import (
+    load_queries,
+    load_watch_state,
+    save_watch_state,
 )
 
 
@@ -20,14 +20,14 @@ class TestLoadWatchState:
 
     def test_returns_empty_dict_when_no_file(self, tmp_path: Path) -> None:
         """Returns empty dict when state file doesn't exist."""
-        state = _load_watch_state(tmp_path / "nonexistent.json")
+        state = load_watch_state(tmp_path / "nonexistent.json")
         assert state == {}
 
     def test_loads_existing_state(self, tmp_path: Path) -> None:
         """Loads state from existing JSON file."""
         state_path = tmp_path / "state.json"
         state_path.write_text('{"topic1": "2024-01-15T00:00:00+00:00"}')
-        state = _load_watch_state(state_path)
+        state = load_watch_state(state_path)
         assert "topic1" in state
         assert "2024-01-15" in state["topic1"]
 
@@ -38,7 +38,7 @@ class TestSaveWatchState:
     def test_creates_parent_dirs(self, tmp_path: Path) -> None:
         """Creates parent directories if needed."""
         state_path = tmp_path / "sub" / "dir" / "state.json"
-        _save_watch_state(state_path, {"test": "value"})
+        save_watch_state(state_path, {"test": "value"})
         assert state_path.exists()
 
     def test_roundtrip(self, tmp_path: Path) -> None:
@@ -48,8 +48,8 @@ class TestSaveWatchState:
             "q1": "2024-06-01T00:00:00+00:00",
             "q2": "2024-06-15T12:00:00+00:00",
         }
-        _save_watch_state(state_path, original)
-        loaded = _load_watch_state(state_path)
+        save_watch_state(state_path, original)
+        loaded = load_watch_state(state_path)
         assert loaded == original
 
 
@@ -58,7 +58,7 @@ class TestLoadQueries:
 
     def test_returns_empty_when_no_file(self, tmp_path: Path) -> None:
         """Returns empty list when file doesn't exist."""
-        queries = _load_queries(tmp_path / "nonexistent.json")
+        queries = load_queries(tmp_path / "nonexistent.json")
         assert queries == []
 
     def test_loads_query_list(self, tmp_path: Path) -> None:
@@ -69,7 +69,7 @@ class TestLoadQueries:
             {"name": "rag", "query": "retrieval augmented generation"},
         ]
         qf.write_text(json.dumps(data))
-        queries = _load_queries(qf)
+        queries = load_queries(qf)
         assert len(queries) == 2
         assert queries[0]["name"] == "transformers"
 
@@ -77,7 +77,7 @@ class TestLoadQueries:
         """Non-list JSON returns empty list."""
         qf = tmp_path / "queries.json"
         qf.write_text('{"not": "a list"}')
-        queries = _load_queries(qf)
+        queries = load_queries(qf)
         assert queries == []
 
 

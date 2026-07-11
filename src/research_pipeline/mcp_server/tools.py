@@ -2842,17 +2842,17 @@ def watch_tool(
     try:
         from research_pipeline.arxiv.client import ArxivClient
         from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
-        from research_pipeline.cli.cmd_watch import (
-            DEFAULT_QUERIES_FILE,
-            _load_queries,
-            _load_watch_state,
-            _save_watch_state,
-        )
         from research_pipeline.infra.http import create_session
+        from research_pipeline.infra.watch_state import (
+            DEFAULT_QUERIES_FILE,
+            load_queries,
+            load_watch_state,
+            save_watch_state,
+        )
 
         queries_path = Path(params.queries) if params.queries else DEFAULT_QUERIES_FILE
         _report_progress(ctx, 0, 3, "Loading watch queries")
-        queries = _load_queries(queries_path)
+        queries = load_queries(queries_path)
         if not queries:
             return ToolResult(
                 success=False,
@@ -2862,7 +2862,7 @@ def watch_tool(
             )
 
         state_path = queries_path.parent / "watch_state.json"
-        state = _load_watch_state(state_path)
+        state = load_watch_state(state_path)
 
         _report_progress(ctx, 1, 3, "Checking arXiv for new papers")
         session = create_session()
@@ -2914,7 +2914,7 @@ def watch_tool(
 
             state[name] = now.isoformat()
 
-        _save_watch_state(state_path, state)
+        save_watch_state(state_path, state)
 
         if params.output and all_new_papers:
             out = Path(params.output)

@@ -106,7 +106,7 @@ def mcp_serve(
 
     Example: research-pipeline mcp serve
     """
-    from research_pipeline.cli.cmd_mcp import run_mcp_serve
+    from research_pipeline.mcp_server.serve import run_mcp_serve
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
@@ -1940,7 +1940,8 @@ def watch_cmd(
     """Check for new papers matching saved watch queries."""
     from pathlib import Path
 
-    from research_pipeline.cli.cmd_watch import DEFAULT_QUERIES_FILE, watch_command
+    from research_pipeline.cli.cmd_watch import watch_command
+    from research_pipeline.infra.watch_state import DEFAULT_QUERIES_FILE
 
     setup_logging(level=getattr(logging, level.upper(), logging.INFO))
     qf = Path(queries_file) if queries_file else DEFAULT_QUERIES_FILE
