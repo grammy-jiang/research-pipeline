@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from research_pipeline.mcp_server.schemas import (
     KGIngestInput,
@@ -50,7 +50,7 @@ def kg_quality_tool(
         try:
             score = evaluate_kg_quality(conn, staleness_days=params.staleness_days)
 
-            result: dict = score.to_dict()
+            result: dict[str, Any] = score.to_dict()
 
             if params.sample_size > 0:
                 sample = sample_triples_twcs(conn, sample_size=params.sample_size)

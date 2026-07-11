@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import json
 from pathlib import Path
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from research_pipeline.mcp_server.schemas import (
     CompareRunsInput,
@@ -926,7 +926,7 @@ def record_feedback(params: FeedbackInput, ctx: Context | None = None) -> ToolRe
             )
             recorded += 1
 
-        result: dict = {"recorded": recorded, "run_id": run_id}
+        result: dict[str, Any] = {"recorded": recorded, "run_id": run_id}
 
         if params.show:
             result["counts"] = store.count(run_id=run_id)
@@ -976,7 +976,7 @@ def query_eval_log(params: EvalLogInput, ctx: Context | None = None) -> ToolResu
             )
 
         eval_log = EvalLogger(run_root)
-        result: dict = {"run_id": rid}
+        result: dict[str, Any] = {"run_id": rid}
 
         if params.channel in ("traces", "all"):
             traces = eval_log.tracer.read_traces(stage=params.stage)
