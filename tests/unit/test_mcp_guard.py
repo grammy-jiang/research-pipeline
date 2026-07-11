@@ -326,6 +326,23 @@ class TestMcpGuard:
         assert r.allowed is True
         assert r.reason == "Authorized"
 
+    def test_audit_records_redacted_actual_args(self) -> None:
+        """The audit keeps the real path/URL but strips secrets (#125)."""
+        guard = _make_guard([("convert", {"pdf_path": "str"}, "read")])
+        fake_key = "sk-" + "0" * 24  # obviously-fake, low-entropy
+        guard.authorize(
+            "convert",
+            {
+                "pdf_path": "/home/u/paper.pdf",
+                "api_key": fake_key,
+            },  # pragma: allowlist secret
+            caller="pipeline",
+        )
+        entry = guard._audit[-1]
+        assert "/home/u/paper.pdf" in entry.args_redacted  # forensic value kept
+        assert fake_key not in entry.args_redacted  # secret stripped
+        assert "[REDACTED]" in entry.args_redacted
+
     def test_deny_unregistered_tool(self) -> None:
         guard = _make_guard([])
         r = guard.authorize("unknown", {}, caller="pipeline")
