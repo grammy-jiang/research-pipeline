@@ -13,7 +13,7 @@ import logging
 import subprocess  # nosec B404
 from pathlib import Path
 
-from research_pipeline.conversion.base import ConverterBackend
+from research_pipeline.conversion.base import PROGRAMMING_ERRORS, ConverterBackend
 from research_pipeline.conversion.registry import register_backend
 from research_pipeline.infra.clock import utc_now
 from research_pipeline.infra.hashing import sha256_file, sha256_str
@@ -156,6 +156,8 @@ class MinerUBackend(ConverterBackend):
                 error=msg,
             )
         except Exception as exc:
+            if isinstance(exc, PROGRAMMING_ERRORS):
+                raise
             logger.warning(
                 "MinerU Python API failed for %s: %s — trying CLI fallback",
                 pdf_path.name,
@@ -254,6 +256,8 @@ class MinerUBackend(ConverterBackend):
                 status="converted",
             )
         except Exception as exc:
+            if isinstance(exc, PROGRAMMING_ERRORS):
+                raise
             error_msg = f"MinerU conversion failed: {exc}"
             logger.error("MinerU conversion failed for %s: %s", pdf_path.name, exc)
             return ConvertManifestEntry(

@@ -8,6 +8,19 @@ from research_pipeline.models.conversion import ConvertManifestEntry
 
 logger = logging.getLogger(__name__)
 
+# Programming-error exception types that a backend's ``convert()`` boundary must
+# NOT swallow into a ``status="failed"`` manifest entry (#124): these signal a
+# real bug (a wrong key, a None attribute, a type mismatch), not an operational
+# conversion failure, so they are re-raised to surface rather than hide them.
+# Operational failures (OSError, RequestException, subprocess errors, timeouts,
+# library errors) still become ``status="failed"`` as before.
+PROGRAMMING_ERRORS: tuple[type[BaseException], ...] = (
+    KeyError,
+    AttributeError,
+    TypeError,
+    NameError,
+)
+
 
 class ConverterBackend(ABC):
     """Abstract interface for PDF-to-Markdown converter backends."""
