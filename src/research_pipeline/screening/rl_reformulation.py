@@ -12,6 +12,17 @@ bandit-style approach with:
 - Thompson sampling for operator selection
 - Budget-aware iteration limiting
 
+Status (#123): this component is EXPERIMENTAL and is NOT wired into the
+pipeline. Before integrating it, three latent bias issues must be
+addressed:
+- first-success single-trajectory anchoring (the loop commits to the
+  first improving path rather than exploring alternatives);
+- Thompson-sampling posteriors are not reset per topic, so operator
+  priors leak across unrelated queries;
+- ``_apply_hyponym_narrow`` appends hype qualifiers (e.g. "novel",
+  "state-of-the-art") that the ranking stage's HYPE_WORDS then penalize,
+  so the two stages pull in opposite directions.
+
 Keywords: Q2D, Query-to-Document, hypothetical document generation.
 """
 
