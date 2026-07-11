@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import os
 from pathlib import Path
-from typing import Annotated
+from typing import Annotated, Literal
 
 from pydantic import AfterValidator, BaseModel, Field, field_validator
 
@@ -94,7 +94,16 @@ class SearchInput(CommonParams):
         default=False,
         description="Resume from existing search results if available.",
     )
-    source: str = Field(
+    source: Literal[
+        "",
+        "arxiv",
+        "scholar",
+        "semantic_scholar",
+        "openalex",
+        "dblp",
+        "huggingface",
+        "all",
+    ] = Field(
         default="",
         description=(
             "Search source(s): 'arxiv', 'scholar', 'semantic_scholar', "
@@ -196,7 +205,7 @@ class ExpandCitationsInput(CommonParams):
     paper_ids: list[str] = Field(
         description="arXiv IDs or Semantic Scholar paper IDs to expand.",
     )
-    direction: str = Field(
+    direction: Literal["citations", "references", "both"] = Field(
         default="both",
         description="Expansion direction: 'citations', 'references', or 'both'.",
     )
@@ -392,7 +401,7 @@ class EvalLogInput(CommonParams):
         default="",
         description="Run identifier to query. Empty means the latest run.",
     )
-    channel: str = Field(
+    channel: Literal["traces", "audit", "snapshots", "summary", "all"] = Field(
         default="all",
         description=("Channel to query: traces, audit, snapshots, summary, or all."),
     )
@@ -632,7 +641,9 @@ class AdaptiveStoppingInput(BaseModel):
         default="",
         description="Original query for auto-classifying stopping strategy.",
     )
-    query_type: str = Field(
+    query_type: Literal[
+        "recall", "precision", "judgment", "exploratory", "verification", "auto"
+    ] = Field(
         default="auto",
         description=(
             "Query type: recall, precision, judgment, exploratory, "
@@ -818,7 +829,7 @@ class ResearchWorkflowInput(CommonParams):
             "gap analysis, and convergence loops."
         ),
     )
-    source: str = Field(
+    source: Literal["", "arxiv", "scholar", "all"] = Field(
         default="",
         description=(
             "Search sources: 'arxiv', 'scholar', 'all', or '' for config default."
