@@ -40,6 +40,11 @@ class ScreenConfig(BaseModel):
     use_semantic_reranking: bool = False
     embedding_model: str = "allenai/specter2"
     embedding_batch_size: int = 32
+    # Opt-in stopping re-classification (#111): after this many screening batches,
+    # revise the query type from retrieved titles/abstracts instead of anchoring
+    # on the initial topic-only guess. 0 disables it (default); no behaviour change
+    # unless set > 0.
+    reclassify_after_n: int = 0
 
 
 class DownloadConfig(BaseModel):

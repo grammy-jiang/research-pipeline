@@ -112,6 +112,7 @@ embedding_model = "allenai/specter2" # HuggingFace model for embeddings
 embedding_batch_size = 32 # Batch size for embedding inference
 diversity = false # Enable MMR diversity-aware shortlisting
 diversity_lambda = 0.3 # Balance: 0.0 = relevance, 1.0 = diversity
+reclassify_after_n = 0 # >0: revise stopping query-type from retrieved text after N batches (0 = off)
 
 [search]
 primary_months = 6

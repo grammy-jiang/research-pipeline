@@ -399,6 +399,8 @@ class TypedStoppingResult:
     reason: str = ""
     batches_processed: int = 0
     cost_so_far: float = 0.0
+    reclassified: bool = False
+    reclassified_from: str | None = None
 
     def to_dict(self) -> dict[str, Any]:
         return {
@@ -408,7 +410,66 @@ class TypedStoppingResult:
             "batches_processed": self.batches_processed,
             "cost_so_far": round(self.cost_so_far, 4),
             "profile": self.profile.to_dict(),
+            "reclassified": self.reclassified,
+            "reclassified_from": self.reclassified_from,
         }
+
+
+# Minimal stopword set for the re-classification enrichment signal — just enough
+# to keep generic filler out of the high-frequency terms fed back to the
+# classifier. Deliberately small: the classifier still sees the original query.
+_ENRICHMENT_STOPWORDS: frozenset[str] = frozenset(
+    {
+        "with",
+        "from",
+        "this",
+        "that",
+        "using",
+        "based",
+        "into",
+        "their",
+        "these",
+        "those",
+        "while",
+        "about",
+        "across",
+        "between",
+        "model",
+        "models",
+        "method",
+        "methods",
+        "approach",
+        "approaches",
+        "paper",
+        "study",
+        "results",
+    }
+)
+
+
+def _enrichment_terms(texts: list[str], k: int = 12) -> list[str]:
+    """Top-*k* high-frequency content terms from accumulated batch texts.
+
+    Enriches the re-classification signal (#111): the original query is
+    concatenated with these terms so the classifier can revise its type once
+    retrieved titles/abstracts reveal the true intent. Deterministic — ties break
+    alphabetically — so the same texts always yield the same terms.
+
+    Args:
+        texts: Accumulated per-batch document texts (e.g. titles + abstracts).
+        k: Maximum number of terms to return.
+
+    Returns:
+        Up to *k* lower-cased terms, most frequent first.
+    """
+    counts: dict[str, int] = {}
+    for text in texts:
+        for raw in text.lower().split():
+            word = raw.strip(".,:;!?()[]{}\"'`")
+            if len(word) >= 4 and word not in _ENRICHMENT_STOPWORDS:
+                counts[word] = counts.get(word, 0) + 1
+    ranked = sorted(counts.items(), key=lambda kv: (-kv[1], kv[0]))
+    return [word for word, _ in ranked[:k]]
 
 
 class TypedStoppingEvaluator:
@@ -428,12 +489,21 @@ class TypedStoppingEvaluator:
         query: str = "",
         query_type: ExtendedQueryType | None = None,
         custom_profiles: dict[ExtendedQueryType, StoppingProfile] | None = None,
+        reclassify_after_n: int = 0,
     ) -> None:
         self._query = query
+        self._custom_profiles = custom_profiles
         self._query_type = query_type or classify_query_type(query)
         self._profile = get_profile(self._query_type, custom_profiles)
         self._batches: list[list[float]] = []
         self._top1_history: list[float] = []
+        # Opt-in re-classification (#111): once ``reclassify_after_n`` batches have
+        # arrived, revise the query type from accumulated retrieved text so an
+        # initial topic-only mis-read no longer permanently fixes the stopping
+        # regime. 0 disables it (default) → identical to the pre-#111 behaviour.
+        self._reclassify_after_n = reclassify_after_n
+        self._texts: list[str] = []
+        self._reclassified_from: ExtendedQueryType | None = None
 
     @property
     def query_type(self) -> ExtendedQueryType:
@@ -447,13 +517,68 @@ class TypedStoppingEvaluator:
     def batches_processed(self) -> int:
         return len(self._batches)
 
-    def add_batch(self, scores: list[float]) -> None:
-        """Add a batch of relevance scores."""
+    @property
+    def reclassified(self) -> bool:
+        """Whether accumulated evidence has revised the initial query type."""
+        return self._reclassified_from is not None
+
+    def add_batch(self, scores: list[float], texts: list[str] | None = None) -> None:
+        """Add a batch of relevance scores and (optionally) their texts.
+
+        Args:
+            scores: Relevance scores for this batch.
+            texts: Document texts (e.g. titles + abstracts) for this batch, used
+                only to enrich the opt-in re-classification signal. Ignored when
+                ``reclassify_after_n`` is 0.
+        """
         self._batches.append(list(scores))
         if scores:
             self._top1_history.append(max(scores))
+        if texts:
+            self._texts.extend(texts)
+        self._maybe_reclassify()
+
+    def _maybe_reclassify(self) -> None:
+        """Revise the query type from accumulated evidence (opt-in, #111).
+
+        Once at least ``reclassify_after_n`` batches have arrived, re-run the one
+        canonical classifier over the query enriched with the highest-frequency
+        terms from the retrieved texts. If the type changed, swap in the new
+        profile and remember the original. No-op when disabled, when too few
+        batches have arrived, or when no texts were supplied.
+        """
+        if self._reclassify_after_n <= 0:
+            return
+        if len(self._batches) < self._reclassify_after_n:
+            return
+        if not self._texts:
+            return
+        enriched = self._query + " " + " ".join(_enrichment_terms(self._texts))
+        new_type = classify_query_type(enriched)
+        if new_type in (self._query_type, ExtendedQueryType.AUTO):
+            return
+        if self._reclassified_from is None:
+            self._reclassified_from = self._query_type
+        self._query_type = new_type
+        self._profile = get_profile(new_type, self._custom_profiles)
 
     def evaluate(self) -> TypedStoppingResult:
+        """Evaluate whether retrieval should stop.
+
+        Thin wrapper over :meth:`_evaluate_core` that stamps the re-classification
+        outcome (#111) onto the result, so callers see whether accumulated
+        evidence revised the query type — and from which original type.
+        """
+        result = self._evaluate_core()
+        result.reclassified = self._reclassified_from is not None
+        result.reclassified_from = (
+            self._reclassified_from.value
+            if self._reclassified_from is not None
+            else None
+        )
+        return result
+
+    def _evaluate_core(self) -> TypedStoppingResult:
         """Evaluate whether retrieval should stop.
 
         Checks in order:
