@@ -28,7 +28,11 @@ from research_pipeline.briefing.normalize import (
     topic_id_for_title,
     utc_now_iso,
 )
-from research_pipeline.briefing.sources.base import build_session, read_fixture_text
+from research_pipeline.briefing.sources.base import (
+    DEFAULT_HTTP_TIMEOUT,
+    build_session,
+    read_fixture_text,
+)
 
 _ATOM_NS = "{http://www.w3.org/2005/Atom}"
 _YT_NS = "{http://www.youtube.com/xml/schemas/2015}"
@@ -70,7 +74,7 @@ class VideoAudioSource:
         url = str(self.source.feed_url or self.source.api_url or "")
         if not url:
             raise ValueError("video_audio source requires feed_url when no fixture")
-        response = self.session.get(url, timeout=30)
+        response = self.session.get(url, timeout=DEFAULT_HTTP_TIMEOUT)
         response.raise_for_status()
         return response.text
 
