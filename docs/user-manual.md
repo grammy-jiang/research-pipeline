@@ -281,6 +281,10 @@ most keys, but some are named explicitly in the example config.
 
 ## 4. Quick Start
 
+> New here? The standalone [Getting Started](getting-started.md) tutorial walks
+> through this same first run step by step. This section is the condensed
+> reference version.
+
 ### 4.1 Your first research run
 
 Five minutes to your first literature review:
