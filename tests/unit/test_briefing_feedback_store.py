@@ -224,6 +224,32 @@ def test_create_adjustments_appends_audit_history(tmp_path: Path) -> None:
         store.close()
 
 
+def test_schema_version_is_tracked(tmp_path: Path) -> None:
+    """PRAGMA user_version is set so future schema changes can migrate (#119)."""
+    from research_pipeline.briefing.feedback import _SCHEMA_VERSION
+
+    store = BriefingFeedbackStore(tmp_path / "feedback.db")
+    try:
+        version = store._conn.execute("PRAGMA user_version").fetchone()[0]
+        assert version == _SCHEMA_VERSION
+    finally:
+        store.close()
+
+
+def test_strength_check_constraint_rejects_out_of_range(tmp_path: Path) -> None:
+    """The DB rejects an out-of-range strength, not only the Python layer (#119)."""
+    store = BriefingFeedbackStore(tmp_path / "feedback.db")
+    try:
+        with pytest.raises(sqlite3.IntegrityError):
+            store._conn.execute(
+                "INSERT INTO feedback_events (feedback_id, timestamp, target_type, "
+                "target_id, signal_type, strength) VALUES (?, ?, ?, ?, ?, ?)",
+                ("f1", "2026-01-01", "topic", "t1", "keep", 99.0),
+            )
+    finally:
+        store.close()
+
+
 def test_weights_by_target_saturate_and_do_not_compound(tmp_path: Path) -> None:
     """Repeated likes saturate at the cap, breaking the echo-chamber loop (#123)."""
     from research_pipeline.briefing.feedback import _WEIGHT_CAP

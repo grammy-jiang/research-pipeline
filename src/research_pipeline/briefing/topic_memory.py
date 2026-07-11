@@ -47,13 +47,14 @@ CREATE TABLE IF NOT EXISTS topic_memory (
     aliases TEXT DEFAULT '',
     first_seen_at TEXT NOT NULL,
     last_seen_at TEXT NOT NULL,
-    status TEXT NOT NULL,
+    status TEXT NOT NULL
+        CHECK (status IN ('new', 'active', 'cooling', 'dormant', 'resurfaced')),
     summary TEXT DEFAULT '',
     key_entities TEXT DEFAULT '',
     canonical_clusters TEXT DEFAULT '',
     obsidian_note TEXT DEFAULT '',
     interest_score REAL DEFAULT 0.0,
-    fatigue_score REAL DEFAULT 0.0,
+    fatigue_score REAL DEFAULT 0.0 CHECK (fatigue_score >= 0),
     last_reported_at TEXT,
     report_count_7d INTEGER DEFAULT 0,
     report_count_30d INTEGER DEFAULT 0
@@ -65,7 +66,8 @@ CREATE TABLE IF NOT EXISTS topic_memory_audit (
     topic_id TEXT NOT NULL,
     trigger TEXT NOT NULL,
     effect TEXT NOT NULL,
-    rollback TEXT NOT NULL
+    rollback TEXT NOT NULL,
+    FOREIGN KEY (topic_id) REFERENCES topic_memory(topic_id)
 );
 
 CREATE TABLE IF NOT EXISTS topic_alias_suggestions (
@@ -74,10 +76,15 @@ CREATE TABLE IF NOT EXISTS topic_alias_suggestions (
     topic_id TEXT NOT NULL,
     suggested_alias TEXT NOT NULL,
     reason TEXT NOT NULL,
-    status TEXT NOT NULL DEFAULT 'pending',
-    review_record TEXT DEFAULT ''
+    status TEXT NOT NULL DEFAULT 'pending'
+        CHECK (status IN ('pending', 'approved', 'rejected')),
+    review_record TEXT DEFAULT '',
+    FOREIGN KEY (topic_id) REFERENCES topic_memory(topic_id)
 );
 """
+
+# Bump when _SCHEMA changes; drives PRAGMA user_version migration.
+_SCHEMA_VERSION = 1
 
 
 def _parse_date(value: str | None) -> date | None:
@@ -98,6 +105,10 @@ class TopicMemoryStore:
         self._conn.execute("PRAGMA journal_mode=WAL")
         self._conn.execute("PRAGMA foreign_keys=ON")
         self._conn.executescript(_SCHEMA)
+        # Track the schema version so future changes have a migration path (#119).
+        current = self._conn.execute("PRAGMA user_version").fetchone()[0]
+        if current == 0:
+            self._conn.execute(f"PRAGMA user_version = {_SCHEMA_VERSION}")
         self._conn.commit()
 
     def close(self) -> None:

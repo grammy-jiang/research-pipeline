@@ -177,6 +177,38 @@ def test_current_evidence_updates_last_seen_and_canonical_clusters(
 # --- issue #119: comma-safe multivalue storage ---
 
 
+def test_topic_memory_foreign_key_enforced(tmp_path: Path) -> None:
+    """An audit row for a non-existent topic is rejected by the FK (#119)."""
+    import sqlite3
+
+    from research_pipeline.briefing.topic_memory import TopicMemoryStore
+
+    store = TopicMemoryStore(tmp_path / "topics.db")
+    try:
+        with pytest.raises(sqlite3.IntegrityError):
+            store._conn.execute(
+                "INSERT INTO topic_memory_audit (timestamp, topic_id, trigger, "
+                "effect, rollback) VALUES (?, ?, ?, ?, ?)",
+                ("2026-01-01", "no-such-topic", "t", "e", "r"),
+            )
+    finally:
+        store.close()
+
+
+def test_topic_memory_schema_version_tracked(tmp_path: Path) -> None:
+    from research_pipeline.briefing.topic_memory import (
+        _SCHEMA_VERSION,
+        TopicMemoryStore,
+    )
+
+    store = TopicMemoryStore(tmp_path / "topics.db")
+    try:
+        version = store._conn.execute("PRAGMA user_version").fetchone()[0]
+        assert version == _SCHEMA_VERSION
+    finally:
+        store.close()
+
+
 def test_encode_decode_preserves_comma_bearing_values() -> None:
     from research_pipeline.briefing.topic_memory import _decode_list, _encode_list
 
