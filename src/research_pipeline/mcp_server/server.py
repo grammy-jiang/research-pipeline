@@ -6,12 +6,16 @@ Run with: research-pipeline mcp serve
 
 from __future__ import annotations
 
+import functools
 import json
 import logging
+from collections.abc import Callable
 from pathlib import Path
+from typing import Any, TypeVar
 
 from mcp.server.fastmcp import Context, FastMCP
-from mcp.types import LoggingLevel, ToolAnnotations
+from mcp.shared.exceptions import McpError
+from mcp.types import ErrorData, LoggingLevel, ToolAnnotations
 
 from research_pipeline.mcp_server import (
     completions,
@@ -143,6 +147,45 @@ from research_pipeline.mcp_server.tools import (
 )
 
 logger = logging.getLogger(__name__)
+
+# JSON-RPC "resource not found" code from the MCP spec.
+_RESOURCE_NOT_FOUND = -32002
+_R = TypeVar("_R")
+
+
+def _resource_boundary(
+    uri_template: str,
+) -> Callable[[Callable[..., _R]], Callable[..., _R]]:
+    """Convert a resource handler's ValueError into the spec -32002 error (#121).
+
+    Resource readers raise a bare ``ValueError`` on a missing/invalid artifact;
+    FastMCP would surface that as a generic error with ``code=0`` and no ``uri``.
+    This wraps the handler so the failure carries the spec's dedicated
+    resource-not-found code and the resolved URI, without changing the reader
+    layer (whose ValueError contract the resource tests rely on).
+    """
+
+    def decorator(fn: Callable[..., _R]) -> Callable[..., _R]:
+        @functools.wraps(fn)
+        def wrapper(*args: Any, **kwargs: Any) -> _R:
+            try:
+                return fn(*args, **kwargs)
+            except ValueError as exc:
+                uri = uri_template
+                for key, value in kwargs.items():
+                    uri = uri.replace("{" + key + "}", str(value))
+                raise McpError(
+                    ErrorData(
+                        code=_RESOURCE_NOT_FOUND,
+                        message=str(exc),
+                        data={"uri": uri},
+                    )
+                ) from exc
+
+        return wrapper
+
+    return decorator
+
 
 mcp = FastMCP(
     "research-pipeline",
@@ -2171,6 +2214,7 @@ def resource_run_list() -> str:
     description="Run metadata: stages completed, artifacts produced, timing.",
     mime_type="application/json",
 )
+@_resource_boundary("runs://{run_id}/manifest")
 def resource_run_manifest(run_id: str) -> str:
     """Read a run's manifest."""
     return resources.get_run_manifest(run_id)
@@ -2182,6 +2226,7 @@ def resource_run_manifest(run_id: str) -> str:
     description="Structured query plan with search terms and arXiv categories.",
     mime_type="application/json",
 )
+@_resource_boundary("runs://{run_id}/plan")
 def resource_run_plan(run_id: str) -> str:
     """Read a run's query plan."""
     return resources.get_run_plan(run_id)
@@ -2193,6 +2238,7 @@ def resource_run_plan(run_id: str) -> str:
     description="Search candidates (multi-source paper metadata).",
     mime_type="application/jsonl",
 )
+@_resource_boundary("runs://{run_id}/candidates")
 def resource_run_candidates(run_id: str) -> str:
     """Read a run's search candidates."""
     return resources.get_run_candidates(run_id)
@@ -2204,6 +2250,7 @@ def resource_run_candidates(run_id: str) -> str:
     description="Screened shortlist of relevant papers.",
     mime_type="application/json",
 )
+@_resource_boundary("runs://{run_id}/shortlist")
 def resource_run_shortlist(run_id: str) -> str:
     """Read a run's screened shortlist."""
     return resources.get_run_shortlist(run_id)
@@ -2215,6 +2262,7 @@ def resource_run_shortlist(run_id: str) -> str:
     description="Downloaded paper PDF.",
     mime_type="application/pdf",
 )
+@_resource_boundary("runs://{run_id}/papers/{paper_id}")
 def resource_paper_pdf(run_id: str, paper_id: str) -> bytes:
     """Read a paper's downloaded PDF."""
     return resources.get_paper_pdf(run_id, paper_id)
@@ -2226,6 +2274,7 @@ def resource_paper_pdf(run_id: str, paper_id: str) -> bytes:
     description="Converted paper Markdown (best available tier).",
     mime_type="text/markdown",
 )
+@_resource_boundary("runs://{run_id}/markdown/{paper_id}")
 def resource_paper_markdown(run_id: str, paper_id: str) -> str:
     """Read a paper's converted Markdown."""
     return resources.get_paper_markdown(run_id, paper_id)
@@ -2237,6 +2286,7 @@ def resource_paper_markdown(run_id: str, paper_id: str) -> str:
     description="Per-paper structured summary.",
     mime_type="application/json",
 )
+@_resource_boundary("runs://{run_id}/summary/{paper_id}")
 def resource_paper_summary(run_id: str, paper_id: str) -> str:
     """Read a paper's summary."""
     return resources.get_paper_summary(run_id, paper_id)
@@ -2248,8 +2298,13 @@ def resource_paper_summary(run_id: str, paper_id: str) -> str:
     description="Cross-paper synthesis report.",
     mime_type="text/markdown",
 )
+@_resource_boundary("runs://{run_id}/synthesis")
 def resource_synthesis_report(run_id: str) -> str:
-    """Read a run's synthesis report."""
+    """Read a run's synthesis report.
+
+    Always returns Markdown to match the declared ``text/markdown`` type; the
+    reader is responsible for rendering JSON fallbacks to Markdown (#121).
+    """
     return resources.get_synthesis_report(run_id)
 
 
@@ -2259,6 +2314,7 @@ def resource_synthesis_report(run_id: str) -> str:
     description="Composite quality evaluation scores.",
     mime_type="application/json",
 )
+@_resource_boundary("runs://{run_id}/quality")
 def resource_quality_scores(run_id: str) -> str:
     """Read a run's quality scores."""
     return resources.get_quality_scores(run_id)
@@ -2303,6 +2359,7 @@ def resource_briefing_list() -> str:
     description="Daily AI intelligence Markdown brief.",
     mime_type="text/markdown",
 )
+@_resource_boundary("briefings://{date}/daily")
 def resource_briefing_daily(date: str) -> str:
     """Read a daily intelligence brief."""
     return resources.get_briefing_daily(date)
@@ -2314,6 +2371,7 @@ def resource_briefing_daily(date: str) -> str:
     description="Ranked daily intelligence clusters.",
     mime_type="application/jsonl",
 )
+@_resource_boundary("briefings://{date}/ranked")
 def resource_briefing_ranked(date: str) -> str:
     """Read ranked briefing clusters."""
     return resources.get_briefing_ranked(date)
@@ -2325,6 +2383,7 @@ def resource_briefing_ranked(date: str) -> str:
     description="Daily intelligence telemetry JSONL.",
     mime_type="application/jsonl",
 )
+@_resource_boundary("briefings://{date}/telemetry")
 def resource_briefing_telemetry(date: str) -> str:
     """Read briefing telemetry."""
     return resources.get_briefing_telemetry(date)
@@ -2336,6 +2395,7 @@ def resource_briefing_telemetry(date: str) -> str:
     description="Daily intelligence validation result.",
     mime_type="application/json",
 )
+@_resource_boundary("briefings://{date}/validation")
 def resource_briefing_validation(date: str) -> str:
     """Read briefing validation."""
     return resources.get_briefing_validation(date)
@@ -2347,6 +2407,7 @@ def resource_briefing_validation(date: str) -> str:
     description="Replayable daily intelligence workflow state.",
     mime_type="application/json",
 )
+@_resource_boundary("briefings://{date}/state")
 def resource_briefing_state(date: str) -> str:
     """Read briefing workflow state."""
     return resources.get_briefing_workflow_state(date)

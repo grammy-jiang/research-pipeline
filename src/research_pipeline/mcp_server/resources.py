@@ -140,7 +140,9 @@ def list_runs() -> str:
                     pass
             runs.append(info)
 
-    return json.dumps({"runs": runs, "runs_dir": str(runs_root)})
+    return _cap_text(
+        json.dumps({"runs": runs, "runs_dir": str(runs_root)}), "runs://list"
+    )
 
 
 def get_run_manifest(run_id: str) -> str:
@@ -330,7 +332,9 @@ def list_briefings() -> str:
                 "validation": str(entry / "validation" / "validation.json"),
             }
         )
-    return json.dumps({"briefings": briefings, "root": str(root)})
+    return _cap_text(
+        json.dumps({"briefings": briefings, "root": str(root)}), "briefings://list"
+    )
 
 
 def get_briefing_daily(date: str) -> str:
