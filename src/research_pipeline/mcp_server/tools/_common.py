@@ -11,6 +11,8 @@ import logging
 from pathlib import Path
 from typing import TYPE_CHECKING, NoReturn
 
+from research_pipeline.models.download import DownloadManifestEntry
+
 if TYPE_CHECKING:
     from mcp.server.fastmcp import Context
 
@@ -171,10 +173,34 @@ def _sanitize_candidates(records: list) -> None:  # type: ignore[type-arg]
         r.title, r.abstract = sanitize_candidate_fields(r.title, r.abstract)
 
 
+def _load_id_map(manifest_path: Path) -> dict[str, DownloadManifestEntry]:
+    """Map each downloaded file's stem to its manifest entry (#124).
+
+    Shared by extract_content / summarize_papers, which both need the
+    arxiv_id / version for each converted Markdown file.
+    """
+    id_map: dict[str, DownloadManifestEntry] = {}
+    if manifest_path.exists():
+        for line in manifest_path.read_text().strip().split("\n"):
+            if line:
+                entry = DownloadManifestEntry.model_validate_json(line)
+                id_map[Path(entry.local_path).stem] = entry
+    return id_map
+
+
+def _eligible_entries(
+    entries: list[DownloadManifestEntry],
+) -> list[DownloadManifestEntry]:
+    """Download entries that have a usable local PDF (#124)."""
+    return [e for e in entries if e.status in ("downloaded", "skipped_exists")]
+
+
 __all__ = [
     "McpToolError",
     "_backend_kwargs",
+    "_eligible_entries",
     "_get_run_root",
+    "_load_id_map",
     "_log_info",
     "_raise_tool_error",
     "_report_progress",

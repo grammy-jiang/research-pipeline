@@ -13,6 +13,7 @@ from research_pipeline.mcp_server.schemas import (
 )
 from research_pipeline.mcp_server.tools._common import (
     _backend_kwargs,
+    _eligible_entries,
     _log_info,
     _raise_tool_error,
     _report_progress,
@@ -58,7 +59,7 @@ def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolRe
         convert_dir = get_stage_dir(run_root, "convert")
         convert_dir.mkdir(parents=True, exist_ok=True)
 
-        eligible = [e for e in entries if e.status in ("downloaded", "skipped_exists")]
+        eligible = _eligible_entries(entries)
         _log_info(ctx, f"Starting conversion of {len(eligible)} PDFs")
 
         results = []
@@ -231,7 +232,7 @@ def convert_rough(params: ConvertRoughInput, ctx: Context | None = None) -> Tool
         _log_info(ctx, f"Starting rough conversion of {len(entries)} entries")
 
         results = []
-        eligible = [e for e in entries if e.status in ("downloaded", "skipped_exists")]
+        eligible = _eligible_entries(entries)
         total = len(eligible)
         for i, entry in enumerate(eligible):
             pdf_path = Path(entry.local_path)

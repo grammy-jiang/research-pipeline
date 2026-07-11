@@ -24,6 +24,7 @@ from research_pipeline.mcp_server.schemas import (
 )
 from research_pipeline.mcp_server.tools._common import (
     _get_run_root,
+    _load_id_map,
     _log_info,
     _raise_tool_error,
     _report_progress,
@@ -389,7 +390,6 @@ def extract_content(
     """Extract structured content from converted Markdown."""
     try:
         from research_pipeline.extraction.extractor import extract_from_markdown
-        from research_pipeline.models.download import DownloadManifestEntry
         from research_pipeline.storage.workspace import get_stage_dir
 
         ws = _resolve_workspace(params.workspace)
@@ -410,13 +410,7 @@ def extract_content(
         # Load download manifest to get arxiv_id/version per file
         download_dir = get_stage_dir(run_root, "download")
         manifest_path = download_dir / "download_manifest.jsonl"
-        id_map: dict[str, DownloadManifestEntry] = {}
-        if manifest_path.exists():
-            for line in manifest_path.read_text().strip().split("\n"):
-                if line:
-                    entry = DownloadManifestEntry.model_validate_json(line)
-                    stem = Path(entry.local_path).stem
-                    id_map[stem] = entry
+        id_map = _load_id_map(manifest_path)
 
         results = []
         for md_path in md_files:
@@ -444,7 +438,6 @@ def summarize_papers(
 ) -> ToolResult:
     """Generate per-paper summaries and cross-paper synthesis."""
     try:
-        from research_pipeline.models.download import DownloadManifestEntry
         from research_pipeline.storage.workspace import get_stage_dir
         from research_pipeline.summarization.per_paper import (
             extract_paper,
@@ -483,13 +476,7 @@ def summarize_papers(
         # Load download manifest for arxiv_id/version/title
         download_dir = get_stage_dir(run_root, "download")
         manifest_path = download_dir / "download_manifest.jsonl"
-        id_map: dict[str, DownloadManifestEntry] = {}
-        if manifest_path.exists():
-            for line in manifest_path.read_text().strip().split("\n"):
-                if line:
-                    entry = DownloadManifestEntry.model_validate_json(line)
-                    stem = Path(entry.local_path).stem
-                    id_map[stem] = entry
+        id_map = _load_id_map(manifest_path)
 
         summaries = []
         extraction_records = []
