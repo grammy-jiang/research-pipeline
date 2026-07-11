@@ -7,11 +7,11 @@ from unittest.mock import MagicMock
 
 import pytest
 
+from research_pipeline.cli.gates import CliGate
 from research_pipeline.pipeline.gates import (
     DEFAULT_GATE_STAGES,
     AutoApproveGate,
     CallbackGate,
-    CliGate,
     GateCallback,
     GateContext,
     GateDecision,
