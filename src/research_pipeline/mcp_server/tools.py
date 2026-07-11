@@ -1592,7 +1592,9 @@ def validate_report(
 ) -> ToolResult:
     """Validate a research report for completeness and quality."""
     try:
-        from research_pipeline.cli.cmd_validate import validate_report as _validate
+        from research_pipeline.summarization.report_validation import (
+            validate_report as _validate,
+        )
 
         report_path: Path | None = None
         if params.report_path:
@@ -1635,7 +1637,7 @@ def validate_report(
 def compare_runs(params: CompareRunsInput, ctx: Context | None = None) -> ToolResult:
     """Compare two pipeline runs and produce a structured diff."""
     try:
-        from research_pipeline.cli.cmd_compare import compare_runs as _compare
+        from research_pipeline.pipeline.compare import compare_runs as _compare
         from research_pipeline.storage.workspace import init_run
 
         ws = _resolve_workspace(params.workspace)

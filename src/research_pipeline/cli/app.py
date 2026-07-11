@@ -1077,8 +1077,8 @@ def validate(
     Example: research-pipeline validate --report report.md
     Example: research-pipeline validate --run-id <RUN_ID>
     """
-    from research_pipeline.cli.cmd_validate import run_validate
     from research_pipeline.infra.logging import setup_logging
+    from research_pipeline.summarization.report_validation import run_validate
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
@@ -1110,8 +1110,8 @@ def compare(
 
     Example: research-pipeline compare --run-a <RUN_A> --run-b <RUN_B>
     """
-    from research_pipeline.cli.cmd_compare import run_compare
     from research_pipeline.infra.logging import setup_logging
+    from research_pipeline.pipeline.compare import run_compare
 
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)

@@ -1,8 +1,9 @@
-"""CLI handler for the 'validate' command.
+"""Report-validation logic (#109).
 
-Checks a final research report for completeness against the required
-template sections, confidence-level annotations, evidence citations,
-and gap classifications.
+Core logic shared by the CLI (`validate` command) and the MCP `validate_report`
+tool. Checks a final research report for completeness against the required
+template sections, confidence-level annotations, evidence citations, and gap
+classifications.
 """
 
 import json
