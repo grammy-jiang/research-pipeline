@@ -15,7 +15,7 @@ from research_pipeline.config.models import PipelineConfig
 from research_pipeline.conversion.base import ConverterBackend
 from research_pipeline.conversion.fallback import FallbackConverter
 from research_pipeline.conversion.registry import (
-    _ensure_builtins_registered,
+    ensure_builtins_registered,
     get_backend,
 )
 
@@ -95,7 +95,7 @@ def create_converter(config: PipelineConfig) -> ConverterBackend:
     all backends (primary + fallbacks) with all their accounts. Otherwise,
     creates the primary backend only (with multi-account fallback if configured).
     """
-    _ensure_builtins_registered()
+    ensure_builtins_registered()
 
     primary = config.conversion.backend
     backend_names = [primary, *list(config.conversion.fallback_backends)]

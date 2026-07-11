@@ -12,7 +12,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from research_pipeline.conversion.registry import (
-    _ensure_builtins_registered,
+    ensure_builtins_registered,
     get_backend,
     list_backends,
 )
@@ -66,7 +66,7 @@ class TestMathpixBackend:
         assert len(fp.split("/")) == 3
 
     def test_registered_in_registry(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         assert "mathpix" in list_backends()
 
     def test_skip_exists(self, pdf_file: Path, output_dir: Path) -> None:
@@ -131,7 +131,7 @@ class TestDatalabBackend:
         assert len(fp.split("/")) == 3
 
     def test_registered_in_registry(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         assert "datalab" in list_backends()
 
     def test_skip_exists(self, pdf_file: Path, output_dir: Path) -> None:
@@ -186,7 +186,7 @@ class TestLlamaParseBackend:
         assert "api_key" not in fp
 
     def test_registered_in_registry(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         assert "llamaparse" in list_backends()
 
     def test_skip_exists(self, pdf_file: Path, output_dir: Path) -> None:
@@ -258,7 +258,7 @@ class TestMistralOcrBackend:
         assert b.model == "custom-model"
 
     def test_registered_in_registry(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         assert "mistral_ocr" in list_backends()
 
     def test_skip_exists(self, pdf_file: Path, output_dir: Path) -> None:
@@ -317,7 +317,7 @@ class TestOpenAIVisionBackend:
         assert b.model == "gpt-4o-mini"
 
     def test_registered_in_registry(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         assert "openai_vision" in list_backends()
 
     def test_skip_exists(self, pdf_file: Path, output_dir: Path) -> None:
@@ -354,7 +354,7 @@ class TestAllBackendsRegistered:
     """Verify all 8 backends are registered after ensure call."""
 
     def test_all_eight_backends_present(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         names = list_backends()
         expected = [
             "datalab",
@@ -372,7 +372,7 @@ class TestAllBackendsRegistered:
 
     def test_online_backends_require_credentials(self) -> None:
         """All online backends raise ValueError without credentials."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         online = ["mathpix", "datalab", "llamaparse", "mistral_ocr", "openai_vision"]
         for name in online:
             with pytest.raises((ValueError, TypeError)):

@@ -13,7 +13,7 @@ from unittest.mock import MagicMock, patch
 import pytest
 
 from research_pipeline.conversion.registry import (
-    _ensure_builtins_registered,
+    ensure_builtins_registered,
     get_backend,
     list_backends,
 )
@@ -47,16 +47,16 @@ class TestMinerURegistration:
     """Verify MinerU is registered in the backend registry."""
 
     def test_registered_after_ensure(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         assert "mineru" in list_backends()
 
     def test_get_backend_returns_instance(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         backend = get_backend("mineru")
         assert backend.__class__.__name__ == "MinerUBackend"
 
     def test_get_backend_with_kwargs(self) -> None:
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         backend = get_backend("mineru", parse_method="ocr", timeout_seconds=120)
         from research_pipeline.conversion.mineru_backend import MinerUBackend
 

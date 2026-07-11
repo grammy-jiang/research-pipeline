@@ -491,7 +491,7 @@ class TestCmdConvertRough:
 
     @patch("research_pipeline.cli.cmd_convert_rough.write_jsonl")
     @patch("research_pipeline.cli.cmd_convert_rough.get_backend")
-    @patch("research_pipeline.cli.cmd_convert_rough._ensure_builtins_registered")
+    @patch("research_pipeline.cli.cmd_convert_rough.ensure_builtins_registered")
     @patch("research_pipeline.cli.cmd_convert_rough.read_jsonl")
     @patch("research_pipeline.cli.cmd_convert_rough.init_run")
     @patch("research_pipeline.cli.cmd_convert_rough.load_config")

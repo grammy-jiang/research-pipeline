@@ -58,11 +58,11 @@ def _list_backends() -> list[str]:
     """List available converter backend names."""
     try:
         from research_pipeline.conversion.registry import (
-            _ensure_builtins_registered,
+            ensure_builtins_registered,
             list_backends,
         )
 
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         return list_backends()
     except Exception:
         return ["pymupdf4llm", "docling", "marker"]

@@ -7,7 +7,7 @@ import pytest
 from research_pipeline.conversion.base import ConverterBackend
 from research_pipeline.conversion.registry import (
     _BACKEND_REGISTRY,
-    _ensure_builtins_registered,
+    ensure_builtins_registered,
     get_backend,
     list_backends,
     register_backend,
@@ -93,18 +93,18 @@ class TestListBackends:
 
     def test_returns_sorted_names(self) -> None:
         """list_backends returns names in sorted order."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         names = list_backends()
         assert names == sorted(names)
         assert isinstance(names, list)
 
 
 class TestEnsureBuiltinsRegistered:
-    """Tests for _ensure_builtins_registered."""
+    """Tests for ensure_builtins_registered."""
 
     def test_builtins_are_registered(self) -> None:
         """All three builtin backends are registered after ensure call."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         names = list_backends()
         assert "docling" in names
         assert "marker" in names
@@ -112,25 +112,25 @@ class TestEnsureBuiltinsRegistered:
 
     def test_get_docling_backend(self) -> None:
         """DoclingBackend can be instantiated via registry."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         backend = get_backend("docling")
         assert backend.fingerprint().startswith("docling/")
 
     def test_get_marker_backend(self) -> None:
         """MarkerBackend can be instantiated via registry."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         backend = get_backend("marker")
         assert backend.fingerprint().startswith("marker/")
 
     def test_get_pymupdf4llm_backend(self) -> None:
         """PyMuPDF4LLMBackend can be instantiated via registry."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         backend = get_backend("pymupdf4llm")
         assert backend.fingerprint().startswith("pymupdf4llm/")
 
     def test_marker_backend_with_llm_kwargs(self) -> None:
         """MarkerBackend accepts LLM configuration kwargs."""
-        _ensure_builtins_registered()
+        ensure_builtins_registered()
         backend = get_backend(
             "marker",
             force_ocr=True,

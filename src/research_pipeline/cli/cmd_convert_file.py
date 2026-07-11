@@ -28,11 +28,11 @@ def run_convert_file(
     from research_pipeline.conversion.base import ConverterBackend
     from research_pipeline.conversion.fallback import FallbackConverter
     from research_pipeline.conversion.registry import (
-        _ensure_builtins_registered,
+        ensure_builtins_registered,
         get_backend,
     )
 
-    _ensure_builtins_registered()
+    ensure_builtins_registered()
 
     pdf_path = pdf_path.expanduser().resolve()
     if not pdf_path.exists():

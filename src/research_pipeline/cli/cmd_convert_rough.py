@@ -13,7 +13,7 @@ import typer
 
 from research_pipeline.config.loader import load_config
 from research_pipeline.conversion.registry import (
-    _ensure_builtins_registered,
+    ensure_builtins_registered,
     get_backend,
 )
 from research_pipeline.models.download import DownloadManifestEntry
@@ -51,7 +51,7 @@ def run_convert_rough(
     raw = read_jsonl(dl_manifest_path)
     entries = [DownloadManifestEntry.model_validate(d) for d in raw]
 
-    _ensure_builtins_registered()
+    ensure_builtins_registered()
     converter = get_backend("pymupdf4llm")
 
     rough_dir = get_stage_dir(run_root, "convert_rough")
