@@ -155,6 +155,23 @@ name or description that could alter agent selection behaviour.
 | `denied` | Tool invocation blocked; error returned to caller |
 | `requires_approval` | Destructive operation; human confirmation needed |
 
+#### Default posture vs strict mode
+
+The packaged server is a **local stdio server with a single trusted caller**, so
+the **default** capability policy grants that caller **every** trust domain. In
+this default posture the *active* controls are **schema-hash integrity**,
+**tool-description integrity**, **rate limiting**, and the **audit trail** — not
+per-domain denial. (The concrete arbitrary read/write and SSRF vectors are
+enforced at the tool-input layer instead: path containment on every path-shaped
+argument, and a scheme/private-IP guard on the download path.)
+
+For locked-down or multi-caller deployments, set
+**`RESEARCH_PIPELINE_MCP_STRICT=1`**. Strict mode grants the caller only the
+`read` domain, so `write` / `execute` / `network` / `system` tools are **denied**
+by the capability layer (and the denial is audited). Operators can grant
+additional domains explicitly. Strict mode is **off by default** so the local
+single-caller server stays fully functional.
+
 ### 5.4 Audit trail
 
 Every tool invocation is logged with:
