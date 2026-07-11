@@ -71,6 +71,11 @@ class ConfidenceSignals:
 
         Returns:
             Aggregate score in [0, 1].
+
+        Note (#122): every signal here is a point heuristic rounded to
+        4 dp for output stability, not a calibrated estimate with an
+        uncertainty interval — the precision is cosmetic, not a claim
+        of measurement accuracy.
         """
         if weights is None:
             weights = (
@@ -91,7 +96,12 @@ class ConfidenceSignals:
 
 
 def compute_evidence_signal(evidence_class: EvidenceClass) -> float:
-    """Map evidence class to a confidence signal value."""
+    """Map evidence class to a confidence signal value.
+
+    Caveat (#122): these values are ordinal heuristic priors, not
+    calibrated probabilities. The spacing (0.9 / 0.6 / 0.3 / 0.2 / 0.05)
+    encodes rank order, not measured confidence.
+    """
     mapping = {
         EvidenceClass.SUPPORTED: 0.9,
         EvidenceClass.PARTIAL: 0.6,
@@ -104,6 +114,10 @@ def compute_evidence_signal(evidence_class: EvidenceClass) -> float:
 
 def compute_hedging_signal(text: str) -> float:
     """Detect hedging/certainty language (LVU).
+
+    Caveat (#122): this measures *rhetorical* certainty (the ratio of
+    certain-vs-hedged words), a proxy for authorial tone, not the
+    claim's epistemic uncertainty; a confidently-wrong claim scores high.
 
     Returns:
         Score in [0, 1]: 0 = highly hedged, 1 = highly certain.
@@ -227,6 +241,11 @@ def compute_consistency(
 
     Asks LLM to verify the claim N times at temperature > 0,
     then measures agreement ratio.
+
+    Caveat (#122): multi-sample agreement measures the model's
+    self-consistency, not correctness. A model can be consistently
+    (confidently) wrong, so this is a stability signal, not a
+    calibrated accuracy estimate.
 
     Args:
         claim: The claim to verify.

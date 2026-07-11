@@ -511,7 +511,12 @@ def track_knowledge_updates(
                     )
                 )
 
-        # Retracted/superseded findings (old findings with no match)
+        # Retracted/superseded findings (old findings with no match).
+        # Caveat (#122): a finding missing from the next run is labeled
+        # "retracted" WITHOUT checking whether its source paper was
+        # re-retrieved, so retrieval-scope churn is conflated with genuine
+        # regression — the regression signal is thus a lower bound. The
+        # principled fix (gate on retrieval provenance) is a #122 follow-up.
         for oi, fo in enumerate(old_findings):
             if oi not in matched_old:
                 updates.append(

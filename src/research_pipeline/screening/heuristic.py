@@ -56,7 +56,13 @@ def _compute_bm25_scores(
 
 
 def _normalize_scores(scores: list[float]) -> list[float]:
-    """Min-max normalize scores to [0, 1]."""
+    """Min-max normalize scores to [0, 1].
+
+    Caveat (#122): this normalization is per-call / per-batch relative.
+    A normalized score is only comparable to others in the SAME batch,
+    not across batches or runs, so any absolute ``min_score`` cutoff
+    downstream must be read as an intra-batch threshold.
+    """
     if not scores:
         return []
     min_s = min(scores)

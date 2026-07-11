@@ -19,6 +19,11 @@ logger = logging.getLogger(__name__)
 # Domain-aware acronym and synonym mappings.
 # Maps common short forms to their expansions so that both appear
 # in query variants, covering papers that use either form.
+#
+# Caveat (#123): this is a curated, additive allowlist. It only pulls
+# toward already-anticipated vocabulary and never narrows the query;
+# unknown acronyms/subfields get no expansion. A generative or
+# embedding-based synonym source is future work.
 _DOMAIN_SYNONYMS: dict[str, list[str]] = {
     "llm": ["large language model"],
     "llms": ["large language models"],

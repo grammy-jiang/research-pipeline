@@ -42,6 +42,9 @@ class RankingOptions:
     max_items: int = 10
     feedback_weights: dict[str, float] | None = None
     topic_memory: TopicMemoryStore | None = None
+    # Caveat (#123): min_rank_score is a fixed tuned constant for the daily
+    # brief, not relative to the run's score distribution. It is overridable
+    # here via RankingOptions; a distribution-relative cutoff is future work.
     min_rank_score: float = 4.0
 
 
@@ -256,6 +259,9 @@ def _novelty_type(
 def _suggested_action(
     cluster: BriefingCluster, fatigue: float, hype_penalty: float
 ) -> Literal["read", "try", "watch", "ignore"]:
+    # Caveat (#123): the 1.5 hype/fatigue cutoffs are fixed tuned constants
+    # for the daily brief, not relative to the run's score distribution; a
+    # distribution-relative cutoff is future work.
     if hype_penalty > 1.5 or fatigue > 1.5:
         return "ignore"
     if SourceClass.IMPLEMENTATION_SOURCE in cluster.source_classes:
