@@ -28,6 +28,7 @@ from enum import StrEnum
 from typing import Any
 
 from research_pipeline.confidence.scorer import (
+    SIGNAL_WEIGHTS,
     compute_citation_density,
     compute_consistency,
     compute_evidence_signal,
@@ -580,10 +581,17 @@ def _run_l1(claim: AtomicClaim, config: ArchitectureConfig) -> L1Result:
     citation_den = compute_citation_density(claim)
     retrieval_q = compute_retrieval_quality(claim)
 
-    # Quick aggregation with equal weights for fast estimate
+    # Fast estimate fused with the canonical SIGNAL_WEIGHTS (#124) — the same
+    # weight table ConfidenceSignals.aggregate uses, so the score-claims and
+    # confidence-layers paths agree instead of drifting.
     fast_score = damped_fusion(
         [evidence_sig, hedging_sig, citation_den, retrieval_q],
-        [0.35, 0.25, 0.20, 0.20],
+        [
+            SIGNAL_WEIGHTS["evidence"],
+            SIGNAL_WEIGHTS["hedging"],
+            SIGNAL_WEIGHTS["citation"],
+            SIGNAL_WEIGHTS["retrieval"],
+        ],
         damping=config.damping,
     )
 

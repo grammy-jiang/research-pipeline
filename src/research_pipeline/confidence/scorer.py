@@ -34,6 +34,25 @@ _CERTAINTY = re.compile(
 )
 
 
+# Canonical signal-fusion weights (#124): the single source of truth for the L1
+# fast aggregate, shared by ConfidenceSignals.aggregate here and the L1 layer in
+# confidence/architecture.py so the two scoring paths can't drift. Evidence and
+# retrieval quality (substantive) outweigh rhetorical hedging.
+SIGNAL_WEIGHTS: dict[str, float] = {
+    "evidence": 0.35,
+    "hedging": 0.20,
+    "citation": 0.20,
+    "retrieval": 0.25,
+}
+SIGNAL_WEIGHTS_WITH_CONSISTENCY: dict[str, float] = {
+    "evidence": 0.25,
+    "hedging": 0.15,
+    "citation": 0.15,
+    "retrieval": 0.15,
+    "consistency": 0.30,
+}
+
+
 @dataclass
 class ConfidenceSignals:
     """Individual confidence signals for a claim."""
@@ -48,27 +67,17 @@ class ConfidenceSignals:
         """Compute weighted aggregate confidence score.
 
         Args:
-            weights: Signal weights. Defaults provided if None.
+            weights: Signal weights. Defaults to the canonical SIGNAL_WEIGHTS.
 
         Returns:
             Aggregate score in [0, 1].
         """
         if weights is None:
-            if self.consistency_signal is not None:
-                weights = {
-                    "evidence": 0.25,
-                    "hedging": 0.15,
-                    "citation": 0.15,
-                    "retrieval": 0.15,
-                    "consistency": 0.30,
-                }
-            else:
-                weights = {
-                    "evidence": 0.35,
-                    "hedging": 0.20,
-                    "citation": 0.20,
-                    "retrieval": 0.25,
-                }
+            weights = (
+                SIGNAL_WEIGHTS_WITH_CONSISTENCY
+                if self.consistency_signal is not None
+                else SIGNAL_WEIGHTS
+            )
 
         score = 0.0
         score += weights.get("evidence", 0) * self.evidence_signal
