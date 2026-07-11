@@ -15,55 +15,14 @@ import typer
 from research_pipeline.arxiv.client import ArxivClient
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.infra.http import create_session
+from research_pipeline.infra.watch_state import (
+    DEFAULT_QUERIES_FILE,
+    load_queries,
+    load_watch_state,
+    save_watch_state,
+)
 
 logger = logging.getLogger(__name__)
-
-# Default watch state file location
-DEFAULT_WATCH_DIR = Path.home() / ".cache" / "research-pipeline" / "watch"
-DEFAULT_WATCH_STATE = DEFAULT_WATCH_DIR / "watch_state.json"
-DEFAULT_QUERIES_FILE = DEFAULT_WATCH_DIR / "watch_queries.json"
-
-
-def _load_watch_state(state_path: Path) -> dict[str, str]:
-    """Load the watch state (last-checked timestamps per query).
-
-    Args:
-        state_path: Path to the state JSON file.
-
-    Returns:
-        Dict mapping query name to ISO-format last-checked timestamp.
-    """
-    if state_path.exists():
-        return json.loads(state_path.read_text())  # type: ignore[no-any-return]
-    return {}
-
-
-def _save_watch_state(state_path: Path, state: dict[str, str]) -> None:
-    """Save watch state to disk.
-
-    Args:
-        state_path: Path to the state JSON file.
-        state: Dict mapping query name to ISO timestamp.
-    """
-    state_path.parent.mkdir(parents=True, exist_ok=True)
-    state_path.write_text(json.dumps(state, indent=2))
-
-
-def _load_queries(queries_path: Path) -> list[dict[str, str]]:
-    """Load saved watch queries.
-
-    Args:
-        queries_path: Path to the queries JSON file.
-
-    Returns:
-        List of query dicts with 'name' and 'query' keys.
-    """
-    if not queries_path.exists():
-        return []
-    data = json.loads(queries_path.read_text())
-    if isinstance(data, list):
-        return data
-    return []
 
 
 def watch_command(
@@ -84,7 +43,7 @@ def watch_command(
             {"name": "rag", "query": "retrieval augmented generation"}
         ]
     """
-    queries = _load_queries(queries_file)
+    queries = load_queries(queries_file)
     if not queries:
         logger.error(
             "No queries found. Create %s with your watch queries.",
@@ -94,7 +53,7 @@ def watch_command(
         raise typer.Exit(code=1)
 
     state_path = queries_file.parent / "watch_state.json"
-    state = _load_watch_state(state_path)
+    state = load_watch_state(state_path)
 
     session = create_session()
     rate_limiter = ArxivRateLimiter()
@@ -157,7 +116,7 @@ def watch_command(
 
         state[name] = now.isoformat()
 
-    _save_watch_state(state_path, state)
+    save_watch_state(state_path, state)
 
     if output and all_new_papers:
         output.parent.mkdir(parents=True, exist_ok=True)

@@ -403,7 +403,7 @@ class TestCiteContextCommand:
 class TestWatchCommand:
     @patch("research_pipeline.cli.cmd_watch.watch_command")
     @patch(
-        "research_pipeline.cli.cmd_watch.DEFAULT_QUERIES_FILE",
+        "research_pipeline.infra.watch_state.DEFAULT_QUERIES_FILE",
         Path("/tmp/queries.json"),
     )
     @patch("research_pipeline.infra.logging.setup_logging")
