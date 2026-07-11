@@ -277,3 +277,11 @@ class TestScrubExc:
         msg = _scrub_exc(FileNotFoundError(f"{home}/runs/secret/paper.pdf missing"))
         assert home not in msg
         assert "paper.pdf" in msg
+
+    def test_redacts_credentials_in_exception(self) -> None:
+        from research_pipeline.mcp_server.tools import _scrub_exc
+
+        fake_key = "sk-" + "0" * 24  # obviously-fake, low-entropy
+        msg = _scrub_exc(RuntimeError(f"auth failed for {fake_key}"))
+        assert fake_key not in msg
+        assert "[REDACTED]" in msg

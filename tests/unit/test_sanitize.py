@@ -2,9 +2,51 @@
 
 from research_pipeline.infra.sanitize import (
     is_suspicious,
+    redact_secrets,
     sanitize_candidate_fields,
     sanitize_text,
 )
+
+
+class TestRedactSecrets:
+    """Credential-shaped substrings must be redacted (#125, HC6).
+
+    The fixtures use obviously-fake, low-entropy tokens (repeated digits) that
+    still match the shape the redactor targets.
+    """
+
+    _OPENAI = "sk-" + "0" * 24
+    _GITHUB = "ghp_" + "0" * 36
+    _AWS = "AKIA" + "0" * 16
+    _BEARER_TOK = "0" * 20
+
+    def test_openai_key(self) -> None:
+        out = redact_secrets(f"using {self._OPENAI} now")
+        assert self._OPENAI not in out
+        assert "[REDACTED]" in out
+
+    def test_github_token(self) -> None:
+        assert self._GITHUB not in redact_secrets(f"token {self._GITHUB}")
+
+    def test_aws_access_key(self) -> None:
+        assert self._AWS not in redact_secrets(f"id={self._AWS}")
+
+    def test_labeled_value(self) -> None:
+        out = redact_secrets("api_key=" + "0" * 16)
+        assert "0" * 16 not in out
+        assert "api_key" in out  # label kept, value gone
+
+    def test_bearer(self) -> None:
+        out = redact_secrets(f"Authorization: Bearer {self._BEARER_TOK}")
+        assert self._BEARER_TOK not in out
+        assert "Bearer [REDACTED]" in out
+
+    def test_leaves_ordinary_text(self) -> None:
+        msg = "Downloaded 12 papers for run-2026-07-11 in 3.4s"
+        assert redact_secrets(msg) == msg
+
+    def test_empty(self) -> None:
+        assert redact_secrets("") == ""
 
 
 class TestSanitizeText:
