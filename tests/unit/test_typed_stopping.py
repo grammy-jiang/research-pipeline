@@ -29,7 +29,10 @@ class TestExtendedQueryType:
         assert ExtendedQueryType.VERIFICATION.value == "verification"
 
     def test_all_types(self) -> None:
-        assert len(ExtendedQueryType) == 5
+        # 5 retrieval types + the AUTO auto-detect sentinel shared with
+        # adaptive_stopping (#111).
+        assert len(ExtendedQueryType) == 6
+        assert ExtendedQueryType.AUTO.value == "auto"
 
 
 # ---------------------------------------------------------------------------
@@ -327,7 +330,12 @@ class TestTypedStoppingResult:
 
 class TestDefaultProfiles:
     def test_all_types_covered(self) -> None:
+        # AUTO is an auto-detect sentinel resolved to a concrete type before any
+        # profile lookup, so it has no profile of its own (#111); every *concrete*
+        # retrieval type must.
         for qt in ExtendedQueryType:
+            if qt is ExtendedQueryType.AUTO:
+                continue
             assert qt in DEFAULT_PROFILES
 
     def test_cost_ordering(self) -> None:

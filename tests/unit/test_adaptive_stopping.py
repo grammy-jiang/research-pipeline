@@ -220,10 +220,14 @@ class TestClassifyQueryType:
             == QueryType.PRECISION
         )
 
-    def test_precision_how_to(self) -> None:
+    def test_how_to_no_marker_defaults_recall(self) -> None:
+        # #111: adaptive now delegates to the canonical scored classifier, whose
+        # precision markers are "how does"/"method for" — not "how to"/"implement"
+        # — so this query has no marker and falls back to RECALL (was PRECISION
+        # under the retired first-match scan).
         assert (
             classify_query_type("how to implement attention mechanism")
-            == QueryType.PRECISION
+            == QueryType.RECALL
         )
 
     def test_judgment_compare(self) -> None:
@@ -247,6 +251,42 @@ class TestClassifyQueryType:
             "a very specific detailed long query about multiple topics and aspects"
         )
         assert qtype == QueryType.PRECISION
+
+
+# ── cross-module classifier parity (#111) ────────────────────
+
+
+class TestClassifierParity:
+    """Both stopping subsystems now share one enum + one classifier (#111)."""
+
+    def test_query_type_is_canonical_enum_alias(self) -> None:
+        from research_pipeline.screening.typed_stopping import ExtendedQueryType
+
+        # adaptive_stopping.QueryType is the canonical ExtendedQueryType, not a
+        # separate 4-value enum, so the two subsystems cannot drift apart.
+        assert QueryType is ExtendedQueryType
+        # The AUTO sentinel is part of the shared enum, constructible by value.
+        assert QueryType("auto") is QueryType.AUTO
+
+    def test_both_modules_classify_identically(self) -> None:
+        # Regression guard: if a future edit re-introduces a divergent first-match
+        # classifier in adaptive_stopping, this parity assertion fails.
+        from research_pipeline.screening.typed_stopping import (
+            classify_query_type as canonical_classify,
+        )
+
+        queries = [
+            "survey of transformer architectures",
+            "verify the best method for retrieval",
+            "compare BERT versus GPT for NER",
+            "explore novel emerging directions",
+            "specific exact formula for attention",
+            "how to implement attention mechanism",
+            "neural network pruning methods",
+            "",
+        ]
+        for q in queries:
+            assert classify_query_type(q) == canonical_classify(q), q
 
 
 # ── composite evaluate_stopping ──────────────────────────────

@@ -43,6 +43,7 @@ class ExtendedQueryType(StrEnum):
     JUDGMENT = "judgment"  # evaluative (comparisons)
     EXPLORATORY = "exploratory"  # open-ended discovery
     VERIFICATION = "verification"  # fact-checking a claim
+    AUTO = "auto"  # auto-detect sentinel (shared with adaptive_stopping, #111)
 
 
 # ---------------------------------------------------------------------------
@@ -210,6 +211,7 @@ _JUDGMENT_KEYWORDS = frozenset(
         "compare",
         "versus",
         "better",
+        "best",
         "which",
         "evaluate",
         "assess",

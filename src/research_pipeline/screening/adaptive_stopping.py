@@ -26,16 +26,23 @@ import logging
 from dataclasses import dataclass, field
 from enum import StrEnum
 
+from research_pipeline.screening.typed_stopping import (
+    ExtendedQueryType,
+)
+from research_pipeline.screening.typed_stopping import (
+    classify_query_type as _canonical_classify,
+)
+
 logger = logging.getLogger(__name__)
 
 
-class QueryType(StrEnum):
-    """Query intent classification for stopping strategy selection."""
-
-    RECALL = "recall"
-    PRECISION = "precision"
-    JUDGMENT = "judgment"
-    AUTO = "auto"
+# One canonical query-type enum, shared by both stopping subsystems (#111).
+# adaptive_stopping historically defined its own 4-value ``QueryType`` whose
+# *first-match* classifier diverged from typed_stopping's *scored* classifier for
+# the same query. ``QueryType`` is now an alias of the richer canonical enum
+# (which gained an ``AUTO`` member), so a query maps to one type regardless of
+# entry point, and both modules stay in lock-step.
+QueryType = ExtendedQueryType
 
 
 class StopReason(StrEnum):
@@ -395,77 +402,25 @@ def classify_query_type(
     query: str,
     result_count_hint: int | None = None,
 ) -> QueryType:
-    """Heuristic classification of query intent.
+    """Classify query intent via the single canonical classifier (#111).
 
-    Maps a query string to one of three retrieval intent types to select
-    the appropriate stopping strategy:
-    - **recall**: broad/survey queries → knee detection
-    - **precision**: specific/narrow queries → top-k saturation
-    - **judgment**: comparative/evaluative queries → top-1 stability
+    Historically this module had its own *first-match* keyword scan that diverged
+    from :func:`typed_stopping.classify_query_type`'s *scored* classifier for the
+    same query (e.g. "verify the best method" → ``JUDGMENT`` here, but
+    ``VERIFICATION`` there). Both entry points now delegate to the one canonical
+    scored classifier, so a query maps to the same type regardless of which
+    subsystem asks — the dedup is behavioural, not just a shared name.
 
     Args:
         query: The search query string.
-        result_count_hint: Optional expected result count hint.
+        result_count_hint: Accepted for backward compatibility; no longer used.
 
     Returns:
-        Classified QueryType.
+        The canonical query type. May now be ``EXPLORATORY`` or ``VERIFICATION``
+        (which :func:`evaluate_stopping` maps to the knee / saturation strategies),
+        not only the three legacy types.
     """
-    q_lower = query.lower()
-
-    # Judgment indicators: comparison, evaluation, best/worst
-    judgment_markers = [
-        "compare",
-        "comparison",
-        "versus",
-        "vs",
-        "better",
-        "best",
-        "evaluate",
-        "which",
-        "rank",
-        "benchmark",
-    ]
-    if any(m in q_lower for m in judgment_markers):
-        return QueryType.JUDGMENT
-
-    # Precision indicators: specific, narrow focus
-    precision_markers = [
-        "specific",
-        "exact",
-        "particular",
-        "how to",
-        "implement",
-        "algorithm for",
-        "method for",
-        "technique for",
-    ]
-    if any(m in q_lower for m in precision_markers):
-        return QueryType.PRECISION
-
-    # Recall indicators: broad, survey-like
-    recall_markers = [
-        "survey",
-        "overview",
-        "review",
-        "comprehensive",
-        "all",
-        "taxonomy",
-        "classification",
-        "landscape",
-        "state of the art",
-        "sota",
-    ]
-    if any(m in q_lower for m in recall_markers):
-        return QueryType.RECALL
-
-    # Default based on query length heuristic
-    word_count = len(q_lower.split())
-    if word_count <= 3:
-        return QueryType.RECALL
-    if word_count >= 8:
-        return QueryType.PRECISION
-
-    return QueryType.RECALL
+    return _canonical_classify(query)
 
 
 def evaluate_stopping(
@@ -517,10 +472,13 @@ def evaluate_stopping(
         qtype = classify_query_type(query)
         logger.debug("Auto-classified query type: %s for '%s'", qtype.value, query)
 
-    # Select primary strategy
-    if qtype == QueryType.RECALL:
+    # Select primary strategy. The canonical classifier can now yield EXPLORATORY
+    # and VERIFICATION (the two members adaptive_stopping never had), so map the 5
+    # canonical types onto the 3 stopping strategies (#111): EXPLORATORY shares
+    # recall's knee detection; VERIFICATION shares precision's saturation check.
+    if qtype in (QueryType.RECALL, QueryType.EXPLORATORY):
         primary = check_recall_stopping(state, knee_threshold)
-    elif qtype == QueryType.PRECISION:
+    elif qtype in (QueryType.PRECISION, QueryType.VERIFICATION):
         primary = check_precision_stopping(state, saturation_ratio, top_k)
     elif qtype == QueryType.JUDGMENT:
         primary = check_judgment_stopping(state, stability_window, stability_tolerance)
