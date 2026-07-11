@@ -1,0 +1,4598 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers — plus a daily AI intelligence briefing system.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/user-manual/">
+      
+      
+        <link rel="prev" href="../getting-started/">
+      
+      
+        <link rel="next" href="../api-reference/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>User Manual - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#user-manual-research-pipeline" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              User Manual
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-basic-install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Basic install
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-optional-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Optional extras
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Verify installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-create-configtoml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Create config.toml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-environment-variable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Environment variable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-key-configuration-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Key configuration options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-api-key-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 API key setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-your-first-research-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Your first research run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-reading-your-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Reading your results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-academic-paper-research-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Academic Paper Research Pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Academic Paper Research Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-running-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Running end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-choosing-a-pipeline-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Choosing a pipeline profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-running-individual-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Running individual stages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-resuming-a-failed-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Resuming a failed run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-working-with-multiple-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Working with multiple sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-pdf-conversion-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 PDF conversion options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-exporting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Exporting results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-iterative-deep-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 Iterative deep research
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-daily-ai-intelligence-briefing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Daily AI Intelligence Briefing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Daily AI Intelligence Briefing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-overview-of-the-briefing-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Overview of the briefing pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-configuring-briefing-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Configuring briefing sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-running-the-daily-brief" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Running the daily brief
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-understanding-the-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Understanding the output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-hot-topic-dossiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Hot-topic dossiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-weekly-synthesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 Weekly synthesis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#67-exporting-to-obsidian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.7 Exporting to Obsidian
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#68-feedback-and-personalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.8 Feedback and personalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-using-with-ai-assistants-mcp-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Using with AI Assistants (MCP + Skills)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Using with AI Assistants (MCP + Skills)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-mcp-server-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 MCP server setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-using-research-workflow-via-mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Using research-workflow via MCP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-installing-the-ai-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Installing the AI skill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-sub-agent-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Sub-agent workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Advanced Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Advanced Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-citation-graph-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Citation graph expansion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-quality-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Quality scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-semantic-re-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Semantic re-ranking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-feedback-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Feedback loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-knowledge-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Knowledge graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-watching-for-new-papers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Watching for new papers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-no-results-from-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 No results from search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-pdf-download-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 PDF download failures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-conversion-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 Conversion errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-mcp-connection-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 MCP connection issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.5 Rate limiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-common-error-messages-and-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6 Common error messages and fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-command-reference-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Command Reference Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Command Reference Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#academic-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Academic pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#daily-briefing-brief-sub-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily briefing (brief sub-app)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-options-available-on-all-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global options (available on all commands)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-001-uv-build-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 uv build tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-002-pydantic-domain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 Pydantic models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-003-stage-based-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Stage-based pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-004-conversion-backend-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 Conversion registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-005-sqlite-persistent-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-005 SQLite state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-006-fastmcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-006 FastMCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-007-multi-tier-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Multi-tier memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-008-briefing-vs-academic-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 Dual pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" >
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations-runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#table-of-contents" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Table of Contents
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#1-introduction" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Introduction
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Installation
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="2. Installation">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#21-basic-install" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.1 Basic install
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#22-optional-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.2 Optional extras
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#23-verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2.3 Verify installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Configuration
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Configuration">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-create-configtoml" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Create config.toml
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-environment-variable" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Environment variable
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-key-configuration-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Key configuration options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#34-api-key-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.4 API key setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-quick-start" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Quick Start
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Quick Start">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-your-first-research-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Your first research run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-reading-your-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Reading your results
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-academic-paper-research-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Academic Paper Research Pipeline
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Academic Paper Research Pipeline">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-running-end-to-end" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Running end-to-end
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-choosing-a-pipeline-profile" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Choosing a pipeline profile
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-running-individual-stages" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Running individual stages
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-resuming-a-failed-run" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Resuming a failed run
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#55-working-with-multiple-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.5 Working with multiple sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#56-pdf-conversion-options" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.6 PDF conversion options
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#57-exporting-results" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.7 Exporting results
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#58-iterative-deep-research" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.8 Iterative deep research
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-daily-ai-intelligence-briefing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Daily AI Intelligence Briefing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Daily AI Intelligence Briefing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-overview-of-the-briefing-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Overview of the briefing pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-configuring-briefing-sources" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Configuring briefing sources
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-running-the-daily-brief" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 Running the daily brief
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-understanding-the-output" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Understanding the output
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-hot-topic-dossiers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Hot-topic dossiers
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#66-weekly-synthesis" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.6 Weekly synthesis
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#67-exporting-to-obsidian" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.7 Exporting to Obsidian
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#68-feedback-and-personalization" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.8 Feedback and personalization
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-using-with-ai-assistants-mcp-skills" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Using with AI Assistants (MCP + Skills)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Using with AI Assistants (MCP + Skills)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-mcp-server-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 MCP server setup
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-using-research-workflow-via-mcp" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Using research-workflow via MCP
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-installing-the-ai-skill" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Installing the AI skill
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-sub-agent-workflows" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 Sub-agent workflows
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-advanced-features" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Advanced Features
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Advanced Features">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-citation-graph-expansion" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Citation graph expansion
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-quality-scoring" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Quality scoring
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-semantic-re-ranking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Semantic re-ranking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-feedback-loop" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Feedback loop
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-knowledge-graph" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Knowledge graph
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-watching-for-new-papers" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Watching for new papers
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-troubleshooting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Troubleshooting
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="9. Troubleshooting">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#91-no-results-from-search" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.1 No results from search
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#92-pdf-download-failures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.2 PDF download failures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#93-conversion-errors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.3 Conversion errors
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#94-mcp-connection-issues" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.4 MCP connection issues
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#95-rate-limiting" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.5 Rate limiting
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#96-common-error-messages-and-fixes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9.6 Common error messages and fixes
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-command-reference-summary" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Command Reference Summary
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Command Reference Summary">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#academic-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Academic pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#daily-briefing-brief-sub-app" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Daily briefing (brief sub-app)
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#global-options-available-on-all-commands" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Global options (available on all commands)
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="user-manual-research-pipeline">User Manual: research-pipeline<a class="headerlink" href="#user-manual-research-pipeline" title="Permanent link">&para;</a></h1>
+<blockquote>
+<p><strong>Version:</strong> 0.17.14 · <a href="https://github.com/grammy-jiang/research-pipeline">GitHub</a> · <a href="https://grammy-jiang.github.io/research-pipeline/">Documentation</a></p>
+</blockquote>
+<hr />
+<h2 id="table-of-contents">Table of Contents<a class="headerlink" href="#table-of-contents" title="Permanent link">&para;</a></h2>
+<ol>
+<li><a href="#1-introduction">Introduction</a></li>
+<li><a href="#2-installation">Installation</a></li>
+<li><a href="#21-basic-install">2.1 Basic install</a></li>
+<li><a href="#22-optional-extras">2.2 Optional extras</a></li>
+<li><a href="#23-verify-installation">2.3 Verify installation</a></li>
+<li><a href="#3-configuration">Configuration</a></li>
+<li><a href="#31-create-configtoml">3.1 Create config.toml</a></li>
+<li><a href="#32-environment-variable">3.2 Environment variable</a></li>
+<li><a href="#33-key-configuration-options">3.3 Key configuration options</a></li>
+<li><a href="#34-api-key-setup">3.4 API key setup</a></li>
+<li><a href="#4-quick-start">Quick Start</a></li>
+<li><a href="#41-your-first-research-run">4.1 Your first research run</a></li>
+<li><a href="#42-reading-your-results">4.2 Reading your results</a></li>
+<li><a href="#5-academic-paper-research-pipeline">Academic Paper Research Pipeline</a></li>
+<li><a href="#51-running-end-to-end">5.1 Running end-to-end</a></li>
+<li><a href="#52-choosing-a-pipeline-profile">5.2 Choosing a pipeline profile</a></li>
+<li><a href="#53-running-individual-stages">5.3 Running individual stages</a></li>
+<li><a href="#54-resuming-a-failed-run">5.4 Resuming a failed run</a></li>
+<li><a href="#55-working-with-multiple-sources">5.5 Working with multiple sources</a></li>
+<li><a href="#56-pdf-conversion-options">5.6 PDF conversion options</a></li>
+<li><a href="#57-exporting-results">5.7 Exporting results</a></li>
+<li><a href="#58-iterative-deep-research">5.8 Iterative deep research</a></li>
+<li><a href="#6-daily-ai-intelligence-briefing">Daily AI Intelligence Briefing</a></li>
+<li><a href="#61-overview-of-the-briefing-pipeline">6.1 Overview of the briefing pipeline</a></li>
+<li><a href="#62-configuring-briefing-sources">6.2 Configuring briefing sources</a></li>
+<li><a href="#63-running-the-daily-brief">6.3 Running the daily brief</a></li>
+<li><a href="#64-understanding-the-output">6.4 Understanding the output</a></li>
+<li><a href="#65-hot-topic-dossiers">6.5 Hot-topic dossiers</a></li>
+<li><a href="#66-weekly-synthesis">6.6 Weekly synthesis</a></li>
+<li><a href="#67-exporting-to-obsidian">6.7 Exporting to Obsidian</a></li>
+<li><a href="#68-feedback-and-personalization">6.8 Feedback and personalization</a></li>
+<li><a href="#7-using-with-ai-assistants-mcp--skills">Using with AI Assistants (MCP + Skills)</a></li>
+<li><a href="#71-mcp-server-setup">7.1 MCP server setup</a></li>
+<li><a href="#72-using-research-workflow-via-mcp">7.2 Using research-workflow via MCP</a></li>
+<li><a href="#73-installing-the-ai-skill">7.3 Installing the AI skill</a></li>
+<li><a href="#74-sub-agent-workflows">7.4 Sub-agent workflows</a></li>
+<li><a href="#8-advanced-features">Advanced Features</a></li>
+<li><a href="#81-citation-graph-expansion">8.1 Citation graph expansion</a></li>
+<li><a href="#82-quality-scoring">8.2 Quality scoring</a></li>
+<li><a href="#83-semantic-re-ranking">8.3 Semantic re-ranking</a></li>
+<li><a href="#84-feedback-loop">8.4 Feedback loop</a></li>
+<li><a href="#85-knowledge-graph">8.5 Knowledge graph</a></li>
+<li><a href="#86-watching-for-new-papers">8.6 Watching for new papers</a></li>
+<li><a href="#9-troubleshooting">Troubleshooting</a></li>
+<li><a href="#91-no-results-from-search">9.1 No results from search</a></li>
+<li><a href="#92-pdf-download-failures">9.2 PDF download failures</a></li>
+<li><a href="#93-conversion-errors">9.3 Conversion errors</a></li>
+<li><a href="#94-mcp-connection-issues">9.4 MCP connection issues</a></li>
+<li><a href="#95-rate-limiting">9.5 Rate limiting</a></li>
+<li><a href="#96-common-error-messages-and-fixes">9.6 Common error messages and fixes</a></li>
+<li><a href="#10-command-reference-summary">Command Reference Summary</a></li>
+</ol>
+<hr />
+<h2 id="1-introduction">1. Introduction<a class="headerlink" href="#1-introduction" title="Permanent link">&para;</a></h2>
+<p><strong>research-pipeline</strong> is a command-line tool for two distinct workflows:</p>
+<ol>
+<li>
+<p><strong>Academic paper research</strong> — given a research topic, it searches arXiv and
+   other academic databases, screens for relevance, downloads PDFs, converts them
+   to Markdown, and synthesises a structured literature review with evidence citations.</p>
+</li>
+<li>
+<p><strong>Daily AI intelligence briefing</strong> — polls configurable sources (RSS feeds,
+   GitHub releases, arXiv events, HackerNews, and more), deduplicates and ranks
+   events by technical significance, and generates a concise daily digest — with
+   optional export to Obsidian.</p>
+</li>
+</ol>
+<p><strong>When to use it:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Goal</th>
+<th>Use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Literature review on an AI topic</td>
+<td><code>research-pipeline run "topic"</code></td>
+</tr>
+<tr>
+<td>Staying current with AI developments</td>
+<td><code>research-pipeline brief run</code></td>
+</tr>
+<tr>
+<td>Standalone PDF → Markdown</td>
+<td><code>research-pipeline convert-file paper.pdf</code></td>
+</tr>
+<tr>
+<td>AI assistant with academic search tools</td>
+<td><code>research-pipeline mcp serve</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> Both pipelines are offline-first. The academic pipeline only contacts
+arXiv and academic APIs; the briefing pipeline only contacts explicitly
+configured sources. No telemetry or data is sent to third parties.</p>
+</blockquote>
+<hr />
+<h2 id="2-installation">2. Installation<a class="headerlink" href="#2-installation" title="Permanent link">&para;</a></h2>
+<h3 id="21-basic-install">2.1 Basic install<a class="headerlink" href="#21-basic-install" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a><span class="c1"># Using pip</span>
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>pip<span class="w"> </span>install<span class="w"> </span>research-pipeline
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Using uv (recommended)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>uv<span class="w"> </span>add<span class="w"> </span>research-pipeline
+</code></pre></div>
+<p><strong>Requirements:</strong> Python 3.12 or later.</p>
+<h3 id="22-optional-extras">2.2 Optional extras<a class="headerlink" href="#22-optional-extras" title="Permanent link">&para;</a></h3>
+<p>Install extras for additional capabilities:</p>
+<table>
+<thead>
+<tr>
+<th>Extra</th>
+<th>Purpose</th>
+<th>License</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docling</code></td>
+<td>High-quality PDF → Markdown conversion (recommended)</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td><code>marker</code></td>
+<td>Highest-accuracy PDF → Markdown conversion</td>
+<td>GPL-3.0</td>
+</tr>
+<tr>
+<td><code>pymupdf4llm</code></td>
+<td>Fast CPU-only PDF → Markdown conversion</td>
+<td>AGPL</td>
+</tr>
+<tr>
+<td><code>mineru</code></td>
+<td>Scientific PDF parser (TEDS 93.42% table accuracy)</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td><code>mathpix</code></td>
+<td>Mathpix cloud OCR — best LaTeX (1 000 free pages/month)</td>
+<td>Proprietary</td>
+</tr>
+<tr>
+<td><code>datalab</code></td>
+<td>Datalab hosted Marker (\$5 free credit)</td>
+<td>Proprietary</td>
+</tr>
+<tr>
+<td><code>llamaparse</code></td>
+<td>LlamaParse cloud parsing (1 000 free pages/day)</td>
+<td>Proprietary</td>
+</tr>
+<tr>
+<td><code>mistral-ocr</code></td>
+<td>Mistral Document AI OCR (per-token, free credits available)</td>
+<td>Proprietary</td>
+</tr>
+<tr>
+<td><code>openai-vision</code></td>
+<td>OpenAI GPT-4o vision (per-token)</td>
+<td>Proprietary</td>
+</tr>
+<tr>
+<td><code>scholar</code></td>
+<td>Google Scholar search via the <code>scholarly</code> library</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td><code>serpapi</code></td>
+<td>Google Scholar via SerpAPI (requires API key)</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td><code>reranker</code></td>
+<td>SPECTER2 semantic re-ranking for higher-precision screening</td>
+<td>MIT</td>
+</tr>
+<tr>
+<td><code>llm</code></td>
+<td>LLM integration for summarisation and claim analysis</td>
+<td>—</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Install multiple extras at once:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a><span class="c1"># Recommended full-featured install</span>
+<a id="__codelineno-1-2" name="__codelineno-1-2" href="#__codelineno-1-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;research-pipeline[docling,scholar,reranker]&quot;</span>
+<a id="__codelineno-1-3" name="__codelineno-1-3" href="#__codelineno-1-3"></a>
+<a id="__codelineno-1-4" name="__codelineno-1-4" href="#__codelineno-1-4"></a><span class="c1"># Development install from source</span>
+<a id="__codelineno-1-5" name="__codelineno-1-5" href="#__codelineno-1-5"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/grammy-jiang/research-pipeline.git
+<a id="__codelineno-1-6" name="__codelineno-1-6" href="#__codelineno-1-6"></a><span class="nb">cd</span><span class="w"> </span>research-pipeline
+<a id="__codelineno-1-7" name="__codelineno-1-7" href="#__codelineno-1-7"></a>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>docling<span class="w"> </span>--extra<span class="w"> </span>scholar
+</code></pre></div>
+<blockquote>
+<p><strong>Tip:</strong> Start with <code>docling</code> for PDF conversion. It requires no API keys and
+gives good results on most scientific papers. Add <code>reranker</code> to improve
+screening precision when working on niche or technical topics.</p>
+</blockquote>
+<h3 id="23-verify-installation">2.3 Verify installation<a class="headerlink" href="#23-verify-installation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>research-pipeline<span class="w"> </span>--version
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Expected: research-pipeline 0.17.14</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>research-pipeline<span class="w"> </span>--help
+</code></pre></div>
+<hr />
+<h2 id="3-configuration">3. Configuration<a class="headerlink" href="#3-configuration" title="Permanent link">&para;</a></h2>
+<h3 id="31-create-configtoml">3.1 Create config.toml<a class="headerlink" href="#31-create-configtoml" title="Permanent link">&para;</a></h3>
+<p>Most features work with defaults, but you need a config file to set API keys
+and tune behaviour.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Copy the annotated example</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>cp<span class="w"> </span>config.example.toml<span class="w"> </span>config.toml
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a><span class="c1"># Or download it directly</span>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a>curl<span class="w"> </span>-o<span class="w"> </span>config.toml<span class="w"> </span>https://raw.githubusercontent.com/grammy-jiang/research-pipeline/main/config.example.toml
+</code></pre></div>
+<p>The tool looks for <code>config.toml</code> in the <strong>current working directory</strong> by
+default. Pass <code>--config /path/to/config.toml</code> on any command to override.</p>
+<h3 id="32-environment-variable">3.2 Environment variable<a class="headerlink" href="#32-environment-variable" title="Permanent link">&para;</a></h3>
+<p>Set <code>RESEARCH_PIPELINE_CONFIG</code> to point to your config file from any directory:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="nb">export</span><span class="w"> </span><span class="nv">RESEARCH_PIPELINE_CONFIG</span><span class="o">=</span>/home/user/.config/research-pipeline/config.toml
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;transformer attention&quot;</span>
+</code></pre></div>
+<p>You can also override individual secrets via environment variables without
+putting them in the config file (see <a href="#34-api-key-setup">§3.4</a>).</p>
+<h3 id="33-key-configuration-options">3.3 Key configuration options<a class="headerlink" href="#33-key-configuration-options" title="Permanent link">&para;</a></h3>
+<p><strong><code>[pipeline]</code> — top-level pipeline behaviour</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>profile</code></td>
+<td><code>"standard"</code></td>
+<td>Pipeline profile: <code>quick</code>, <code>standard</code>, <code>deep</code>, <code>auto</code></td>
+</tr>
+<tr>
+<td><code>ter_max_iterations</code></td>
+<td><code>3</code></td>
+<td>Max THINK→EXECUTE→REFLECT iterations for iterative research</td>
+</tr>
+<tr>
+<td><code>memory_working_capacity</code></td>
+<td><code>50</code></td>
+<td>Max items in working memory per stage</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[search]</code> — search parameters</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>primary_months</code></td>
+<td><code>6</code></td>
+<td>Months of recency for primary search window</td>
+</tr>
+<tr>
+<td><code>fallback_months</code></td>
+<td><code>12</code></td>
+<td>Extended window when primary yields too few results</td>
+</tr>
+<tr>
+<td><code>max_query_variants</code></td>
+<td><code>5</code></td>
+<td>Number of query variants to generate and search</td>
+</tr>
+<tr>
+<td><code>min_candidates</code></td>
+<td><code>40</code></td>
+<td>Minimum candidates before proceeding to screening</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[sources]</code> — multi-source search</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>["arxiv"]</code></td>
+<td>Active sources: <code>arxiv</code>, <code>semantic_scholar</code>, <code>openalex</code>, <code>dblp</code>, <code>scholar</code>, <code>huggingface</code></td>
+</tr>
+<tr>
+<td><code>scholar_backend</code></td>
+<td><code>"scholarly"</code></td>
+<td><code>scholarly</code> (free) or <code>serpapi</code> (paid, faster)</td>
+</tr>
+<tr>
+<td><code>semantic_scholar_api_key</code></td>
+<td><code>""</code></td>
+<td>Optional — raises rate limits substantially</td>
+</tr>
+<tr>
+<td><code>openalex_api_key</code></td>
+<td><code>""</code></td>
+<td>Optional polite-pool key for OpenAlex</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[screen]</code> — relevance screening</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>cheap_top_k</code></td>
+<td><code>50</code></td>
+<td>Candidates kept after BM25 scoring</td>
+</tr>
+<tr>
+<td><code>download_top_n</code></td>
+<td><code>8</code></td>
+<td>Papers selected for download</td>
+</tr>
+<tr>
+<td><code>final_score_threshold</code></td>
+<td><code>0.70</code></td>
+<td>Minimum BM25 score to include</td>
+</tr>
+<tr>
+<td><code>use_semantic_reranking</code></td>
+<td><code>false</code></td>
+<td>Enable SPECTER2 re-ranking (requires <code>reranker</code> extra)</td>
+</tr>
+<tr>
+<td><code>diversity</code></td>
+<td><code>false</code></td>
+<td>Enable MMR diversity-aware shortlisting</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[download]</code> — PDF downloading</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>max_per_run</code></td>
+<td><code>20</code></td>
+<td>Hard cap on PDFs downloaded per run</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[conversion]</code> — PDF → Markdown</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>backend</code></td>
+<td><code>"docling"</code></td>
+<td>Primary backend: <code>docling</code>, <code>marker</code>, <code>pymupdf4llm</code>, <code>mineru</code>, <code>mathpix</code>, <code>datalab</code>, <code>llamaparse</code>, <code>mistral_ocr</code>, <code>openai_vision</code></td>
+</tr>
+<tr>
+<td><code>fallback_backends</code></td>
+<td><code>[]</code></td>
+<td>Ordered list of backends to try when primary fails</td>
+</tr>
+<tr>
+<td><code>timeout_seconds</code></td>
+<td><code>300</code></td>
+<td>Per-file conversion timeout</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[llm]</code> — LLM integration</strong> (optional)</p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>false</code></td>
+<td>Enable LLM-powered summarisation</td>
+</tr>
+<tr>
+<td><code>provider</code></td>
+<td><code>"ollama"</code></td>
+<td><code>ollama</code> (local) or <code>openai</code> (API)</td>
+</tr>
+<tr>
+<td><code>model</code></td>
+<td><code>""</code></td>
+<td>Model name (empty = provider default)</td>
+</tr>
+<tr>
+<td><code>api_key</code></td>
+<td><code>""</code></td>
+<td>API key for OpenAI-compatible providers</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[quality]</code> — paper quality scoring</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>false</code></td>
+<td>Enable citation/venue/author quality scoring</td>
+</tr>
+<tr>
+<td><code>citation_weight</code></td>
+<td><code>0.35</code></td>
+<td>Weight for citation impact</td>
+</tr>
+<tr>
+<td><code>venue_weight</code></td>
+<td><code>0.25</code></td>
+<td>Weight for venue reputation (CORE ranking)</td>
+</tr>
+<tr>
+<td><code>author_weight</code></td>
+<td><code>0.25</code></td>
+<td>Weight for author h-index</td>
+</tr>
+<tr>
+<td><code>recency_weight</code></td>
+<td><code>0.15</code></td>
+<td>Weight for publication recency</td>
+</tr>
+</tbody>
+</table>
+<p><strong><code>[incremental]</code> — cross-run deduplication</strong></p>
+<table>
+<thead>
+<tr>
+<th>Key</th>
+<th>Default</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>enabled</code></td>
+<td><code>false</code></td>
+<td>Skip papers seen in previous runs</td>
+</tr>
+<tr>
+<td><code>global_index_path</code></td>
+<td><code>""</code></td>
+<td>SQLite index path (default: <code>~/.cache/research-pipeline/paper_index.db</code>)</td>
+</tr>
+<tr>
+<td><code>reuse_artifacts</code></td>
+<td><code>true</code></td>
+<td>Symlink existing PDFs instead of re-downloading</td>
+</tr>
+</tbody>
+</table>
+<h3 id="34-api-key-setup">3.4 API key setup<a class="headerlink" href="#34-api-key-setup" title="Permanent link">&para;</a></h3>
+<p>You can store API keys in <code>config.toml</code> or as environment variables. The
+environment variable names follow the pattern <code>RESEARCH_PIPELINE_&lt;SECTION&gt;_&lt;KEY&gt;</code> for
+most keys, but some are named explicitly in the example config.</p>
+<table>
+<thead>
+<tr>
+<th>Service</th>
+<th>Config key</th>
+<th>Environment variable</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Semantic Scholar</td>
+<td><code>sources.semantic_scholar_api_key</code></td>
+<td><code>RESEARCH_PIPELINE_SEMANTIC_SCHOLAR_API_KEY</code></td>
+</tr>
+<tr>
+<td>SerpAPI (Scholar)</td>
+<td><code>sources.serpapi_key</code></td>
+<td><code>RESEARCH_PIPELINE_SERPAPI_KEY</code></td>
+</tr>
+<tr>
+<td>OpenAlex</td>
+<td><code>sources.openalex_api_key</code></td>
+<td><code>RESEARCH_PIPELINE_OPENALEX_API_KEY</code></td>
+</tr>
+<tr>
+<td>Datalab</td>
+<td><code>conversion.datalab.api_key</code></td>
+<td><code>RESEARCH_PIPELINE_DATALAB_API_KEY</code></td>
+</tr>
+<tr>
+<td>LlamaParse</td>
+<td><code>conversion.llamaparse.api_key</code></td>
+<td><code>RESEARCH_PIPELINE_LLAMAPARSE_API_KEY</code></td>
+</tr>
+<tr>
+<td>Mathpix</td>
+<td><code>conversion.mathpix.app_id</code> / <code>.app_key</code></td>
+<td><code>RESEARCH_PIPELINE_MATHPIX_APP_ID</code> / <code>RESEARCH_PIPELINE_MATHPIX_APP_KEY</code></td>
+</tr>
+<tr>
+<td>Mistral OCR</td>
+<td><code>conversion.mistral_ocr.api_key</code></td>
+<td><code>RESEARCH_PIPELINE_MISTRAL_API_KEY</code></td>
+</tr>
+<tr>
+<td>OpenAI vision</td>
+<td><code>conversion.openai_vision.api_key</code></td>
+<td><code>RESEARCH_PIPELINE_OPENAI_API_KEY</code></td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note:</strong> <code>config.toml</code> is gitignored by default in the project template.
+Never commit API keys to source control.</p>
+</blockquote>
+<hr />
+<h2 id="4-quick-start">4. Quick Start<a class="headerlink" href="#4-quick-start" title="Permanent link">&para;</a></h2>
+<blockquote>
+<p>New here? The standalone <a href="../getting-started/">Getting Started</a> tutorial walks
+through this same first run step by step. This section is the condensed
+reference version.</p>
+</blockquote>
+<h3 id="41-your-first-research-run">4.1 Your first research run<a class="headerlink" href="#41-your-first-research-run" title="Permanent link">&para;</a></h3>
+<p>Five minutes to your first literature review:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># 1. Install with recommended extras</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>pip<span class="w"> </span>install<span class="w"> </span><span class="s2">&quot;research-pipeline[docling]&quot;</span>
+<a id="__codelineno-5-3" name="__codelineno-5-3" href="#__codelineno-5-3"></a>
+<a id="__codelineno-5-4" name="__codelineno-5-4" href="#__codelineno-5-4"></a><span class="c1"># 2. (Optional) Create a config file</span>
+<a id="__codelineno-5-5" name="__codelineno-5-5" href="#__codelineno-5-5"></a>cp<span class="w"> </span>config.example.toml<span class="w"> </span>config.toml<span class="w">   </span><span class="c1"># then edit as needed</span>
+<a id="__codelineno-5-6" name="__codelineno-5-6" href="#__codelineno-5-6"></a>
+<a id="__codelineno-5-7" name="__codelineno-5-7" href="#__codelineno-5-7"></a><span class="c1"># 3. Run the pipeline</span>
+<a id="__codelineno-5-8" name="__codelineno-5-8" href="#__codelineno-5-8"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;attention mechanisms in transformer models&quot;</span>
+</code></pre></div>
+<p>The pipeline will:
+1. Normalise your topic into structured search queries
+2. Search arXiv (and any other enabled sources)
+3. Score and shortlist the most relevant papers
+4. Download PDFs for the top candidates
+5. Convert PDFs to Markdown
+6. Extract key sections
+7. Generate per-paper summaries and a cross-paper synthesis report</p>
+<p>Progress is printed to the terminal. A typical run takes 2–5 minutes.</p>
+<p><strong>Find your results:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># List all runs</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>research-pipeline<span class="w"> </span>inspect
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Show details for a specific run</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>research-pipeline<span class="w"> </span>inspect<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<p>Run output is stored under <code>./runs/&lt;RUN_ID&gt;/</code>.</p>
+<h3 id="42-reading-your-results">4.2 Reading your results<a class="headerlink" href="#42-reading-your-results" title="Permanent link">&para;</a></h3>
+<p>Each run produces these key artifacts:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>runs/&lt;ID&gt;/query_plan.json</code></td>
+<td>Structured search queries generated from your topic</td>
+</tr>
+<tr>
+<td><code>runs/&lt;ID&gt;/candidates.jsonl</code></td>
+<td>All papers found across sources</td>
+</tr>
+<tr>
+<td><code>runs/&lt;ID&gt;/screened.jsonl</code></td>
+<td>Shortlisted papers with relevance scores</td>
+</tr>
+<tr>
+<td><code>runs/&lt;ID&gt;/convert/&lt;ID&gt;.md</code></td>
+<td>Converted paper text (one file per paper)</td>
+</tr>
+<tr>
+<td><code>runs/&lt;ID&gt;/synthesis.md</code></td>
+<td><strong>Main output:</strong> cross-paper synthesis report</td>
+</tr>
+<tr>
+<td><code>runs/&lt;ID&gt;/summaries/&lt;ID&gt;.md</code></td>
+<td>Per-paper summary</td>
+</tr>
+<tr>
+<td><code>runs/&lt;ID&gt;/run_manifest.json</code></td>
+<td>Stage completion status and artifact hashes</td>
+</tr>
+</tbody>
+</table>
+<p>Open <code>synthesis.md</code> (or <code>synthesis.html</code> after export) to read your literature review.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="c1"># Export to HTML for easy reading in a browser</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a>research-pipeline<span class="w"> </span>export-html<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a><span class="c1"># Opens as runs/&lt;ID&gt;/synthesis.html</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="c1"># Export to BibTeX for LaTeX use</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a>research-pipeline<span class="w"> </span>export-bibtex<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a><span class="c1"># Writes runs/&lt;ID&gt;/screened.bib</span>
+</code></pre></div>
+<hr />
+<h2 id="5-academic-paper-research-pipeline">5. Academic Paper Research Pipeline<a class="headerlink" href="#5-academic-paper-research-pipeline" title="Permanent link">&para;</a></h2>
+<h3 id="51-running-end-to-end">5.1 Running end-to-end<a class="headerlink" href="#51-running-end-to-end" title="Permanent link">&para;</a></h3>
+<p>The <code>run</code> command orchestrates all seven stages in sequence:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a><span class="c1"># Basic run with default settings (standard profile, arXiv only)</span>
+<a id="__codelineno-8-2" name="__codelineno-8-2" href="#__codelineno-8-2"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;LLM reasoning and chain-of-thought&quot;</span>
+<a id="__codelineno-8-3" name="__codelineno-8-3" href="#__codelineno-8-3"></a>
+<a id="__codelineno-8-4" name="__codelineno-8-4" href="#__codelineno-8-4"></a><span class="c1"># Run with debug output</span>
+<a id="__codelineno-8-5" name="__codelineno-8-5" href="#__codelineno-8-5"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;diffusion models&quot;</span><span class="w"> </span>--verbose
+<a id="__codelineno-8-6" name="__codelineno-8-6" href="#__codelineno-8-6"></a>
+<a id="__codelineno-8-7" name="__codelineno-8-7" href="#__codelineno-8-7"></a><span class="c1"># Use a custom config</span>
+<a id="__codelineno-8-8" name="__codelineno-8-8" href="#__codelineno-8-8"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;RAG architectures&quot;</span><span class="w"> </span>--config<span class="w"> </span>/path/to/config.toml
+<a id="__codelineno-8-9" name="__codelineno-8-9" href="#__codelineno-8-9"></a>
+<a id="__codelineno-8-10" name="__codelineno-8-10" href="#__codelineno-8-10"></a><span class="c1"># Save to a custom workspace directory</span>
+<a id="__codelineno-8-11" name="__codelineno-8-11" href="#__codelineno-8-11"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;embodied AI&quot;</span><span class="w"> </span>--workspace<span class="w"> </span>/data/runs
+<a id="__codelineno-8-12" name="__codelineno-8-12" href="#__codelineno-8-12"></a>
+<a id="__codelineno-8-13" name="__codelineno-8-13" href="#__codelineno-8-13"></a><span class="c1"># Pin to a specific run ID (reproducible re-runs)</span>
+<a id="__codelineno-8-14" name="__codelineno-8-14" href="#__codelineno-8-14"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;graph neural networks&quot;</span><span class="w"> </span>--run-id<span class="w"> </span>my-gnn-run-01
+</code></pre></div>
+<h3 id="52-choosing-a-pipeline-profile">5.2 Choosing a pipeline profile<a class="headerlink" href="#52-choosing-a-pipeline-profile" title="Permanent link">&para;</a></h3>
+<p>The <code>--profile</code> flag controls which stages execute and how deep the analysis goes.</p>
+<table>
+<thead>
+<tr>
+<th>Profile</th>
+<th>Stages</th>
+<th>Use when</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>quick</code></td>
+<td>plan → search → screen → summarise</td>
+<td>You need fast results from abstracts only (no PDFs)</td>
+</tr>
+<tr>
+<td><code>standard</code></td>
+<td>Full 7-stage pipeline</td>
+<td>Default; balanced quality and speed</td>
+</tr>
+<tr>
+<td><code>deep</code></td>
+<td>Full pipeline + expand + quality + claim analysis + TER loop</td>
+<td>Thorough literature review with iterative gap-filling</td>
+</tr>
+<tr>
+<td><code>auto</code></td>
+<td>Detected from query complexity</td>
+<td>Let the pipeline decide</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="c1"># Quick abstract-only survey (no downloads)</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;vector database benchmarks&quot;</span><span class="w"> </span>--profile<span class="w"> </span>quick
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="c1"># Standard full pipeline (default)</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;multimodal LLMs&quot;</span><span class="w"> </span>--profile<span class="w"> </span>standard
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>
+<a id="__codelineno-9-7" name="__codelineno-9-7" href="#__codelineno-9-7"></a><span class="c1"># Deep iterative research with up to 3 refinement rounds</span>
+<a id="__codelineno-9-8" name="__codelineno-9-8" href="#__codelineno-9-8"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;AI alignment methods&quot;</span><span class="w"> </span>--profile<span class="w"> </span>deep
+<a id="__codelineno-9-9" name="__codelineno-9-9" href="#__codelineno-9-9"></a>
+<a id="__codelineno-9-10" name="__codelineno-9-10" href="#__codelineno-9-10"></a><span class="c1"># Let the pipeline decide based on query complexity</span>
+<a id="__codelineno-9-11" name="__codelineno-9-11" href="#__codelineno-9-11"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;neural architecture search&quot;</span><span class="w"> </span>--profile<span class="w"> </span>auto
+</code></pre></div>
+<blockquote>
+<p><strong>Tip:</strong> Use <code>quick</code> for an initial survey to understand the space, then
+re-run with <code>standard</code> or <code>deep</code> once you know your focus area.</p>
+</blockquote>
+<h3 id="53-running-individual-stages">5.3 Running individual stages<a class="headerlink" href="#53-running-individual-stages" title="Permanent link">&para;</a></h3>
+<p>Run stages one at a time when you need fine-grained control:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Stage 1: Create a query plan from your topic</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>research-pipeline<span class="w"> </span>plan<span class="w"> </span><span class="s2">&quot;low-rank adaptation of large language models&quot;</span>
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a><span class="c1"># Outputs: runs/&lt;ID&gt;/query_plan.json</span>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Prints the run ID — use it in subsequent commands</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a><span class="c1"># Stage 2: Search all configured sources</span>
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>research-pipeline<span class="w"> </span>search<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a><span class="c1"># Stage 2 (alt): Search a specific source</span>
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>research-pipeline<span class="w"> </span>search<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--source<span class="w"> </span>semantic_scholar
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a><span class="c1"># Stage 3: Screen and shortlist candidates</span>
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>research-pipeline<span class="w"> </span>screen<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a><span class="c1"># Stage 3 (with diversity): balance relevance and topic diversity</span>
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>research-pipeline<span class="w"> </span>screen<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--diversity<span class="w"> </span>--diversity-lambda<span class="w"> </span><span class="m">0</span>.5
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a><span class="c1"># Stage 4: Download PDFs</span>
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>research-pipeline<span class="w"> </span>download<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a><span class="c1"># Stage 5: Convert PDFs to Markdown</span>
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>research-pipeline<span class="w"> </span>convert<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a><span class="c1"># Stage 5 (with backend override)</span>
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>research-pipeline<span class="w"> </span>convert<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--backend<span class="w"> </span>marker
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a><span class="c1"># Stage 6: Extract sections and chunks</span>
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>research-pipeline<span class="w"> </span>extract<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a><span class="c1"># Stage 7: Generate summaries and synthesis</span>
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>research-pipeline<span class="w"> </span>summarize<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<blockquote>
+<p><strong>Tip:</strong> After running <code>plan</code>, copy the printed run ID and export it:
+<code>export RUN_ID=&lt;value&gt;</code>. Then use <code>--run-id $RUN_ID</code> for all subsequent stages.</p>
+</blockquote>
+<h3 id="54-resuming-a-failed-run">5.4 Resuming a failed run<a class="headerlink" href="#54-resuming-a-failed-run" title="Permanent link">&para;</a></h3>
+<p>If a stage fails partway through, resume from where it stopped:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="c1"># Resume the full pipeline from where it stopped</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;topic&quot;</span><span class="w"> </span>--run-id<span class="w"> </span>&lt;EXISTING_RUN_ID&gt;<span class="w"> </span>--resume
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a><span class="c1"># Resume a specific stage</span>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>research-pipeline<span class="w"> </span>search<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--resume
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>research-pipeline<span class="w"> </span>screen<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--resume
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="c1"># Retry only failed downloads (without re-downloading successful ones)</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>research-pipeline<span class="w"> </span>download<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--retry-failed
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="c1"># Re-convert forcing overwrite of existing Markdown files</span>
+<a id="__codelineno-11-12" name="__codelineno-11-12" href="#__codelineno-11-12"></a>research-pipeline<span class="w"> </span>convert<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--force
+</code></pre></div>
+<p>Check the current state of a run at any time:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a>research-pipeline<span class="w"> </span>inspect<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<h3 id="55-working-with-multiple-sources">5.5 Working with multiple sources<a class="headerlink" href="#55-working-with-multiple-sources" title="Permanent link">&para;</a></h3>
+<p>By default, only arXiv is searched. Enable additional sources in <code>config.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a><span class="k">[sources]</span>
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;arxiv&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;semantic_scholar&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;openalex&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;dblp&quot;</span><span class="p">]</span>
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a><span class="n">semantic_scholar_api_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;your-key-here&quot;</span><span class="w">   </span><span class="c1"># optional but recommended  # pragma: allowlist secret</span>
+</code></pre></div>
+<p>Or override at run time:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Search all configured sources</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;contrastive learning&quot;</span><span class="w"> </span>--source<span class="w"> </span>all
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="c1"># Search specific sources</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>research-pipeline<span class="w"> </span>search<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--source<span class="w"> </span>semantic_scholar
+<a id="__codelineno-14-6" name="__codelineno-14-6" href="#__codelineno-14-6"></a>research-pipeline<span class="w"> </span>search<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--source<span class="w"> </span><span class="s2">&quot;arxiv,openalex&quot;</span>
+</code></pre></div>
+<p>Available sources: <code>arxiv</code>, <code>semantic_scholar</code>, <code>openalex</code>, <code>dblp</code>,
+<code>scholar</code> (Google Scholar), <code>huggingface</code> (HuggingFace daily papers).</p>
+<blockquote>
+<p><strong>Note:</strong> Google Scholar (<code>scholar</code>) requires either the <code>scholarly</code> Python
+package (free, slow) or a SerpAPI key (paid, faster). DBLP and OpenAlex
+are free and do not require API keys.</p>
+</blockquote>
+<p><strong>Enrich candidates with missing abstracts:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a>research-pipeline<span class="w"> </span>enrich<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<p>This queries Semantic Scholar to fill in any missing abstracts before screening.</p>
+<h3 id="56-pdf-conversion-options">5.6 PDF conversion options<a class="headerlink" href="#56-pdf-conversion-options" title="Permanent link">&para;</a></h3>
+<p>Three local backends are available:</p>
+<table>
+<thead>
+<tr>
+<th>Backend</th>
+<th>Speed</th>
+<th>Quality</th>
+<th>Requires</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pymupdf4llm</code></td>
+<td>Fastest</td>
+<td>Good</td>
+<td><code>pip install research-pipeline[pymupdf4llm]</code></td>
+</tr>
+<tr>
+<td><code>docling</code></td>
+<td>Medium</td>
+<td>Very good</td>
+<td><code>pip install research-pipeline[docling]</code></td>
+</tr>
+<tr>
+<td><code>marker</code></td>
+<td>Slowest</td>
+<td>Best (GPL)</td>
+<td><code>pip install research-pipeline[marker]</code></td>
+</tr>
+</tbody>
+</table>
+<p>Five cloud backends are also available for cases where local conversion fails
+or higher quality is needed: <code>mathpix</code>, <code>datalab</code>, <code>llamaparse</code>,
+<code>mistral_ocr</code>, <code>openai_vision</code>. Each requires an API key
+(see <a href="#34-api-key-setup">§3.4</a>).</p>
+<p><strong>Two-tier conversion workflow</strong> (recommended for large runs):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a><span class="c1"># Step 1: Fast rough conversion for all papers (CPU only, no extra install needed)</span>
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a>research-pipeline<span class="w"> </span>convert-rough<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a>
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a><span class="c1"># Step 2: High-quality conversion for specific papers that need it</span>
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>research-pipeline<span class="w"> </span>convert-fine<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345,2401.67890
+</code></pre></div>
+<p><strong>Standalone PDF conversion</strong> (no pipeline workspace needed):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>research-pipeline<span class="w"> </span>convert-file<span class="w"> </span>paper.pdf
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>research-pipeline<span class="w"> </span>convert-file<span class="w"> </span>paper.pdf<span class="w"> </span>-o<span class="w"> </span>./output/<span class="w"> </span>--backend<span class="w"> </span>marker
+</code></pre></div>
+<p><strong>Configure fallback backends</strong> in <code>config.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="k">[conversion]</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a><span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;docling&quot;</span>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a><span class="n">fallback_backends</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pymupdf4llm&quot;</span><span class="p">]</span><span class="w">   </span><span class="c1"># try pymupdf4llm if docling fails</span>
+</code></pre></div>
+<h3 id="57-exporting-results">5.7 Exporting results<a class="headerlink" href="#57-exporting-results" title="Permanent link">&para;</a></h3>
+<p><strong>HTML</strong> — self-contained, browser-readable report:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a>research-pipeline<span class="w"> </span>export-html<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a><span class="c1"># Output: runs/&lt;ID&gt;/synthesis.html</span>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="c1"># Convert any Markdown report to HTML</span>
+<a id="__codelineno-19-5" name="__codelineno-19-5" href="#__codelineno-19-5"></a>research-pipeline<span class="w"> </span>export-html<span class="w"> </span>--markdown<span class="w"> </span>my-report.md<span class="w"> </span>-o<span class="w"> </span>report.html<span class="w"> </span>--title<span class="w"> </span><span class="s2">&quot;My Review&quot;</span>
+</code></pre></div>
+<p><strong>BibTeX</strong> — for use in LaTeX documents:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a>research-pipeline<span class="w"> </span>export-bibtex<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="c1"># Output: runs/&lt;ID&gt;/screened.bib</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a><span class="c1"># Export from a different stage (more papers)</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>research-pipeline<span class="w"> </span>export-bibtex<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--stage<span class="w"> </span>search<span class="w"> </span>-o<span class="w"> </span>all-papers.bib
+</code></pre></div>
+<p><strong>Structured report templates:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># Survey (default)</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a>research-pipeline<span class="w"> </span>report<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a><span class="c1"># Gap analysis</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>research-pipeline<span class="w"> </span>report<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--template<span class="w"> </span>gap_analysis
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="c1"># Literature review</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a>research-pipeline<span class="w"> </span>report<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--template<span class="w"> </span>lit_review
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="c1"># Executive summary</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a>research-pipeline<span class="w"> </span>report<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--template<span class="w"> </span>executive
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="c1"># Custom Jinja2 template</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a>research-pipeline<span class="w"> </span>report<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--custom-template<span class="w"> </span>my_template.j2
+</code></pre></div>
+<p><strong>JSON output from summarize:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># Output synthesis as JSON</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a>research-pipeline<span class="w"> </span>summarize<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--output-format<span class="w"> </span>json
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a><span class="c1"># Output as BibTeX directly</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>research-pipeline<span class="w"> </span>summarize<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--output-format<span class="w"> </span>bibtex
+</code></pre></div>
+<p><strong>Evidence aggregation</strong> (strips rhetorical hedging for clean bullet points):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a>research-pipeline<span class="w"> </span>aggregate<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a>research-pipeline<span class="w"> </span>aggregate<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--min-pointers<span class="w"> </span><span class="m">1</span><span class="w"> </span>--format<span class="w"> </span>json
+</code></pre></div>
+<p><strong>Validate report completeness:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a>research-pipeline<span class="w"> </span>validate<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a>research-pipeline<span class="w"> </span>validate<span class="w"> </span>--report<span class="w"> </span>report.md
+</code></pre></div>
+<p>This checks for the 14 required sections, confidence annotations, evidence
+citations, and gap classifications.</p>
+<h3 id="58-iterative-deep-research">5.8 Iterative deep research<a class="headerlink" href="#58-iterative-deep-research" title="Permanent link">&para;</a></h3>
+<p>Use <code>--profile deep</code> or <code>--system-building</code> to enable the
+THINK→EXECUTE→REFLECT (TER) iterative loop. The pipeline automatically
+identifies gaps in the synthesis and runs additional searches to fill them.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="c1"># Deep profile with default 3 iterations</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;AI agent memory systems&quot;</span><span class="w"> </span>--profile<span class="w"> </span>deep
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a><span class="c1"># Control the number of TER iterations</span>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;LLM safety techniques&quot;</span><span class="w"> </span>--profile<span class="w"> </span>deep<span class="w"> </span>--ter-iterations<span class="w"> </span><span class="m">5</span>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="c1"># Interactive mode: pause at each gate for human review</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;neural architecture search&quot;</span><span class="w"> </span>--profile<span class="w"> </span>deep<span class="w"> </span>--interactive
+</code></pre></div>
+<p>After a deep run, <strong>compare two iterations</strong> to see what changed:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a>research-pipeline<span class="w"> </span>compare<span class="w"> </span>--run-a<span class="w"> </span>&lt;RUN_ID_1&gt;<span class="w"> </span>--run-b<span class="w"> </span>&lt;RUN_ID_2&gt;
+</code></pre></div>
+<p><strong>Evaluate multi-run coherence</strong> (detect contradictions across runs):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a>research-pipeline<span class="w"> </span>coherence<span class="w"> </span>&lt;RUN_ID_1&gt;<span class="w"> </span>&lt;RUN_ID_2&gt;<span class="w"> </span>&lt;RUN_ID_3&gt;
+</code></pre></div>
+<hr />
+<h2 id="6-daily-ai-intelligence-briefing">6. Daily AI Intelligence Briefing<a class="headerlink" href="#6-daily-ai-intelligence-briefing" title="Permanent link">&para;</a></h2>
+<h3 id="61-overview-of-the-briefing-pipeline">6.1 Overview of the briefing pipeline<a class="headerlink" href="#61-overview-of-the-briefing-pipeline" title="Permanent link">&para;</a></h3>
+<p>The <code>brief</code> sub-command runs a separate four-stage pipeline:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a>poll → rank → generate-daily → validate
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Stage</th>
+<th>What it does</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>poll</code></td>
+<td>Fetches events from configured sources (RSS, GitHub, arXiv, HN…)</td>
+</tr>
+<tr>
+<td><code>rank</code></td>
+<td>Deduplicates, clusters, and ranks events by technical significance</td>
+</tr>
+<tr>
+<td><code>generate-daily</code></td>
+<td>Renders a structured Markdown digest from ranked clusters</td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td>Checks the digest meets format and content requirements</td>
+</tr>
+</tbody>
+</table>
+<p>Run all four stages at once:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>run
+</code></pre></div>
+<h3 id="62-configuring-briefing-sources">6.2 Configuring briefing sources<a class="headerlink" href="#62-configuring-briefing-sources" title="Permanent link">&para;</a></h3>
+<p>Create a source registry file (JSON or TOML) that lists your intelligence sources.
+You can maintain this separately from the main <code>config.toml</code>.</p>
+<p><strong>Example <code>briefing-sources.toml</code>:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a><span class="k">[[sources]]</span>
+<a id="__codelineno-30-2" name="__codelineno-30-2" href="#__codelineno-30-2"></a><span class="n">source_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;arxiv_cs_ai&quot;</span>
+<a id="__codelineno-30-3" name="__codelineno-30-3" href="#__codelineno-30-3"></a><span class="n">source_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;arXiv CS.AI daily&quot;</span>
+<a id="__codelineno-30-4" name="__codelineno-30-4" href="#__codelineno-30-4"></a><span class="n">source_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;academic_source&quot;</span>
+<a id="__codelineno-30-5" name="__codelineno-30-5" href="#__codelineno-30-5"></a><span class="n">access_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;rss_atom&quot;</span>
+<a id="__codelineno-30-6" name="__codelineno-30-6" href="#__codelineno-30-6"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://rss.arxiv.org/rss/cs.AI&quot;</span>
+<a id="__codelineno-30-7" name="__codelineno-30-7" href="#__codelineno-30-7"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-30-8" name="__codelineno-30-8" href="#__codelineno-30-8"></a><span class="n">cadence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daily&quot;</span>
+<a id="__codelineno-30-9" name="__codelineno-30-9" href="#__codelineno-30-9"></a>
+<a id="__codelineno-30-10" name="__codelineno-30-10" href="#__codelineno-30-10"></a><span class="k">[[sources]]</span>
+<a id="__codelineno-30-11" name="__codelineno-30-11" href="#__codelineno-30-11"></a><span class="n">source_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;github_huggingface&quot;</span>
+<a id="__codelineno-30-12" name="__codelineno-30-12" href="#__codelineno-30-12"></a><span class="n">source_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;HuggingFace releases&quot;</span>
+<a id="__codelineno-30-13" name="__codelineno-30-13" href="#__codelineno-30-13"></a><span class="n">source_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;implementation_source&quot;</span>
+<a id="__codelineno-30-14" name="__codelineno-30-14" href="#__codelineno-30-14"></a><span class="n">access_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;github_releases&quot;</span>
+<a id="__codelineno-30-15" name="__codelineno-30-15" href="#__codelineno-30-15"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://github.com/huggingface/transformers&quot;</span>
+<a id="__codelineno-30-16" name="__codelineno-30-16" href="#__codelineno-30-16"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-30-17" name="__codelineno-30-17" href="#__codelineno-30-17"></a><span class="n">cadence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daily&quot;</span>
+<a id="__codelineno-30-18" name="__codelineno-30-18" href="#__codelineno-30-18"></a>
+<a id="__codelineno-30-19" name="__codelineno-30-19" href="#__codelineno-30-19"></a><span class="k">[[sources]]</span>
+<a id="__codelineno-30-20" name="__codelineno-30-20" href="#__codelineno-30-20"></a><span class="n">source_id</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;hacker_news&quot;</span>
+<a id="__codelineno-30-21" name="__codelineno-30-21" href="#__codelineno-30-21"></a><span class="n">source_name</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;HackerNews AI&quot;</span>
+<a id="__codelineno-30-22" name="__codelineno-30-22" href="#__codelineno-30-22"></a><span class="n">source_class</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;technical_discussion&quot;</span>
+<a id="__codelineno-30-23" name="__codelineno-30-23" href="#__codelineno-30-23"></a><span class="n">access_method</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;rss_atom&quot;</span>
+<a id="__codelineno-30-24" name="__codelineno-30-24" href="#__codelineno-30-24"></a><span class="n">url</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;https://hnrss.org/newest?q=AI+LLM&quot;</span>
+<a id="__codelineno-30-25" name="__codelineno-30-25" href="#__codelineno-30-25"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-30-26" name="__codelineno-30-26" href="#__codelineno-30-26"></a><span class="n">cadence</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;daily&quot;</span>
+</code></pre></div>
+<p>Source classes: <code>primary_artifact</code>, <code>academic_source</code>, <code>implementation_source</code>,
+<code>technical_discussion</code>, <code>social_signal</code>, <code>media_news</code>, <code>newsletter</code>, <code>video_audio</code>.</p>
+<h3 id="63-running-the-daily-brief">6.3 Running the daily brief<a class="headerlink" href="#63-running-the-daily-brief" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="c1"># Run the full briefing pipeline (poll → rank → generate → validate)</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>run
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="c1"># Run with a custom source registry</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>run<span class="w"> </span>--registry<span class="w"> </span>briefing-sources.toml
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="c1"># Run for a specific date (ISO format)</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>run<span class="w"> </span>--date<span class="w"> </span><span class="m">2025</span>-07-04
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a><span class="c1"># Use a custom workspace directory</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>run<span class="w"> </span>--workspace<span class="w"> </span>~/briefings
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>
+<a id="__codelineno-31-13" name="__codelineno-31-13" href="#__codelineno-31-13"></a><span class="c1"># Run individual stages</span>
+<a id="__codelineno-31-14" name="__codelineno-31-14" href="#__codelineno-31-14"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>poll<span class="w"> </span>--registry<span class="w"> </span>briefing-sources.toml
+<a id="__codelineno-31-15" name="__codelineno-31-15" href="#__codelineno-31-15"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>rank
+<a id="__codelineno-31-16" name="__codelineno-31-16" href="#__codelineno-31-16"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>generate-daily
+<a id="__codelineno-31-17" name="__codelineno-31-17" href="#__codelineno-31-17"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>validate
+</code></pre></div>
+<p>Results are written to <code>./workspace/briefings/&lt;YYYY-MM-DD&gt;/</code>.</p>
+<p><strong>Resume from a failed stage:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>resume<span class="w"> </span>--date<span class="w"> </span><span class="m">2025</span>-07-04<span class="w"> </span>--from-stage<span class="w"> </span>generate-daily
+</code></pre></div>
+<h3 id="64-understanding-the-output">6.4 Understanding the output<a class="headerlink" href="#64-understanding-the-output" title="Permanent link">&para;</a></h3>
+<p>A briefing run produces these artifacts under <code>workspace/briefings/&lt;DATE&gt;/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Path</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>raw/</code></td>
+<td>Raw polled events per source</td>
+</tr>
+<tr>
+<td><code>normalized/</code></td>
+<td>Normalised event records</td>
+</tr>
+<tr>
+<td><code>ranked_clusters.jsonl</code></td>
+<td>Ranked and clustered topic groups</td>
+</tr>
+<tr>
+<td><code>reports/daily.md</code></td>
+<td><strong>The daily brief</strong> — your main output</td>
+</tr>
+<tr>
+<td><code>reports/validation.json</code></td>
+<td>Validation results</td>
+</tr>
+<tr>
+<td><code>memory/topics.db</code></td>
+<td>Topic memory for personalisation</td>
+</tr>
+<tr>
+<td><code>feedback/feedback.db</code></td>
+<td>Your feedback history</td>
+</tr>
+</tbody>
+</table>
+<p>The daily brief is a structured Markdown document with:
+- Top-ranked clusters by technical significance
+- Source attribution and canonical URLs
+- Signal metadata (novelty, recency, source class)</p>
+<h3 id="65-hot-topic-dossiers">6.5 Hot-topic dossiers<a class="headerlink" href="#65-hot-topic-dossiers" title="Permanent link">&para;</a></h3>
+<p>When a cluster is particularly important, generate an in-depth dossier:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="c1"># Generate a dossier for a specific cluster</span>
+<a id="__codelineno-33-2" name="__codelineno-33-2" href="#__codelineno-33-2"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>dossier<span class="w"> </span>--cluster<span class="w"> </span>&lt;CLUSTER_ID&gt;
+<a id="__codelineno-33-3" name="__codelineno-33-3" href="#__codelineno-33-3"></a>
+<a id="__codelineno-33-4" name="__codelineno-33-4" href="#__codelineno-33-4"></a><span class="c1"># Auto-select the top candidate cluster</span>
+<a id="__codelineno-33-5" name="__codelineno-33-5" href="#__codelineno-33-5"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>dossier<span class="w"> </span>--auto
+<a id="__codelineno-33-6" name="__codelineno-33-6" href="#__codelineno-33-6"></a>
+<a id="__codelineno-33-7" name="__codelineno-33-7" href="#__codelineno-33-7"></a><span class="c1"># Auto-select top 3 candidates</span>
+<a id="__codelineno-33-8" name="__codelineno-33-8" href="#__codelineno-33-8"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>dossier<span class="w"> </span>--auto<span class="w"> </span>--max-count<span class="w"> </span><span class="m">3</span>
+</code></pre></div>
+<p>Dossiers are written to <code>workspace/briefings/&lt;DATE&gt;/reports/dossiers/</code>.</p>
+<h3 id="66-weekly-synthesis">6.6 Weekly synthesis<a class="headerlink" href="#66-weekly-synthesis" title="Permanent link">&para;</a></h3>
+<p>Generate a trend memo from the past week's daily briefs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>weekly-synthesis<span class="w"> </span>--week<span class="w"> </span><span class="m">2025</span>-W27
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a><span class="c1"># Save to a custom path</span>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>weekly-synthesis<span class="w"> </span>--week<span class="w"> </span><span class="m">2025</span>-W27<span class="w"> </span>-o<span class="w"> </span>weekly/2025-W27.md
+</code></pre></div>
+<p>The weekly memo is saved to <code>workspace/briefings/weekly/&lt;WEEK&gt;.md</code>.</p>
+<h3 id="67-exporting-to-obsidian">6.7 Exporting to Obsidian<a class="headerlink" href="#67-exporting-to-obsidian" title="Permanent link">&para;</a></h3>
+<p>Export your daily brief as linked Obsidian notes (daily note + per-topic notes
++ per-source notes):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>export-obsidian<span class="w"> </span>--vault<span class="w"> </span>~/my-vault
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="c1"># Dry-run: see what would be created without writing</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>export-obsidian<span class="w"> </span>--vault<span class="w"> </span>~/my-vault<span class="w"> </span>--dry-run
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="c1"># Export for a specific date</span>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>export-obsidian<span class="w"> </span>--vault<span class="w"> </span>~/my-vault<span class="w"> </span>--date<span class="w"> </span><span class="m">2025</span>-07-04
+</code></pre></div>
+<p>Notes are created in your vault under:
+- <code>Briefings/Daily/&lt;DATE&gt;.md</code> — daily note
+- <code>Briefings/Topics/&lt;TOPIC&gt;.md</code> — per-topic notes
+- <code>Briefings/Sources/&lt;SOURCE&gt;.md</code> — per-source notes</p>
+<h3 id="68-feedback-and-personalization">6.8 Feedback and personalization<a class="headerlink" href="#68-feedback-and-personalization" title="Permanent link">&para;</a></h3>
+<p>Record feedback to improve future rankings. Feedback accumulates and adjusts
+cluster/topic/source weights via an ELO-style learning algorithm.</p>
+<p><strong>Available feedback signals:</strong></p>
+<table>
+<thead>
+<tr>
+<th>Signal</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>keep</code></td>
+<td>Preserve this item in future briefs</td>
+</tr>
+<tr>
+<td><code>hide</code></td>
+<td>Suppress this item</td>
+</tr>
+<tr>
+<td><code>more_like_this</code></td>
+<td>Boost similar content</td>
+</tr>
+<tr>
+<td><code>less_like_this</code></td>
+<td>Reduce similar content</td>
+</tr>
+<tr>
+<td><code>too_noisy</code></td>
+<td>This source is too noisy</td>
+</tr>
+<tr>
+<td><code>already_known</code></td>
+<td>Skip — I already knew this</td>
+</tr>
+<tr>
+<td><code>not_actionable</code></td>
+<td>Interesting but nothing to act on</td>
+</tr>
+<tr>
+<td><code>useful</code></td>
+<td>Positive general signal</td>
+</tr>
+<tr>
+<td><code>neutral</code></td>
+<td>No preference</td>
+</tr>
+<tr>
+<td><code>not_useful</code></td>
+<td>Negative general signal</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="c1"># Boost a source</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--signal<span class="w"> </span>more_like_this<span class="w"> </span>--source<span class="w"> </span>arxiv_cs_ai
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="c1"># Suppress a topic</span>
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--signal<span class="w"> </span>less_like_this<span class="w"> </span>--topic<span class="w"> </span><span class="s2">&quot;crypto_nft&quot;</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>
+<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a><span class="c1"># Hide a specific cluster with a reason</span>
+<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--signal<span class="w"> </span>hide<span class="w"> </span>--cluster<span class="w"> </span>&lt;CLUSTER_ID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-36-9" name="__codelineno-36-9" href="#__codelineno-36-9"></a><span class="w">    </span>--reason<span class="w"> </span><span class="s2">&quot;off-topic for my interests&quot;</span>
+<a id="__codelineno-36-10" name="__codelineno-36-10" href="#__codelineno-36-10"></a>
+<a id="__codelineno-36-11" name="__codelineno-36-11" href="#__codelineno-36-11"></a><span class="c1"># Show all recorded feedback</span>
+<a id="__codelineno-36-12" name="__codelineno-36-12" href="#__codelineno-36-12"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--signal<span class="w"> </span>keep<span class="w"> </span>--show
+<a id="__codelineno-36-13" name="__codelineno-36-13" href="#__codelineno-36-13"></a>
+<a id="__codelineno-36-14" name="__codelineno-36-14" href="#__codelineno-36-14"></a><span class="c1"># List conflicting feedback entries</span>
+<a id="__codelineno-36-15" name="__codelineno-36-15" href="#__codelineno-36-15"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>feedback<span class="w"> </span>--signal<span class="w"> </span>keep<span class="w"> </span>--conflicts
+</code></pre></div>
+<p><strong>Apply preference adjustments:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="c1"># Compute and apply preference weights from accumulated feedback</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>preferences
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a><span class="c1"># Rollback a specific adjustment</span>
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>preferences<span class="w"> </span>--rollback<span class="w"> </span>&lt;ADJUSTMENT_ID&gt;
+</code></pre></div>
+<p><strong>Review topic alias suggestions:</strong></p>
+<p>The pipeline may suggest that two topic IDs refer to the same concept.
+Review these periodically:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="c1"># List pending alias suggestions</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>topic-aliases
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a><span class="c1"># Approve a suggestion</span>
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>topic-aliases<span class="w"> </span>--approve<span class="w"> </span>&lt;SUGGESTION_ID&gt;
+<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>
+<a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a><span class="c1"># Reject a suggestion</span>
+<a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>topic-aliases<span class="w"> </span>--reject<span class="w"> </span>&lt;SUGGESTION_ID&gt;<span class="w"> </span>--review<span class="w"> </span><span class="s2">&quot;these are different&quot;</span>
+</code></pre></div>
+<p><strong>Compare source registries</strong> to evaluate adding a new source:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a>research-pipeline<span class="w"> </span>brief<span class="w"> </span>compare-sources<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="w">    </span>--base-registry<span class="w"> </span>current.toml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a><span class="w">    </span>--expanded-registry<span class="w"> </span>with-new-source.toml<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="w">    </span>--date<span class="w"> </span><span class="m">2025</span>-07-04
+</code></pre></div>
+<hr />
+<h2 id="7-using-with-ai-assistants-mcp-skills">7. Using with AI Assistants (MCP + Skills)<a class="headerlink" href="#7-using-with-ai-assistants-mcp-skills" title="Permanent link">&para;</a></h2>
+<h3 id="71-mcp-server-setup">7.1 MCP server setup<a class="headerlink" href="#71-mcp-server-setup" title="Permanent link">&para;</a></h3>
+<p>The MCP (Model Context Protocol) server exposes all pipeline capabilities as
+tools that AI assistants can invoke directly in conversations.</p>
+<p><strong>Start the server:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="c1"># Start MCP server on stdio (the standard transport)</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>research-pipeline<span class="w"> </span>mcp<span class="w"> </span>serve
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a><span class="c1"># Print a config snippet for your MCP client</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>research-pipeline<span class="w"> </span>mcp<span class="w"> </span>config
+</code></pre></div>
+<p><strong>Configure your MCP client.</strong> For Claude Desktop, add to <code>claude_desktop_config.json</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="p">{</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="w">    </span><span class="nt">&quot;research-pipeline&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-41-4" name="__codelineno-41-4" href="#__codelineno-41-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;research-pipeline&quot;</span><span class="p">,</span>
+<a id="__codelineno-41-5" name="__codelineno-41-5" href="#__codelineno-41-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serve&quot;</span><span class="p">]</span>
+<a id="__codelineno-41-6" name="__codelineno-41-6" href="#__codelineno-41-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-41-7" name="__codelineno-41-7" href="#__codelineno-41-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-41-8" name="__codelineno-41-8" href="#__codelineno-41-8"></a><span class="p">}</span>
+</code></pre></div>
+<p>For path-based installs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="p">{</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a><span class="w">  </span><span class="nt">&quot;mcpServers&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a><span class="w">    </span><span class="nt">&quot;research-pipeline&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="w">      </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/path/to/venv/bin/research-pipeline&quot;</span><span class="p">,</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a><span class="w">      </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serve&quot;</span><span class="p">]</span>
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a><span class="w">    </span><span class="p">}</span>
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="w">  </span><span class="p">}</span>
+<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a><span class="p">}</span>
+</code></pre></div>
+<p>The server provides <strong>51 tools</strong>, <strong>15 resources</strong> (run artifact URI templates),
+and <strong>6 prompt templates</strong> for common research workflows.</p>
+<h3 id="72-using-research-workflow-via-mcp">7.2 Using research-workflow via MCP<a class="headerlink" href="#72-using-research-workflow-via-mcp" title="Permanent link">&para;</a></h3>
+<p>The <code>research_workflow</code> tool is the recommended way to run the full pipeline
+from an AI assistant. It includes 6 harness layers:</p>
+<ol>
+<li><strong>Telemetry</strong> — three-channel logging (cognitive/operational/contextual)</li>
+<li><strong>Context engineering</strong> — token budget management and paper compaction</li>
+<li><strong>Governance</strong> — schema-level state machine with verify-before-commit gates</li>
+<li><strong>Verification</strong> — structural output validation at each stage</li>
+<li><strong>Monitoring</strong> — doom-loop detection and iteration drift tracking</li>
+<li><strong>Recovery</strong> — automatic crash recovery via persistent state</li>
+</ol>
+<p>To trigger it from an AI conversation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a>Run a research pipeline on &quot;memory architectures for AI agents&quot;
+</code></pre></div>
+<p>The assistant will use the <code>research_workflow</code> MCP tool with structured
+elicitation at decision gates.</p>
+<h3 id="73-installing-the-ai-skill">7.3 Installing the AI skill<a class="headerlink" href="#73-installing-the-ai-skill" title="Permanent link">&para;</a></h3>
+<p>The skill installs a <code>SKILL.md</code> file that teaches Claude Code, GitHub Copilot,
+and Codex how to use this tool effectively.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a><span class="c1"># Install skill + sub-agents + MCP config snippet</span>
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>research-pipeline<span class="w"> </span>setup
+<a id="__codelineno-44-3" name="__codelineno-44-3" href="#__codelineno-44-3"></a>
+<a id="__codelineno-44-4" name="__codelineno-44-4" href="#__codelineno-44-4"></a><span class="c1"># Install with symlinks (useful during development — changes are reflected immediately)</span>
+<a id="__codelineno-44-5" name="__codelineno-44-5" href="#__codelineno-44-5"></a>research-pipeline<span class="w"> </span>setup<span class="w"> </span>--symlink
+<a id="__codelineno-44-6" name="__codelineno-44-6" href="#__codelineno-44-6"></a>
+<a id="__codelineno-44-7" name="__codelineno-44-7" href="#__codelineno-44-7"></a><span class="c1"># Force overwrite existing files</span>
+<a id="__codelineno-44-8" name="__codelineno-44-8" href="#__codelineno-44-8"></a>research-pipeline<span class="w"> </span>setup<span class="w"> </span>--force
+<a id="__codelineno-44-9" name="__codelineno-44-9" href="#__codelineno-44-9"></a>
+<a id="__codelineno-44-10" name="__codelineno-44-10" href="#__codelineno-44-10"></a><span class="c1"># Install skill only (skip sub-agents)</span>
+<a id="__codelineno-44-11" name="__codelineno-44-11" href="#__codelineno-44-11"></a>research-pipeline<span class="w"> </span>setup<span class="w"> </span>--skip-agents
+<a id="__codelineno-44-12" name="__codelineno-44-12" href="#__codelineno-44-12"></a>
+<a id="__codelineno-44-13" name="__codelineno-44-13" href="#__codelineno-44-13"></a><span class="c1"># Install sub-agents only (skip skill)</span>
+<a id="__codelineno-44-14" name="__codelineno-44-14" href="#__codelineno-44-14"></a>research-pipeline<span class="w"> </span>setup<span class="w"> </span>--skip-skill
+</code></pre></div>
+<p>In default mode, setup auto-detects which agents are installed and only writes
+to paths for agents found on PATH:</p>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Skill path</th>
+<th>Agents path</th>
+<th>MCP registration</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Claude Code</td>
+<td><code>~/.claude/skills/research-pipeline/</code></td>
+<td><code>~/.claude/agents/*.md</code></td>
+<td><code>claude mcp add</code> (user scope)</td>
+</tr>
+<tr>
+<td>Codex CLI</td>
+<td><code>~/.agents/skills/research-pipeline/</code></td>
+<td>— (skills only)</td>
+<td><code>codex mcp add</code></td>
+</tr>
+<tr>
+<td>GitHub Copilot CLI</td>
+<td><code>~/.copilot/skills/research-pipeline/</code></td>
+<td><code>~/.copilot/agents/*.agent.md</code></td>
+<td><code>~/.copilot/mcp-config.json</code></td>
+</tr>
+</tbody>
+</table>
+<p>A reusable MCP config snippet is also written to <code>~/.config/research-pipeline/mcp.json</code>.</p>
+<p>Sub-agents installed for Claude Code and GitHub Copilot:
+- <code>paper-analyzer</code> — deep analysis of a single paper's claims and methods
+- <code>paper-screener</code> — relevance screening against a research query
+- <code>paper-synthesizer</code> — cross-paper synthesis and gap identification</p>
+<h3 id="74-sub-agent-workflows">7.4 Sub-agent workflows<a class="headerlink" href="#74-sub-agent-workflows" title="Permanent link">&para;</a></h3>
+<p>Three specialist sub-agents are installed by <code>research-pipeline setup</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Agent</th>
+<th>Role</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>paper-analyzer</code></td>
+<td>Deep analysis of a single paper's claims and methods</td>
+</tr>
+<tr>
+<td><code>paper-screener</code></td>
+<td>Relevance screening against a research query</td>
+</tr>
+<tr>
+<td><code>paper-synthesizer</code></td>
+<td>Cross-paper synthesis and gap identification</td>
+</tr>
+</tbody>
+</table>
+<p>These agents are invoked automatically by the skill when running deep research
+from Claude Code or GitHub Copilot.</p>
+<p><strong>Prepare analysis tasks for the paper-analyzer agent:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># Prepare task prompts for all converted papers</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a>research-pipeline<span class="w"> </span>analyze<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="c1"># Prepare for specific papers only</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>research-pipeline<span class="w"> </span>analyze<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345,2401.67890
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a><span class="c1"># Validate collected analysis results after the agent has processed them</span>
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>research-pipeline<span class="w"> </span>analyze<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--collect
+</code></pre></div>
+<hr />
+<h2 id="8-advanced-features">8. Advanced Features<a class="headerlink" href="#8-advanced-features" title="Permanent link">&para;</a></h2>
+<h3 id="81-citation-graph-expansion">8.1 Citation graph expansion<a class="headerlink" href="#81-citation-graph-expansion" title="Permanent link">&para;</a></h3>
+<p>Expand your corpus by following citation links from seed papers:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a><span class="c1"># Single-hop expansion (direct citations and references)</span>
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>research-pipeline<span class="w"> </span>expand<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a><span class="w">    </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-4" name="__codelineno-46-4" href="#__codelineno-46-4"></a><span class="w">    </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345,2401.67890<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-5" name="__codelineno-46-5" href="#__codelineno-46-5"></a><span class="w">    </span>--direction<span class="w"> </span>both
+<a id="__codelineno-46-6" name="__codelineno-46-6" href="#__codelineno-46-6"></a>
+<a id="__codelineno-46-7" name="__codelineno-46-7" href="#__codelineno-46-7"></a><span class="c1"># Citations only</span>
+<a id="__codelineno-46-8" name="__codelineno-46-8" href="#__codelineno-46-8"></a>research-pipeline<span class="w"> </span>expand<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345<span class="w"> </span>--direction<span class="w"> </span>citations
+<a id="__codelineno-46-9" name="__codelineno-46-9" href="#__codelineno-46-9"></a>
+<a id="__codelineno-46-10" name="__codelineno-46-10" href="#__codelineno-46-10"></a><span class="c1"># BFS multi-hop expansion (2 hops, BM25-pruned)</span>
+<a id="__codelineno-46-11" name="__codelineno-46-11" href="#__codelineno-46-11"></a>research-pipeline<span class="w"> </span>expand<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-12" name="__codelineno-46-12" href="#__codelineno-46-12"></a><span class="w">    </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-13" name="__codelineno-46-13" href="#__codelineno-46-13"></a><span class="w">    </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-14" name="__codelineno-46-14" href="#__codelineno-46-14"></a><span class="w">    </span>--bfs-depth<span class="w"> </span><span class="m">2</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-15" name="__codelineno-46-15" href="#__codelineno-46-15"></a><span class="w">    </span>--bfs-query<span class="w"> </span><span class="s2">&quot;transformer,attention,self-attention&quot;</span>
+<a id="__codelineno-46-16" name="__codelineno-46-16" href="#__codelineno-46-16"></a>
+<a id="__codelineno-46-17" name="__codelineno-46-17" href="#__codelineno-46-17"></a><span class="c1"># Snowball sampling: iterative bidirectional expansion with budget-aware stopping</span>
+<a id="__codelineno-46-18" name="__codelineno-46-18" href="#__codelineno-46-18"></a>research-pipeline<span class="w"> </span>expand<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-19" name="__codelineno-46-19" href="#__codelineno-46-19"></a><span class="w">    </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-20" name="__codelineno-46-20" href="#__codelineno-46-20"></a><span class="w">    </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-21" name="__codelineno-46-21" href="#__codelineno-46-21"></a><span class="w">    </span>--snowball<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-22" name="__codelineno-46-22" href="#__codelineno-46-22"></a><span class="w">    </span>--snowball-max-papers<span class="w"> </span><span class="m">200</span><span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-46-23" name="__codelineno-46-23" href="#__codelineno-46-23"></a><span class="w">    </span>--bfs-query<span class="w"> </span><span class="s2">&quot;LoRA,adapter,fine-tuning&quot;</span>
+</code></pre></div>
+<p>Expansion modes:</p>
+<table>
+<thead>
+<tr>
+<th>Mode</th>
+<th>Command</th>
+<th>When to use</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Single-hop</td>
+<td>default</td>
+<td>Quick survey of direct citations</td>
+</tr>
+<tr>
+<td>BFS</td>
+<td><code>--bfs-depth 2</code></td>
+<td>Systematic multi-hop exploration</td>
+</tr>
+<tr>
+<td>Snowball</td>
+<td><code>--snowball</code></td>
+<td>Comprehensive corpus building with stopping criteria</td>
+</tr>
+</tbody>
+</table>
+<h3 id="82-quality-scoring">8.2 Quality scoring<a class="headerlink" href="#82-quality-scoring" title="Permanent link">&para;</a></h3>
+<p>Score papers on citation impact, venue reputation, author credibility, and recency.
+Enable in <code>config.toml</code> (<code>quality.enabled = true</code>) or run standalone:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>research-pipeline<span class="w"> </span>quality<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<p>Results are added to each candidate's metadata. View via:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-48-1" name="__codelineno-48-1" href="#__codelineno-48-1"></a>research-pipeline<span class="w"> </span>inspect<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<p><strong>Deep claim analysis:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-49-1" name="__codelineno-49-1" href="#__codelineno-49-1"></a><span class="c1"># Decompose summaries into atomic claims with evidence classification</span>
+<a id="__codelineno-49-2" name="__codelineno-49-2" href="#__codelineno-49-2"></a>research-pipeline<span class="w"> </span>analyze-claims<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-49-3" name="__codelineno-49-3" href="#__codelineno-49-3"></a>
+<a id="__codelineno-49-4" name="__codelineno-49-4" href="#__codelineno-49-4"></a><span class="c1"># Score confidence for each claim</span>
+<a id="__codelineno-49-5" name="__codelineno-49-5" href="#__codelineno-49-5"></a>research-pipeline<span class="w"> </span>score-claims<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+</code></pre></div>
+<p><strong>Recall/Reasoning/Presentation diagnostic:</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-50-1" name="__codelineno-50-1" href="#__codelineno-50-1"></a>research-pipeline<span class="w"> </span>rrp<span class="w"> </span>--report<span class="w"> </span>synthesis.md<span class="w"> </span>--shortlist<span class="w"> </span>shortlist.json
+</code></pre></div>
+<p>This diagnoses the bottleneck in your synthesis quality along three axes:
+information recall, reasoning quality, and presentation clarity.</p>
+<h3 id="83-semantic-re-ranking">8.3 Semantic re-ranking<a class="headerlink" href="#83-semantic-re-ranking" title="Permanent link">&para;</a></h3>
+<p>SPECTER2-based semantic similarity scoring improves screening precision, especially
+for niche or highly technical topics.</p>
+<p>Enable in <code>config.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-51-1" name="__codelineno-51-1" href="#__codelineno-51-1"></a><span class="k">[screen]</span>
+<a id="__codelineno-51-2" name="__codelineno-51-2" href="#__codelineno-51-2"></a><span class="n">use_semantic_reranking</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+<a id="__codelineno-51-3" name="__codelineno-51-3" href="#__codelineno-51-3"></a><span class="n">embedding_model</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;allenai/specter2&quot;</span>
+</code></pre></div>
+<p>Requires: <code>pip install research-pipeline[reranker]</code></p>
+<p>The first run will download the SPECTER2 model (~440 MB). Subsequent runs use the
+cached model.</p>
+<h3 id="84-feedback-loop">8.4 Feedback loop<a class="headerlink" href="#84-feedback-loop" title="Permanent link">&para;</a></h3>
+<p>Record paper-level accept/reject decisions to improve future runs. The BM25
+screening weights are adjusted via ELO-style learning.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-52-1" name="__codelineno-52-1" href="#__codelineno-52-1"></a><span class="c1"># Accept papers that were relevant</span>
+<a id="__codelineno-52-2" name="__codelineno-52-2" href="#__codelineno-52-2"></a>research-pipeline<span class="w"> </span>feedback<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-3" name="__codelineno-52-3" href="#__codelineno-52-3"></a><span class="w">    </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-4" name="__codelineno-52-4" href="#__codelineno-52-4"></a><span class="w">    </span>--accept<span class="w"> </span><span class="m">2401</span>.12345<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-5" name="__codelineno-52-5" href="#__codelineno-52-5"></a><span class="w">    </span>--accept<span class="w"> </span><span class="m">2401</span>.67890
+<a id="__codelineno-52-6" name="__codelineno-52-6" href="#__codelineno-52-6"></a>
+<a id="__codelineno-52-7" name="__codelineno-52-7" href="#__codelineno-52-7"></a><span class="c1"># Reject an off-topic paper with a reason</span>
+<a id="__codelineno-52-8" name="__codelineno-52-8" href="#__codelineno-52-8"></a>research-pipeline<span class="w"> </span>feedback<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-9" name="__codelineno-52-9" href="#__codelineno-52-9"></a><span class="w">    </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-10" name="__codelineno-52-10" href="#__codelineno-52-10"></a><span class="w">    </span>--reject<span class="w"> </span><span class="m">2401</span>.99999<span class="w"> </span><span class="se">\</span>
+<a id="__codelineno-52-11" name="__codelineno-52-11" href="#__codelineno-52-11"></a><span class="w">    </span>--reason<span class="w"> </span><span class="s2">&quot;survey paper, not primary research&quot;</span>
+<a id="__codelineno-52-12" name="__codelineno-52-12" href="#__codelineno-52-12"></a>
+<a id="__codelineno-52-13" name="__codelineno-52-13" href="#__codelineno-52-13"></a><span class="c1"># Show feedback statistics</span>
+<a id="__codelineno-52-14" name="__codelineno-52-14" href="#__codelineno-52-14"></a>research-pipeline<span class="w"> </span>feedback<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--show
+<a id="__codelineno-52-15" name="__codelineno-52-15" href="#__codelineno-52-15"></a>
+<a id="__codelineno-52-16" name="__codelineno-52-16" href="#__codelineno-52-16"></a><span class="c1"># Recompute adjusted BM25 weights from all feedback</span>
+<a id="__codelineno-52-17" name="__codelineno-52-17" href="#__codelineno-52-17"></a>research-pipeline<span class="w"> </span>feedback<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--adjust
+</code></pre></div>
+<h3 id="85-knowledge-graph">8.5 Knowledge graph<a class="headerlink" href="#85-knowledge-graph" title="Permanent link">&para;</a></h3>
+<p>Build a persistent knowledge graph from pipeline results for structured querying
+across runs.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-53-1" name="__codelineno-53-1" href="#__codelineno-53-1"></a><span class="c1"># Ingest a run&#39;s results into the KG</span>
+<a id="__codelineno-53-2" name="__codelineno-53-2" href="#__codelineno-53-2"></a>research-pipeline<span class="w"> </span>kg-ingest<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-53-3" name="__codelineno-53-3" href="#__codelineno-53-3"></a>
+<a id="__codelineno-53-4" name="__codelineno-53-4" href="#__codelineno-53-4"></a><span class="c1"># Show graph statistics (entity and triple counts)</span>
+<a id="__codelineno-53-5" name="__codelineno-53-5" href="#__codelineno-53-5"></a>research-pipeline<span class="w"> </span>kg-stats
+<a id="__codelineno-53-6" name="__codelineno-53-6" href="#__codelineno-53-6"></a>
+<a id="__codelineno-53-7" name="__codelineno-53-7" href="#__codelineno-53-7"></a><span class="c1"># Query an entity and its relations</span>
+<a id="__codelineno-53-8" name="__codelineno-53-8" href="#__codelineno-53-8"></a>research-pipeline<span class="w"> </span>kg-query<span class="w"> </span><span class="m">2401</span>.12345
+<a id="__codelineno-53-9" name="__codelineno-53-9" href="#__codelineno-53-9"></a>
+<a id="__codelineno-53-10" name="__codelineno-53-10" href="#__codelineno-53-10"></a><span class="c1"># Memory tier summary (working + episodic + semantic)</span>
+<a id="__codelineno-53-11" name="__codelineno-53-11" href="#__codelineno-53-11"></a>research-pipeline<span class="w"> </span>memory-stats
+<a id="__codelineno-53-12" name="__codelineno-53-12" href="#__codelineno-53-12"></a>
+<a id="__codelineno-53-13" name="__codelineno-53-13" href="#__codelineno-53-13"></a><span class="c1"># List recent pipeline runs in episodic memory</span>
+<a id="__codelineno-53-14" name="__codelineno-53-14" href="#__codelineno-53-14"></a>research-pipeline<span class="w"> </span>memory-episodes<span class="w"> </span>--limit<span class="w"> </span><span class="m">10</span>
+<a id="__codelineno-53-15" name="__codelineno-53-15" href="#__codelineno-53-15"></a>
+<a id="__codelineno-53-16" name="__codelineno-53-16" href="#__codelineno-53-16"></a><span class="c1"># Search episodic memory for a past topic</span>
+<a id="__codelineno-53-17" name="__codelineno-53-17" href="#__codelineno-53-17"></a>research-pipeline<span class="w"> </span>memory-search<span class="w"> </span><span class="s2">&quot;transformer attention&quot;</span>
+<a id="__codelineno-53-18" name="__codelineno-53-18" href="#__codelineno-53-18"></a>
+<a id="__codelineno-53-19" name="__codelineno-53-19" href="#__codelineno-53-19"></a><span class="c1"># Consolidate episodic memory: promote recurring findings to rules</span>
+<a id="__codelineno-53-20" name="__codelineno-53-20" href="#__codelineno-53-20"></a>research-pipeline<span class="w"> </span>consolidate
+<a id="__codelineno-53-21" name="__codelineno-53-21" href="#__codelineno-53-21"></a>
+<a id="__codelineno-53-22" name="__codelineno-53-22" href="#__codelineno-53-22"></a><span class="c1"># Dry-run to see what would be consolidated</span>
+<a id="__codelineno-53-23" name="__codelineno-53-23" href="#__codelineno-53-23"></a>research-pipeline<span class="w"> </span>consolidate<span class="w"> </span>--dry-run
+</code></pre></div>
+<h3 id="86-watching-for-new-papers">8.6 Watching for new papers<a class="headerlink" href="#86-watching-for-new-papers" title="Permanent link">&para;</a></h3>
+<p>Monitor arXiv for new papers matching your interests:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-54-1" name="__codelineno-54-1" href="#__codelineno-54-1"></a><span class="c1"># Check for new papers (looks back 7 days by default)</span>
+<a id="__codelineno-54-2" name="__codelineno-54-2" href="#__codelineno-54-2"></a>research-pipeline<span class="w"> </span>watch
+<a id="__codelineno-54-3" name="__codelineno-54-3" href="#__codelineno-54-3"></a>
+<a id="__codelineno-54-4" name="__codelineno-54-4" href="#__codelineno-54-4"></a><span class="c1"># Specify a custom queries file</span>
+<a id="__codelineno-54-5" name="__codelineno-54-5" href="#__codelineno-54-5"></a>research-pipeline<span class="w"> </span>watch<span class="w"> </span>--queries<span class="w"> </span>~/my-watch-queries.json
+<a id="__codelineno-54-6" name="__codelineno-54-6" href="#__codelineno-54-6"></a>
+<a id="__codelineno-54-7" name="__codelineno-54-7" href="#__codelineno-54-7"></a><span class="c1"># Look back 14 days</span>
+<a id="__codelineno-54-8" name="__codelineno-54-8" href="#__codelineno-54-8"></a>research-pipeline<span class="w"> </span>watch<span class="w"> </span>--lookback<span class="w"> </span><span class="m">14</span>
+<a id="__codelineno-54-9" name="__codelineno-54-9" href="#__codelineno-54-9"></a>
+<a id="__codelineno-54-10" name="__codelineno-54-10" href="#__codelineno-54-10"></a><span class="c1"># Save results to a file</span>
+<a id="__codelineno-54-11" name="__codelineno-54-11" href="#__codelineno-54-11"></a>research-pipeline<span class="w"> </span>watch<span class="w"> </span>-o<span class="w"> </span>new-papers.json
+</code></pre></div>
+<p>The default queries file is <code>~/.cache/research-pipeline/watch/watch_queries.json</code>.
+Create it with your query terms to start monitoring.</p>
+<p><strong>Global paper index</strong> (incremental deduplication across runs):</p>
+<p>Enable in <code>config.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-55-1" name="__codelineno-55-1" href="#__codelineno-55-1"></a><span class="k">[incremental]</span>
+<a id="__codelineno-55-2" name="__codelineno-55-2" href="#__codelineno-55-2"></a><span class="n">enabled</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="kc">true</span>
+</code></pre></div>
+<p>Then manage the index:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-56-1" name="__codelineno-56-1" href="#__codelineno-56-1"></a><span class="c1"># List all indexed papers</span>
+<a id="__codelineno-56-2" name="__codelineno-56-2" href="#__codelineno-56-2"></a>research-pipeline<span class="w"> </span>index<span class="w"> </span>--list
+<a id="__codelineno-56-3" name="__codelineno-56-3" href="#__codelineno-56-3"></a>
+<a id="__codelineno-56-4" name="__codelineno-56-4" href="#__codelineno-56-4"></a><span class="c1"># Full-text search the index</span>
+<a id="__codelineno-56-5" name="__codelineno-56-5" href="#__codelineno-56-5"></a>research-pipeline<span class="w"> </span>index<span class="w"> </span>--search<span class="w"> </span><span class="s2">&quot;attention mechanism&quot;</span>
+<a id="__codelineno-56-6" name="__codelineno-56-6" href="#__codelineno-56-6"></a>
+<a id="__codelineno-56-7" name="__codelineno-56-7" href="#__codelineno-56-7"></a><span class="c1"># Search with result limit</span>
+<a id="__codelineno-56-8" name="__codelineno-56-8" href="#__codelineno-56-8"></a>research-pipeline<span class="w"> </span>index<span class="w"> </span>--search<span class="w"> </span><span class="s2">&quot;transformer&quot;</span><span class="w"> </span>--search-limit<span class="w"> </span><span class="m">20</span>
+<a id="__codelineno-56-9" name="__codelineno-56-9" href="#__codelineno-56-9"></a>
+<a id="__codelineno-56-10" name="__codelineno-56-10" href="#__codelineno-56-10"></a><span class="c1"># Garbage collect stale entries</span>
+<a id="__codelineno-56-11" name="__codelineno-56-11" href="#__codelineno-56-11"></a>research-pipeline<span class="w"> </span>index<span class="w"> </span>--gc
+</code></pre></div>
+<p><strong>Paper clustering</strong> (group screened papers by topic):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-57-1" name="__codelineno-57-1" href="#__codelineno-57-1"></a>research-pipeline<span class="w"> </span>cluster<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-57-2" name="__codelineno-57-2" href="#__codelineno-57-2"></a>research-pipeline<span class="w"> </span>cluster<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--threshold<span class="w"> </span><span class="m">0</span>.2
+</code></pre></div>
+<p><strong>Citation context extraction</strong> (for reference analysis):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-58-1" name="__codelineno-58-1" href="#__codelineno-58-1"></a>research-pipeline<span class="w"> </span>cite-context<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;
+<a id="__codelineno-58-2" name="__codelineno-58-2" href="#__codelineno-58-2"></a>research-pipeline<span class="w"> </span>cite-context<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--window<span class="w"> </span><span class="m">2</span>
+</code></pre></div>
+<hr />
+<h2 id="9-troubleshooting">9. Troubleshooting<a class="headerlink" href="#9-troubleshooting" title="Permanent link">&para;</a></h2>
+<h3 id="91-no-results-from-search">9.1 No results from search<a class="headerlink" href="#91-no-results-from-search" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong> "0 candidates found" or very few results.</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>
+<p><strong>Broaden the search window:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-59-1" name="__codelineno-59-1" href="#__codelineno-59-1"></a><span class="k">[search]</span>
+<a id="__codelineno-59-2" name="__codelineno-59-2" href="#__codelineno-59-2"></a><span class="n">primary_months</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">24</span><span class="w">   </span><span class="c1"># search up to 2 years back</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Enable more sources:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-60-1" name="__codelineno-60-1" href="#__codelineno-60-1"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;topic&quot;</span><span class="w"> </span>--source<span class="w"> </span>all
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Lower the screening threshold:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-61-1" name="__codelineno-61-1" href="#__codelineno-61-1"></a><span class="k">[screen]</span>
+<a id="__codelineno-61-2" name="__codelineno-61-2" href="#__codelineno-61-2"></a><span class="n">final_score_threshold</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">0.40</span>
+<a id="__codelineno-61-3" name="__codelineno-61-3" href="#__codelineno-61-3"></a><span class="n">cheap_top_k</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">100</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use the <code>deep</code> profile</strong>, which searches more variants:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-62-1" name="__codelineno-62-1" href="#__codelineno-62-1"></a>research-pipeline<span class="w"> </span>run<span class="w"> </span><span class="s2">&quot;topic&quot;</span><span class="w"> </span>--profile<span class="w"> </span>deep
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Rephrase your topic</strong> — use the terminology from the field (e.g. "RLHF"
+   instead of "reinforcement learning from human feedback").</p>
+</li>
+</ol>
+<h3 id="92-pdf-download-failures">9.2 PDF download failures<a class="headerlink" href="#92-pdf-download-failures" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong> Download stage completes with some failures; missing PDFs.</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>
+<p><strong>Retry failed downloads:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-63-1" name="__codelineno-63-1" href="#__codelineno-63-1"></a>research-pipeline<span class="w"> </span>download<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--retry-failed
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check arXiv availability.</strong> Some papers may not have open-access PDFs.</p>
+</li>
+<li>
+<p><strong>Reduce the download count</strong> if hitting rate limits:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-64-1" name="__codelineno-64-1" href="#__codelineno-64-1"></a><span class="k">[download]</span>
+<a id="__codelineno-64-2" name="__codelineno-64-2" href="#__codelineno-64-2"></a><span class="n">max_per_run</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">10</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Wait and retry.</strong> arXiv enforces a 3-second request floor; bursts may
+   trigger temporary blocks.</p>
+</li>
+</ol>
+<h3 id="93-conversion-errors">9.3 Conversion errors<a class="headerlink" href="#93-conversion-errors" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong> Markdown files are empty, truncated, or conversion stage fails.</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>
+<p><strong>Try a different backend:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-65-1" name="__codelineno-65-1" href="#__codelineno-65-1"></a>research-pipeline<span class="w"> </span>convert<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--backend<span class="w"> </span>pymupdf4llm
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Configure fallback backends:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-66-1" name="__codelineno-66-1" href="#__codelineno-66-1"></a><span class="k">[conversion]</span>
+<a id="__codelineno-66-2" name="__codelineno-66-2" href="#__codelineno-66-2"></a><span class="n">backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;docling&quot;</span>
+<a id="__codelineno-66-3" name="__codelineno-66-3" href="#__codelineno-66-3"></a><span class="n">fallback_backends</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;pymupdf4llm&quot;</span><span class="p">]</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use two-tier conversion:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-67-1" name="__codelineno-67-1" href="#__codelineno-67-1"></a>research-pipeline<span class="w"> </span>convert-rough<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w">   </span><span class="c1"># fast, all papers</span>
+<a id="__codelineno-67-2" name="__codelineno-67-2" href="#__codelineno-67-2"></a>research-pipeline<span class="w"> </span>convert-fine<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--paper-ids<span class="w"> </span><span class="m">2401</span>.12345<span class="w">  </span><span class="c1"># high-quality, selected</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Force re-conversion:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-68-1" name="__codelineno-68-1" href="#__codelineno-68-1"></a>research-pipeline<span class="w"> </span>convert<span class="w"> </span>--run-id<span class="w"> </span>&lt;RUN_ID&gt;<span class="w"> </span>--force
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check the PDF directly:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-69-1" name="__codelineno-69-1" href="#__codelineno-69-1"></a>research-pipeline<span class="w"> </span>convert-file<span class="w"> </span>problem-paper.pdf<span class="w"> </span>--backend<span class="w"> </span>pymupdf4llm
+</code></pre></div></p>
+</li>
+</ol>
+<h3 id="94-mcp-connection-issues">9.4 MCP connection issues<a class="headerlink" href="#94-mcp-connection-issues" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong> AI assistant cannot connect to the MCP server; tools not available.</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>
+<p><strong>Verify the server path:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-70-1" name="__codelineno-70-1" href="#__codelineno-70-1"></a>which<span class="w"> </span>research-pipeline
+<a id="__codelineno-70-2" name="__codelineno-70-2" href="#__codelineno-70-2"></a>research-pipeline<span class="w"> </span>mcp<span class="w"> </span>serve<span class="w"> </span>--verbose<span class="w">   </span><span class="c1"># test it starts without error</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Use the full absolute path</strong> in your MCP client config:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-71-1" name="__codelineno-71-1" href="#__codelineno-71-1"></a><span class="p">{</span>
+<a id="__codelineno-71-2" name="__codelineno-71-2" href="#__codelineno-71-2"></a><span class="w">  </span><span class="nt">&quot;command&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/home/user/.local/bin/research-pipeline&quot;</span><span class="p">,</span>
+<a id="__codelineno-71-3" name="__codelineno-71-3" href="#__codelineno-71-3"></a><span class="w">  </span><span class="nt">&quot;args&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mcp&quot;</span><span class="p">,</span><span class="w"> </span><span class="s2">&quot;serve&quot;</span><span class="p">]</span>
+<a id="__codelineno-71-4" name="__codelineno-71-4" href="#__codelineno-71-4"></a><span class="p">}</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Print the recommended config snippet:</strong>
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-72-1" name="__codelineno-72-1" href="#__codelineno-72-1"></a>research-pipeline<span class="w"> </span>mcp<span class="w"> </span>config
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Check for port conflicts.</strong> The MCP server uses stdio transport, not TCP.
+   It should not conflict with other services.</p>
+</li>
+</ol>
+<h3 id="95-rate-limiting">9.5 Rate limiting<a class="headerlink" href="#95-rate-limiting" title="Permanent link">&para;</a></h3>
+<p><strong>Symptoms:</strong> Slow search, warnings about rate limiting, or HTTP 429 errors.</p>
+<p><strong>Solutions:</strong></p>
+<ol>
+<li>
+<p><strong>arXiv rate limiting</strong> is built in and cannot be disabled. It enforces a
+   5-second default interval. You can reduce it to the minimum 3-second floor:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-73-1" name="__codelineno-73-1" href="#__codelineno-73-1"></a><span class="k">[arxiv]</span>
+<a id="__codelineno-73-2" name="__codelineno-73-2" href="#__codelineno-73-2"></a><span class="n">min_interval_seconds</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mf">3.0</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>For Semantic Scholar</strong>, get a free API key to raise the rate limit significantly:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-74-1" name="__codelineno-74-1" href="#__codelineno-74-1"></a><span class="k">[sources]</span>
+<a id="__codelineno-74-2" name="__codelineno-74-2" href="#__codelineno-74-2"></a><span class="n">semantic_scholar_api_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;your-key&quot;</span><span class="w">   </span><span class="c1"># free at semanticscholar.org  # pragma: allowlist secret</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>For Google Scholar</strong> (<code>scholarly</code> backend), use SerpAPI for more reliable access:
+   <div class="highlight"><pre><span></span><code><a id="__codelineno-75-1" name="__codelineno-75-1" href="#__codelineno-75-1"></a><span class="k">[sources]</span>
+<a id="__codelineno-75-2" name="__codelineno-75-2" href="#__codelineno-75-2"></a><span class="n">scholar_backend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;serpapi&quot;</span>
+<a id="__codelineno-75-3" name="__codelineno-75-3" href="#__codelineno-75-3"></a><span class="n">serpapi_key</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="s2">&quot;your-key&quot;</span>
+</code></pre></div></p>
+</li>
+<li>
+<p><strong>Reduce <code>--max-results</code></strong> if hitting source rate limits during heavy use.</p>
+</li>
+</ol>
+<h3 id="96-common-error-messages-and-fixes">9.6 Common error messages and fixes<a class="headerlink" href="#96-common-error-messages-and-fixes" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Error message</th>
+<th>Cause</th>
+<th>Fix</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>Run ID not found</code></td>
+<td>Wrong run ID or wrong workspace</td>
+<td>Check <code>research-pipeline inspect</code> for valid run IDs</td>
+</tr>
+<tr>
+<td><code>No completed search stage</code></td>
+<td>Running screen without a search</td>
+<td>Run <code>research-pipeline search --run-id &lt;ID&gt;</code> first</td>
+</tr>
+<tr>
+<td><code>FileNotFoundError: source registry not found</code></td>
+<td><code>--registry</code> path is wrong</td>
+<td>Check the path or omit <code>--registry</code> to use defaults</td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError: docling</code></td>
+<td>Extra not installed</td>
+<td><code>pip install research-pipeline[docling]</code></td>
+</tr>
+<tr>
+<td><code>ModuleNotFoundError: sentence_transformers</code></td>
+<td>Reranker not installed</td>
+<td><code>pip install research-pipeline[reranker]</code></td>
+</tr>
+<tr>
+<td><code>scholarly not installed</code></td>
+<td>Scholar source enabled but no package</td>
+<td><code>pip install research-pipeline[scholar]</code></td>
+</tr>
+<tr>
+<td><code>API key required</code></td>
+<td>Cloud conversion backend missing key</td>
+<td>Set the key in config or env var (see §3.4)</td>
+</tr>
+<tr>
+<td><code>ValidationError</code> (report)</td>
+<td>Synthesis missing required sections</td>
+<td>Run with LLM enabled or use <code>--profile deep</code></td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="10-command-reference-summary">10. Command Reference Summary<a class="headerlink" href="#10-command-reference-summary" title="Permanent link">&para;</a></h2>
+<h3 id="academic-pipeline">Academic pipeline<a class="headerlink" href="#academic-pipeline" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>run "topic"</code></td>
+<td>End-to-end pipeline (all stages)</td>
+</tr>
+<tr>
+<td><code>plan "topic"</code></td>
+<td>Generate structured query plan</td>
+</tr>
+<tr>
+<td><code>search</code></td>
+<td>Search academic sources</td>
+</tr>
+<tr>
+<td><code>screen</code></td>
+<td>Score and shortlist candidates</td>
+</tr>
+<tr>
+<td><code>download</code></td>
+<td>Download PDFs</td>
+</tr>
+<tr>
+<td><code>convert</code></td>
+<td>Convert PDFs to Markdown</td>
+</tr>
+<tr>
+<td><code>convert-rough</code></td>
+<td>Fast bulk conversion (pymupdf4llm)</td>
+</tr>
+<tr>
+<td><code>convert-fine</code></td>
+<td>High-quality conversion for selected papers</td>
+</tr>
+<tr>
+<td><code>convert-file &lt;pdf&gt;</code></td>
+<td>Standalone PDF → Markdown (no workspace)</td>
+</tr>
+<tr>
+<td><code>extract</code></td>
+<td>Extract sections and chunks</td>
+</tr>
+<tr>
+<td><code>summarize</code></td>
+<td>Generate summaries and synthesis</td>
+</tr>
+<tr>
+<td><code>inspect</code></td>
+<td>Show run status and artifact paths</td>
+</tr>
+<tr>
+<td><code>enrich</code></td>
+<td>Fill missing abstracts from Semantic Scholar</td>
+</tr>
+<tr>
+<td><code>expand</code></td>
+<td>Citation graph expansion</td>
+</tr>
+<tr>
+<td><code>quality</code></td>
+<td>Compute quality scores (citations, venue, author)</td>
+</tr>
+<tr>
+<td><code>analyze</code></td>
+<td>Prepare per-paper analysis tasks</td>
+</tr>
+<tr>
+<td><code>analyze-claims</code></td>
+<td>Decompose summaries into atomic claims</td>
+</tr>
+<tr>
+<td><code>score-claims</code></td>
+<td>Score confidence for claims</td>
+</tr>
+<tr>
+<td><code>feedback</code></td>
+<td>Record paper accept/reject decisions</td>
+</tr>
+<tr>
+<td><code>validate</code></td>
+<td>Validate report completeness</td>
+</tr>
+<tr>
+<td><code>compare</code></td>
+<td>Diff two pipeline runs</td>
+</tr>
+<tr>
+<td><code>coherence</code></td>
+<td>Multi-run knowledge coherence check</td>
+</tr>
+<tr>
+<td><code>consolidate</code></td>
+<td>Compress episodic memory, promote rules</td>
+</tr>
+<tr>
+<td><code>aggregate</code></td>
+<td>Strip rhetoric, aggregate evidence</td>
+</tr>
+<tr>
+<td><code>report</code></td>
+<td>Render report with a template</td>
+</tr>
+<tr>
+<td><code>cluster</code></td>
+<td>Cluster papers by topic similarity</td>
+</tr>
+<tr>
+<td><code>export-html</code></td>
+<td>Export synthesis report as HTML</td>
+</tr>
+<tr>
+<td><code>export-bibtex</code></td>
+<td>Export papers as BibTeX</td>
+</tr>
+<tr>
+<td><code>evaluate</code></td>
+<td>Validate pipeline outputs against schemas</td>
+</tr>
+<tr>
+<td><code>index</code></td>
+<td>Manage global paper index</td>
+</tr>
+<tr>
+<td><code>watch</code></td>
+<td>Check for new papers matching saved queries</td>
+</tr>
+<tr>
+<td><code>cite-context</code></td>
+<td>Extract citation contexts from Markdown</td>
+</tr>
+<tr>
+<td><code>memory-stats</code></td>
+<td>Memory tier statistics</td>
+</tr>
+<tr>
+<td><code>memory-episodes</code></td>
+<td>List recent episodic memories</td>
+</tr>
+<tr>
+<td><code>memory-search "topic"</code></td>
+<td>Search episodic memory</td>
+</tr>
+<tr>
+<td><code>kg-stats</code></td>
+<td>Knowledge graph statistics</td>
+</tr>
+<tr>
+<td><code>kg-query &lt;id&gt;</code></td>
+<td>Query a KG entity</td>
+</tr>
+<tr>
+<td><code>kg-ingest</code></td>
+<td>Ingest run results into KG</td>
+</tr>
+<tr>
+<td><code>eval-log</code></td>
+<td>Inspect three-channel execution logs</td>
+</tr>
+<tr>
+<td><code>horizon</code></td>
+<td>Compute Unified Horizon Metric</td>
+</tr>
+<tr>
+<td><code>rrp</code></td>
+<td>Recall/Reasoning/Presentation diagnostic</td>
+</tr>
+<tr>
+<td><code>blinding-audit</code></td>
+<td>Epistemic blinding audit</td>
+</tr>
+<tr>
+<td><code>setup</code></td>
+<td>Install AI skill, sub-agents, MCP config</td>
+</tr>
+<tr>
+<td><code>mcp serve</code></td>
+<td>Start MCP server (stdio transport)</td>
+</tr>
+<tr>
+<td><code>mcp config</code></td>
+<td>Print MCP client config snippet</td>
+</tr>
+</tbody>
+</table>
+<h3 id="daily-briefing-brief-sub-app">Daily briefing (<code>brief</code> sub-app)<a class="headerlink" href="#daily-briefing-brief-sub-app" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Command</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>brief run</code></td>
+<td>Full pipeline: poll → rank → generate → validate</td>
+</tr>
+<tr>
+<td><code>brief poll</code></td>
+<td>Fetch events from configured sources</td>
+</tr>
+<tr>
+<td><code>brief rank</code></td>
+<td>Deduplicate and rank events</td>
+</tr>
+<tr>
+<td><code>brief generate-daily</code></td>
+<td>Render daily Markdown digest</td>
+</tr>
+<tr>
+<td><code>brief validate</code></td>
+<td>Validate generated brief</td>
+</tr>
+<tr>
+<td><code>brief resume</code></td>
+<td>Resume from a specific stage</td>
+</tr>
+<tr>
+<td><code>brief dossier</code></td>
+<td>Generate in-depth dossier for a cluster</td>
+</tr>
+<tr>
+<td><code>brief weekly-synthesis</code></td>
+<td>Generate weekly trend memo</td>
+</tr>
+<tr>
+<td><code>brief export-obsidian</code></td>
+<td>Export to Obsidian vault</td>
+</tr>
+<tr>
+<td><code>brief feedback</code></td>
+<td>Record feedback on clusters/topics/sources</td>
+</tr>
+<tr>
+<td><code>brief preferences</code></td>
+<td>Compute/rollback preference adjustments</td>
+</tr>
+<tr>
+<td><code>brief topic-aliases</code></td>
+<td>Review topic alias suggestions</td>
+</tr>
+<tr>
+<td><code>brief compare-sources</code></td>
+<td>Compare ranked output with different registries</td>
+</tr>
+</tbody>
+</table>
+<h3 id="global-options-available-on-all-commands">Global options (available on all commands)<a class="headerlink" href="#global-options-available-on-all-commands" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>--verbose</code> / <code>-v</code></td>
+<td>Enable debug logging</td>
+</tr>
+<tr>
+<td><code>--config</code> / <code>-c</code></td>
+<td>Path to <code>config.toml</code></td>
+</tr>
+<tr>
+<td><code>--workspace</code> / <code>-w</code></td>
+<td>Workspace root directory</td>
+</tr>
+<tr>
+<td><code>--run-id</code></td>
+<td>Specific run ID</td>
+</tr>
+<tr>
+<td><code>--version</code> / <code>-V</code></td>
+<td>Show version and exit</td>
+</tr>
+<tr>
+<td><code>--help</code></td>
+<td>Show help for any command</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

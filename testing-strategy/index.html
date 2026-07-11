@@ -1,0 +1,2656 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers — plus a daily AI intelligence briefing system.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/testing-strategy/">
+      
+      
+        <link rel="prev" href="../developer-guide/">
+      
+      
+        <link rel="next" href="../operations-runbook/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Testing Strategy - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#testing-strategy-research-pipeline" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Testing Strategy
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-001-uv-build-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 uv build tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-002-pydantic-domain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 Pydantic models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-003-stage-based-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Stage-based pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-004-conversion-backend-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 Conversion registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-005-sqlite-persistent-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-005 SQLite state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-006-fastmcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-006 FastMCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-007-multi-tier-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Multi-tier memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-008-briefing-vs-academic-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 Dual pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../developer-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-document-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Document Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-testing-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Testing Philosophy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Test Pyramid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-test-tooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Test Tooling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Test Tooling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-dev-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install dev dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Unit Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running unit tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-test-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit test conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unit test conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-unit-test-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example unit test pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-integration-tests-offline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Integration Tests (Offline)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Integration Tests (Offline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cassette-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cassette files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running integration tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording-a-new-cassette" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording a new cassette
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vcr-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VCR configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-live-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Live Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Live Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purpose_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#marking-live-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Marking live tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-live-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running live tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-test-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Test Fixtures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Test Fixtures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared fixtures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-property-based-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Property-Based Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-coverage-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Coverage Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-static-analysis-as-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Static Analysis as Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-ci-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. CI Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-writing-a-new-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Writing a New Test
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Writing a New Test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checklist-before-committing-a-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist before committing a test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-test-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Test Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. Test Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-existing-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to update existing tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flaky-test-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flaky test policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-tests-find-bugs-in-production-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When tests find bugs in production code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-appendix-useful-pytest-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Appendix: Useful pytest Flags
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations-runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-document-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Document Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-testing-philosophy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Testing Philosophy
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Test Pyramid
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-test-tooling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Test Tooling
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Test Tooling">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#install-dev-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Install dev dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Unit Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Unit Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-unit-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running unit tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#unit-test-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Unit test conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="Unit test conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#example-unit-test-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Example unit test pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-integration-tests-offline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Integration Tests (Offline)
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Integration Tests (Offline)">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#cassette-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Cassette files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-integration-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running integration tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#recording-a-new-cassette" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Recording a new cassette
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#vcr-configuration" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        VCR configuration
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-live-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Live Tests
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Live Tests">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location_2" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#purpose_1" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Purpose
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#marking-live-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Marking live tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#running-live-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Running live tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-test-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. Test Fixtures
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. Test Fixtures">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#location_3" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Location
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#shared-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Shared fixtures
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-property-based-testing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Property-Based Testing
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-coverage-requirements" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Coverage Requirements
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-static-analysis-as-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Static Analysis as Tests
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-ci-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. CI Pipeline
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#13-writing-a-new-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        13. Writing a New Test
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="13. Writing a New Test">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#step-by-step" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Step-by-step
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#checklist-before-committing-a-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Checklist before committing a test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#14-test-maintenance" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        14. Test Maintenance
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="14. Test Maintenance">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#when-to-update-existing-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When to update existing tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#flaky-test-policy" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Flaky test policy
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#when-tests-find-bugs-in-production-code" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        When tests find bugs in production code
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#15-appendix-useful-pytest-flags" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        15. Appendix: Useful pytest Flags
+      
+    </span>
+  </a>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="testing-strategy-research-pipeline">Testing Strategy: research-pipeline<a class="headerlink" href="#testing-strategy-research-pipeline" title="Permanent link">&para;</a></h1>
+<h2 id="1-document-purpose">1. Document Purpose<a class="headerlink" href="#1-document-purpose" title="Permanent link">&para;</a></h2>
+<p>This document describes the testing philosophy, pyramid, conventions, and
+tooling used in <code>research-pipeline</code>. It is the authoritative reference for
+contributors writing tests and for operators evaluating test coverage.</p>
+<hr />
+<h2 id="2-testing-philosophy">2. Testing Philosophy<a class="headerlink" href="#2-testing-philosophy" title="Permanent link">&para;</a></h2>
+<p><code>research-pipeline</code> follows <strong>test-first development</strong> for all new features
+and <strong>regression tests required for all bug fixes</strong>. The guiding principles are:</p>
+<ol>
+<li><strong>Tests are the specification.</strong> Behaviour not covered by a test is not
+   guaranteed to exist.</li>
+<li><strong>Speed matters.</strong> The unit suite must remain fast (&lt; 60 s) so it runs on
+   every commit without friction.</li>
+<li><strong>Determinism required.</strong> No test should fail intermittently due to network
+   conditions, race conditions, or system state.</li>
+<li><strong>Independence.</strong> Every test must be able to run in isolation. Tests must not
+   depend on execution order.</li>
+<li><strong>Never modify existing tests without approval.</strong> Changing a test to make it
+   pass is a code smell — fix the code, not the test.</li>
+</ol>
+<hr />
+<h2 id="3-test-pyramid">3. Test Pyramid<a class="headerlink" href="#3-test-pyramid" title="Permanent link">&para;</a></h2>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>          ┌───────────────────┐
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a>          │   Live (network)  │  ← @pytest.mark.live; real arXiv API
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>          ├───────────────────┤
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a>          │ Integration       │  ← VCR cassettes; offline HTTP replay
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>          │ (offline)         │
+<a id="__codelineno-0-6" name="__codelineno-0-6" href="#__codelineno-0-6"></a>          ├───────────────────┤
+<a id="__codelineno-0-7" name="__codelineno-0-7" href="#__codelineno-0-7"></a>          │   Unit (4,378+)   │  ← Fast; no network; runs on every commit
+<a id="__codelineno-0-8" name="__codelineno-0-8" href="#__codelineno-0-8"></a>          └───────────────────┘
+</code></pre></div>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Directory</th>
+<th>Tests</th>
+<th>Dependencies</th>
+<th>CI?</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Unit</td>
+<td><code>tests/unit/</code></td>
+<td>4,378+ in 226 files</td>
+<td>None (no network)</td>
+<td>✅ Always</td>
+</tr>
+<tr>
+<td>Integration (offline)</td>
+<td><code>tests/integration_offline/</code></td>
+<td>~12 files</td>
+<td>VCR cassettes</td>
+<td>✅ Always</td>
+</tr>
+<tr>
+<td>Live</td>
+<td><code>tests/live/</code></td>
+<td>Varies</td>
+<td>Real arXiv/Scholar APIs</td>
+<td>❌ Manual only</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="4-test-tooling">4. Test Tooling<a class="headerlink" href="#4-test-tooling" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pytest</code> ≥ 8.0</td>
+<td>Test runner and framework</td>
+</tr>
+<tr>
+<td><code>pytest-cov</code> ≥ 5.0</td>
+<td>Coverage reporting</td>
+</tr>
+<tr>
+<td><code>vcrpy</code> ≥ 6.0</td>
+<td>HTTP cassette recording/replay</td>
+</tr>
+<tr>
+<td><code>hypothesis</code> ≥ 6.100</td>
+<td>Property-based testing</td>
+</tr>
+<tr>
+<td><code>pytest-anyio</code></td>
+<td>Async test support</td>
+</tr>
+<tr>
+<td><code>mypy</code></td>
+<td>Type-check tests along with source</td>
+</tr>
+<tr>
+<td><code>ruff</code></td>
+<td>Lint test files</td>
+</tr>
+</tbody>
+</table>
+<h3 id="install-dev-dependencies">Install dev dependencies<a class="headerlink" href="#install-dev-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev
+</code></pre></div>
+<hr />
+<h2 id="5-unit-tests">5. Unit Tests<a class="headerlink" href="#5-unit-tests" title="Permanent link">&para;</a></h2>
+<h3 id="location">Location<a class="headerlink" href="#location" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>tests/unit/test_&lt;module&gt;.py
+</code></pre></div>
+<p>Every test file name mirrors the source module it tests:</p>
+<table>
+<thead>
+<tr>
+<th>Test file</th>
+<th>Source module</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>test_heuristic.py</code></td>
+<td><code>src/research_pipeline/screening/heuristic.py</code></td>
+</tr>
+<tr>
+<td><code>test_briefing_rank.py</code></td>
+<td><code>src/research_pipeline/briefing/rank.py</code></td>
+</tr>
+<tr>
+<td><code>test_workspace.py</code></td>
+<td><code>src/research_pipeline/storage/workspace.py</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="running-unit-tests">Running unit tests<a class="headerlink" href="#running-unit-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Full unit suite</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>-x<span class="w"> </span>-q
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Single file</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_heuristic.py<span class="w"> </span>-xvs
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Single test</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_heuristic.py::TestBM25Scorer::test_basic_score<span class="w"> </span>-xvs
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># With coverage</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>--cov<span class="o">=</span>src/research_pipeline<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+</code></pre></div>
+<blockquote>
+<p><strong>CI gate</strong>: Coverage must stay ≥ 83% (enforced in CI with <code>--cov-fail-under=83</code>).</p>
+</blockquote>
+<h3 id="unit-test-conventions">Unit test conventions<a class="headerlink" href="#unit-test-conventions" title="Permanent link">&para;</a></h3>
+<ul>
+<li>Test class names: <code>Test&lt;ClassUnderTest&gt;</code> (checked by <code>name-tests-test</code> hook)</li>
+<li>Test function names: <code>test_&lt;behaviour&gt;</code> or <code>test_&lt;function&gt;_&lt;condition&gt;</code></li>
+<li>Each test should exercise exactly one behaviour or outcome</li>
+<li>Use <code>pytest.raises</code> for expected exceptions, not <code>try/except</code></li>
+<li>Never <code>import research_pipeline</code> at module level in test files without a
+  fixture to handle missing optional dependencies</li>
+</ul>
+<h4 id="example-unit-test-pattern">Example unit test pattern<a class="headerlink" href="#example-unit-test-pattern" title="Permanent link">&para;</a></h4>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-4-2" name="__codelineno-4-2" href="#__codelineno-4-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.screening.heuristic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BM25Scorer</span>
+<a id="__codelineno-4-3" name="__codelineno-4-3" href="#__codelineno-4-3"></a>
+<a id="__codelineno-4-4" name="__codelineno-4-4" href="#__codelineno-4-4"></a>
+<a id="__codelineno-4-5" name="__codelineno-4-5" href="#__codelineno-4-5"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestBM25Scorer</span><span class="p">:</span>
+<a id="__codelineno-4-6" name="__codelineno-4-6" href="#__codelineno-4-6"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_scores_relevant_paper_higher</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-4-7" name="__codelineno-4-7" href="#__codelineno-4-7"></a>        <span class="n">scorer</span> <span class="o">=</span> <span class="n">BM25Scorer</span><span class="p">(</span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;transformer attention mechanism&quot;</span><span class="p">])</span>
+<a id="__codelineno-4-8" name="__codelineno-4-8" href="#__codelineno-4-8"></a>        <span class="n">candidates</span> <span class="o">=</span> <span class="p">[</span>
+<a id="__codelineno-4-9" name="__codelineno-4-9" href="#__codelineno-4-9"></a>            <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Attention Is All You Need&quot;</span><span class="p">,</span> <span class="s2">&quot;abstract&quot;</span><span class="p">:</span> <span class="s2">&quot;transformer model&quot;</span><span class="p">},</span>
+<a id="__codelineno-4-10" name="__codelineno-4-10" href="#__codelineno-4-10"></a>            <span class="p">{</span><span class="s2">&quot;title&quot;</span><span class="p">:</span> <span class="s2">&quot;Linear Regression Tutorial&quot;</span><span class="p">,</span> <span class="s2">&quot;abstract&quot;</span><span class="p">:</span> <span class="s2">&quot;basic statistics&quot;</span><span class="p">},</span>
+<a id="__codelineno-4-11" name="__codelineno-4-11" href="#__codelineno-4-11"></a>        <span class="p">]</span>
+<a id="__codelineno-4-12" name="__codelineno-4-12" href="#__codelineno-4-12"></a>        <span class="n">scores</span> <span class="o">=</span> <span class="n">scorer</span><span class="o">.</span><span class="n">score_batch</span><span class="p">(</span><span class="n">candidates</span><span class="p">)</span>
+<a id="__codelineno-4-13" name="__codelineno-4-13" href="#__codelineno-4-13"></a>        <span class="k">assert</span> <span class="n">scores</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">scores</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+<a id="__codelineno-4-14" name="__codelineno-4-14" href="#__codelineno-4-14"></a>
+<a id="__codelineno-4-15" name="__codelineno-4-15" href="#__codelineno-4-15"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_empty_corpus_returns_zero_scores</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-4-16" name="__codelineno-4-16" href="#__codelineno-4-16"></a>        <span class="n">scorer</span> <span class="o">=</span> <span class="n">BM25Scorer</span><span class="p">(</span><span class="n">queries</span><span class="o">=</span><span class="p">[</span><span class="s2">&quot;any topic&quot;</span><span class="p">])</span>
+<a id="__codelineno-4-17" name="__codelineno-4-17" href="#__codelineno-4-17"></a>        <span class="k">assert</span> <span class="n">scorer</span><span class="o">.</span><span class="n">score_batch</span><span class="p">([])</span> <span class="o">==</span> <span class="p">[]</span>
+</code></pre></div>
+<hr />
+<h2 id="6-integration-tests-offline">6. Integration Tests (Offline)<a class="headerlink" href="#6-integration-tests-offline" title="Permanent link">&para;</a></h2>
+<h3 id="location_1">Location<a class="headerlink" href="#location_1" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a>tests/integration_offline/
+</code></pre></div>
+<h3 id="purpose">Purpose<a class="headerlink" href="#purpose" title="Permanent link">&para;</a></h3>
+<p>Test HTTP-dependent code (arXiv API, Semantic Scholar, etc.) without network
+access by replaying recorded HTTP interactions via VCR cassettes.</p>
+<h3 id="cassette-files">Cassette files<a class="headerlink" href="#cassette-files" title="Permanent link">&para;</a></h3>
+<p>HTTP cassettes live in <code>tests/fixtures/http_cassettes/</code>. They are committed to
+the repository and replayed deterministically.</p>
+<h3 id="running-integration-tests">Running integration tests<a class="headerlink" href="#running-integration-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/integration_offline/<span class="w"> </span>-xvs
+</code></pre></div>
+<h3 id="recording-a-new-cassette">Recording a new cassette<a class="headerlink" href="#recording-a-new-cassette" title="Permanent link">&para;</a></h3>
+<p>To record a new cassette, run the test with a live network connection:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">fixture</span>
+<a id="__codelineno-7-2" name="__codelineno-7-2" href="#__codelineno-7-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">vcr_cassette_dir</span><span class="p">(</span><span class="n">tmp_path</span><span class="p">):</span>
+<a id="__codelineno-7-3" name="__codelineno-7-3" href="#__codelineno-7-3"></a>    <span class="k">return</span> <span class="s2">&quot;tests/fixtures/http_cassettes&quot;</span>
+<a id="__codelineno-7-4" name="__codelineno-7-4" href="#__codelineno-7-4"></a>
+<a id="__codelineno-7-5" name="__codelineno-7-5" href="#__codelineno-7-5"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">vcr</span><span class="p">(</span><span class="s2">&quot;my_cassette.yaml&quot;</span><span class="p">)</span>
+<a id="__codelineno-7-6" name="__codelineno-7-6" href="#__codelineno-7-6"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_arxiv_search</span><span class="p">():</span>
+<a id="__codelineno-7-7" name="__codelineno-7-7" href="#__codelineno-7-7"></a>    <span class="c1"># This runs live once to record, then replays</span>
+<a id="__codelineno-7-8" name="__codelineno-7-8" href="#__codelineno-7-8"></a>    <span class="o">...</span>
+</code></pre></div>
+<h3 id="vcr-configuration">VCR configuration<a class="headerlink" href="#vcr-configuration" title="Permanent link">&para;</a></h3>
+<p>Default VCR config records/replays <code>GET</code> and <code>POST</code> requests. Sensitive
+headers (Authorization, API keys) are scrubbed from cassettes before commit.</p>
+<hr />
+<h2 id="7-live-tests">7. Live Tests<a class="headerlink" href="#7-live-tests" title="Permanent link">&para;</a></h2>
+<h3 id="location_2">Location<a class="headerlink" href="#location_2" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>tests/live/
+</code></pre></div>
+<h3 id="purpose_1">Purpose<a class="headerlink" href="#purpose_1" title="Permanent link">&para;</a></h3>
+<p>End-to-end tests against real external APIs (arXiv, Semantic Scholar).
+These are <strong>not run in CI</strong> and must be run manually by a developer with
+network access.</p>
+<h3 id="marking-live-tests">Marking live tests<a class="headerlink" href="#marking-live-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-9-2" name="__codelineno-9-2" href="#__codelineno-9-2"></a>
+<a id="__codelineno-9-3" name="__codelineno-9-3" href="#__codelineno-9-3"></a><span class="nd">@pytest</span><span class="o">.</span><span class="n">mark</span><span class="o">.</span><span class="n">live</span>
+<a id="__codelineno-9-4" name="__codelineno-9-4" href="#__codelineno-9-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_live_arxiv_search</span><span class="p">():</span>
+<a id="__codelineno-9-5" name="__codelineno-9-5" href="#__codelineno-9-5"></a>    <span class="c1"># Requires real arXiv API access</span>
+<a id="__codelineno-9-6" name="__codelineno-9-6" href="#__codelineno-9-6"></a>    <span class="o">...</span>
+</code></pre></div>
+<h3 id="running-live-tests">Running live tests<a class="headerlink" href="#running-live-tests" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a><span class="c1"># Run all live tests</span>
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/live/<span class="w"> </span>-xvs<span class="w"> </span>-m<span class="w"> </span>live
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a><span class="c1"># Run unit and integration but skip live</span>
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>tests/integration_offline/<span class="w"> </span>-m<span class="w"> </span><span class="s2">&quot;not live&quot;</span>
+</code></pre></div>
+<hr />
+<h2 id="8-test-fixtures">8. Test Fixtures<a class="headerlink" href="#8-test-fixtures" title="Permanent link">&para;</a></h2>
+<h3 id="location_3">Location<a class="headerlink" href="#location_3" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a>tests/fixtures/
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>├── atom/          # arXiv Atom XML responses
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a>├── briefing/      # Briefing pipeline fixtures
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>├── http_cassettes/# VCR HTTP cassettes
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a>├── llm/           # LLM response fixtures
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a>├── markdown/      # Converted Markdown paper fixtures
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a>└── pdf/           # PDF files for conversion tests
+</code></pre></div>
+<h3 id="shared-fixtures">Shared fixtures<a class="headerlink" href="#shared-fixtures" title="Permanent link">&para;</a></h3>
+<p>Module-scope and session-scope shared fixtures are defined in <code>conftest.py</code>
+files at each test level. Common fixtures include:</p>
+<ul>
+<li><code>tmp_workspace</code> — creates an isolated temporary workspace directory</li>
+<li><code>sample_query_plan</code> — a minimal <code>QueryPlan</code> instance</li>
+<li><code>sample_candidates</code> — a list of <code>CandidateRecord</code> instances</li>
+</ul>
+<hr />
+<h2 id="9-property-based-testing">9. Property-Based Testing<a class="headerlink" href="#9-property-based-testing" title="Permanent link">&para;</a></h2>
+<p><a href="https://hypothesis.readthedocs.io/">Hypothesis</a> is available for property-based
+tests. Use it when the range of valid inputs is large or hard to enumerate:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">hypothesis</span><span class="w"> </span><span class="kn">import</span> <span class="n">given</span><span class="p">,</span> <span class="n">strategies</span> <span class="k">as</span> <span class="n">st</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.infra.hashing</span><span class="w"> </span><span class="kn">import</span> <span class="n">sha256_of_str</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a><span class="nd">@given</span><span class="p">(</span><span class="n">st</span><span class="o">.</span><span class="n">text</span><span class="p">())</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_hash_is_deterministic</span><span class="p">(</span><span class="n">text</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-12-6" name="__codelineno-12-6" href="#__codelineno-12-6"></a>    <span class="k">assert</span> <span class="n">sha256_of_str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span> <span class="o">==</span> <span class="n">sha256_of_str</span><span class="p">(</span><span class="n">text</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="10-coverage-requirements">10. Coverage Requirements<a class="headerlink" href="#10-coverage-requirements" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Scope</th>
+<th>Minimum coverage</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>src/research_pipeline/</code> (overall)</td>
+<td>83% (CI-enforced)</td>
+</tr>
+<tr>
+<td>New code in PRs</td>
+<td>Should maintain or improve coverage</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Note</strong>: <code>src/research_pipeline/mcp_server/</code> is excluded from mypy strict mode
+(<code>ignore_errors = true</code> in <code>pyproject.toml</code>) but is still included in coverage.</p>
+</blockquote>
+<p>Coverage report generation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>--cov<span class="o">=</span>src/research_pipeline<span class="w"> </span>--cov-report<span class="o">=</span>html
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a><span class="c1"># Open htmlcov/index.html</span>
+</code></pre></div>
+<hr />
+<h2 id="11-static-analysis-as-tests">11. Static Analysis as Tests<a class="headerlink" href="#11-static-analysis-as-tests" title="Permanent link">&para;</a></h2>
+<p>The following static analysis tools are run as part of the pre-commit suite
+and CI. Failures here are treated as test failures:</p>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>What it checks</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>mypy</code> (strict mode)</td>
+<td>Type correctness, 0 errors required</td>
+</tr>
+<tr>
+<td><code>ruff check</code></td>
+<td>Lint rules (A, B, C4, E, F, I, PT, RUF, SIM, UP, W)</td>
+</tr>
+<tr>
+<td><code>ruff format</code></td>
+<td>Code formatting</td>
+</tr>
+<tr>
+<td><code>bandit</code></td>
+<td>SAST security rules</td>
+</tr>
+<tr>
+<td><code>detect-secrets</code></td>
+<td>Secret scanning against <code>.secrets.baseline</code></td>
+</tr>
+<tr>
+<td><code>pip-audit</code></td>
+<td>Vulnerable dependency detection</td>
+</tr>
+<tr>
+<td><code>pip-licenses</code></td>
+<td>GPL/AGPL copyleft license detection</td>
+</tr>
+</tbody>
+</table>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="c1"># Run all at once</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</code></pre></div>
+<hr />
+<h2 id="12-ci-pipeline">12. CI Pipeline<a class="headerlink" href="#12-ci-pipeline" title="Permanent link">&para;</a></h2>
+<p>All tests and checks run on every push and pull request to <code>master</code>.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="nt">Jobs</span><span class="p">:</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a><span class="w">  </span><span class="nt">lint</span><span class="p">:</span><span class="w">   </span><span class="l l-Scalar l-Scalar-Plain">pre-commit on all files (Python 3.12)</span>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="w">  </span><span class="nt">test</span><span class="p">:</span><span class="w">   </span><span class="l l-Scalar l-Scalar-Plain">pytest tests/unit/ (Python 3.12 + 3.13)</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a><span class="w">           </span><span class="l l-Scalar l-Scalar-Plain">--cov-fail-under=83</span>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="w">  </span><span class="nt">typecheck</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">mypy src/ (strict)</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a><span class="w">  </span><span class="nt">security</span><span class="p">:</span><span class="w"> </span><span class="l l-Scalar l-Scalar-Plain">pip-audit + pip-licenses (no GPL/AGPL)</span>
+</code></pre></div>
+<p>Coverage is uploaded to Codecov on Python 3.12 runs.</p>
+<hr />
+<h2 id="13-writing-a-new-test">13. Writing a New Test<a class="headerlink" href="#13-writing-a-new-test" title="Permanent link">&para;</a></h2>
+<h3 id="step-by-step">Step-by-step<a class="headerlink" href="#step-by-step" title="Permanent link">&para;</a></h3>
+<ol>
+<li><strong>Identify the module</strong> to test: e.g., <code>src/research_pipeline/retrieval/hybrid.py</code></li>
+<li><strong>Create the test file</strong> if it doesn't exist: <code>tests/unit/test_retrieval_hybrid.py</code></li>
+<li><strong>Write the test first</strong> (TDD), then implement the feature</li>
+<li><strong>Use the <code>Test&lt;Class&gt;</code> naming pattern</strong> for classes</li>
+<li><strong>Keep each test atomic</strong>: one assertion per test where practical</li>
+<li><strong>Mock external dependencies</strong> with <code>unittest.mock.patch</code> or <code>pytest.monkeypatch</code></li>
+<li><strong>Use fixtures</strong> for shared setup; avoid <code>setUp</code>/<code>tearDown</code> (prefer <code>@pytest.fixture</code>)</li>
+</ol>
+<h3 id="checklist-before-committing-a-test">Checklist before committing a test<a class="headerlink" href="#checklist-before-committing-a-test" title="Permanent link">&para;</a></h3>
+<ul>
+<li>[ ] Test file is in <code>tests/unit/test_&lt;module&gt;.py</code></li>
+<li>[ ] Test class name starts with <code>Test</code></li>
+<li>[ ] Test function names start with <code>test_</code></li>
+<li>[ ] No <code>print()</code> statements in tests</li>
+<li>[ ] No hardcoded file paths that wouldn't work on CI</li>
+<li>[ ] No network calls (add <code>@pytest.mark.live</code> if unavoidable)</li>
+<li>[ ] Test passes in isolation: <code>uv run pytest tests/unit/test_mymodule.py -xvs</code></li>
+<li>[ ] Pre-commit passes: <code>uv run pre-commit run --all-files</code></li>
+</ul>
+<hr />
+<h2 id="14-test-maintenance">14. Test Maintenance<a class="headerlink" href="#14-test-maintenance" title="Permanent link">&para;</a></h2>
+<h3 id="when-to-update-existing-tests">When to update existing tests<a class="headerlink" href="#when-to-update-existing-tests" title="Permanent link">&para;</a></h3>
+<p>Never modify existing tests <strong>except</strong> for:</p>
+<ol>
+<li>Fixing a test that was factually wrong (not just failing)</li>
+<li>Updating test fixture data when a schema changes (with explicit approval)</li>
+<li>Renaming symbols that were refactored across the codebase</li>
+</ol>
+<h3 id="flaky-test-policy">Flaky test policy<a class="headerlink" href="#flaky-test-policy" title="Permanent link">&para;</a></h3>
+<p>If a test is intermittently failing due to timing or non-determinism:</p>
+<ol>
+<li>Open an issue immediately</li>
+<li>Mark as <code>@pytest.mark.xfail(strict=False, reason="flaky: &lt;issue-link&gt;")</code> temporarily</li>
+<li>Fix within the next release cycle</li>
+</ol>
+<h3 id="when-tests-find-bugs-in-production-code">When tests find bugs in production code<a class="headerlink" href="#when-tests-find-bugs-in-production-code" title="Permanent link">&para;</a></h3>
+<p>Follow the test-driven bug repair cycle:</p>
+<ol>
+<li>Write a failing test that reproduces the bug (do NOT fix code yet)</li>
+<li>Verify the test fails on <code>main</code></li>
+<li>Fix the production code</li>
+<li>Verify the test passes</li>
+<li>Submit both test and fix together in the same commit/PR</li>
+</ol>
+<hr />
+<h2 id="15-appendix-useful-pytest-flags">15. Appendix: Useful pytest Flags<a class="headerlink" href="#15-appendix-useful-pytest-flags" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Flag</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>-x</code></td>
+<td>Stop at first failure</td>
+</tr>
+<tr>
+<td><code>-v</code></td>
+<td>Verbose output</td>
+</tr>
+<tr>
+<td><code>-s</code></td>
+<td>Disable output capture (show print/logging)</td>
+</tr>
+<tr>
+<td><code>--tb=short</code></td>
+<td>Short tracebacks</td>
+</tr>
+<tr>
+<td><code>--tb=no</code></td>
+<td>No tracebacks (for collection-only checks)</td>
+</tr>
+<tr>
+<td><code>-k "keyword"</code></td>
+<td>Run tests matching keyword</td>
+</tr>
+<tr>
+<td><code>--co</code></td>
+<td>Collect only (no execution)</td>
+</tr>
+<tr>
+<td><code>-m "not live"</code></td>
+<td>Skip live-marked tests</td>
+</tr>
+<tr>
+<td><code>--lf</code></td>
+<td>Re-run last failed tests</td>
+</tr>
+<tr>
+<td><code>--pdb</code></td>
+<td>Drop to debugger on failure</td>
+</tr>
+<tr>
+<td><code>-n auto</code></td>
+<td>Parallel execution (requires pytest-xdist)</td>
+</tr>
+</tbody>
+</table>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>

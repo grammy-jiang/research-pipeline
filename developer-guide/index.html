@@ -1,0 +1,3579 @@
+
+<!doctype html>
+<html lang="en" class="no-js">
+  <head>
+    
+      <meta charset="utf-8">
+      <meta name="viewport" content="width=device-width,initial-scale=1">
+      
+        <meta name="description" content="A deterministic, stage-based Python pipeline for searching, screening, downloading, converting, and summarizing academic papers — plus a daily AI intelligence briefing system.">
+      
+      
+      
+        <link rel="canonical" href="https://grammy-jiang.github.io/research-pipeline/developer-guide/">
+      
+      
+        <link rel="prev" href="../adr/ADR-008-briefing-vs-academic-pipeline/">
+      
+      
+        <link rel="next" href="../testing-strategy/">
+      
+      
+        
+      
+      
+      <link rel="icon" href="../assets/images/favicon.png">
+      <meta name="generator" content="mkdocs-1.6.1, mkdocs-material-9.7.6">
+    
+    
+      
+        <title>Developer Guide - research-pipeline</title>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/stylesheets/main.484c7ddc.min.css">
+      
+        
+        <link rel="stylesheet" href="../assets/stylesheets/palette.ab4e12ef.min.css">
+      
+      
+
+
+    
+    
+      
+    
+    
+      
+        
+        
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto:300,300i,400,400i,700,700i%7CRoboto+Mono:400,400i,700,700i&display=fallback">
+        <style>:root{--md-text-font:"Roboto";--md-code-font:"Roboto Mono"}</style>
+      
+    
+    
+      <link rel="stylesheet" href="../assets/_mkdocstrings.css">
+    
+    <script>__md_scope=new URL("..",location),__md_hash=e=>[...e].reduce(((e,_)=>(e<<5)-e+_.charCodeAt(0)),0),__md_get=(e,_=localStorage,t=__md_scope)=>JSON.parse(_.getItem(t.pathname+"."+e)),__md_set=(e,_,t=localStorage,a=__md_scope)=>{try{t.setItem(a.pathname+"."+e,JSON.stringify(_))}catch(e){}}</script>
+    
+      
+
+    
+    
+  </head>
+  
+  
+    
+    
+      
+    
+    
+    
+    
+    <body dir="ltr" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo">
+  
+    
+    <input class="md-toggle" data-md-toggle="drawer" type="checkbox" id="__drawer" autocomplete="off">
+    <input class="md-toggle" data-md-toggle="search" type="checkbox" id="__search" autocomplete="off">
+    <label class="md-overlay" for="__drawer"></label>
+    <div data-md-component="skip">
+      
+        
+        <a href="#developer-guide-research-pipeline" class="md-skip">
+          Skip to content
+        </a>
+      
+    </div>
+    <div data-md-component="announce">
+      
+    </div>
+    
+    
+      
+
+  
+
+<header class="md-header md-header--shadow" data-md-component="header">
+  <nav class="md-header__inner md-grid" aria-label="Header">
+    <a href=".." title="research-pipeline" class="md-header__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    <label class="md-header__button md-icon" for="__drawer">
+      
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M3 6h18v2H3zm0 5h18v2H3zm0 5h18v2H3z"/></svg>
+    </label>
+    <div class="md-header__title" data-md-component="header-title">
+      <div class="md-header__ellipsis">
+        <div class="md-header__topic">
+          <span class="md-ellipsis">
+            research-pipeline
+          </span>
+        </div>
+        <div class="md-header__topic" data-md-component="header-topic">
+          <span class="md-ellipsis">
+            
+              Developer Guide
+            
+          </span>
+        </div>
+      </div>
+    </div>
+    
+      
+        <form class="md-header__option" data-md-component="palette">
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: light)" data-md-color-scheme="default" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to dark mode"  type="radio" name="__palette" id="__palette_0">
+    
+      <label class="md-header__button md-icon" title="Switch to dark mode" for="__palette_1" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a4 4 0 0 0-4 4 4 4 0 0 0 4 4 4 4 0 0 0 4-4 4 4 0 0 0-4-4m0 10a6 6 0 0 1-6-6 6 6 0 0 1 6-6 6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+    
+    
+    
+    <input class="md-option" data-md-color-media="(prefers-color-scheme: dark)" data-md-color-scheme="slate" data-md-color-primary="indigo" data-md-color-accent="indigo"  aria-label="Switch to light mode"  type="radio" name="__palette" id="__palette_1">
+    
+      <label class="md-header__button md-icon" title="Switch to light mode" for="__palette_0" hidden>
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 18c-.89 0-1.74-.2-2.5-.55C11.56 16.5 13 14.42 13 12s-1.44-4.5-3.5-5.45C10.26 6.2 11.11 6 12 6a6 6 0 0 1 6 6 6 6 0 0 1-6 6m8-9.31V4h-4.69L12 .69 8.69 4H4v4.69L.69 12 4 15.31V20h4.69L12 23.31 15.31 20H20v-4.69L23.31 12z"/></svg>
+      </label>
+    
+  
+</form>
+      
+    
+    
+      <script>var palette=__md_get("__palette");if(palette&&palette.color){if("(prefers-color-scheme)"===palette.color.media){var media=matchMedia("(prefers-color-scheme: light)"),input=document.querySelector(media.matches?"[data-md-color-media='(prefers-color-scheme: light)']":"[data-md-color-media='(prefers-color-scheme: dark)']");palette.color.media=input.getAttribute("data-md-color-media"),palette.color.scheme=input.getAttribute("data-md-color-scheme"),palette.color.primary=input.getAttribute("data-md-color-primary"),palette.color.accent=input.getAttribute("data-md-color-accent")}for(var[key,value]of Object.entries(palette.color))document.body.setAttribute("data-md-color-"+key,value)}</script>
+    
+    
+    
+      
+      
+        <label class="md-header__button md-icon" for="__search">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        </label>
+        <div class="md-search" data-md-component="search" role="dialog">
+  <label class="md-search__overlay" for="__search"></label>
+  <div class="md-search__inner" role="search">
+    <form class="md-search__form" name="search">
+      <input type="text" class="md-search__input" name="query" aria-label="Search" placeholder="Search" autocapitalize="off" autocorrect="off" autocomplete="off" spellcheck="false" data-md-component="search-query" required>
+      <label class="md-search__icon md-icon" for="__search">
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M9.5 3A6.5 6.5 0 0 1 16 9.5c0 1.61-.59 3.09-1.56 4.23l.27.27h.79l5 5-1.5 1.5-5-5v-.79l-.27-.27A6.52 6.52 0 0 1 9.5 16 6.5 6.5 0 0 1 3 9.5 6.5 6.5 0 0 1 9.5 3m0 2C7 5 5 7 5 9.5S7 14 9.5 14 14 12 14 9.5 12 5 9.5 5"/></svg>
+        
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M20 11v2H8l5.5 5.5-1.42 1.42L4.16 12l7.92-7.92L13.5 5.5 8 11z"/></svg>
+      </label>
+      <nav class="md-search__options" aria-label="Search">
+        
+        <button type="reset" class="md-search__icon md-icon" title="Clear" aria-label="Clear" tabindex="-1">
+          
+          <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M19 6.41 17.59 5 12 10.59 6.41 5 5 6.41 10.59 12 5 17.59 6.41 19 12 13.41 17.59 19 19 17.59 13.41 12z"/></svg>
+        </button>
+      </nav>
+      
+        <div class="md-search__suggest" data-md-component="search-suggest"></div>
+      
+    </form>
+    <div class="md-search__output">
+      <div class="md-search__scrollwrap" tabindex="0" data-md-scrollfix>
+        <div class="md-search-result" data-md-component="search-result">
+          <div class="md-search-result__meta">
+            Initializing search
+          </div>
+          <ol class="md-search-result__list" role="presentation"></ol>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+      
+    
+    
+      <div class="md-header__source">
+        <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+      </div>
+    
+  </nav>
+  
+</header>
+    
+    <div class="md-container" data-md-component="container">
+      
+      
+        
+          
+        
+      
+      <main class="md-main" data-md-component="main">
+        <div class="md-main__inner md-grid">
+          
+            
+              
+              <div class="md-sidebar md-sidebar--primary" data-md-component="sidebar" data-md-type="navigation" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+
+
+<nav class="md-nav md-nav--primary" aria-label="Navigation" data-md-level="0">
+  <label class="md-nav__title" for="__drawer">
+    <a href=".." title="research-pipeline" class="md-nav__button md-logo" aria-label="research-pipeline" data-md-component="logo">
+      
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M12 8a3 3 0 0 0 3-3 3 3 0 0 0-3-3 3 3 0 0 0-3 3 3 3 0 0 0 3 3m0 3.54C9.64 9.35 6.5 8 3 8v11c3.5 0 6.64 1.35 9 3.54 2.36-2.19 5.5-3.54 9-3.54V8c-3.5 0-6.64 1.35-9 3.54"/></svg>
+
+    </a>
+    research-pipeline
+  </label>
+  
+    <div class="md-nav__source">
+      <a href="https://github.com/grammy-jiang/research-pipeline" title="Go to repository" class="md-source" data-md-component="source">
+  <div class="md-source__icon md-icon">
+    
+    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 448 512"><!--! Font Awesome Free 7.1.0 by @fontawesome - https://fontawesome.com License - https://fontawesome.com/license/free (Icons: CC BY 4.0, Fonts: SIL OFL 1.1, Code: MIT License) Copyright 2025 Fonticons, Inc.--><path d="M439.6 236.1 244 40.5c-5.4-5.5-12.8-8.5-20.4-8.5s-15 3-20.4 8.4L162.5 81l51.5 51.5c27.1-9.1 52.7 16.8 43.4 43.7l49.7 49.7c34.2-11.8 61.2 31 35.5 56.7-26.5 26.5-70.2-2.9-56-37.3L240.3 199v121.9c25.3 12.5 22.3 41.8 9.1 55-6.4 6.4-15.2 10.1-24.3 10.1s-17.8-3.6-24.3-10.1c-17.6-17.6-11.1-46.9 11.2-56v-123c-20.8-8.5-24.6-30.7-18.6-45L142.6 101 8.5 235.1C3 240.6 0 247.9 0 255.5s3 15 8.5 20.4l195.6 195.7c5.4 5.4 12.7 8.4 20.4 8.4s15-3 20.4-8.4l194.7-194.7c5.4-5.4 8.4-12.8 8.4-20.4s-3-15-8.4-20.4"/></svg>
+  </div>
+  <div class="md-source__repository">
+    grammy-jiang/research-pipeline
+  </div>
+</a>
+    </div>
+  
+  <ul class="md-nav__list" data-md-scrollfix>
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href=".." class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Home
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../getting-started/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Getting Started
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_3" id="__nav_3_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Guides
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Guides
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-manual/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    User Manual
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_4" >
+        
+          
+          <label class="md-nav__link" for="__nav_4" id="__nav_4_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Reference
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_4_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_4">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Reference
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../api-reference/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    API Reference
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../user-guide/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Configuration
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../data-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Data Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5" >
+        
+          
+          <label class="md-nav__link" for="__nav_5" id="__nav_5_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Architecture
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_5_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Architecture
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../system-design/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    System Design
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../security-model/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Security Model
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    
+    
+    
+    
+      
+    
+    
+    <li class="md-nav__item md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_5_3" >
+        
+          
+          <label class="md-nav__link" for="__nav_5_3" id="__nav_5_3_label" tabindex="0">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADRs
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="2" aria-labelledby="__nav_5_3_label" aria-expanded="false">
+          <label class="md-nav__title" for="__nav_5_3">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    ADRs
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Overview
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-001-uv-build-tool/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-001 uv build tool
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-002-pydantic-domain-models/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-002 Pydantic models
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-003-stage-based-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-003 Stage-based pipeline
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-004-conversion-backend-registry/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-004 Conversion registry
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-005-sqlite-persistent-state/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-005 SQLite state
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-006-fastmcp-server/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-006 FastMCP server
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-007-multi-tier-memory/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-007 Multi-tier memory
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../adr/ADR-008-briefing-vs-academic-pipeline/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    ADR-008 Dual pipelines
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+    
+  
+  
+  
+    
+    
+    
+    
+      
+        
+        
+      
+    
+    
+    <li class="md-nav__item md-nav__item--active md-nav__item--section md-nav__item--nested">
+      
+        
+        
+        <input class="md-nav__toggle md-toggle " type="checkbox" id="__nav_6" checked>
+        
+          
+          <label class="md-nav__link" for="__nav_6" id="__nav_6_label" tabindex="">
+            
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Development
+  
+
+    
+  </span>
+  
+  
+
+            <span class="md-nav__icon md-icon"></span>
+          </label>
+        
+        <nav class="md-nav" data-md-level="1" aria-labelledby="__nav_6_label" aria-expanded="true">
+          <label class="md-nav__title" for="__nav_6">
+            <span class="md-nav__icon md-icon"></span>
+            
+  
+    Development
+  
+
+          </label>
+          <ul class="md-nav__list" data-md-scrollfix>
+            
+              
+                
+  
+  
+    
+  
+  
+  
+    <li class="md-nav__item md-nav__item--active">
+      
+      <input class="md-nav__toggle md-toggle" type="checkbox" id="__toc">
+      
+      
+        
+      
+      
+        <label class="md-nav__link md-nav__link--active" for="__toc">
+          
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+          <span class="md-nav__icon md-icon"></span>
+        </label>
+      
+      <a href="./" class="md-nav__link md-nav__link--active">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Developer Guide
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+      
+        
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-document-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Document Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-repository-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Repository Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Repository Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-clone-and-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Clone and bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-optional-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Optional extras
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Verify installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-development-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Development Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Development Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-run-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Run tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-format-and-lint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Format and lint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-type-checking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Type checking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-pre-commit-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Pre-commit hooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-ci-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 CI pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-project-structure-and-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Project Structure and Conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Project Structure and Conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-repository-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Repository layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-code-style-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Code style rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-logging-and-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Logging and IO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Error handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-testing-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Testing Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Testing Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Test pyramid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-test-file-naming-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Test file naming conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-vcr-cassettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 VCR cassettes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-test-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Test fixtures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-writing-a-new-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Writing a new test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-architecture-for-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Architecture for Contributors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Architecture for Contributors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-stage-based-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Stage-based architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-pydantic-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Pydantic models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-configuration-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Configuration system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-cli-command-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 CLI command pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-mcp-tool-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 MCP tool pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-how-to-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. How-to Guides
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. How-to Guides">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-add-a-new-pipeline-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Add a new pipeline stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-add-a-new-converter-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Add a new converter backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-add-a-new-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Add a new search source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-add-a-new-mcp-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Add a new MCP tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-add-a-new-cli-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Add a new CLI command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-add-a-new-config-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Add a new config option
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-hard-constraints-hc1hc6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Hard Constraints (HC1–HC6)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Dependency Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Dependency Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-dependency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a dependency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-release-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Release Process
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-getting-help-and-contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Getting Help and Contributing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Getting Help and Contributing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contribution-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contribution flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit-message-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commit message format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+      
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../testing-strategy/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Testing Strategy
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../operations-runbook/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Operations Runbook
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+          </ul>
+        </nav>
+      
+    </li>
+  
+
+    
+      
+      
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="../changelog/" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    Changelog
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+    
+  </ul>
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+            
+              
+              <div class="md-sidebar md-sidebar--secondary" data-md-component="sidebar" data-md-type="toc" >
+                <div class="md-sidebar__scrollwrap">
+                  <div class="md-sidebar__inner">
+                    
+
+<nav class="md-nav md-nav--secondary" aria-label="Table of contents">
+  
+  
+  
+    
+  
+  
+    <label class="md-nav__title" for="__toc">
+      <span class="md-nav__icon md-icon"></span>
+      Table of contents
+    </label>
+    <ul class="md-nav__list" data-md-component="toc" data-md-scrollfix>
+      
+        <li class="md-nav__item">
+  <a href="#1-document-purpose" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        1. Document Purpose
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#2-prerequisites" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        2. Prerequisites
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#3-repository-setup" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3. Repository Setup
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="3. Repository Setup">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#31-clone-and-bootstrap" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.1 Clone and bootstrap
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#32-optional-extras" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.2 Optional extras
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#33-verify-installation" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        3.3 Verify installation
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#4-development-workflow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4. Development Workflow
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="4. Development Workflow">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#41-run-tests" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.1 Run tests
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#42-format-and-lint" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.2 Format and lint
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#43-type-checking" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.3 Type checking
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#44-pre-commit-hooks" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.4 Pre-commit hooks
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#45-ci-pipeline" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        4.5 CI pipeline
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#5-project-structure-and-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5. Project Structure and Conventions
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="5. Project Structure and Conventions">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#51-repository-layout" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.1 Repository layout
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#52-code-style-rules" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.2 Code style rules
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#53-logging-and-io" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.3 Logging and IO
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#54-error-handling" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        5.4 Error handling
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#6-testing-guide" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6. Testing Guide
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="6. Testing Guide">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#61-test-pyramid" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.1 Test pyramid
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#62-test-file-naming-conventions" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.2 Test file naming conventions
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#63-vcr-cassettes" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.3 VCR cassettes
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#64-test-fixtures" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.4 Test fixtures
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#65-writing-a-new-test" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        6.5 Writing a new test
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#7-architecture-for-contributors" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7. Architecture for Contributors
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="7. Architecture for Contributors">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#71-stage-based-architecture" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.1 Stage-based architecture
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#72-pydantic-models" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.2 Pydantic models
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#73-configuration-system" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.3 Configuration system
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#74-cli-command-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.4 CLI command pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#75-mcp-tool-pattern" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        7.5 MCP tool pattern
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#8-how-to-guides" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8. How-to Guides
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="8. How-to Guides">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#81-add-a-new-pipeline-stage" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.1 Add a new pipeline stage
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#82-add-a-new-converter-backend" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.2 Add a new converter backend
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#83-add-a-new-search-source" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.3 Add a new search source
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#84-add-a-new-mcp-tool" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.4 Add a new MCP tool
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#85-add-a-new-cli-command" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.5 Add a new CLI command
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#86-add-a-new-config-option" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        8.6 Add a new config option
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#9-hard-constraints-hc1hc6" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        9. Hard Constraints (HC1–HC6)
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#10-dependency-management" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        10. Dependency Management
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="10. Dependency Management">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#key-files" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Key files
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#adding-a-dependency" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Adding a dependency
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#updating-dependencies" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Updating dependencies
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#security-audit" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Security audit
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#11-release-process" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        11. Release Process
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#12-getting-help-and-contributing" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        12. Getting Help and Contributing
+      
+    </span>
+  </a>
+  
+    <nav class="md-nav" aria-label="12. Getting Help and Contributing">
+      <ul class="md-nav__list">
+        
+          <li class="md-nav__item">
+  <a href="#contribution-flow" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Contribution flow
+      
+    </span>
+  </a>
+  
+</li>
+        
+          <li class="md-nav__item">
+  <a href="#commit-message-format" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        Commit message format
+      
+    </span>
+  </a>
+  
+</li>
+        
+      </ul>
+    </nav>
+  
+</li>
+      
+    </ul>
+  
+</nav>
+                  </div>
+                </div>
+              </div>
+            
+          
+          
+            <div class="md-content" data-md-component="content">
+              
+              <article class="md-content__inner md-typeset">
+                
+                  
+
+
+  
+  
+
+
+<h1 id="developer-guide-research-pipeline">Developer Guide: research-pipeline<a class="headerlink" href="#developer-guide-research-pipeline" title="Permanent link">&para;</a></h1>
+<h2 id="1-document-purpose">1. Document Purpose<a class="headerlink" href="#1-document-purpose" title="Permanent link">&para;</a></h2>
+<p>This guide is for contributors and maintainers of the <strong>research-pipeline</strong>
+project. It covers environment setup, development workflow, code conventions,
+architecture overview, and step-by-step instructions for common extension tasks
+(new stage, new converter backend, new search source, new MCP tool).</p>
+<p>For end-user CLI/MCP reference see <a href="../user-guide/">user-guide.md</a>.
+For system design and stage I/O contracts see <a href="../system-design/">system-design.md</a>.
+For current state, open work, and out-of-scope items see <a href="../implementation-plan/">implementation-plan.md</a>.</p>
+<hr />
+<h2 id="2-prerequisites">2. Prerequisites<a class="headerlink" href="#2-prerequisites" title="Permanent link">&para;</a></h2>
+<table>
+<thead>
+<tr>
+<th>Tool</th>
+<th>Minimum version</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Python</td>
+<td>3.12</td>
+<td>3.13 also tested in CI</td>
+</tr>
+<tr>
+<td><a href="https://docs.astral.sh/uv/">uv</a></td>
+<td>latest</td>
+<td>replaces pip + venv + pip-tools</td>
+</tr>
+<tr>
+<td>git</td>
+<td>2.x</td>
+<td>standard version control</td>
+</tr>
+<tr>
+<td>Docker <em>(optional)</em></td>
+<td>20.x+</td>
+<td>only needed for containerised local runs</td>
+</tr>
+</tbody>
+</table>
+<blockquote>
+<p><strong>Never</strong> invoke bare <code>python</code>, <code>pytest</code>, or <code>pip</code> directly — always prefix
+with <code>uv run</code> (or activate the <code>.venv</code> explicitly).  The project uses
+<code>uv_build</code> as its build backend; plain <code>pip install -e .</code> is not supported.</p>
+</blockquote>
+<hr />
+<h2 id="3-repository-setup">3. Repository Setup<a class="headerlink" href="#3-repository-setup" title="Permanent link">&para;</a></h2>
+<h3 id="31-clone-and-bootstrap">3.1 Clone and bootstrap<a class="headerlink" href="#31-clone-and-bootstrap" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-0-1" name="__codelineno-0-1" href="#__codelineno-0-1"></a>git<span class="w"> </span>clone<span class="w"> </span>https://github.com/grammy-jiang/research-pipeline.git
+<a id="__codelineno-0-2" name="__codelineno-0-2" href="#__codelineno-0-2"></a><span class="nb">cd</span><span class="w"> </span>research-pipeline
+<a id="__codelineno-0-3" name="__codelineno-0-3" href="#__codelineno-0-3"></a>
+<a id="__codelineno-0-4" name="__codelineno-0-4" href="#__codelineno-0-4"></a><span class="c1"># Install all dependencies (core + dev + docling + scholar extras)</span>
+<a id="__codelineno-0-5" name="__codelineno-0-5" href="#__codelineno-0-5"></a>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>docling<span class="w"> </span>--extra<span class="w"> </span>scholar
+</code></pre></div>
+<p>This creates <code>.venv/</code> and installs every tool needed for development (pytest,
+ruff, mypy, pre-commit, etc.).</p>
+<h3 id="32-optional-extras">3.2 Optional extras<a class="headerlink" href="#32-optional-extras" title="Permanent link">&para;</a></h3>
+<p>The project exposes optional dependency groups for converter backends and
+additional sources:</p>
+<table>
+<thead>
+<tr>
+<th>Extra</th>
+<th>What it adds</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>docling</code></td>
+<td>Docling PDF→Markdown backend</td>
+</tr>
+<tr>
+<td><code>marker</code></td>
+<td>Marker PDF→Markdown backend</td>
+</tr>
+<tr>
+<td><code>pymupdf4llm</code></td>
+<td>Fast PyMuPDF4LLM backend (Tier 2 rough conversion)</td>
+</tr>
+<tr>
+<td><code>mineru</code></td>
+<td>MinerU (magic-pdf) backend</td>
+</tr>
+<tr>
+<td><code>mathpix</code></td>
+<td>Mathpix cloud OCR backend (no extra deps — API key only)</td>
+</tr>
+<tr>
+<td><code>datalab</code></td>
+<td>Datalab Marker cloud backend</td>
+</tr>
+<tr>
+<td><code>llamaparse</code></td>
+<td>LlamaParse cloud backend</td>
+</tr>
+<tr>
+<td><code>mistral-ocr</code></td>
+<td>Mistral OCR cloud backend (no extra deps)</td>
+</tr>
+<tr>
+<td><code>openai-vision</code></td>
+<td>OpenAI Vision backend (uses PyMuPDF for page images)</td>
+</tr>
+<tr>
+<td><code>scholar</code></td>
+<td>Google Scholar source via <code>scholarly</code></td>
+</tr>
+<tr>
+<td><code>serpapi</code></td>
+<td>Google Scholar source via SerpAPI</td>
+</tr>
+<tr>
+<td><code>reranker</code></td>
+<td>SPECTER2 semantic re-ranking via <code>sentence-transformers</code></td>
+</tr>
+</tbody>
+</table>
+<p>Install any combination:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-1-1" name="__codelineno-1-1" href="#__codelineno-1-1"></a>uv<span class="w"> </span>sync<span class="w"> </span>--extra<span class="w"> </span>dev<span class="w"> </span>--extra<span class="w"> </span>pymupdf4llm<span class="w"> </span>--extra<span class="w"> </span>reranker
+</code></pre></div>
+<h3 id="33-verify-installation">3.3 Verify installation<a class="headerlink" href="#33-verify-installation" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-2-1" name="__codelineno-2-1" href="#__codelineno-2-1"></a>uv<span class="w"> </span>run<span class="w"> </span>research-pipeline<span class="w"> </span>--version
+<a id="__codelineno-2-2" name="__codelineno-2-2" href="#__codelineno-2-2"></a><span class="c1"># Expected: research-pipeline 0.17.14</span>
+<a id="__codelineno-2-3" name="__codelineno-2-3" href="#__codelineno-2-3"></a>
+<a id="__codelineno-2-4" name="__codelineno-2-4" href="#__codelineno-2-4"></a>uv<span class="w"> </span>run<span class="w"> </span>python<span class="w"> </span>-c<span class="w"> </span><span class="s2">&quot;import research_pipeline; print(research_pipeline.__version__)&quot;</span>
+<a id="__codelineno-2-5" name="__codelineno-2-5" href="#__codelineno-2-5"></a><span class="c1"># Expected: 0.17.14</span>
+</code></pre></div>
+<hr />
+<h2 id="4-development-workflow">4. Development Workflow<a class="headerlink" href="#4-development-workflow" title="Permanent link">&para;</a></h2>
+<h3 id="41-run-tests">4.1 Run tests<a class="headerlink" href="#41-run-tests" title="Permanent link">&para;</a></h3>
+<p>Unit tests are fast and require no network access:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-3-1" name="__codelineno-3-1" href="#__codelineno-3-1"></a><span class="c1"># Run all unit tests (3700+) with verbose output</span>
+<a id="__codelineno-3-2" name="__codelineno-3-2" href="#__codelineno-3-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>-xvs
+<a id="__codelineno-3-3" name="__codelineno-3-3" href="#__codelineno-3-3"></a>
+<a id="__codelineno-3-4" name="__codelineno-3-4" href="#__codelineno-3-4"></a><span class="c1"># Run a single test file</span>
+<a id="__codelineno-3-5" name="__codelineno-3-5" href="#__codelineno-3-5"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_candidate.py<span class="w"> </span>-xvs
+<a id="__codelineno-3-6" name="__codelineno-3-6" href="#__codelineno-3-6"></a>
+<a id="__codelineno-3-7" name="__codelineno-3-7" href="#__codelineno-3-7"></a><span class="c1"># Run a specific test function</span>
+<a id="__codelineno-3-8" name="__codelineno-3-8" href="#__codelineno-3-8"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_adaptive_stopping.py::TestDetectKnee::test_clear_knee<span class="w"> </span>-xvs
+<a id="__codelineno-3-9" name="__codelineno-3-9" href="#__codelineno-3-9"></a>
+<a id="__codelineno-3-10" name="__codelineno-3-10" href="#__codelineno-3-10"></a><span class="c1"># Run with coverage (CI threshold: 83%)</span>
+<a id="__codelineno-3-11" name="__codelineno-3-11" href="#__codelineno-3-11"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>-x<span class="w"> </span>-q<span class="w"> </span>--cov<span class="o">=</span>src/research_pipeline<span class="w"> </span>--cov-report<span class="o">=</span>term-missing
+</code></pre></div>
+<p>Integration tests use recorded VCR cassettes (no live network):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-4-1" name="__codelineno-4-1" href="#__codelineno-4-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/integration_offline/<span class="w"> </span>-xvs
+</code></pre></div>
+<p>Live tests hit real arXiv and are excluded from normal runs:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-5-1" name="__codelineno-5-1" href="#__codelineno-5-1"></a><span class="c1"># Only when you have a network connection and want real data</span>
+<a id="__codelineno-5-2" name="__codelineno-5-2" href="#__codelineno-5-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/live/<span class="w"> </span>-xvs<span class="w"> </span>-m<span class="w"> </span>live
+</code></pre></div>
+<h3 id="42-format-and-lint">4.2 Format and lint<a class="headerlink" href="#42-format-and-lint" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-6-1" name="__codelineno-6-1" href="#__codelineno-6-1"></a><span class="c1"># Auto-format (ruff format replaces Black)</span>
+<a id="__codelineno-6-2" name="__codelineno-6-2" href="#__codelineno-6-2"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>format<span class="w"> </span>.
+<a id="__codelineno-6-3" name="__codelineno-6-3" href="#__codelineno-6-3"></a>
+<a id="__codelineno-6-4" name="__codelineno-6-4" href="#__codelineno-6-4"></a><span class="c1"># Lint with auto-fix</span>
+<a id="__codelineno-6-5" name="__codelineno-6-5" href="#__codelineno-6-5"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.<span class="w"> </span>--fix
+<a id="__codelineno-6-6" name="__codelineno-6-6" href="#__codelineno-6-6"></a>
+<a id="__codelineno-6-7" name="__codelineno-6-7" href="#__codelineno-6-7"></a><span class="c1"># Lint check only (no writes — useful in CI)</span>
+<a id="__codelineno-6-8" name="__codelineno-6-8" href="#__codelineno-6-8"></a>uv<span class="w"> </span>run<span class="w"> </span>ruff<span class="w"> </span>check<span class="w"> </span>.
+</code></pre></div>
+<p>Ruff is configured in <code>pyproject.toml</code> with 88-character line length, targeting
+Python 3.12.  Rule sets enabled: <code>A, B, C4, E, F, I, PT, RUF, SIM, UP, W</code>.</p>
+<h3 id="43-type-checking">4.3 Type checking<a class="headerlink" href="#43-type-checking" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-7-1" name="__codelineno-7-1" href="#__codelineno-7-1"></a>uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>src/
+</code></pre></div>
+<p>mypy runs in <strong>strict mode</strong> (<code>strict = true</code> in <code>pyproject.toml</code>).  CI
+enforces zero errors.  The <code>mcp_server</code> sub-package is currently excluded from
+mypy via <code>[[tool.mypy.overrides]]</code>.</p>
+<h3 id="44-pre-commit-hooks">4.4 Pre-commit hooks<a class="headerlink" href="#44-pre-commit-hooks" title="Permanent link">&para;</a></h3>
+<p>Install once, then hooks run automatically on every <code>git commit</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-8-1" name="__codelineno-8-1" href="#__codelineno-8-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>install
+</code></pre></div>
+<p>Run all hooks manually against the whole repository:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-9-1" name="__codelineno-9-1" href="#__codelineno-9-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+</code></pre></div>
+<p>Hooks configured (from <code>.pre-commit-config.yaml</code>):</p>
+<table>
+<thead>
+<tr>
+<th>Hook</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>trailing-whitespace</code></td>
+<td>Remove trailing whitespace</td>
+</tr>
+<tr>
+<td><code>end-of-file-fixer</code></td>
+<td>Ensure files end with a newline</td>
+</tr>
+<tr>
+<td><code>check-yaml</code>, <code>check-toml</code>, <code>check-json</code></td>
+<td>Parse-level syntax checks</td>
+</tr>
+<tr>
+<td><code>check-added-large-files</code></td>
+<td>Block files &gt; 1000 KB</td>
+</tr>
+<tr>
+<td><code>check-merge-conflict</code></td>
+<td>Detect leftover conflict markers</td>
+</tr>
+<tr>
+<td><code>check-case-conflict</code></td>
+<td>Catch case-only filename collisions</td>
+</tr>
+<tr>
+<td><code>check-symlinks</code></td>
+<td>Validate symlinks</td>
+</tr>
+<tr>
+<td><code>detect-private-key</code></td>
+<td>Prevent accidental secret commits</td>
+</tr>
+<tr>
+<td><code>debug-statements</code></td>
+<td>Reject <code>breakpoint()</code> / <code>pdb.set_trace()</code></td>
+</tr>
+<tr>
+<td><code>check-ast</code></td>
+<td>Ensure Python files parse correctly</td>
+</tr>
+<tr>
+<td><code>name-tests-test</code></td>
+<td>Enforce <code>test_*.py</code> naming for test files</td>
+</tr>
+<tr>
+<td><code>check-docstring-first</code></td>
+<td>Module docstring must precede imports</td>
+</tr>
+<tr>
+<td><code>ruff-format</code></td>
+<td>Auto-format with ruff</td>
+</tr>
+<tr>
+<td><code>ruff</code> (with <code>--fix</code>)</td>
+<td>Lint + auto-fix</td>
+</tr>
+<tr>
+<td><code>toml-sort-fix</code></td>
+<td>Keep TOML files sorted</td>
+</tr>
+<tr>
+<td><code>bandit</code></td>
+<td>Security static analysis (configured via <code>pyproject.toml</code>)</td>
+</tr>
+<tr>
+<td><code>validate-pyproject</code></td>
+<td>Validate <code>pyproject.toml</code> schema</td>
+</tr>
+<tr>
+<td><code>detect-secrets</code></td>
+<td>Secret scanning against <code>.secrets.baseline</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="45-ci-pipeline">4.5 CI pipeline<a class="headerlink" href="#45-ci-pipeline" title="Permanent link">&para;</a></h3>
+<p>GitHub Actions (<code>.github/workflows/ci.yml</code>) runs four jobs on every push and
+pull request to <code>master</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Job</th>
+<th>Command</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Lint &amp; Format</strong></td>
+<td><code>uv run pre-commit run --all-files</code></td>
+<td>Python 3.12</td>
+</tr>
+<tr>
+<td><strong>Test</strong></td>
+<td><code>uv run pytest tests/unit/ -x -q --cov=src/research_pipeline --cov-fail-under=83</code></td>
+<td>Python 3.12 and 3.13</td>
+</tr>
+<tr>
+<td><strong>Type Check</strong></td>
+<td><code>uv run mypy src/</code></td>
+<td>Strict mode, Python 3.12</td>
+</tr>
+<tr>
+<td><strong>Security &amp; License Audit</strong></td>
+<td><code>uv run pip-audit</code> + <code>uv run pip-licenses</code></td>
+<td>Blocks GPL/AGPL dependencies</td>
+</tr>
+</tbody>
+</table>
+<hr />
+<h2 id="5-project-structure-and-conventions">5. Project Structure and Conventions<a class="headerlink" href="#5-project-structure-and-conventions" title="Permanent link">&para;</a></h2>
+<h3 id="51-repository-layout">5.1 Repository layout<a class="headerlink" href="#51-repository-layout" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-10-1" name="__codelineno-10-1" href="#__codelineno-10-1"></a>src/research_pipeline/       # Main library
+<a id="__codelineno-10-2" name="__codelineno-10-2" href="#__codelineno-10-2"></a>  __init__.py                # Package root — re-exports __version__
+<a id="__codelineno-10-3" name="__codelineno-10-3" href="#__codelineno-10-3"></a>  cli/                       # Typer CLI commands (one cmd_&lt;stage&gt;.py per stage)
+<a id="__codelineno-10-4" name="__codelineno-10-4" href="#__codelineno-10-4"></a>  models/                    # Pydantic domain models (one file per concept)
+<a id="__codelineno-10-5" name="__codelineno-10-5" href="#__codelineno-10-5"></a>  config/                    #   loader.py  models.py  defaults.py
+<a id="__codelineno-10-6" name="__codelineno-10-6" href="#__codelineno-10-6"></a>  arxiv/                     # arXiv API client, XML parser, dedup
+<a id="__codelineno-10-7" name="__codelineno-10-7" href="#__codelineno-10-7"></a>  sources/                   # Multi-source adapter (arXiv, Scholar, S2, OpenAlex, DBLP)
+<a id="__codelineno-10-8" name="__codelineno-10-8" href="#__codelineno-10-8"></a>  screening/                 # BM25 scoring, SPECTER2 re-ranking, LLM judge
+<a id="__codelineno-10-9" name="__codelineno-10-9" href="#__codelineno-10-9"></a>  download/                  # Rate-limited PDF downloader with retry
+<a id="__codelineno-10-10" name="__codelineno-10-10" href="#__codelineno-10-10"></a>  conversion/                # PDF→Markdown backends + registry + fallback
+<a id="__codelineno-10-11" name="__codelineno-10-11" href="#__codelineno-10-11"></a>  quality/                   # Citation, venue, author, composite scoring
+<a id="__codelineno-10-12" name="__codelineno-10-12" href="#__codelineno-10-12"></a>  extraction/                # Markdown chunking, hybrid BM25+embedding retrieval
+<a id="__codelineno-10-13" name="__codelineno-10-13" href="#__codelineno-10-13"></a>  summarization/             # Per-paper summaries, cross-paper synthesis
+<a id="__codelineno-10-14" name="__codelineno-10-14" href="#__codelineno-10-14"></a>  pipeline/                  # Orchestrator, stage sequencing, TER loop
+<a id="__codelineno-10-15" name="__codelineno-10-15" href="#__codelineno-10-15"></a>  storage/                   # Workspace dirs, manifests, SHA-256 hashing
+<a id="__codelineno-10-16" name="__codelineno-10-16" href="#__codelineno-10-16"></a>  infra/                     # Cache, HTTP, logging, rate limiting, retry, entropy
+<a id="__codelineno-10-17" name="__codelineno-10-17" href="#__codelineno-10-17"></a>  memory/                    # Multi-tier memory (working, episodic, KG, paging)
+<a id="__codelineno-10-18" name="__codelineno-10-18" href="#__codelineno-10-18"></a>  llm/                       # LLM provider ABC + Ollama/OpenAI implementations
+<a id="__codelineno-10-19" name="__codelineno-10-19" href="#__codelineno-10-19"></a>  analysis/                  # Claim decomposition and confidence scoring
+<a id="__codelineno-10-20" name="__codelineno-10-20" href="#__codelineno-10-20"></a>  confidence/                # 4-layer confidence architecture
+<a id="__codelineno-10-21" name="__codelineno-10-21" href="#__codelineno-10-21"></a>  evaluation/                # Dual metrics, horizon metric, blinding audit
+<a id="__codelineno-10-22" name="__codelineno-10-22" href="#__codelineno-10-22"></a>  retrieval/                 # Hybrid BM25+embedding retrieval
+<a id="__codelineno-10-23" name="__codelineno-10-23" href="#__codelineno-10-23"></a>  feedback/                  # User feedback store (ELO-style BM25 weight tuning)
+<a id="__codelineno-10-24" name="__codelineno-10-24" href="#__codelineno-10-24"></a>  agents/                    # Multi-agent coordinator
+<a id="__codelineno-10-25" name="__codelineno-10-25" href="#__codelineno-10-25"></a>  security/                  # MCP guard, adversarial tools, defense trilemma
+<a id="__codelineno-10-26" name="__codelineno-10-26" href="#__codelineno-10-26"></a>  briefing/                  # Daily AI Intelligence pipeline
+<a id="__codelineno-10-27" name="__codelineno-10-27" href="#__codelineno-10-27"></a>  mcp_server/                # FastMCP server (tools, schemas, resources, prompts)
+<a id="__codelineno-10-28" name="__codelineno-10-28" href="#__codelineno-10-28"></a>
+<a id="__codelineno-10-29" name="__codelineno-10-29" href="#__codelineno-10-29"></a>tests/
+<a id="__codelineno-10-30" name="__codelineno-10-30" href="#__codelineno-10-30"></a>  unit/                      # 3700+ fast, isolated unit tests (no network)
+<a id="__codelineno-10-31" name="__codelineno-10-31" href="#__codelineno-10-31"></a>  integration_offline/       # VCR-cassette offline integration tests
+<a id="__codelineno-10-32" name="__codelineno-10-32" href="#__codelineno-10-32"></a>  live/                      # Real-network tests (@pytest.mark.live)
+<a id="__codelineno-10-33" name="__codelineno-10-33" href="#__codelineno-10-33"></a>  fixtures/                  # atom/, pdf/, markdown/, llm/, http_cassettes/
+<a id="__codelineno-10-34" name="__codelineno-10-34" href="#__codelineno-10-34"></a>
+<a id="__codelineno-10-35" name="__codelineno-10-35" href="#__codelineno-10-35"></a>docs/                        # Project documentation (this file lives here)
+<a id="__codelineno-10-36" name="__codelineno-10-36" href="#__codelineno-10-36"></a>pyproject.toml               # All project config (deps, tools, scripts)
+<a id="__codelineno-10-37" name="__codelineno-10-37" href="#__codelineno-10-37"></a>config.example.toml          # Annotated config template (copy → config.toml)
+<a id="__codelineno-10-38" name="__codelineno-10-38" href="#__codelineno-10-38"></a>.pre-commit-config.yaml      # Pre-commit hook definitions
+<a id="__codelineno-10-39" name="__codelineno-10-39" href="#__codelineno-10-39"></a>uv.lock                      # Locked dependency graph
+</code></pre></div>
+<h3 id="52-code-style-rules">5.2 Code style rules<a class="headerlink" href="#52-code-style-rules" title="Permanent link">&para;</a></h3>
+<p>These are enforced by ruff and mypy.  Every violation blocks CI:</p>
+<table>
+<thead>
+<tr>
+<th>Rule</th>
+<th>Detail</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Type hints</strong></td>
+<td>Required on <strong>all</strong> function signatures — mypy strict mode</td>
+</tr>
+<tr>
+<td><strong>Docstrings</strong></td>
+<td>Google style, required on public functions and classes</td>
+</tr>
+<tr>
+<td><strong>Formatter</strong></td>
+<td>ruff format, 88-character line length</td>
+</tr>
+<tr>
+<td><strong>Import sorting</strong></td>
+<td>ruff (isort-compatible, configured via <code>[tool.ruff.lint]</code>)</td>
+</tr>
+<tr>
+<td><strong>Path handling</strong></td>
+<td><code>pathlib.Path</code> everywhere — never <code>os.path</code></td>
+</tr>
+<tr>
+<td><strong>Domain models</strong></td>
+<td>Pydantic <code>BaseModel</code> for all structured data</td>
+</tr>
+<tr>
+<td><strong>Exception variable</strong></td>
+<td><code>as exc</code> — never <code>as e</code></td>
+</tr>
+<tr>
+<td><strong>f-strings</strong></td>
+<td>Prefer over <code>.format()</code> or <code>%</code> formatting</td>
+</tr>
+<tr>
+<td><strong>No mutable class defaults</strong></td>
+<td>Pydantic models are exempt (<code>RUF012</code> ignored)</td>
+</tr>
+<tr>
+<td><strong>Logging</strong></td>
+<td><code>logging</code> module only — <code>print()</code> is forbidden for operational output</td>
+</tr>
+</tbody>
+</table>
+<h3 id="53-logging-and-io">5.3 Logging and IO<a class="headerlink" href="#53-logging-and-io" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-11-1" name="__codelineno-11-1" href="#__codelineno-11-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-11-2" name="__codelineno-11-2" href="#__codelineno-11-2"></a>
+<a id="__codelineno-11-3" name="__codelineno-11-3" href="#__codelineno-11-3"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<a id="__codelineno-11-4" name="__codelineno-11-4" href="#__codelineno-11-4"></a>
+<a id="__codelineno-11-5" name="__codelineno-11-5" href="#__codelineno-11-5"></a><span class="c1"># Correct — module-level logger, standard levels</span>
+<a id="__codelineno-11-6" name="__codelineno-11-6" href="#__codelineno-11-6"></a><span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plan created: run_id=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+<a id="__codelineno-11-7" name="__codelineno-11-7" href="#__codelineno-11-7"></a><span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s2">&quot;Query variants: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">variants</span><span class="p">)</span>
+<a id="__codelineno-11-8" name="__codelineno-11-8" href="#__codelineno-11-8"></a><span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Download failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+<a id="__codelineno-11-9" name="__codelineno-11-9" href="#__codelineno-11-9"></a>
+<a id="__codelineno-11-10" name="__codelineno-11-10" href="#__codelineno-11-10"></a><span class="c1"># Wrong — never use print() for operational output</span>
+<a id="__codelineno-11-11" name="__codelineno-11-11" href="#__codelineno-11-11"></a><span class="nb">print</span><span class="p">(</span><span class="s2">&quot;done&quot;</span><span class="p">)</span>  <span class="c1"># ❌</span>
+</code></pre></div>
+<p>User-facing CLI output uses <code>typer.echo()</code>.  Everything else uses <code>logging</code>.
+The log level is controlled by <code>--verbose</code> / <code>-v</code> on all commands.</p>
+<h3 id="54-error-handling">5.4 Error handling<a class="headerlink" href="#54-error-handling" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-12-1" name="__codelineno-12-1" href="#__codelineno-12-1"></a><span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-12-2" name="__codelineno-12-2" href="#__codelineno-12-2"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">do_something</span><span class="p">()</span>
+<a id="__codelineno-12-3" name="__codelineno-12-3" href="#__codelineno-12-3"></a><span class="k">except</span> <span class="n">SomeSpecificError</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>   <span class="c1"># ← always &quot;exc&quot;, never &quot;e&quot;</span>
+<a id="__codelineno-12-4" name="__codelineno-12-4" href="#__codelineno-12-4"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;Operation failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+<a id="__codelineno-12-5" name="__codelineno-12-5" href="#__codelineno-12-5"></a>    <span class="k">raise</span>
+</code></pre></div>
+<p>Use specific exception types.  Catch <code>Exception</code> only at the outermost boundary
+(e.g., MCP tool wrappers) and always log the original error before converting it
+to a user-friendly message.</p>
+<hr />
+<h2 id="6-testing-guide">6. Testing Guide<a class="headerlink" href="#6-testing-guide" title="Permanent link">&para;</a></h2>
+<h3 id="61-test-pyramid">6.1 Test pyramid<a class="headerlink" href="#61-test-pyramid" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Location</th>
+<th>Count</th>
+<th>Network</th>
+<th>When to run</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>Unit</strong></td>
+<td><code>tests/unit/</code></td>
+<td>3700+</td>
+<td>❌ none</td>
+<td>Always — on every commit</td>
+</tr>
+<tr>
+<td><strong>Integration (offline)</strong></td>
+<td><code>tests/integration_offline/</code></td>
+<td>~12</td>
+<td>❌ VCR</td>
+<td>Before major merges</td>
+</tr>
+<tr>
+<td><strong>Live</strong></td>
+<td><code>tests/live/</code></td>
+<td>small</td>
+<td>✅ arXiv</td>
+<td>Explicitly (<code>-m live</code>)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="62-test-file-naming-conventions">6.2 Test file naming conventions<a class="headerlink" href="#62-test-file-naming-conventions" title="Permanent link">&para;</a></h3>
+<p>Test files map directly to source modules:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-13-1" name="__codelineno-13-1" href="#__codelineno-13-1"></a>src/research_pipeline/screening/adaptive_stopping.py
+<a id="__codelineno-13-2" name="__codelineno-13-2" href="#__codelineno-13-2"></a>    →  tests/unit/test_adaptive_stopping.py
+<a id="__codelineno-13-3" name="__codelineno-13-3" href="#__codelineno-13-3"></a>
+<a id="__codelineno-13-4" name="__codelineno-13-4" href="#__codelineno-13-4"></a>src/research_pipeline/models/candidate.py
+<a id="__codelineno-13-5" name="__codelineno-13-5" href="#__codelineno-13-5"></a>    →  tests/unit/test_candidate.py
+<a id="__codelineno-13-6" name="__codelineno-13-6" href="#__codelineno-13-6"></a>
+<a id="__codelineno-13-7" name="__codelineno-13-7" href="#__codelineno-13-7"></a>src/research_pipeline/conversion/registry.py
+<a id="__codelineno-13-8" name="__codelineno-13-8" href="#__codelineno-13-8"></a>    →  tests/unit/test_conversion_registry.py
+</code></pre></div>
+<p>The <code>name-tests-test</code> pre-commit hook enforces the <code>test_*.py</code> prefix.</p>
+<h3 id="63-vcr-cassettes">6.3 VCR cassettes<a class="headerlink" href="#63-vcr-cassettes" title="Permanent link">&para;</a></h3>
+<p>HTTP-dependent tests record real responses once and replay them from YAML
+cassettes in <code>tests/fixtures/http_cassettes/</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-14-1" name="__codelineno-14-1" href="#__codelineno-14-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">vcr</span>
+<a id="__codelineno-14-2" name="__codelineno-14-2" href="#__codelineno-14-2"></a>
+<a id="__codelineno-14-3" name="__codelineno-14-3" href="#__codelineno-14-3"></a><span class="nd">@vcr</span><span class="o">.</span><span class="n">use_cassette</span><span class="p">(</span><span class="s2">&quot;tests/fixtures/http_cassettes/arxiv_search.yaml&quot;</span><span class="p">)</span>
+<a id="__codelineno-14-4" name="__codelineno-14-4" href="#__codelineno-14-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_arxiv_search_returns_candidates</span><span class="p">():</span>
+<a id="__codelineno-14-5" name="__codelineno-14-5" href="#__codelineno-14-5"></a>    <span class="o">...</span>
+</code></pre></div>
+<p>To record a new cassette: delete the cassette file and run the test with a live
+network connection.  Commit the cassette alongside the test.</p>
+<h3 id="64-test-fixtures">6.4 Test fixtures<a class="headerlink" href="#64-test-fixtures" title="Permanent link">&para;</a></h3>
+<p>Static test data lives in <code>tests/fixtures/</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Directory</th>
+<th>Contents</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>atom/</code></td>
+<td>arXiv Atom XML feed responses</td>
+</tr>
+<tr>
+<td><code>pdf/</code></td>
+<td>Sample PDF files for conversion tests</td>
+</tr>
+<tr>
+<td><code>markdown/</code></td>
+<td>Pre-converted Markdown for extraction/summarization tests</td>
+</tr>
+<tr>
+<td><code>llm/</code></td>
+<td>Canned LLM responses for summarization tests</td>
+</tr>
+<tr>
+<td><code>http_cassettes/</code></td>
+<td>VCR cassette YAML files</td>
+</tr>
+</tbody>
+</table>
+<p>Fixture files are checked into git.  Do not add files larger than 1000 KB
+(pre-commit blocks it).</p>
+<h3 id="65-writing-a-new-test">6.5 Writing a new test<a class="headerlink" href="#65-writing-a-new-test" title="Permanent link">&para;</a></h3>
+<p>Follow TDD: write the test before writing the implementation.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-15-1" name="__codelineno-15-1" href="#__codelineno-15-1"></a><span class="sd">&quot;&quot;&quot;Tests for the new_feature module.&quot;&quot;&quot;</span>  <span class="c1"># ← module docstring first</span>
+<a id="__codelineno-15-2" name="__codelineno-15-2" href="#__codelineno-15-2"></a>
+<a id="__codelineno-15-3" name="__codelineno-15-3" href="#__codelineno-15-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">__future__</span><span class="w"> </span><span class="kn">import</span> <span class="n">annotations</span>
+<a id="__codelineno-15-4" name="__codelineno-15-4" href="#__codelineno-15-4"></a>
+<a id="__codelineno-15-5" name="__codelineno-15-5" href="#__codelineno-15-5"></a><span class="kn">import</span><span class="w"> </span><span class="nn">pytest</span>
+<a id="__codelineno-15-6" name="__codelineno-15-6" href="#__codelineno-15-6"></a>
+<a id="__codelineno-15-7" name="__codelineno-15-7" href="#__codelineno-15-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.new_module.new_feature</span><span class="w"> </span><span class="kn">import</span> <span class="n">do_something</span>
+<a id="__codelineno-15-8" name="__codelineno-15-8" href="#__codelineno-15-8"></a>
+<a id="__codelineno-15-9" name="__codelineno-15-9" href="#__codelineno-15-9"></a>
+<a id="__codelineno-15-10" name="__codelineno-15-10" href="#__codelineno-15-10"></a><span class="k">class</span><span class="w"> </span><span class="nc">TestDoSomething</span><span class="p">:</span>
+<a id="__codelineno-15-11" name="__codelineno-15-11" href="#__codelineno-15-11"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_returns_expected_value</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-15-12" name="__codelineno-15-12" href="#__codelineno-15-12"></a>        <span class="n">result</span> <span class="o">=</span> <span class="n">do_something</span><span class="p">(</span><span class="s2">&quot;input&quot;</span><span class="p">)</span>
+<a id="__codelineno-15-13" name="__codelineno-15-13" href="#__codelineno-15-13"></a>        <span class="k">assert</span> <span class="n">result</span> <span class="o">==</span> <span class="s2">&quot;expected&quot;</span>
+<a id="__codelineno-15-14" name="__codelineno-15-14" href="#__codelineno-15-14"></a>
+<a id="__codelineno-15-15" name="__codelineno-15-15" href="#__codelineno-15-15"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">test_raises_on_invalid_input</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-15-16" name="__codelineno-15-16" href="#__codelineno-15-16"></a>        <span class="k">with</span> <span class="n">pytest</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">,</span> <span class="n">match</span><span class="o">=</span><span class="s2">&quot;invalid&quot;</span><span class="p">):</span>
+<a id="__codelineno-15-17" name="__codelineno-15-17" href="#__codelineno-15-17"></a>            <span class="n">do_something</span><span class="p">(</span><span class="s2">&quot;&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Key rules:
+- Every test class/function name starts with <code>test_</code>.
+- Use <code>pytest.raises</code> with a <code>match=</code> pattern rather than bare <code>with pytest.raises</code>.
+- No network calls in unit tests — mock or use fixtures.
+- Never modify existing tests without explicit approval.</p>
+<hr />
+<h2 id="7-architecture-for-contributors">7. Architecture for Contributors<a class="headerlink" href="#7-architecture-for-contributors" title="Permanent link">&para;</a></h2>
+<h3 id="71-stage-based-architecture">7.1 Stage-based architecture<a class="headerlink" href="#71-stage-based-architecture" title="Permanent link">&para;</a></h3>
+<p>The pipeline has 7 sequential stages.  Each stage:
+- reads from the previous stage's output directory
+- writes its own artifacts to a named subdirectory under the run root
+- records its status and artifact SHA-256 hashes in <code>run_manifest.json</code>
+- is <strong>idempotent</strong> — re-running a completed stage produces the same output</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-16-1" name="__codelineno-16-1" href="#__codelineno-16-1"></a>plan → search → screen → download → convert → extract → summarize
+<a id="__codelineno-16-2" name="__codelineno-16-2" href="#__codelineno-16-2"></a> │        │        │         │          │          │          │
+<a id="__codelineno-16-3" name="__codelineno-16-3" href="#__codelineno-16-3"></a> ▼        ▼        ▼         ▼          ▼          ▼          ▼
+<a id="__codelineno-16-4" name="__codelineno-16-4" href="#__codelineno-16-4"></a>query_   candidates/ shortlist/ pdfs/   markdown/ extracted/ summaries/
+<a id="__codelineno-16-5" name="__codelineno-16-5" href="#__codelineno-16-5"></a>plan.json
+</code></pre></div>
+<p>Run root layout (inside <code>workspace/&lt;run_id&gt;/</code>):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-17-1" name="__codelineno-17-1" href="#__codelineno-17-1"></a>plan/           query_plan.json
+<a id="__codelineno-17-2" name="__codelineno-17-2" href="#__codelineno-17-2"></a>search/         candidates.jsonl
+<a id="__codelineno-17-3" name="__codelineno-17-3" href="#__codelineno-17-3"></a>screen/         shortlist.jsonl, score_breakdown.jsonl
+<a id="__codelineno-17-4" name="__codelineno-17-4" href="#__codelineno-17-4"></a>download/       download_manifest.json
+<a id="__codelineno-17-5" name="__codelineno-17-5" href="#__codelineno-17-5"></a>convert/        convert_manifest.json
+<a id="__codelineno-17-6" name="__codelineno-17-6" href="#__codelineno-17-6"></a>extract/        extraction_manifest.json, *.jsonl
+<a id="__codelineno-17-7" name="__codelineno-17-7" href="#__codelineno-17-7"></a>summarize/      summaries/, synthesis_report.json, report.md
+<a id="__codelineno-17-8" name="__codelineno-17-8" href="#__codelineno-17-8"></a>run_manifest.json
+</code></pre></div>
+<h3 id="72-pydantic-models">7.2 Pydantic models<a class="headerlink" href="#72-pydantic-models" title="Permanent link">&para;</a></h3>
+<p>All domain objects are Pydantic <code>BaseModel</code> subclasses in
+<code>src/research_pipeline/models/</code>.  Use <code>model_dump_json()</code> and
+<code>model_validate_json()</code> for serialisation:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-18-1" name="__codelineno-18-1" href="#__codelineno-18-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-18-2" name="__codelineno-18-2" href="#__codelineno-18-2"></a>
+<a id="__codelineno-18-3" name="__codelineno-18-3" href="#__codelineno-18-3"></a>
+<a id="__codelineno-18-4" name="__codelineno-18-4" href="#__codelineno-18-4"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyRecord</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-18-5" name="__codelineno-18-5" href="#__codelineno-18-5"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;A record for something new.&quot;&quot;&quot;</span>
+<a id="__codelineno-18-6" name="__codelineno-18-6" href="#__codelineno-18-6"></a>
+<a id="__codelineno-18-7" name="__codelineno-18-7" href="#__codelineno-18-7"></a>    <span class="n">record_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unique identifier.&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-8" name="__codelineno-18-8" href="#__codelineno-18-8"></a>    <span class="n">value</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mf">0.0</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Numeric value.&quot;</span><span class="p">)</span>
+<a id="__codelineno-18-9" name="__codelineno-18-9" href="#__codelineno-18-9"></a>    <span class="n">tags</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">]</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default_factory</span><span class="o">=</span><span class="nb">list</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Tag list.&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Rules:
+- Every field must have a <code>description=</code> in its <code>Field(...)</code>.
+- Optional fields use <code>X | None</code> with <code>default=None</code> (Python 3.10+ syntax).
+- Do not use <code>Optional[X]</code> — use <code>X | None</code>.
+- Use <code>default_factory=list</code> (or <code>dict</code>) for mutable defaults.</p>
+<h3 id="73-configuration-system">7.3 Configuration system<a class="headerlink" href="#73-configuration-system" title="Permanent link">&para;</a></h3>
+<p>Configuration is loaded in order of precedence:
+<strong>environment variables &gt; <code>config.toml</code> file &gt; hard-coded defaults</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-19-1" name="__codelineno-19-1" href="#__codelineno-19-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.config.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_config</span>
+<a id="__codelineno-19-2" name="__codelineno-19-2" href="#__codelineno-19-2"></a>
+<a id="__codelineno-19-3" name="__codelineno-19-3" href="#__codelineno-19-3"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">()</span>                  <span class="c1"># auto-discover config.toml</span>
+<a id="__codelineno-19-4" name="__codelineno-19-4" href="#__codelineno-19-4"></a><span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">Path</span><span class="p">(</span><span class="s2">&quot;my.toml&quot;</span><span class="p">))</span>   <span class="c1"># explicit path</span>
+</code></pre></div>
+<p>Environment variables follow the pattern <code>RESEARCH_PIPELINE_&lt;SECTION&gt;_&lt;KEY&gt;</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Variable</th>
+<th>Effect</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>RESEARCH_PIPELINE_CONFIG</code></td>
+<td>Override config file path</td>
+</tr>
+<tr>
+<td><code>RESEARCH_PIPELINE_CACHE_DIR</code></td>
+<td>Override cache directory</td>
+</tr>
+<tr>
+<td><code>RESEARCH_PIPELINE_WORKSPACE</code></td>
+<td>Override workspace directory</td>
+</tr>
+<tr>
+<td><code>RESEARCH_PIPELINE_DISABLE_LLM</code></td>
+<td>Set <code>llm.enabled = false</code></td>
+</tr>
+<tr>
+<td><code>RESEARCH_PIPELINE_LLM_PROFILE</code></td>
+<td>Override <code>llm.profile</code></td>
+</tr>
+</tbody>
+</table>
+<p>New config options go in <code>src/research_pipeline/config/models.py</code> (Pydantic
+schema) and <code>config.example.toml</code> (annotated template).  See
+<a href="#86-add-a-new-config-option">Section 8.6</a> for the full procedure.</p>
+<h3 id="74-cli-command-pattern">7.4 CLI command pattern<a class="headerlink" href="#74-cli-command-pattern" title="Permanent link">&para;</a></h3>
+<p>Every CLI command follows the same three-layer pattern:</p>
+<ol>
+<li><strong><code>app.py</code></strong> — thin Typer command that calls <code>_common_options()</code> then
+   delegates to the <code>run_*</code> function in the corresponding <code>cmd_*.py</code>.</li>
+<li><strong><code>cmd_&lt;stage&gt;.py</code></strong> — contains <code>run_&lt;stage&gt;(...)</code> which owns all business
+   logic: load config, initialise workspace, call domain code, log results.</li>
+<li><strong>Domain package</strong> — pure logic, no Typer/CLI knowledge.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-20-1" name="__codelineno-20-1" href="#__codelineno-20-1"></a><span class="c1"># src/research_pipeline/cli/app.py  (registration)</span>
+<a id="__codelineno-20-2" name="__codelineno-20-2" href="#__codelineno-20-2"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<a id="__codelineno-20-3" name="__codelineno-20-3" href="#__codelineno-20-3"></a><span class="k">def</span><span class="w"> </span><span class="nf">plan</span><span class="p">(</span>
+<a id="__codelineno-20-4" name="__codelineno-20-4" href="#__codelineno-20-4"></a>    <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Argument</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="n">help</span><span class="o">=</span><span class="s2">&quot;Research topic.&quot;</span><span class="p">),</span>
+<a id="__codelineno-20-5" name="__codelineno-20-5" href="#__codelineno-20-5"></a>    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">),</span>
+<a id="__codelineno-20-6" name="__codelineno-20-6" href="#__codelineno-20-6"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">),</span>
+<a id="__codelineno-20-7" name="__codelineno-20-7" href="#__codelineno-20-7"></a>    <span class="n">workspace</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;--workspace&quot;</span><span class="p">,</span> <span class="s2">&quot;-w&quot;</span><span class="p">),</span>
+<a id="__codelineno-20-8" name="__codelineno-20-8" href="#__codelineno-20-8"></a>    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;--run-id&quot;</span><span class="p">),</span>
+<a id="__codelineno-20-9" name="__codelineno-20-9" href="#__codelineno-20-9"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-20-10" name="__codelineno-20-10" href="#__codelineno-20-10"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Normalize a topic into a structured query plan.&quot;&quot;&quot;</span>
+<a id="__codelineno-20-11" name="__codelineno-20-11" href="#__codelineno-20-11"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.cli.cmd_plan</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_plan</span>
+<a id="__codelineno-20-12" name="__codelineno-20-12" href="#__codelineno-20-12"></a>
+<a id="__codelineno-20-13" name="__codelineno-20-13" href="#__codelineno-20-13"></a>    <span class="n">opts</span> <span class="o">=</span> <span class="n">_common_options</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">workspace</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+<a id="__codelineno-20-14" name="__codelineno-20-14" href="#__codelineno-20-14"></a>    <span class="n">run_plan</span><span class="p">(</span><span class="n">topic</span><span class="p">,</span> <span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-21-1" name="__codelineno-21-1" href="#__codelineno-21-1"></a><span class="c1"># src/research_pipeline/cli/cmd_plan.py  (implementation)</span>
+<a id="__codelineno-21-2" name="__codelineno-21-2" href="#__codelineno-21-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_plan</span><span class="p">(</span>
+<a id="__codelineno-21-3" name="__codelineno-21-3" href="#__codelineno-21-3"></a>    <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-21-4" name="__codelineno-21-4" href="#__codelineno-21-4"></a>    <span class="n">config_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-21-5" name="__codelineno-21-5" href="#__codelineno-21-5"></a>    <span class="n">workspace</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-21-6" name="__codelineno-21-6" href="#__codelineno-21-6"></a>    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-21-7" name="__codelineno-21-7" href="#__codelineno-21-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-21-8" name="__codelineno-21-8" href="#__codelineno-21-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute the plan stage.</span>
+<a id="__codelineno-21-9" name="__codelineno-21-9" href="#__codelineno-21-9"></a>
+<a id="__codelineno-21-10" name="__codelineno-21-10" href="#__codelineno-21-10"></a><span class="sd">    Args:</span>
+<a id="__codelineno-21-11" name="__codelineno-21-11" href="#__codelineno-21-11"></a><span class="sd">        topic: Raw topic string.</span>
+<a id="__codelineno-21-12" name="__codelineno-21-12" href="#__codelineno-21-12"></a><span class="sd">        config_path: Path to config TOML.</span>
+<a id="__codelineno-21-13" name="__codelineno-21-13" href="#__codelineno-21-13"></a><span class="sd">        workspace: Workspace directory.</span>
+<a id="__codelineno-21-14" name="__codelineno-21-14" href="#__codelineno-21-14"></a><span class="sd">        run_id: Optional run ID.</span>
+<a id="__codelineno-21-15" name="__codelineno-21-15" href="#__codelineno-21-15"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-21-16" name="__codelineno-21-16" href="#__codelineno-21-16"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+<a id="__codelineno-21-17" name="__codelineno-21-17" href="#__codelineno-21-17"></a>    <span class="n">ws</span> <span class="o">=</span> <span class="n">workspace</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">workspace</span><span class="p">)</span>
+<a id="__codelineno-21-18" name="__codelineno-21-18" href="#__codelineno-21-18"></a>    <span class="n">run_id</span><span class="p">,</span> <span class="n">run_root</span> <span class="o">=</span> <span class="n">init_run</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+<a id="__codelineno-21-19" name="__codelineno-21-19" href="#__codelineno-21-19"></a>    <span class="c1"># ... domain logic ...</span>
+<a id="__codelineno-21-20" name="__codelineno-21-20" href="#__codelineno-21-20"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;Plan saved to </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">plan_path</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="75-mcp-tool-pattern">7.5 MCP tool pattern<a class="headerlink" href="#75-mcp-tool-pattern" title="Permanent link">&para;</a></h3>
+<p>Every MCP tool is a three-layer stack:</p>
+<ol>
+<li><strong><code>server.py</code></strong> — <code>@mcp.tool(...)</code> decorated wrapper that accepts flat
+   primitive arguments, constructs the typed input schema, and delegates to
+   <code>tools.py</code>.</li>
+<li><strong><code>tools.py</code></strong> — pure adapter function that validates inputs, calls domain
+   logic, and returns a <code>ToolResult</code>.</li>
+<li><strong><code>schemas.py</code></strong> — <code>CommonParams</code>-derived Pydantic schema for the tool's
+   input.</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-22-1" name="__codelineno-22-1" href="#__codelineno-22-1"></a><span class="c1"># server.py</span>
+<a id="__codelineno-22-2" name="__codelineno-22-2" href="#__codelineno-22-2"></a><span class="nd">@mcp</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+<a id="__codelineno-22-3" name="__codelineno-22-3" href="#__codelineno-22-3"></a>    <span class="n">annotations</span><span class="o">=</span><span class="n">ToolAnnotations</span><span class="p">(</span>
+<a id="__codelineno-22-4" name="__codelineno-22-4" href="#__codelineno-22-4"></a>        <span class="n">readOnlyHint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-22-5" name="__codelineno-22-5" href="#__codelineno-22-5"></a>        <span class="n">destructiveHint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-22-6" name="__codelineno-22-6" href="#__codelineno-22-6"></a>        <span class="n">idempotentHint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-22-7" name="__codelineno-22-7" href="#__codelineno-22-7"></a>        <span class="n">openWorldHint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-22-8" name="__codelineno-22-8" href="#__codelineno-22-8"></a>    <span class="p">),</span>
+<a id="__codelineno-22-9" name="__codelineno-22-9" href="#__codelineno-22-9"></a><span class="p">)</span>
+<a id="__codelineno-22-10" name="__codelineno-22-10" href="#__codelineno-22-10"></a><span class="k">def</span><span class="w"> </span><span class="nf">tool_plan_topic</span><span class="p">(</span>
+<a id="__codelineno-22-11" name="__codelineno-22-11" href="#__codelineno-22-11"></a>    <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-22-12" name="__codelineno-22-12" href="#__codelineno-22-12"></a>    <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">,</span>
+<a id="__codelineno-22-13" name="__codelineno-22-13" href="#__codelineno-22-13"></a>    <span class="n">workspace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./workspace&quot;</span><span class="p">,</span>
+<a id="__codelineno-22-14" name="__codelineno-22-14" href="#__codelineno-22-14"></a>    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-22-15" name="__codelineno-22-15" href="#__codelineno-22-15"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-22-16" name="__codelineno-22-16" href="#__codelineno-22-16"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a structured query plan from a natural language research topic.&quot;&quot;&quot;</span>
+<a id="__codelineno-22-17" name="__codelineno-22-17" href="#__codelineno-22-17"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">plan_topic</span><span class="p">(</span>
+<a id="__codelineno-22-18" name="__codelineno-22-18" href="#__codelineno-22-18"></a>        <span class="n">PlanTopicInput</span><span class="p">(</span><span class="n">topic</span><span class="o">=</span><span class="n">topic</span><span class="p">,</span> <span class="n">workspace</span><span class="o">=</span><span class="n">workspace</span><span class="p">,</span> <span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">),</span> <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span>
+<a id="__codelineno-22-19" name="__codelineno-22-19" href="#__codelineno-22-19"></a>    <span class="p">)</span>
+<a id="__codelineno-22-20" name="__codelineno-22-20" href="#__codelineno-22-20"></a>    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-23-1" name="__codelineno-23-1" href="#__codelineno-23-1"></a><span class="c1"># schemas.py</span>
+<a id="__codelineno-23-2" name="__codelineno-23-2" href="#__codelineno-23-2"></a><span class="k">class</span><span class="w"> </span><span class="nc">PlanTopicInput</span><span class="p">(</span><span class="n">CommonParams</span><span class="p">):</span>
+<a id="__codelineno-23-3" name="__codelineno-23-3" href="#__codelineno-23-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input for the plan_topic tool.&quot;&quot;&quot;</span>
+<a id="__codelineno-23-4" name="__codelineno-23-4" href="#__codelineno-23-4"></a>
+<a id="__codelineno-23-5" name="__codelineno-23-5" href="#__codelineno-23-5"></a>    <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Natural language research topic.&quot;</span><span class="p">)</span>
+</code></pre></div>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-24-1" name="__codelineno-24-1" href="#__codelineno-24-1"></a><span class="c1"># tools.py</span>
+<a id="__codelineno-24-2" name="__codelineno-24-2" href="#__codelineno-24-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">plan_topic</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">PlanTopicInput</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResult</span><span class="p">:</span>
+<a id="__codelineno-24-3" name="__codelineno-24-3" href="#__codelineno-24-3"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Create a query plan from a natural language topic.&quot;&quot;&quot;</span>
+<a id="__codelineno-24-4" name="__codelineno-24-4" href="#__codelineno-24-4"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-24-5" name="__codelineno-24-5" href="#__codelineno-24-5"></a>        <span class="c1"># ... domain logic ...</span>
+<a id="__codelineno-24-6" name="__codelineno-24-6" href="#__codelineno-24-6"></a>        <span class="k">return</span> <span class="n">ToolResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;...&quot;</span><span class="p">,</span> <span class="n">artifacts</span><span class="o">=</span><span class="p">{</span><span class="o">...</span><span class="p">})</span>
+<a id="__codelineno-24-7" name="__codelineno-24-7" href="#__codelineno-24-7"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-24-8" name="__codelineno-24-8" href="#__codelineno-24-8"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;plan_topic failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+<a id="__codelineno-24-9" name="__codelineno-24-9" href="#__codelineno-24-9"></a>        <span class="k">return</span> <span class="n">ToolResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<hr />
+<h2 id="8-how-to-guides">8. How-to Guides<a class="headerlink" href="#8-how-to-guides" title="Permanent link">&para;</a></h2>
+<h3 id="81-add-a-new-pipeline-stage">8.1 Add a new pipeline stage<a class="headerlink" href="#81-add-a-new-pipeline-stage" title="Permanent link">&para;</a></h3>
+<p>Follow these steps in order.  Run tests after each step.</p>
+<p><strong>Step 1 — Domain model</strong></p>
+<p>Create <code>src/research_pipeline/models/&lt;stage&gt;.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-25-1" name="__codelineno-25-1" href="#__codelineno-25-1"></a><span class="sd">&quot;&quot;&quot;Domain model for the &lt;stage&gt; stage.&quot;&quot;&quot;</span>
+<a id="__codelineno-25-2" name="__codelineno-25-2" href="#__codelineno-25-2"></a>
+<a id="__codelineno-25-3" name="__codelineno-25-3" href="#__codelineno-25-3"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pydantic</span><span class="w"> </span><span class="kn">import</span> <span class="n">BaseModel</span><span class="p">,</span> <span class="n">Field</span>
+<a id="__codelineno-25-4" name="__codelineno-25-4" href="#__codelineno-25-4"></a>
+<a id="__codelineno-25-5" name="__codelineno-25-5" href="#__codelineno-25-5"></a>
+<a id="__codelineno-25-6" name="__codelineno-25-6" href="#__codelineno-25-6"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyStageRecord</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-25-7" name="__codelineno-25-7" href="#__codelineno-25-7"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Output record from the &lt;stage&gt; stage.&quot;&quot;&quot;</span>
+<a id="__codelineno-25-8" name="__codelineno-25-8" href="#__codelineno-25-8"></a>
+<a id="__codelineno-25-9" name="__codelineno-25-9" href="#__codelineno-25-9"></a>    <span class="n">record_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Unique identifier.&quot;</span><span class="p">)</span>
+<a id="__codelineno-25-10" name="__codelineno-25-10" href="#__codelineno-25-10"></a>    <span class="n">result</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Stage output.&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 2 — Logic package</strong></p>
+<p>Create <code>src/research_pipeline/&lt;stage&gt;/__init__.py</code> and implement the stage logic.
+Import models; never import CLI or MCP modules.</p>
+<p><strong>Step 3 — CLI command</strong></p>
+<p>Create <code>src/research_pipeline/cli/cmd_&lt;stage&gt;.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-26-1" name="__codelineno-26-1" href="#__codelineno-26-1"></a><span class="sd">&quot;&quot;&quot;CLI handler for the &#39;&lt;stage&gt;&#39; command.&quot;&quot;&quot;</span>
+<a id="__codelineno-26-2" name="__codelineno-26-2" href="#__codelineno-26-2"></a>
+<a id="__codelineno-26-3" name="__codelineno-26-3" href="#__codelineno-26-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-26-4" name="__codelineno-26-4" href="#__codelineno-26-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<a id="__codelineno-26-5" name="__codelineno-26-5" href="#__codelineno-26-5"></a>
+<a id="__codelineno-26-6" name="__codelineno-26-6" href="#__codelineno-26-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.config.loader</span><span class="w"> </span><span class="kn">import</span> <span class="n">load_config</span>
+<a id="__codelineno-26-7" name="__codelineno-26-7" href="#__codelineno-26-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.storage.workspace</span><span class="w"> </span><span class="kn">import</span> <span class="n">get_stage_dir</span><span class="p">,</span> <span class="n">init_run</span>
+<a id="__codelineno-26-8" name="__codelineno-26-8" href="#__codelineno-26-8"></a>
+<a id="__codelineno-26-9" name="__codelineno-26-9" href="#__codelineno-26-9"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<a id="__codelineno-26-10" name="__codelineno-26-10" href="#__codelineno-26-10"></a>
+<a id="__codelineno-26-11" name="__codelineno-26-11" href="#__codelineno-26-11"></a>
+<a id="__codelineno-26-12" name="__codelineno-26-12" href="#__codelineno-26-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">run_</span><span class="o">&lt;</span><span class="n">stage</span><span class="o">&gt;</span><span class="p">(</span>
+<a id="__codelineno-26-13" name="__codelineno-26-13" href="#__codelineno-26-13"></a>    <span class="n">config_path</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-26-14" name="__codelineno-26-14" href="#__codelineno-26-14"></a>    <span class="n">workspace</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-26-15" name="__codelineno-26-15" href="#__codelineno-26-15"></a>    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-26-16" name="__codelineno-26-16" href="#__codelineno-26-16"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-26-17" name="__codelineno-26-17" href="#__codelineno-26-17"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute the &lt;stage&gt; stage.</span>
+<a id="__codelineno-26-18" name="__codelineno-26-18" href="#__codelineno-26-18"></a>
+<a id="__codelineno-26-19" name="__codelineno-26-19" href="#__codelineno-26-19"></a><span class="sd">    Args:</span>
+<a id="__codelineno-26-20" name="__codelineno-26-20" href="#__codelineno-26-20"></a><span class="sd">        config_path: Path to config TOML.</span>
+<a id="__codelineno-26-21" name="__codelineno-26-21" href="#__codelineno-26-21"></a><span class="sd">        workspace: Workspace directory.</span>
+<a id="__codelineno-26-22" name="__codelineno-26-22" href="#__codelineno-26-22"></a><span class="sd">        run_id: Run identifier.</span>
+<a id="__codelineno-26-23" name="__codelineno-26-23" href="#__codelineno-26-23"></a><span class="sd">    &quot;&quot;&quot;</span>
+<a id="__codelineno-26-24" name="__codelineno-26-24" href="#__codelineno-26-24"></a>    <span class="n">config</span> <span class="o">=</span> <span class="n">load_config</span><span class="p">(</span><span class="n">config_path</span><span class="p">)</span>
+<a id="__codelineno-26-25" name="__codelineno-26-25" href="#__codelineno-26-25"></a>    <span class="n">ws</span> <span class="o">=</span> <span class="n">workspace</span> <span class="ow">or</span> <span class="n">Path</span><span class="p">(</span><span class="n">config</span><span class="o">.</span><span class="n">workspace</span><span class="p">)</span>
+<a id="__codelineno-26-26" name="__codelineno-26-26" href="#__codelineno-26-26"></a>    <span class="n">run_id</span><span class="p">,</span> <span class="n">run_root</span> <span class="o">=</span> <span class="n">init_run</span><span class="p">(</span><span class="n">ws</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+<a id="__codelineno-26-27" name="__codelineno-26-27" href="#__codelineno-26-27"></a>    <span class="n">stage_dir</span> <span class="o">=</span> <span class="n">get_stage_dir</span><span class="p">(</span><span class="n">run_root</span><span class="p">,</span> <span class="s2">&quot;&lt;stage&gt;&quot;</span><span class="p">)</span>
+<a id="__codelineno-26-28" name="__codelineno-26-28" href="#__codelineno-26-28"></a>    <span class="c1"># ... stage logic ...</span>
+<a id="__codelineno-26-29" name="__codelineno-26-29" href="#__codelineno-26-29"></a>    <span class="n">logger</span><span class="o">.</span><span class="n">info</span><span class="p">(</span><span class="s2">&quot;&lt;stage&gt; complete: run_id=</span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 4 — Register in app.py</strong></p>
+<p>Add to <code>src/research_pipeline/cli/app.py</code> (following the existing pattern):</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-27-1" name="__codelineno-27-1" href="#__codelineno-27-1"></a><span class="nd">@app</span><span class="o">.</span><span class="n">command</span><span class="p">()</span>
+<a id="__codelineno-27-2" name="__codelineno-27-2" href="#__codelineno-27-2"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_stage</span><span class="p">(</span>
+<a id="__codelineno-27-3" name="__codelineno-27-3" href="#__codelineno-27-3"></a>    <span class="n">verbose</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">False</span><span class="p">,</span> <span class="s2">&quot;--verbose&quot;</span><span class="p">,</span> <span class="s2">&quot;-v&quot;</span><span class="p">),</span>
+<a id="__codelineno-27-4" name="__codelineno-27-4" href="#__codelineno-27-4"></a>    <span class="n">config</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;--config&quot;</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">),</span>
+<a id="__codelineno-27-5" name="__codelineno-27-5" href="#__codelineno-27-5"></a>    <span class="n">workspace</span><span class="p">:</span> <span class="n">Path</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="kc">None</span><span class="p">,</span> <span class="s2">&quot;--workspace&quot;</span><span class="p">,</span> <span class="s2">&quot;-w&quot;</span><span class="p">),</span>
+<a id="__codelineno-27-6" name="__codelineno-27-6" href="#__codelineno-27-6"></a>    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">typer</span><span class="o">.</span><span class="n">Option</span><span class="p">(</span><span class="o">...</span><span class="p">,</span> <span class="s2">&quot;--run-id&quot;</span><span class="p">),</span>
+<a id="__codelineno-27-7" name="__codelineno-27-7" href="#__codelineno-27-7"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-27-8" name="__codelineno-27-8" href="#__codelineno-27-8"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;One-line description of this stage.&quot;&quot;&quot;</span>
+<a id="__codelineno-27-9" name="__codelineno-27-9" href="#__codelineno-27-9"></a>    <span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.cli.cmd_my_stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_my_stage</span>
+<a id="__codelineno-27-10" name="__codelineno-27-10" href="#__codelineno-27-10"></a>
+<a id="__codelineno-27-11" name="__codelineno-27-11" href="#__codelineno-27-11"></a>    <span class="n">opts</span> <span class="o">=</span> <span class="n">_common_options</span><span class="p">(</span><span class="n">verbose</span><span class="p">,</span> <span class="n">config</span><span class="p">,</span> <span class="n">workspace</span><span class="p">,</span> <span class="n">run_id</span><span class="p">)</span>
+<a id="__codelineno-27-12" name="__codelineno-27-12" href="#__codelineno-27-12"></a>    <span class="n">run_my_stage</span><span class="p">(</span><span class="o">**</span><span class="n">opts</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 5 — Add to orchestrator</strong></p>
+<p>Register the stage in <code>src/research_pipeline/pipeline/</code> so that
+<code>research-pipeline run</code> executes it in order.</p>
+<p><strong>Step 6 — MCP tool</strong></p>
+<p>Add input schema to <code>src/research_pipeline/mcp_server/schemas.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-28-1" name="__codelineno-28-1" href="#__codelineno-28-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyStageInput</span><span class="p">(</span><span class="n">CommonParams</span><span class="p">):</span>
+<a id="__codelineno-28-2" name="__codelineno-28-2" href="#__codelineno-28-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input for the my_stage tool.&quot;&quot;&quot;</span>
+<a id="__codelineno-28-3" name="__codelineno-28-3" href="#__codelineno-28-3"></a>    <span class="k">pass</span>
+</code></pre></div>
+<p>Add tool function to <code>src/research_pipeline/mcp_server/tools.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-29-1" name="__codelineno-29-1" href="#__codelineno-29-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_stage_tool</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">MyStageInput</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResult</span><span class="p">:</span>
+<a id="__codelineno-29-2" name="__codelineno-29-2" href="#__codelineno-29-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Run the &lt;stage&gt; stage.&quot;&quot;&quot;</span>
+<a id="__codelineno-29-3" name="__codelineno-29-3" href="#__codelineno-29-3"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-29-4" name="__codelineno-29-4" href="#__codelineno-29-4"></a>        <span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.cli.cmd_my_stage</span><span class="w"> </span><span class="kn">import</span> <span class="n">run_my_stage</span>
+<a id="__codelineno-29-5" name="__codelineno-29-5" href="#__codelineno-29-5"></a>        <span class="n">run_my_stage</span><span class="p">(</span><span class="n">workspace</span><span class="o">=</span><span class="n">Path</span><span class="p">(</span><span class="n">params</span><span class="o">.</span><span class="n">workspace</span><span class="p">),</span> <span class="n">run_id</span><span class="o">=</span><span class="n">params</span><span class="o">.</span><span class="n">run_id</span> <span class="ow">or</span> <span class="kc">None</span><span class="p">)</span>
+<a id="__codelineno-29-6" name="__codelineno-29-6" href="#__codelineno-29-6"></a>        <span class="k">return</span> <span class="n">ToolResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Stage complete.&quot;</span><span class="p">)</span>
+<a id="__codelineno-29-7" name="__codelineno-29-7" href="#__codelineno-29-7"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-29-8" name="__codelineno-29-8" href="#__codelineno-29-8"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;my_stage_tool failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+<a id="__codelineno-29-9" name="__codelineno-29-9" href="#__codelineno-29-9"></a>        <span class="k">return</span> <span class="n">ToolResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Register in <code>src/research_pipeline/mcp_server/server.py</code> using <code>@mcp.tool(...)</code>.</p>
+<p><strong>Step 7 — Tests</strong></p>
+<p>Create <code>tests/unit/test_&lt;stage&gt;.py</code> and write tests before implementing the logic.</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-30-1" name="__codelineno-30-1" href="#__codelineno-30-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/test_my_stage.py<span class="w"> </span>-xvs
+</code></pre></div>
+<h3 id="82-add-a-new-converter-backend">8.2 Add a new converter backend<a class="headerlink" href="#82-add-a-new-converter-backend" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1 — Backend class</strong></p>
+<p>Create <code>src/research_pipeline/conversion/&lt;name&gt;_backend.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-31-1" name="__codelineno-31-1" href="#__codelineno-31-1"></a><span class="sd">&quot;&quot;&quot;&lt;Name&gt; PDF→Markdown converter backend.&quot;&quot;&quot;</span>
+<a id="__codelineno-31-2" name="__codelineno-31-2" href="#__codelineno-31-2"></a>
+<a id="__codelineno-31-3" name="__codelineno-31-3" href="#__codelineno-31-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-31-4" name="__codelineno-31-4" href="#__codelineno-31-4"></a><span class="kn">from</span><span class="w"> </span><span class="nn">pathlib</span><span class="w"> </span><span class="kn">import</span> <span class="n">Path</span>
+<a id="__codelineno-31-5" name="__codelineno-31-5" href="#__codelineno-31-5"></a>
+<a id="__codelineno-31-6" name="__codelineno-31-6" href="#__codelineno-31-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.conversion.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConverterBackend</span>
+<a id="__codelineno-31-7" name="__codelineno-31-7" href="#__codelineno-31-7"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.conversion.registry</span><span class="w"> </span><span class="kn">import</span> <span class="n">register_backend</span>
+<a id="__codelineno-31-8" name="__codelineno-31-8" href="#__codelineno-31-8"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.models.conversion</span><span class="w"> </span><span class="kn">import</span> <span class="n">ConvertManifestEntry</span>
+<a id="__codelineno-31-9" name="__codelineno-31-9" href="#__codelineno-31-9"></a>
+<a id="__codelineno-31-10" name="__codelineno-31-10" href="#__codelineno-31-10"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<a id="__codelineno-31-11" name="__codelineno-31-11" href="#__codelineno-31-11"></a>
+<a id="__codelineno-31-12" name="__codelineno-31-12" href="#__codelineno-31-12"></a>
+<a id="__codelineno-31-13" name="__codelineno-31-13" href="#__codelineno-31-13"></a><span class="nd">@register_backend</span><span class="p">(</span><span class="s2">&quot;mybackend&quot;</span><span class="p">)</span>
+<a id="__codelineno-31-14" name="__codelineno-31-14" href="#__codelineno-31-14"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyBackendConverter</span><span class="p">(</span><span class="n">ConverterBackend</span><span class="p">):</span>
+<a id="__codelineno-31-15" name="__codelineno-31-15" href="#__codelineno-31-15"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Convert PDFs to Markdown using MyBackend.&quot;&quot;&quot;</span>
+<a id="__codelineno-31-16" name="__codelineno-31-16" href="#__codelineno-31-16"></a>
+<a id="__codelineno-31-17" name="__codelineno-31-17" href="#__codelineno-31-17"></a>    <span class="k">def</span><span class="w"> </span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-31-18" name="__codelineno-31-18" href="#__codelineno-31-18"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Initialise backend.</span>
+<a id="__codelineno-31-19" name="__codelineno-31-19" href="#__codelineno-31-19"></a>
+<a id="__codelineno-31-20" name="__codelineno-31-20" href="#__codelineno-31-20"></a><span class="sd">        Args:</span>
+<a id="__codelineno-31-21" name="__codelineno-31-21" href="#__codelineno-31-21"></a><span class="sd">            api_key: API key for the service.</span>
+<a id="__codelineno-31-22" name="__codelineno-31-22" href="#__codelineno-31-22"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-31-23" name="__codelineno-31-23" href="#__codelineno-31-23"></a>        <span class="bp">self</span><span class="o">.</span><span class="n">_api_key</span> <span class="o">=</span> <span class="n">api_key</span>
+<a id="__codelineno-31-24" name="__codelineno-31-24" href="#__codelineno-31-24"></a>
+<a id="__codelineno-31-25" name="__codelineno-31-25" href="#__codelineno-31-25"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">convert</span><span class="p">(</span>
+<a id="__codelineno-31-26" name="__codelineno-31-26" href="#__codelineno-31-26"></a>        <span class="bp">self</span><span class="p">,</span> <span class="n">pdf_path</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="n">output_dir</span><span class="p">:</span> <span class="n">Path</span><span class="p">,</span> <span class="o">*</span><span class="p">,</span> <span class="n">force</span><span class="p">:</span> <span class="nb">bool</span> <span class="o">=</span> <span class="kc">False</span>
+<a id="__codelineno-31-27" name="__codelineno-31-27" href="#__codelineno-31-27"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ConvertManifestEntry</span><span class="p">:</span>
+<a id="__codelineno-31-28" name="__codelineno-31-28" href="#__codelineno-31-28"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Convert a single PDF.</span>
+<a id="__codelineno-31-29" name="__codelineno-31-29" href="#__codelineno-31-29"></a>
+<a id="__codelineno-31-30" name="__codelineno-31-30" href="#__codelineno-31-30"></a><span class="sd">        Args:</span>
+<a id="__codelineno-31-31" name="__codelineno-31-31" href="#__codelineno-31-31"></a><span class="sd">            pdf_path: Source PDF.</span>
+<a id="__codelineno-31-32" name="__codelineno-31-32" href="#__codelineno-31-32"></a><span class="sd">            output_dir: Output directory for Markdown.</span>
+<a id="__codelineno-31-33" name="__codelineno-31-33" href="#__codelineno-31-33"></a><span class="sd">            force: Re-convert even if output exists.</span>
+<a id="__codelineno-31-34" name="__codelineno-31-34" href="#__codelineno-31-34"></a>
+<a id="__codelineno-31-35" name="__codelineno-31-35" href="#__codelineno-31-35"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-31-36" name="__codelineno-31-36" href="#__codelineno-31-36"></a><span class="sd">            Manifest entry with result metadata.</span>
+<a id="__codelineno-31-37" name="__codelineno-31-37" href="#__codelineno-31-37"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-31-38" name="__codelineno-31-38" href="#__codelineno-31-38"></a>        <span class="c1"># ... conversion logic ...</span>
+<a id="__codelineno-31-39" name="__codelineno-31-39" href="#__codelineno-31-39"></a>
+<a id="__codelineno-31-40" name="__codelineno-31-40" href="#__codelineno-31-40"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">fingerprint</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-31-41" name="__codelineno-31-41" href="#__codelineno-31-41"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return deterministic backend fingerprint.&quot;&quot;&quot;</span>
+<a id="__codelineno-31-42" name="__codelineno-31-42" href="#__codelineno-31-42"></a>        <span class="k">return</span> <span class="s2">&quot;mybackend/1.0/default&quot;</span>
+</code></pre></div>
+<p><strong>Step 2 — Config model</strong></p>
+<p>Add to <code>src/research_pipeline/config/models.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-32-1" name="__codelineno-32-1" href="#__codelineno-32-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyBackendConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-32-2" name="__codelineno-32-2" href="#__codelineno-32-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Configuration for the MyBackend converter.&quot;&quot;&quot;</span>
+<a id="__codelineno-32-3" name="__codelineno-32-3" href="#__codelineno-32-3"></a>
+<a id="__codelineno-32-4" name="__codelineno-32-4" href="#__codelineno-32-4"></a>    <span class="n">api_key</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="s2">&quot;&quot;</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;API key.&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p>Then add <code>mybackend: MyBackendConfig = Field(default_factory=MyBackendConfig)</code>
+to the <code>ConversionConfig</code> model.</p>
+<p><strong>Step 3 — Account dispatch</strong></p>
+<p>Add a branch in <code>cli/cmd_convert.py</code> <code>_backend_kwargs_list()</code> that maps config
+to constructor kwargs for your backend.</p>
+<p><strong>Step 4 — Optional dependency</strong></p>
+<p>Add to <code>[project.optional-dependencies]</code> in <code>pyproject.toml</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-33-1" name="__codelineno-33-1" href="#__codelineno-33-1"></a><span class="n">mybackend</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="p">[</span><span class="s2">&quot;mybackend-sdk&gt;=1.0&quot;</span><span class="p">]</span>
+</code></pre></div>
+<p><strong>Step 5 — Tests</strong></p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-34-1" name="__codelineno-34-1" href="#__codelineno-34-1"></a><span class="c1"># tests/unit/test_mybackend_backend.py</span>
+<a id="__codelineno-34-2" name="__codelineno-34-2" href="#__codelineno-34-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.conversion.mybackend_backend</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyBackendConverter</span>
+<a id="__codelineno-34-3" name="__codelineno-34-3" href="#__codelineno-34-3"></a>
+<a id="__codelineno-34-4" name="__codelineno-34-4" href="#__codelineno-34-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_fingerprint_is_stable</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-34-5" name="__codelineno-34-5" href="#__codelineno-34-5"></a>    <span class="n">converter</span> <span class="o">=</span> <span class="n">MyBackendConverter</span><span class="p">(</span><span class="n">api_key</span><span class="o">=</span><span class="s2">&quot;test&quot;</span><span class="p">)</span>
+<a id="__codelineno-34-6" name="__codelineno-34-6" href="#__codelineno-34-6"></a>    <span class="k">assert</span> <span class="n">converter</span><span class="o">.</span><span class="n">fingerprint</span><span class="p">()</span> <span class="o">==</span> <span class="s2">&quot;mybackend/1.0/default&quot;</span>
+</code></pre></div>
+<h3 id="83-add-a-new-search-source">8.3 Add a new search source<a class="headerlink" href="#83-add-a-new-search-source" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1 — Implement the protocol</strong></p>
+<p>Create <code>src/research_pipeline/sources/&lt;name&gt;_source.py</code> and implement the
+<code>SearchSource</code> protocol from <code>src/research_pipeline/sources/base.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-35-1" name="__codelineno-35-1" href="#__codelineno-35-1"></a><span class="sd">&quot;&quot;&quot;&lt;Name&gt; search source adapter.&quot;&quot;&quot;</span>
+<a id="__codelineno-35-2" name="__codelineno-35-2" href="#__codelineno-35-2"></a>
+<a id="__codelineno-35-3" name="__codelineno-35-3" href="#__codelineno-35-3"></a><span class="kn">import</span><span class="w"> </span><span class="nn">logging</span>
+<a id="__codelineno-35-4" name="__codelineno-35-4" href="#__codelineno-35-4"></a>
+<a id="__codelineno-35-5" name="__codelineno-35-5" href="#__codelineno-35-5"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.models.candidate</span><span class="w"> </span><span class="kn">import</span> <span class="n">CandidateRecord</span>
+<a id="__codelineno-35-6" name="__codelineno-35-6" href="#__codelineno-35-6"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.sources.base</span><span class="w"> </span><span class="kn">import</span> <span class="n">SearchSource</span>
+<a id="__codelineno-35-7" name="__codelineno-35-7" href="#__codelineno-35-7"></a>
+<a id="__codelineno-35-8" name="__codelineno-35-8" href="#__codelineno-35-8"></a><span class="n">logger</span> <span class="o">=</span> <span class="n">logging</span><span class="o">.</span><span class="n">getLogger</span><span class="p">(</span><span class="vm">__name__</span><span class="p">)</span>
+<a id="__codelineno-35-9" name="__codelineno-35-9" href="#__codelineno-35-9"></a>
+<a id="__codelineno-35-10" name="__codelineno-35-10" href="#__codelineno-35-10"></a>
+<a id="__codelineno-35-11" name="__codelineno-35-11" href="#__codelineno-35-11"></a><span class="k">class</span><span class="w"> </span><span class="nc">MySearchSource</span><span class="p">:</span>
+<a id="__codelineno-35-12" name="__codelineno-35-12" href="#__codelineno-35-12"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Search adapter for MySource.&quot;&quot;&quot;</span>
+<a id="__codelineno-35-13" name="__codelineno-35-13" href="#__codelineno-35-13"></a>
+<a id="__codelineno-35-14" name="__codelineno-35-14" href="#__codelineno-35-14"></a>    <span class="nd">@property</span>
+<a id="__codelineno-35-15" name="__codelineno-35-15" href="#__codelineno-35-15"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">name</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">str</span><span class="p">:</span>
+<a id="__codelineno-35-16" name="__codelineno-35-16" href="#__codelineno-35-16"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Return source name.&quot;&quot;&quot;</span>
+<a id="__codelineno-35-17" name="__codelineno-35-17" href="#__codelineno-35-17"></a>        <span class="k">return</span> <span class="s2">&quot;mysource&quot;</span>
+<a id="__codelineno-35-18" name="__codelineno-35-18" href="#__codelineno-35-18"></a>
+<a id="__codelineno-35-19" name="__codelineno-35-19" href="#__codelineno-35-19"></a>    <span class="k">def</span><span class="w"> </span><span class="nf">search</span><span class="p">(</span>
+<a id="__codelineno-35-20" name="__codelineno-35-20" href="#__codelineno-35-20"></a>        <span class="bp">self</span><span class="p">,</span>
+<a id="__codelineno-35-21" name="__codelineno-35-21" href="#__codelineno-35-21"></a>        <span class="n">topic</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-35-22" name="__codelineno-35-22" href="#__codelineno-35-22"></a>        <span class="n">must_terms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-35-23" name="__codelineno-35-23" href="#__codelineno-35-23"></a>        <span class="n">nice_terms</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">str</span><span class="p">],</span>
+<a id="__codelineno-35-24" name="__codelineno-35-24" href="#__codelineno-35-24"></a>        <span class="n">max_results</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">100</span><span class="p">,</span>
+<a id="__codelineno-35-25" name="__codelineno-35-25" href="#__codelineno-35-25"></a>        <span class="n">date_from</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-35-26" name="__codelineno-35-26" href="#__codelineno-35-26"></a>        <span class="n">date_to</span><span class="p">:</span> <span class="nb">str</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span>
+<a id="__codelineno-35-27" name="__codelineno-35-27" href="#__codelineno-35-27"></a>    <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">list</span><span class="p">[</span><span class="n">CandidateRecord</span><span class="p">]:</span>
+<a id="__codelineno-35-28" name="__codelineno-35-28" href="#__codelineno-35-28"></a><span class="w">        </span><span class="sd">&quot;&quot;&quot;Execute search and return candidate records.</span>
+<a id="__codelineno-35-29" name="__codelineno-35-29" href="#__codelineno-35-29"></a>
+<a id="__codelineno-35-30" name="__codelineno-35-30" href="#__codelineno-35-30"></a><span class="sd">        Args:</span>
+<a id="__codelineno-35-31" name="__codelineno-35-31" href="#__codelineno-35-31"></a><span class="sd">            topic: Raw topic string.</span>
+<a id="__codelineno-35-32" name="__codelineno-35-32" href="#__codelineno-35-32"></a><span class="sd">            must_terms: High-priority terms.</span>
+<a id="__codelineno-35-33" name="__codelineno-35-33" href="#__codelineno-35-33"></a><span class="sd">            nice_terms: Boosting terms.</span>
+<a id="__codelineno-35-34" name="__codelineno-35-34" href="#__codelineno-35-34"></a><span class="sd">            max_results: Result cap.</span>
+<a id="__codelineno-35-35" name="__codelineno-35-35" href="#__codelineno-35-35"></a><span class="sd">            date_from: Start of date window (ISO 8601).</span>
+<a id="__codelineno-35-36" name="__codelineno-35-36" href="#__codelineno-35-36"></a><span class="sd">            date_to: End of date window (ISO 8601).</span>
+<a id="__codelineno-35-37" name="__codelineno-35-37" href="#__codelineno-35-37"></a>
+<a id="__codelineno-35-38" name="__codelineno-35-38" href="#__codelineno-35-38"></a><span class="sd">        Returns:</span>
+<a id="__codelineno-35-39" name="__codelineno-35-39" href="#__codelineno-35-39"></a><span class="sd">            Deduplicated candidate records.</span>
+<a id="__codelineno-35-40" name="__codelineno-35-40" href="#__codelineno-35-40"></a><span class="sd">        &quot;&quot;&quot;</span>
+<a id="__codelineno-35-41" name="__codelineno-35-41" href="#__codelineno-35-41"></a>        <span class="c1"># ... API call + parsing ...</span>
+<a id="__codelineno-35-42" name="__codelineno-35-42" href="#__codelineno-35-42"></a>        <span class="k">return</span> <span class="p">[]</span>
+</code></pre></div>
+<p><strong>Step 2 — Register in source factory</strong></p>
+<p>Add your source to the factory in <code>src/research_pipeline/sources/</code> so that
+<code>--source mysource</code> and <code>--source all</code> include it.</p>
+<p><strong>Step 3 — VCR tests</strong></p>
+<p>Record an HTTP cassette and write tests:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-36-1" name="__codelineno-36-1" href="#__codelineno-36-1"></a><span class="kn">import</span><span class="w"> </span><span class="nn">vcr</span>
+<a id="__codelineno-36-2" name="__codelineno-36-2" href="#__codelineno-36-2"></a>
+<a id="__codelineno-36-3" name="__codelineno-36-3" href="#__codelineno-36-3"></a><span class="nd">@vcr</span><span class="o">.</span><span class="n">use_cassette</span><span class="p">(</span><span class="s2">&quot;tests/fixtures/http_cassettes/mysource_search.yaml&quot;</span><span class="p">)</span>
+<a id="__codelineno-36-4" name="__codelineno-36-4" href="#__codelineno-36-4"></a><span class="k">def</span><span class="w"> </span><span class="nf">test_mysource_returns_candidates</span><span class="p">()</span> <span class="o">-&gt;</span> <span class="kc">None</span><span class="p">:</span>
+<a id="__codelineno-36-5" name="__codelineno-36-5" href="#__codelineno-36-5"></a>    <span class="n">source</span> <span class="o">=</span> <span class="n">MySearchSource</span><span class="p">()</span>
+<a id="__codelineno-36-6" name="__codelineno-36-6" href="#__codelineno-36-6"></a>    <span class="n">results</span> <span class="o">=</span> <span class="n">source</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="s2">&quot;transformers&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;transformer&quot;</span><span class="p">],</span> <span class="p">[],</span> <span class="n">max_results</span><span class="o">=</span><span class="mi">5</span><span class="p">)</span>
+<a id="__codelineno-36-7" name="__codelineno-36-7" href="#__codelineno-36-7"></a>    <span class="k">assert</span> <span class="nb">len</span><span class="p">(</span><span class="n">results</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span>
+<a id="__codelineno-36-8" name="__codelineno-36-8" href="#__codelineno-36-8"></a>    <span class="k">assert</span> <span class="nb">all</span><span class="p">(</span><span class="n">r</span><span class="o">.</span><span class="n">source</span> <span class="o">==</span> <span class="s2">&quot;mysource&quot;</span> <span class="k">for</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="p">)</span>
+</code></pre></div>
+<h3 id="84-add-a-new-mcp-tool">8.4 Add a new MCP tool<a class="headerlink" href="#84-add-a-new-mcp-tool" title="Permanent link">&para;</a></h3>
+<p><strong>Step 1 — Schema</strong></p>
+<p>In <code>src/research_pipeline/mcp_server/schemas.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-37-1" name="__codelineno-37-1" href="#__codelineno-37-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">MyNewToolInput</span><span class="p">(</span><span class="n">CommonParams</span><span class="p">):</span>
+<a id="__codelineno-37-2" name="__codelineno-37-2" href="#__codelineno-37-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Input for the my_new_tool tool.&quot;&quot;&quot;</span>
+<a id="__codelineno-37-3" name="__codelineno-37-3" href="#__codelineno-37-3"></a>
+<a id="__codelineno-37-4" name="__codelineno-37-4" href="#__codelineno-37-4"></a>    <span class="n">some_param</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">description</span><span class="o">=</span><span class="s2">&quot;Description of the parameter.&quot;</span><span class="p">)</span>
+<a id="__codelineno-37-5" name="__codelineno-37-5" href="#__codelineno-37-5"></a>    <span class="n">optional_param</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span><span class="n">default</span><span class="o">=</span><span class="mi">10</span><span class="p">,</span> <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Optional integer.&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 2 — Tool function</strong></p>
+<p>In <code>src/research_pipeline/mcp_server/tools.py</code>:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-38-1" name="__codelineno-38-1" href="#__codelineno-38-1"></a><span class="k">def</span><span class="w"> </span><span class="nf">my_new_tool</span><span class="p">(</span><span class="n">params</span><span class="p">:</span> <span class="n">MyNewToolInput</span><span class="p">,</span> <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span> <span class="o">|</span> <span class="kc">None</span> <span class="o">=</span> <span class="kc">None</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">ToolResult</span><span class="p">:</span>
+<a id="__codelineno-38-2" name="__codelineno-38-2" href="#__codelineno-38-2"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Execute my new tool.&quot;&quot;&quot;</span>
+<a id="__codelineno-38-3" name="__codelineno-38-3" href="#__codelineno-38-3"></a>    <span class="k">try</span><span class="p">:</span>
+<a id="__codelineno-38-4" name="__codelineno-38-4" href="#__codelineno-38-4"></a>        <span class="c1"># ... logic, calling domain code ...</span>
+<a id="__codelineno-38-5" name="__codelineno-38-5" href="#__codelineno-38-5"></a>        <span class="n">_log_info</span><span class="p">(</span><span class="n">ctx</span><span class="p">,</span> <span class="sa">f</span><span class="s2">&quot;my_new_tool complete: </span><span class="si">{</span><span class="n">params</span><span class="o">.</span><span class="n">some_param</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+<a id="__codelineno-38-6" name="__codelineno-38-6" href="#__codelineno-38-6"></a>        <span class="k">return</span> <span class="n">ToolResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="s2">&quot;Done.&quot;</span><span class="p">,</span> <span class="n">artifacts</span><span class="o">=</span><span class="p">{})</span>
+<a id="__codelineno-38-7" name="__codelineno-38-7" href="#__codelineno-38-7"></a>    <span class="k">except</span> <span class="ne">Exception</span> <span class="k">as</span> <span class="n">exc</span><span class="p">:</span>
+<a id="__codelineno-38-8" name="__codelineno-38-8" href="#__codelineno-38-8"></a>        <span class="n">logger</span><span class="o">.</span><span class="n">error</span><span class="p">(</span><span class="s2">&quot;my_new_tool failed: </span><span class="si">%s</span><span class="s2">&quot;</span><span class="p">,</span> <span class="n">exc</span><span class="p">)</span>
+<a id="__codelineno-38-9" name="__codelineno-38-9" href="#__codelineno-38-9"></a>        <span class="k">return</span> <span class="n">ToolResult</span><span class="p">(</span><span class="n">success</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">message</span><span class="o">=</span><span class="sa">f</span><span class="s2">&quot;Failed: </span><span class="si">{</span><span class="n">exc</span><span class="si">}</span><span class="s2">&quot;</span><span class="p">)</span>
+</code></pre></div>
+<p><strong>Step 3 — Registration</strong></p>
+<p>In <code>src/research_pipeline/mcp_server/server.py</code>, add the import and the
+<code>@mcp.tool(...)</code> wrapper:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-39-1" name="__codelineno-39-1" href="#__codelineno-39-1"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.mcp_server.tools</span><span class="w"> </span><span class="kn">import</span> <span class="n">my_new_tool</span>
+<a id="__codelineno-39-2" name="__codelineno-39-2" href="#__codelineno-39-2"></a><span class="kn">from</span><span class="w"> </span><span class="nn">research_pipeline.mcp_server.schemas</span><span class="w"> </span><span class="kn">import</span> <span class="n">MyNewToolInput</span>
+<a id="__codelineno-39-3" name="__codelineno-39-3" href="#__codelineno-39-3"></a>
+<a id="__codelineno-39-4" name="__codelineno-39-4" href="#__codelineno-39-4"></a><span class="nd">@mcp</span><span class="o">.</span><span class="n">tool</span><span class="p">(</span>
+<a id="__codelineno-39-5" name="__codelineno-39-5" href="#__codelineno-39-5"></a>    <span class="n">annotations</span><span class="o">=</span><span class="n">ToolAnnotations</span><span class="p">(</span>
+<a id="__codelineno-39-6" name="__codelineno-39-6" href="#__codelineno-39-6"></a>        <span class="n">readOnlyHint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-39-7" name="__codelineno-39-7" href="#__codelineno-39-7"></a>        <span class="n">destructiveHint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-39-8" name="__codelineno-39-8" href="#__codelineno-39-8"></a>        <span class="n">idempotentHint</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<a id="__codelineno-39-9" name="__codelineno-39-9" href="#__codelineno-39-9"></a>        <span class="n">openWorldHint</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+<a id="__codelineno-39-10" name="__codelineno-39-10" href="#__codelineno-39-10"></a>    <span class="p">),</span>
+<a id="__codelineno-39-11" name="__codelineno-39-11" href="#__codelineno-39-11"></a><span class="p">)</span>
+<a id="__codelineno-39-12" name="__codelineno-39-12" href="#__codelineno-39-12"></a><span class="k">def</span><span class="w"> </span><span class="nf">tool_my_new_tool</span><span class="p">(</span>
+<a id="__codelineno-39-13" name="__codelineno-39-13" href="#__codelineno-39-13"></a>    <span class="n">some_param</span><span class="p">:</span> <span class="nb">str</span><span class="p">,</span>
+<a id="__codelineno-39-14" name="__codelineno-39-14" href="#__codelineno-39-14"></a>    <span class="n">ctx</span><span class="p">:</span> <span class="n">Context</span><span class="p">,</span>
+<a id="__codelineno-39-15" name="__codelineno-39-15" href="#__codelineno-39-15"></a>    <span class="n">workspace</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;./workspace&quot;</span><span class="p">,</span>
+<a id="__codelineno-39-16" name="__codelineno-39-16" href="#__codelineno-39-16"></a>    <span class="n">run_id</span><span class="p">:</span> <span class="nb">str</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span><span class="p">,</span>
+<a id="__codelineno-39-17" name="__codelineno-39-17" href="#__codelineno-39-17"></a>    <span class="n">optional_param</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="mi">10</span><span class="p">,</span>
+<a id="__codelineno-39-18" name="__codelineno-39-18" href="#__codelineno-39-18"></a><span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">dict</span><span class="p">:</span>
+<a id="__codelineno-39-19" name="__codelineno-39-19" href="#__codelineno-39-19"></a><span class="w">    </span><span class="sd">&quot;&quot;&quot;Short description shown in MCP tool list.&quot;&quot;&quot;</span>
+<a id="__codelineno-39-20" name="__codelineno-39-20" href="#__codelineno-39-20"></a>    <span class="n">result</span> <span class="o">=</span> <span class="n">my_new_tool</span><span class="p">(</span>
+<a id="__codelineno-39-21" name="__codelineno-39-21" href="#__codelineno-39-21"></a>        <span class="n">MyNewToolInput</span><span class="p">(</span>
+<a id="__codelineno-39-22" name="__codelineno-39-22" href="#__codelineno-39-22"></a>            <span class="n">some_param</span><span class="o">=</span><span class="n">some_param</span><span class="p">,</span>
+<a id="__codelineno-39-23" name="__codelineno-39-23" href="#__codelineno-39-23"></a>            <span class="n">workspace</span><span class="o">=</span><span class="n">workspace</span><span class="p">,</span>
+<a id="__codelineno-39-24" name="__codelineno-39-24" href="#__codelineno-39-24"></a>            <span class="n">run_id</span><span class="o">=</span><span class="n">run_id</span><span class="p">,</span>
+<a id="__codelineno-39-25" name="__codelineno-39-25" href="#__codelineno-39-25"></a>            <span class="n">optional_param</span><span class="o">=</span><span class="n">optional_param</span><span class="p">,</span>
+<a id="__codelineno-39-26" name="__codelineno-39-26" href="#__codelineno-39-26"></a>        <span class="p">),</span>
+<a id="__codelineno-39-27" name="__codelineno-39-27" href="#__codelineno-39-27"></a>        <span class="n">ctx</span><span class="o">=</span><span class="n">ctx</span><span class="p">,</span>
+<a id="__codelineno-39-28" name="__codelineno-39-28" href="#__codelineno-39-28"></a>    <span class="p">)</span>
+<a id="__codelineno-39-29" name="__codelineno-39-29" href="#__codelineno-39-29"></a>    <span class="k">return</span> <span class="n">result</span><span class="o">.</span><span class="n">model_dump</span><span class="p">()</span>
+</code></pre></div>
+<h3 id="85-add-a-new-cli-command">8.5 Add a new CLI command<a class="headerlink" href="#85-add-a-new-cli-command" title="Permanent link">&para;</a></h3>
+<p>For standalone utility commands that don't map to a pipeline stage, add them
+directly in <code>app.py</code> rather than creating a <code>cmd_*.py</code> file — unless the
+implementation is more than ~30 lines, in which case extract to <code>cmd_&lt;name&gt;.py</code>.</p>
+<p>All commands <strong>must</strong> accept <code>--verbose</code>, <code>--config</code>, and <code>--workspace</code> via
+<code>_common_options()</code> unless there is a strong reason not to.</p>
+<h3 id="86-add-a-new-config-option">8.6 Add a new config option<a class="headerlink" href="#86-add-a-new-config-option" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Add the field to the relevant Pydantic model in
+   <code>src/research_pipeline/config/models.py</code>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-40-1" name="__codelineno-40-1" href="#__codelineno-40-1"></a><span class="k">class</span><span class="w"> </span><span class="nc">SearchConfig</span><span class="p">(</span><span class="n">BaseModel</span><span class="p">):</span>
+<a id="__codelineno-40-2" name="__codelineno-40-2" href="#__codelineno-40-2"></a>    <span class="c1"># ... existing fields ...</span>
+<a id="__codelineno-40-3" name="__codelineno-40-3" href="#__codelineno-40-3"></a>    <span class="n">my_new_option</span><span class="p">:</span> <span class="nb">int</span> <span class="o">=</span> <span class="n">Field</span><span class="p">(</span>
+<a id="__codelineno-40-4" name="__codelineno-40-4" href="#__codelineno-40-4"></a>        <span class="n">default</span><span class="o">=</span><span class="mi">42</span><span class="p">,</span>
+<a id="__codelineno-40-5" name="__codelineno-40-5" href="#__codelineno-40-5"></a>        <span class="n">description</span><span class="o">=</span><span class="s2">&quot;Description shown in docs.&quot;</span><span class="p">,</span>
+<a id="__codelineno-40-6" name="__codelineno-40-6" href="#__codelineno-40-6"></a>    <span class="p">)</span>
+</code></pre></div>
+<ol>
+<li>Add an annotated entry to <code>config.example.toml</code>:</li>
+</ol>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-41-1" name="__codelineno-41-1" href="#__codelineno-41-1"></a><span class="k">[search]</span>
+<a id="__codelineno-41-2" name="__codelineno-41-2" href="#__codelineno-41-2"></a><span class="c1"># my_new_option: description (default: 42)</span>
+<a id="__codelineno-41-3" name="__codelineno-41-3" href="#__codelineno-41-3"></a><span class="n">my_new_option</span><span class="w"> </span><span class="o">=</span><span class="w"> </span><span class="mi">42</span>
+</code></pre></div>
+<ol>
+<li>
+<p>If the option should be overridable from the environment, add a mapping in
+   <code>src/research_pipeline/config/loader.py</code> <code>_apply_env_overrides()</code>.</p>
+</li>
+<li>
+<p>Write a unit test in <code>tests/unit/test_config_models.py</code> or the appropriate
+   test file.</p>
+</li>
+</ol>
+<hr />
+<h2 id="9-hard-constraints-hc1hc6">9. Hard Constraints (HC1–HC6)<a class="headerlink" href="#9-hard-constraints-hc1hc6" title="Permanent link">&para;</a></h2>
+<p>These constraints apply to every contributor and every automated agent.  They
+are defined in <code>AGENTS.md</code> and cannot be relaxed by any runtime overlay.</p>
+<table>
+<thead>
+<tr>
+<th>ID</th>
+<th>Rule</th>
+<th>Enforcement</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>HC1</strong></td>
+<td>No plaintext secrets in repository files, prompts, logs, or commits</td>
+<td><code>detect-private-key</code> + <code>detect-secrets</code> pre-commit hooks; <code>.secrets.baseline</code> required</td>
+</tr>
+<tr>
+<td><strong>HC2</strong></td>
+<td>No writes outside the allowlist: <code>src/</code>, <code>tests/</code>, <code>docs/</code>, <code>pyproject.toml</code>, <code>.pre-commit-config.yaml</code>, <code>Makefile</code>, <code>AGENTS.md</code>, <code>CLAUDE.md</code>, <code>.github/</code></td>
+<td>Reviewed in code review; automated agents must deny out-of-scope writes</td>
+</tr>
+<tr>
+<td><strong>HC3</strong></td>
+<td>Destructive commands (<code>rm -rf</code>, <code>git push --force</code>, <code>git reset --hard</code>, <code>DROP TABLE</code>) require explicit human approval before execution</td>
+<td>Documented process; CI never runs destructive ops autonomously</td>
+</tr>
+<tr>
+<td><strong>HC4</strong></td>
+<td>Database schema changes (migrations, drops) must be authored but never executed autonomously</td>
+<td>Reviewed before merge; no auto-apply in CI</td>
+</tr>
+<tr>
+<td><strong>HC5</strong></td>
+<td>Network egress limited to: <code>arxiv.org</code>, <code>export.arxiv.org</code>, <code>api.semanticscholar.org</code>, <code>api.openalex.org</code>, <code>dblp.org</code>, <code>serpapi.com</code>, <code>pypi.org</code>, <code>files.pythonhosted.org</code>, <code>github.com</code></td>
+<td>All other destinations require explicit human approval</td>
+</tr>
+<tr>
+<td><strong>HC6</strong></td>
+<td>Red-class data (secrets, PII, credentials, API keys, session tokens) must never enter prompts, tool arguments, trace logs, plan files, or stored artefacts</td>
+<td>API keys belong in <code>config.toml</code> (gitignored) or environment variables only</td>
+</tr>
+</tbody>
+</table>
+<p><code>config.toml</code> is listed in <code>.gitignore</code> and <strong>must never be committed</strong>.  Use
+<code>config.example.toml</code> as the template.  The <code>.secrets.baseline</code> file must be
+kept up-to-date when new secrets patterns are introduced.</p>
+<hr />
+<h2 id="10-dependency-management">10. Dependency Management<a class="headerlink" href="#10-dependency-management" title="Permanent link">&para;</a></h2>
+<p>The project uses <strong>uv</strong> as the sole package manager.  <code>pip</code>, <code>pip-tools</code>, and
+<code>poetry</code> are not used.</p>
+<h3 id="key-files">Key files<a class="headerlink" href="#key-files" title="Permanent link">&para;</a></h3>
+<table>
+<thead>
+<tr>
+<th>File</th>
+<th>Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>pyproject.toml</code></td>
+<td>All dependency declarations, tool config, scripts</td>
+</tr>
+<tr>
+<td><code>uv.lock</code></td>
+<td>Deterministic locked dependency graph (commit this)</td>
+</tr>
+<tr>
+<td><code>.python-version</code></td>
+<td>Pins Python to 3.12 for local development</td>
+</tr>
+</tbody>
+</table>
+<h3 id="adding-a-dependency">Adding a dependency<a class="headerlink" href="#adding-a-dependency" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-42-1" name="__codelineno-42-1" href="#__codelineno-42-1"></a><span class="c1"># Add a runtime dependency</span>
+<a id="__codelineno-42-2" name="__codelineno-42-2" href="#__codelineno-42-2"></a>uv<span class="w"> </span>add<span class="w"> </span>some-package
+<a id="__codelineno-42-3" name="__codelineno-42-3" href="#__codelineno-42-3"></a>
+<a id="__codelineno-42-4" name="__codelineno-42-4" href="#__codelineno-42-4"></a><span class="c1"># Add a dev-only dependency</span>
+<a id="__codelineno-42-5" name="__codelineno-42-5" href="#__codelineno-42-5"></a>uv<span class="w"> </span>add<span class="w"> </span>--dev<span class="w"> </span>some-package
+<a id="__codelineno-42-6" name="__codelineno-42-6" href="#__codelineno-42-6"></a>
+<a id="__codelineno-42-7" name="__codelineno-42-7" href="#__codelineno-42-7"></a><span class="c1"># Add to an optional extra</span>
+<a id="__codelineno-42-8" name="__codelineno-42-8" href="#__codelineno-42-8"></a>uv<span class="w"> </span>add<span class="w"> </span>--optional<span class="w"> </span>docling<span class="w"> </span>some-new-package
+</code></pre></div>
+<p>After adding, commit both <code>pyproject.toml</code> and <code>uv.lock</code>.</p>
+<h3 id="updating-dependencies">Updating dependencies<a class="headerlink" href="#updating-dependencies" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-43-1" name="__codelineno-43-1" href="#__codelineno-43-1"></a><span class="c1"># Update all packages (within constraints)</span>
+<a id="__codelineno-43-2" name="__codelineno-43-2" href="#__codelineno-43-2"></a>uv<span class="w"> </span>sync<span class="w"> </span>--upgrade
+<a id="__codelineno-43-3" name="__codelineno-43-3" href="#__codelineno-43-3"></a>
+<a id="__codelineno-43-4" name="__codelineno-43-4" href="#__codelineno-43-4"></a><span class="c1"># Update a single package</span>
+<a id="__codelineno-43-5" name="__codelineno-43-5" href="#__codelineno-43-5"></a>uv<span class="w"> </span>add<span class="w"> </span>some-package&gt;<span class="o">=</span>new-version
+</code></pre></div>
+<h3 id="security-audit">Security audit<a class="headerlink" href="#security-audit" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-44-1" name="__codelineno-44-1" href="#__codelineno-44-1"></a>uv<span class="w"> </span>run<span class="w"> </span>pip-audit<span class="w"> </span>--skip-editable
+<a id="__codelineno-44-2" name="__codelineno-44-2" href="#__codelineno-44-2"></a>uv<span class="w"> </span>run<span class="w"> </span>pip-licenses<span class="w"> </span>--fail-on<span class="o">=</span><span class="s2">&quot;GPL-3.0-only;AGPL-3.0-only&quot;</span>
+</code></pre></div>
+<p>Both commands run in the <code>security</code> CI job.</p>
+<hr />
+<h2 id="11-release-process">11. Release Process<a class="headerlink" href="#11-release-process" title="Permanent link">&para;</a></h2>
+<p>Releases are triggered by creating a GitHub Release (tag format: <code>vX.Y.Z</code>).
+The <code>publish</code> workflow (<code>publish.yml</code>) runs automatically:</p>
+<ol>
+<li><strong>Build</strong> — <code>uv build</code> produces wheel and sdist in <code>dist/</code></li>
+<li><strong>Publish to PyPI</strong> — via <code>pypa/gh-action-pypi-publish</code> using trusted
+   publishing (OIDC, no API token required)</li>
+<li><strong>Attach to GitHub Release</strong> — wheel and sdist uploaded via <code>gh release upload</code></li>
+</ol>
+<p>Pre-release checklist:</p>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-45-1" name="__codelineno-45-1" href="#__codelineno-45-1"></a><span class="c1"># 1. Bump version in pyproject.toml</span>
+<a id="__codelineno-45-2" name="__codelineno-45-2" href="#__codelineno-45-2"></a><span class="c1">#    (version is read at runtime via importlib.metadata)</span>
+<a id="__codelineno-45-3" name="__codelineno-45-3" href="#__codelineno-45-3"></a>
+<a id="__codelineno-45-4" name="__codelineno-45-4" href="#__codelineno-45-4"></a><span class="c1"># 2. Update CHANGELOG.md</span>
+<a id="__codelineno-45-5" name="__codelineno-45-5" href="#__codelineno-45-5"></a>
+<a id="__codelineno-45-6" name="__codelineno-45-6" href="#__codelineno-45-6"></a><span class="c1"># 3. Run full quality gate</span>
+<a id="__codelineno-45-7" name="__codelineno-45-7" href="#__codelineno-45-7"></a>uv<span class="w"> </span>run<span class="w"> </span>pre-commit<span class="w"> </span>run<span class="w"> </span>--all-files
+<a id="__codelineno-45-8" name="__codelineno-45-8" href="#__codelineno-45-8"></a>uv<span class="w"> </span>run<span class="w"> </span>pytest<span class="w"> </span>tests/unit/<span class="w"> </span>-x<span class="w"> </span>-q<span class="w"> </span>--cov<span class="o">=</span>src/research_pipeline<span class="w"> </span>--cov-fail-under<span class="o">=</span><span class="m">83</span>
+<a id="__codelineno-45-9" name="__codelineno-45-9" href="#__codelineno-45-9"></a>uv<span class="w"> </span>run<span class="w"> </span>mypy<span class="w"> </span>src/
+<a id="__codelineno-45-10" name="__codelineno-45-10" href="#__codelineno-45-10"></a>
+<a id="__codelineno-45-11" name="__codelineno-45-11" href="#__codelineno-45-11"></a><span class="c1"># 4. Tag and push (triggers CI; CI must be green before creating the Release)</span>
+<a id="__codelineno-45-12" name="__codelineno-45-12" href="#__codelineno-45-12"></a>git<span class="w"> </span>tag<span class="w"> </span>vX.Y.Z
+<a id="__codelineno-45-13" name="__codelineno-45-13" href="#__codelineno-45-13"></a>git<span class="w"> </span>push<span class="w"> </span>origin<span class="w"> </span>vX.Y.Z
+</code></pre></div>
+<p>Creating the GitHub Release (not just the tag) is what triggers the publish
+workflow.</p>
+<hr />
+<h2 id="12-getting-help-and-contributing">12. Getting Help and Contributing<a class="headerlink" href="#12-getting-help-and-contributing" title="Permanent link">&para;</a></h2>
+<ul>
+<li><strong>Bug reports / feature requests</strong>: <a href="https://github.com/grammy-jiang/research-pipeline/issues">GitHub Issues</a></li>
+<li><strong>Documentation</strong>: <a href="https://grammy-jiang.github.io/research-pipeline/">grammy-jiang.github.io/research-pipeline</a></li>
+<li><strong>Source</strong>: <a href="https://github.com/grammy-jiang/research-pipeline">github.com/grammy-jiang/research-pipeline</a></li>
+</ul>
+<h3 id="contribution-flow">Contribution flow<a class="headerlink" href="#contribution-flow" title="Permanent link">&para;</a></h3>
+<ol>
+<li>Fork the repository and create a feature branch.</li>
+<li>Write tests first (TDD).</li>
+<li>Implement the feature, following all code style rules.</li>
+<li>Run the full quality gate (pre-commit + tests + mypy).</li>
+<li>Open a pull request against <code>master</code> with a clear description.</li>
+<li>Ensure all CI jobs pass.</li>
+</ol>
+<h3 id="commit-message-format">Commit message format<a class="headerlink" href="#commit-message-format" title="Permanent link">&para;</a></h3>
+<div class="highlight"><pre><span></span><code><a id="__codelineno-46-1" name="__codelineno-46-1" href="#__codelineno-46-1"></a>&lt;type&gt;: &lt;short description&gt;
+<a id="__codelineno-46-2" name="__codelineno-46-2" href="#__codelineno-46-2"></a>
+<a id="__codelineno-46-3" name="__codelineno-46-3" href="#__codelineno-46-3"></a>[optional body]
+</code></pre></div>
+<p>Types: <code>feat</code>, <code>fix</code>, <code>refactor</code>, <code>docs</code>, <code>test</code>, <code>chore</code>, <code>ci</code>.</p>
+<p>Examples:
+<div class="highlight"><pre><span></span><code><a id="__codelineno-47-1" name="__codelineno-47-1" href="#__codelineno-47-1"></a>feat: add MinerU converter backend
+<a id="__codelineno-47-2" name="__codelineno-47-2" href="#__codelineno-47-2"></a>fix: handle empty abstract in CandidateRecord
+<a id="__codelineno-47-3" name="__codelineno-47-3" href="#__codelineno-47-3"></a>test: add VCR cassette for OpenAlex pagination
+<a id="__codelineno-47-4" name="__codelineno-47-4" href="#__codelineno-47-4"></a>docs: document new config options in developer-guide
+</code></pre></div></p>
+
+
+
+
+
+
+
+
+
+
+
+
+                
+              </article>
+            </div>
+          
+          
+<script>var target=document.getElementById(location.hash.slice(1));target&&target.name&&(target.checked=target.name.startsWith("__tabbed_"))</script>
+        </div>
+        
+          <button type="button" class="md-top md-icon" data-md-component="top" hidden>
+  
+  <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="M13 20h-2V8l-5.5 5.5-1.42-1.42L12 4.16l7.92 7.92-1.42 1.42L13 8z"/></svg>
+  Back to top
+</button>
+        
+      </main>
+      
+        <footer class="md-footer">
+  
+  <div class="md-footer-meta md-typeset">
+    <div class="md-footer-meta__inner md-grid">
+      <div class="md-copyright">
+  
+  
+    Made with
+    <a href="https://squidfunk.github.io/mkdocs-material/" target="_blank" rel="noopener">
+      Material for MkDocs
+    </a>
+  
+</div>
+      
+    </div>
+  </div>
+</footer>
+      
+    </div>
+    <div class="md-dialog" data-md-component="dialog">
+      <div class="md-dialog__inner md-typeset"></div>
+    </div>
+    
+    
+    
+      
+      
+      <script id="__config" type="application/json">{"annotate": null, "base": "..", "features": ["content.code.copy", "navigation.instant", "navigation.sections", "navigation.top", "search.highlight", "search.suggest", "toc.follow"], "search": "../assets/javascripts/workers/search.2c215733.min.js", "tags": null, "translations": {"clipboard.copied": "Copied to clipboard", "clipboard.copy": "Copy to clipboard", "search.result.more.one": "1 more on this page", "search.result.more.other": "# more on this page", "search.result.none": "No matching documents", "search.result.one": "1 matching document", "search.result.other": "# matching documents", "search.result.placeholder": "Type to start searching", "search.result.term.missing": "Missing", "select.version": "Select version"}, "version": null}</script>
+    
+    
+      <script src="../assets/javascripts/bundle.79ae519e.min.js"></script>
+      
+    
+  </body>
+</html>
