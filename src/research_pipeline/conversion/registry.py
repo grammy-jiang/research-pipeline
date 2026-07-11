@@ -56,6 +56,23 @@ def get_backend(name: str, **kwargs: Any) -> ConverterBackend:
     return cls(**kwargs)
 
 
+# The canonical set of built-in converter backends (#120): a single source of
+# truth for the MCP schema descriptions and the completions fallback, instead of
+# three drifting hand-maintained lists. Pinned to the live @register_backend
+# decorators by test_conversion_registry.
+KNOWN_BACKENDS: tuple[str, ...] = (
+    "datalab",
+    "docling",
+    "llamaparse",
+    "marker",
+    "mathpix",
+    "mineru",
+    "mistral_ocr",
+    "openai_vision",
+    "pymupdf4llm",
+)
+
+
 def list_backends() -> list[str]:
     """Return sorted list of registered backend names."""
     return sorted(_BACKEND_REGISTRY)

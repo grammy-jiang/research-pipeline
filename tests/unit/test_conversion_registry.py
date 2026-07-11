@@ -7,11 +7,22 @@ import pytest
 from research_pipeline.conversion.base import ConverterBackend
 from research_pipeline.conversion.registry import (
     _BACKEND_REGISTRY,
+    KNOWN_BACKENDS,
     ensure_builtins_registered,
     get_backend,
     list_backends,
     register_backend,
 )
+
+
+def test_known_backends_matches_registry() -> None:
+    """KNOWN_BACKENDS must stay in lock-step with the @register_backend decorators.
+
+    Guards #120: the canonical list feeds the MCP schema descriptions and the
+    completions fallback, so it must not drift from the live registry.
+    """
+    ensure_builtins_registered()
+    assert set(KNOWN_BACKENDS) == set(list_backends())
 
 
 class TestRegisterBackend:

@@ -56,6 +56,8 @@ def _list_paper_ids(run_id: str, prefix: str = "") -> list[str]:
 
 def _list_backends() -> list[str]:
     """List available converter backend names."""
+    from research_pipeline.conversion.registry import KNOWN_BACKENDS
+
     try:
         from research_pipeline.conversion.registry import (
             ensure_builtins_registered,
@@ -65,7 +67,7 @@ def _list_backends() -> list[str]:
         ensure_builtins_registered()
         return list_backends()
     except Exception:
-        return ["pymupdf4llm", "docling", "marker"]
+        return list(KNOWN_BACKENDS)
 
 
 DIRECTION_VALUES = ["citations", "references", "both"]

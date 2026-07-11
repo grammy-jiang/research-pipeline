@@ -8,6 +8,11 @@ from typing import Annotated
 
 from pydantic import AfterValidator, BaseModel, Field, field_validator
 
+from research_pipeline.conversion.registry import KNOWN_BACKENDS
+
+# Single source of truth for the backend list in tool descriptions (#120).
+_BACKEND_CHOICES = ", ".join(KNOWN_BACKENDS)
+
 # When set, confines every path-shaped tool argument under this root — a
 # deterministic in-code enforcement of HC2's write-allowlist (issue #103).
 _MCP_ROOT_ENV = "RESEARCH_PIPELINE_MCP_ROOT"
@@ -127,8 +132,7 @@ class ConvertPdfsInput(CommonParams):
     backend: str = Field(
         default="",
         description=(
-            "Converter backend: 'docling', 'marker', 'pymupdf4llm', "
-            "or '' (use config default)."
+            f"Converter backend: one of {_BACKEND_CHOICES}, or '' (use config default)."
         ),
     )
 
@@ -175,8 +179,7 @@ class ConvertFileInput(BaseModel):
     backend: str = Field(
         default="",
         description=(
-            "Converter backend: 'docling', 'marker', 'pymupdf4llm', "
-            "or '' (use config default)."
+            f"Converter backend: one of {_BACKEND_CHOICES}, or '' (use config default)."
         ),
     )
 
@@ -246,7 +249,7 @@ class ConvertFineInput(CommonParams):
     backend: str = Field(
         default="",
         description=(
-            "Converter backend override: 'docling', 'marker', 'pymupdf4llm', "
+            f"Converter backend override: one of {_BACKEND_CHOICES}, "
             "or '' (use config default)."
         ),
     )
