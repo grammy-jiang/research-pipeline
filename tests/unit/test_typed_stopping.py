@@ -217,14 +217,29 @@ class TestTypedStoppingEvaluator:
         ev = TypedStoppingEvaluator(
             query_type=ExtendedQueryType.RECALL,
         )
-        # Scores mostly below quality floor (0.3) so saturation won't trigger
+        # Scores mostly below quality floor (0.3) so saturation won't trigger.
         ev.add_batch([0.5, 0.2, 0.1])
         ev.add_batch([0.3, 0.15, 0.05])
         ev.add_batch([0.15, 0.1, 0.05])
-        ev.add_batch([0.14, 0.1, 0.06])  # gain ~0.003 < knee 0.02
+        ev.add_batch([0.14, 0.1, 0.06])  # gain ~0.003 (1st small gain)
+        # #123: a knee now requires the gain to stay small for TWO consecutive
+        # batch pairs, so a 2nd small-gain batch is needed before stopping.
+        ev.add_batch([0.15, 0.1, 0.05])  # gain ~0.0 (2nd consecutive small gain)
         result = ev.evaluate()
         assert result.should_stop
         assert "knee" in result.reason
+
+    def test_knee_requires_two_consecutive_small_gains(self) -> None:
+        # A single small gain right after a large one must NOT stop — that is the
+        # small-sample premature stopping the fix removes (#123).
+        ev = TypedStoppingEvaluator(
+            query_type=ExtendedQueryType.RECALL,
+        )
+        ev.add_batch([0.5, 0.4, 0.3])
+        ev.add_batch([0.1, 0.1, 0.1])  # large gain
+        ev.add_batch([0.1, 0.1, 0.1])  # only the 1st small gain so far
+        result = ev.evaluate()
+        assert not result.should_stop
 
     def test_top1_stable(self) -> None:
         ev = TypedStoppingEvaluator(

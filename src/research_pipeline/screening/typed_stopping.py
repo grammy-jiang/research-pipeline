@@ -504,25 +504,27 @@ class TypedStoppingEvaluator:
                     cost_so_far=n * prof.cost_weight,
                 )
 
-        # Knee detection: check last batch marginal gain
-        if len(self._batches) >= 2:
-            prev_mean = (
-                sum(self._batches[-2]) / len(self._batches[-2])
-                if self._batches[-2]
-                else 0.0
-            )
-            curr_mean = (
-                sum(self._batches[-1]) / len(self._batches[-1])
-                if self._batches[-1]
-                else 0.0
-            )
-            gain = abs(curr_mean - prev_mean)
-            if gain < prof.knee_threshold:
+        # Knee detection: require the marginal gain to stay below threshold for
+        # TWO consecutive batch pairs (≥3 batches) before stopping, so a single
+        # small-sample dip does not trigger premature stopping (#123). Computed
+        # from the batch history, so evaluate() stays side-effect-free.
+        if len(self._batches) >= 3:
+
+            def _mean(batch: list[float]) -> float:
+                return sum(batch) / len(batch) if batch else 0.0
+
+            recent_gains = [
+                abs(_mean(self._batches[-2]) - _mean(self._batches[-3])),
+                abs(_mean(self._batches[-1]) - _mean(self._batches[-2])),
+            ]
+            if all(gain < prof.knee_threshold for gain in recent_gains):
                 return TypedStoppingResult(
                     should_stop=True,
                     query_type=self._query_type,
                     profile=prof,
-                    reason=f"knee_detected (gain={gain:.4f} < {prof.knee_threshold})",
+                    reason=(
+                        f"knee_detected (2 consecutive gains < {prof.knee_threshold})"
+                    ),
                     batches_processed=n,
                     cost_so_far=n * prof.cost_weight,
                 )
