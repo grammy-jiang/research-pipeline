@@ -620,6 +620,34 @@ research-pipeline validate --run-id my-run-001 --output validation.json
 
 ---
 
+### `verify`
+
+Verify pipeline outputs against their schemas, exiting non-zero on failure.
+Gate-friendly counterpart to `evaluate`, used by the skill's manifest
+validation gates.
+
+```bash
+research-pipeline verify --run-id <RUN_ID> [OPTIONS]
+```
+
+**Options**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `--run-id TEXT` | string | — (required) | Run ID to verify |
+| `--stage TEXT` | string | all stages | Specific stage to verify (`plan`, `search`, …) |
+| `--config PATH / -c` | path | auto | Config file |
+| `--workspace PATH / -w` | path | auto | Workspace root |
+| `--verbose / -v` | flag | `false` | Debug logging |
+
+**Example**
+
+```bash
+research-pipeline verify --run-id my-run-001 --stage plan
+```
+
+---
+
 ### `compare`
 
 Compare two pipeline runs: papers, findings, gaps, confidence levels.
@@ -1583,6 +1611,26 @@ research-pipeline setup --skip-agents
 
 ---
 
+### `install-skill`
+
+**Deprecated** — use [`setup`](#setup) instead. Retained as a thin alias that
+forwards to `setup` for backward compatibility.
+
+```bash
+research-pipeline install-skill [OPTIONS]   # prefer: research-pipeline setup
+```
+
+**Options**
+
+| Option | Type | Default | Description |
+|---|---|---|---|
+| `--target PATH / -t` | path | auto | [Deprecated: use `setup`] Target directory |
+| `--symlink / -s` | flag | `false` | Symlink instead of copy |
+| `--force / -f` | flag | `false` | Overwrite existing files |
+| `--verbose / -v` | flag | `false` | Debug logging |
+
+---
+
 ### `version`
 
 Print the version and exit.
@@ -2011,6 +2059,7 @@ All tools return a standard JSON envelope:
 | `tool_convert_rough` | Fast Tier 2 conversion using pymupdf4llm | `workspace`, `run_id`, `force` |
 | `tool_convert_fine` | High-quality Tier 3 conversion of selected papers | `workspace`, `run_id`, `paper_ids`, `force`, `backend` |
 | `tool_list_backends` | List available PDF-to-Markdown converter backends | (none) |
+| `tool_search_tools` | Discover this server's tools by keyword (ranked over the full surface) | `query`, `limit` |
 
 #### Analysis and Evaluation Tools
 
@@ -2020,7 +2069,8 @@ All tools return a standard JSON envelope:
 | `tool_analyze_claims` | Decompose summaries into atomic claims with evidence classification | `workspace`, `run_id` |
 | `tool_score_claims` | Score confidence for decomposed claims | `workspace`, `run_id` |
 | `tool_confidence_layers` | Score claims through the 4-layer confidence architecture | `run_id`, `workspace`, `l4_threshold`, `damping`, `calibrate` |
-| `tool_evaluate` | Validate pipeline outputs against their schemas | `run_id`, `stage`, `workspace` |
+| `tool_validate_output` | Validate pipeline outputs against their schemas | `run_id`, `stage`, `workspace` |
+| `tool_evaluate` | Deprecated alias for `tool_validate_output` | `run_id`, `stage`, `workspace` |
 | `tool_validate_report` | Check report completeness (14 sections, citations, gaps) | `report_path`, `workspace`, `run_id` |
 | `tool_compare_runs` | Structured diff between two pipeline runs | `run_id_a`, `run_id_b`, `workspace` |
 | `tool_verify_stage` | Structural verification gates for any pipeline stage | `workspace`, `run_id`, `stage` |
@@ -2036,7 +2086,8 @@ All tools return a standard JSON envelope:
 
 | Tool | Description | Key Inputs |
 |---|---|---|
-| `tool_evaluate_quality` | Compute composite quality scores for candidate papers | `workspace`, `run_id` |
+| `tool_score_quality` | Compute composite quality scores for candidate papers | `workspace`, `run_id` |
+| `tool_evaluate_quality` | Deprecated alias for `tool_score_quality` | `workspace`, `run_id` |
 | `tool_get_venue_tier` | Look up CORE venue tier and quality score | `venue_name`, `data_path` |
 | `tool_compute_semantic_scores` | Compute SPECTER2 semantic similarity scores | `topic`, `workspace`, `run_id`, `model_name`, `batch_size` |
 | `tool_cbr_lookup` | Look up similar past cases and recommend a strategy | `topic`, `workspace`, `max_results`, `min_quality` |
