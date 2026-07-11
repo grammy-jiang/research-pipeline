@@ -398,9 +398,9 @@ CREATE INDEX idx_audit_run ON audit_log(run_id);
 | Database | Default Path | Purpose |
 |----------|-------------|---------|
 | Dual metrics | `~/.cache/research-pipeline/dual_metrics.db` | Pass@k + Pass[k] benchmark results |
-| Blinding audit | `~/.cache/research-pipeline/blinding_audit.db` | A/B blinding contamination audit |
-| Feedback store | `<workspace>/feedback.db` | User paper accept/reject feedback |
-| Briefing feedback | `<workspace>/briefing_feedback.db` | User briefing item feedback |
+| Blinding audit | `<workspace>/.blinding_audits.db` | A/B blinding contamination audit (workspace-level) |
+| Feedback store | `~/.cache/research-pipeline/feedback.db` | User paper accept/reject feedback |
+| Briefing feedback | `<briefing-root>/feedback/feedback.db` | User briefing item feedback |
 | Topic memory | `<workspace>/topic_memory.db` | Briefing topic novelty memory |
 | Versioned entries | `~/.cache/research-pipeline/versioned_memory.db` | Versioned key-value memory store |
 
