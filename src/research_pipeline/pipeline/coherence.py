@@ -68,7 +68,10 @@ class KnowledgeUpdate:
     topic: str
     old_finding: Finding | None = None
     new_finding: Finding | None = None
-    update_type: str = "new"  # new / revised / superseded / retracted
+    # new / revised / superseded / retracted / out_of_scope
+    # (out_of_scope = the finding's source was not re-examined next run, so its
+    # absence is retrieval-scope churn rather than a knowledge regression, #186)
+    update_type: str = "new"
 
     def to_dict(self) -> dict[str, object]:
         return {
@@ -511,19 +514,30 @@ def track_knowledge_updates(
                     )
                 )
 
-        # Retracted/superseded findings (old findings with no match).
-        # Caveat (#122): a finding missing from the next run is labeled
-        # "retracted" WITHOUT checking whether its source paper was
-        # re-retrieved, so retrieval-scope churn is conflated with genuine
-        # regression — the regression signal is thus a lower bound. The
-        # principled fix (gate on retrieval provenance) is a #122 follow-up.
+        # Retracted / out-of-scope findings (old findings with no match).
+        # A finding vanishing from the next run is only a genuine "retracted"
+        # if that run actually re-examined its source; otherwise the run just
+        # retrieved a different paper set and the disappearance is
+        # retrieval-scope churn, not knowledge regression (#186). Gate on
+        # evidence provenance: the pool of evidence ids the new run's findings
+        # drew on. Only downgrade to "out_of_scope" when the old finding cites
+        # specific evidence AND none of it appears in that pool — i.e. we have
+        # positive proof the source was not re-examined. With no evidence ids
+        # to judge by (e.g. theme findings), keep "retracted" as before.
+        new_evidence: set[str] = set()
+        for fn in new_findings:
+            new_evidence.update(fn.evidence_ids)
+
         for oi, fo in enumerate(old_findings):
             if oi not in matched_old:
+                out_of_scope = bool(fo.evidence_ids) and not (
+                    set(fo.evidence_ids) & new_evidence
+                )
                 updates.append(
                     KnowledgeUpdate(
                         topic=fo.text[:100],
                         old_finding=fo,
-                        update_type="retracted",
+                        update_type="out_of_scope" if out_of_scope else "retracted",
                     )
                 )
 
@@ -590,9 +604,12 @@ def compute_temporal_ordering(
         return 1.0
 
     # Score: ratio of clean updates (new/revised) vs problematic (retracted
-    # can be fine, but high retraction rate suggests instability)
-    total = len(updates)
-    clean = sum(1 for u in updates if u.update_type in ("new", "revised"))
+    # can be fine, but high retraction rate suggests instability). out_of_scope
+    # updates are retrieval-scope churn, not knowledge events, so they are
+    # excluded from the ratio entirely rather than counted against it (#186).
+    scored = [u for u in updates if u.update_type != "out_of_scope"]
+    total = len(scored)
+    clean = sum(1 for u in scored if u.update_type in ("new", "revised"))
     return clean / total if total > 0 else 1.0
 
 
@@ -625,6 +642,9 @@ def compute_knowledge_update_fidelity(
     scored = 0
     good: float = 0
     for u in updates:
+        if u.update_type == "out_of_scope":
+            # Scope change, not a knowledge event — neutral, excluded (#186).
+            continue
         scored += 1
         if u.update_type == "new":
             good += 1

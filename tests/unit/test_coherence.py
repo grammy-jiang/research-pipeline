@@ -439,6 +439,42 @@ class TestTrackKnowledgeUpdates:
         assert len(updates) == 1
         assert updates[0].update_type == "retracted"
 
+    def test_out_of_scope_when_source_not_re_examined(self) -> None:
+        # Old finding cites paper e1; the next run's findings draw only on e2,
+        # so e1 was never re-examined — the disappearance is retrieval-scope
+        # churn (out_of_scope), not a retraction (#186).
+        findings = {
+            "r1": [Finding(text="alpha beta gamma", evidence_ids=["e1"])],
+            "r2": [Finding(text="omega sigma tau", evidence_ids=["e2"])],
+        }
+        updates = track_knowledge_updates(findings, ["r1", "r2"])
+        dropped = [u for u in updates if u.update_type in ("retracted", "out_of_scope")]
+        assert len(dropped) == 1
+        assert dropped[0].update_type == "out_of_scope"
+
+    def test_retracted_when_source_re_examined(self) -> None:
+        # Old finding cites paper e1; the next run still draws on e1 (via a
+        # different, non-matching finding) yet the claim is gone — a genuine
+        # retraction (#186).
+        findings = {
+            "r1": [Finding(text="alpha beta gamma", evidence_ids=["e1"])],
+            "r2": [Finding(text="omega sigma tau", evidence_ids=["e1"])],
+        }
+        updates = track_knowledge_updates(findings, ["r1", "r2"])
+        dropped = [u for u in updates if u.update_type in ("retracted", "out_of_scope")]
+        assert len(dropped) == 1
+        assert dropped[0].update_type == "retracted"
+
+    def test_out_of_scope_not_penalised_in_temporal_ordering(self) -> None:
+        # Before the fix this pair scored 0.5 (retracted + new); now the
+        # scope-churn drop is excluded, so only the clean "new" update counts
+        # and the score is a neutral 1.0 (#186).
+        findings = {
+            "r1": [Finding(text="alpha beta gamma", evidence_ids=["e1"])],
+            "r2": [Finding(text="omega sigma tau", evidence_ids=["e2"])],
+        }
+        assert compute_temporal_ordering(findings, ["r1", "r2"]) == 1.0
+
     def test_revised_findings(self) -> None:
         findings = {
             "r1": [
