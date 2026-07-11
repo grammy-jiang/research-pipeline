@@ -50,7 +50,7 @@ class TestFileNotFound:
 
 
 _GET_BACKEND = "research_pipeline.conversion.registry.get_backend"
-_ENSURE_BUILTINS = "research_pipeline.conversion.registry._ensure_builtins_registered"
+_ENSURE_BUILTINS = "research_pipeline.conversion.registry.ensure_builtins_registered"
 _LOAD_CONFIG = "research_pipeline.config.loader.load_config"
 
 

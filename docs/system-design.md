@@ -366,15 +366,31 @@ flowchart TD
     CLI --> Intelligence
     CLI --> Evaluation
     CLI --> MemStore
+    CLI --> CrossCut
     MCP --> Core
     MCP --> Intelligence
     MCP --> MemStore
+    MCP --> CrossCut
     Core --> Intelligence
     Core --> MemStore
     Core --> CrossCut
     Intelligence --> CrossCut
     Evaluation --> CrossCut
 ```
+
+**Layering enforcement (#109).** `cli/` and `mcp_server/` are thin presentation
+surfaces: both depend only on Core / Intelligence / Evaluation / Memory & Storage /
+Cross-cutting — **never the reverse**. The Core orchestrator no longer imports the
+CLI layer (closing the former `pipeline ↔ cli` import cycle), and the MCP server no
+longer reaches into CLI-private helpers; the shared stage logic those surfaces used
+to borrow from `cli/cmd_*.py` now lives in its owning Core package
+(`conversion/factory.py`, `arxiv/query_builder.py`, `quality/runner.py`,
+`pipeline/expand.py`, `pipeline/compare.py`, `analysis/runner.py`,
+`analysis/tasks.py`, `confidence/runner.py`, `confidence/layers_runner.py`,
+`summarization/report_validation.py`, `infra/watch_state.py`,
+`mcp_server/serve.py`). `tests/unit/test_layering.py` pins this — it fails if any
+module under `pipeline/` or `mcp_server/` imports `research_pipeline.cli` (at module
+level or inside a function).
 
 ### 9.2 Sub-Package Catalogue
 
@@ -411,7 +427,7 @@ flowchart TD
 ### 9.3 Architecture Principles
 
 1. **Idempotent stages** — every stage can be safely re-run; SHA-256 artifact hashing detects stale outputs.
-2. **Separation of concerns** — each sub-package has a single well-defined responsibility; cross-cutting concerns (rate limiting, retry, logging) live in `infra/`.
+2. **Separation of concerns / enforced layering** — each sub-package has a single well-defined responsibility; cross-cutting concerns (rate limiting, retry, logging) live in `infra/`. `cli/` and `mcp_server/` are thin presentation wrappers over the Core packages and never the reverse — pinned by `tests/unit/test_layering.py` (#109).
 3. **Pydantic everywhere** — all domain objects are `BaseModel` subclasses for schema validation, serialisation, and IDE support.
 4. **Fail-fast validation** — structural verification gates (`verify_stage`) check stage output format before the next stage starts.
 5. **Determinism by default** — no randomness in ranking or screening unless explicitly seeded; results must be reproducible from the same `run_manifest.json`.

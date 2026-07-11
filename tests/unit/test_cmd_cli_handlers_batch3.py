@@ -396,7 +396,7 @@ class TestCmdConvert:
         assert result[0]["llm_api_key"] == "sk-test"
 
     @patch("research_pipeline.conversion.factory.get_backend")
-    @patch("research_pipeline.conversion.factory._ensure_builtins_registered")
+    @patch("research_pipeline.conversion.factory.ensure_builtins_registered")
     @patch("research_pipeline.cli.cmd_convert.load_config")
     def test_run_convert_no_manifest_exits(
         self,
@@ -413,7 +413,7 @@ class TestCmdConvert:
             run_convert(workspace=tmp_path, run_id="test-convert-001")
 
     @patch("research_pipeline.conversion.factory.get_backend")
-    @patch("research_pipeline.conversion.factory._ensure_builtins_registered")
+    @patch("research_pipeline.conversion.factory.ensure_builtins_registered")
     @patch("research_pipeline.cli.cmd_convert.load_config")
     def test_run_convert_with_entries(
         self,

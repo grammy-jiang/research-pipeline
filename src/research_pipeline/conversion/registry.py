@@ -61,7 +61,7 @@ def list_backends() -> list[str]:
     return sorted(_BACKEND_REGISTRY)
 
 
-def _ensure_builtins_registered() -> None:
+def ensure_builtins_registered() -> None:
     """Import builtin backend modules so their ``@register_backend`` decorators run."""
     # Local backends
     # Online/cloud backends
