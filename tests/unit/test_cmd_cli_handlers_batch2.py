@@ -1006,9 +1006,9 @@ class TestCmdEvalLog:
 class TestCmdExpand:
     """Tests for cmd_expand."""
 
-    @patch("research_pipeline.cli.cmd_expand.load_config")
+    @patch("research_pipeline.pipeline.expand.load_config")
     def test_empty_paper_ids_returns(self, mock_cfg, tmp_path):
-        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.pipeline.expand import run_expand
 
         mock_cfg.return_value = _make_config(tmp_path)
         # Should return early without error
@@ -1020,9 +1020,9 @@ class TestCmdExpand:
             run_id="run1",
         )
 
-    @patch("research_pipeline.cli.cmd_expand.load_config")
+    @patch("research_pipeline.pipeline.expand.load_config")
     def test_no_run_id_returns(self, mock_cfg, tmp_path):
-        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.pipeline.expand import run_expand
 
         mock_cfg.return_value = _make_config(tmp_path)
         run_expand(
@@ -1033,15 +1033,15 @@ class TestCmdExpand:
             run_id=None,
         )
 
-    @patch("research_pipeline.cli.cmd_expand.write_jsonl")
-    @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
-    @patch("research_pipeline.cli.cmd_expand.RateLimiter")
-    @patch("research_pipeline.cli.cmd_expand.init_run")
-    @patch("research_pipeline.cli.cmd_expand.load_config")
+    @patch("research_pipeline.pipeline.expand.write_jsonl")
+    @patch("research_pipeline.pipeline.expand.CitationGraphClient")
+    @patch("research_pipeline.pipeline.expand.RateLimiter")
+    @patch("research_pipeline.pipeline.expand.init_run")
+    @patch("research_pipeline.pipeline.expand.load_config")
     def test_standard_expand_happy_path(
         self, mock_cfg, mock_init, mock_limiter, mock_client_cls, mock_write, tmp_path
     ):
-        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.pipeline.expand import run_expand
 
         mock_cfg.return_value = _make_config(tmp_path)
         run_dir = tmp_path / "run1"
@@ -1066,14 +1066,14 @@ class TestCmdExpand:
         client.fetch_related.assert_called_once()
         mock_write.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
-    @patch("research_pipeline.cli.cmd_expand.RateLimiter")
-    @patch("research_pipeline.cli.cmd_expand.init_run")
-    @patch("research_pipeline.cli.cmd_expand.load_config")
+    @patch("research_pipeline.pipeline.expand.CitationGraphClient")
+    @patch("research_pipeline.pipeline.expand.RateLimiter")
+    @patch("research_pipeline.pipeline.expand.init_run")
+    @patch("research_pipeline.pipeline.expand.load_config")
     def _run_expand_over_existing(
         self, mock_cfg, mock_init, mock_limiter, mock_client_cls, tmp_path, replace
     ):
-        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.pipeline.expand import run_expand
         from research_pipeline.storage.manifests import read_jsonl
         from research_pipeline.storage.workspace import get_stage_dir
 
@@ -1117,15 +1117,15 @@ class TestCmdExpand:
         ids = self._run_expand_over_existing(tmp_path=tmp_path, replace=True)
         assert ids == {"2301.00002", "2301.00003"}
 
-    @patch("research_pipeline.cli.cmd_expand.write_jsonl")
-    @patch("research_pipeline.cli.cmd_expand.CitationGraphClient")
-    @patch("research_pipeline.cli.cmd_expand.RateLimiter")
-    @patch("research_pipeline.cli.cmd_expand.init_run")
-    @patch("research_pipeline.cli.cmd_expand.load_config")
+    @patch("research_pipeline.pipeline.expand.write_jsonl")
+    @patch("research_pipeline.pipeline.expand.CitationGraphClient")
+    @patch("research_pipeline.pipeline.expand.RateLimiter")
+    @patch("research_pipeline.pipeline.expand.init_run")
+    @patch("research_pipeline.pipeline.expand.load_config")
     def test_snowball_mode(
         self, mock_cfg, mock_init, mock_limiter, mock_client_cls, mock_write, tmp_path
     ):
-        from research_pipeline.cli.cmd_expand import run_expand
+        from research_pipeline.pipeline.expand import run_expand
 
         mock_cfg.return_value = _make_config(tmp_path)
         run_dir = tmp_path / "run1"

@@ -1,4 +1,7 @@
-"""CLI handler for the 'expand' command.
+"""Citation-graph expansion stage (#109).
+
+Core stage logic shared by the CLI (`expand` command) and the pipeline
+orchestrator, so it no longer lives in the presentation layer.
 
 Fetches citation and reference graphs for specified papers using the
 Semantic Scholar API.  The user (or agent) must explicitly provide

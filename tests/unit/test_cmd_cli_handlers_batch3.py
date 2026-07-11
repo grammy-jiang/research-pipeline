@@ -2368,7 +2368,7 @@ class TestAppWrappers:
         )
         mock_run.assert_called_once()
 
-    @patch("research_pipeline.cli.cmd_expand.run_expand")
+    @patch("research_pipeline.pipeline.expand.run_expand")
     def test_app_expand_dispatches(self, mock_run: MagicMock) -> None:
         from research_pipeline.cli.app import expand
 
