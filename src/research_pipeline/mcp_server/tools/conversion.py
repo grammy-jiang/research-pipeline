@@ -48,7 +48,7 @@ def convert_pdfs(params: ConvertPdfsInput, ctx: Context | None = None) -> ToolRe
         if not dl_manifest_path.exists():
             return ToolResult(
                 success=False,
-                message="No download manifest found. Run download_pdfs first.",
+                message="No download manifest found. Run tool_download_pdfs first.",
             )
 
         raw = read_jsonl(dl_manifest_path)
@@ -216,7 +216,7 @@ def convert_rough(params: ConvertRoughInput, ctx: Context | None = None) -> Tool
         if not dl_manifest_path.exists():
             return ToolResult(
                 success=False,
-                message="No download manifest found. Run download first.",
+                message="No download manifest found. Run tool_download_pdfs first.",
             )
 
         raw = read_jsonl(dl_manifest_path)
@@ -302,7 +302,7 @@ def convert_fine(params: ConvertFineInput, ctx: Context | None = None) -> ToolRe
         if not dl_manifest_path.exists():
             return ToolResult(
                 success=False,
-                message="No download manifest found. Run download first.",
+                message="No download manifest found. Run tool_download_pdfs first.",
             )
 
         raw = read_jsonl(dl_manifest_path)

@@ -74,7 +74,10 @@ def evaluate_quality(
         if not candidates_path.exists():
             return ToolResult(
                 success=False,
-                message="No candidates found. Run search or screen first.",
+                message=(
+                    "No candidates found. "
+                    "Run tool_search or tool_screen_candidates first."
+                ),
             )
 
         raw_records = read_jsonl(candidates_path)
@@ -163,7 +166,10 @@ def analyze_papers(
             if not json_files:
                 return ToolResult(
                     success=False,
-                    message="No analysis JSON files found. Run paper-analyzer first.",
+                    message=(
+                        "No analysis JSON files found. "
+                        "Launch the paper-analyzer sub-agent first."
+                    ),
                 )
             from research_pipeline.analysis.tasks import validate_analysis_json
 
@@ -213,7 +219,7 @@ def analyze_papers(
         if not papers:
             return ToolResult(
                 success=False,
-                message="No converted papers found. Run convert first.",
+                message="No converted papers found. Run tool_convert_pdfs first.",
             )
 
         topic = load_research_topic(run_root)

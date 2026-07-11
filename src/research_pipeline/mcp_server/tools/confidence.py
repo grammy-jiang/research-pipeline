@@ -149,7 +149,9 @@ def analyze_claims_tool(
             if not summary_files:
                 return ToolResult(
                     success=False,
-                    message="No paper summaries found. Run 'summarize' first.",
+                    message=(
+                        "No paper summaries found. Run tool_summarize_papers first."
+                    ),
                 )
             raw = []
             for sf in summary_files:
@@ -222,7 +224,7 @@ def score_claims_tool(
         if not claims_path.exists():
             return ToolResult(
                 success=False,
-                message="No claim decompositions found. Run 'analyze-claims' first.",
+                message="No claim decompositions found. Run tool_analyze_claims first.",
             )
 
         _report_progress(ctx, 0, 3, "Loading decompositions")

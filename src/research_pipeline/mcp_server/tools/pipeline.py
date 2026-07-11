@@ -272,7 +272,7 @@ def screen_candidates(
         if not candidates_path.exists():
             return ToolResult(
                 success=False,
-                message="No candidates found. Run search_arxiv first.",
+                message="No candidates found. Run tool_search first.",
             )
 
         screen_dir = get_stage_dir(run_root, "screen")
@@ -345,7 +345,7 @@ def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> Tool
         if not shortlist_path.exists():
             return ToolResult(
                 success=False,
-                message="No shortlist found. Run screen_candidates first.",
+                message="No shortlist found. Run tool_screen_candidates first.",
             )
 
         download_dir = get_stage_dir(run_root, "download")
@@ -404,7 +404,7 @@ def extract_content(
         if not md_files:
             return ToolResult(
                 success=False,
-                message="No Markdown files found. Run convert_pdfs first.",
+                message="No Markdown files found. Run tool_convert_pdfs first.",
             )
 
         # Load download manifest to get arxiv_id/version per file
@@ -471,7 +471,7 @@ def summarize_papers(
         if not md_files:
             return ToolResult(
                 success=False,
-                message="No Markdown files found. Run convert_pdfs first.",
+                message="No Markdown files found. Run tool_convert_pdfs first.",
             )
 
         # Load plan for topic terms
@@ -770,7 +770,10 @@ def compute_semantic_scores(
         if not candidates_path.exists():
             return ToolResult(
                 success=False,
-                message="No candidates found. Run search or screen first.",
+                message=(
+                    "No candidates found. "
+                    "Run tool_search or tool_screen_candidates first."
+                ),
             )
 
         raw_records = read_jsonl(candidates_path)
