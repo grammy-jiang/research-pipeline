@@ -12,7 +12,7 @@ from __future__ import annotations
 import logging
 from pathlib import Path
 
-from research_pipeline.conversion.base import ConverterBackend
+from research_pipeline.conversion.base import PROGRAMMING_ERRORS, ConverterBackend
 from research_pipeline.conversion.registry import register_backend
 from research_pipeline.infra.clock import utc_now
 from research_pipeline.infra.hashing import sha256_file, sha256_str
@@ -142,6 +142,8 @@ class PyMuPDF4LLMBackend(ConverterBackend):
                 error=msg,
             )
         except Exception as exc:
+            if isinstance(exc, PROGRAMMING_ERRORS):
+                raise
             logger.error("pymupdf4llm conversion failed for %s: %s", pdf_path.name, exc)
             return ConvertManifestEntry(
                 arxiv_id=arxiv_id,
