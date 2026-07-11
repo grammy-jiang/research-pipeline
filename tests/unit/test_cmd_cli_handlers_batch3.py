@@ -156,19 +156,17 @@ class TestCmdPlan:
         mock_augment: MagicMock,
         tmp_path: Path,
     ) -> None:
-        from research_pipeline.cli.cmd_plan import (
-            _split_topic_terms,
-        )
+        from research_pipeline.arxiv.query_builder import split_topic_terms
 
-        must, nice = _split_topic_terms("the best approach for deep learning")
+        must, nice = split_topic_terms("the best approach for deep learning")
         assert "the" not in must
         assert "for" not in must
         assert "best" in must or "best" in nice
 
     def test_generate_query_variants(self) -> None:
-        from research_pipeline.cli.cmd_plan import _generate_query_variants
+        from research_pipeline.arxiv.query_builder import generate_query_variants
 
-        variants = _generate_query_variants(
+        variants = generate_query_variants(
             must_terms=["transformers", "attention"],
             nice_terms=["time", "series"],
             max_variants=5,
@@ -179,9 +177,9 @@ class TestCmdPlan:
         assert "transformers" in variants[0]
 
     def test_filter_stop_words(self) -> None:
-        from research_pipeline.cli.cmd_plan import _filter_stop_words
+        from research_pipeline.arxiv.query_builder import filter_stop_words
 
-        result = _filter_stop_words(["the", "deep", "learning", "for", "nlp"])
+        result = filter_stop_words(["the", "deep", "learning", "for", "nlp"])
         assert result == ["deep", "learning", "nlp"]
 
 
