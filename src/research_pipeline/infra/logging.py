@@ -6,19 +6,23 @@ import sys
 from datetime import UTC, datetime
 from pathlib import Path
 
+from research_pipeline.infra.sanitize import redact_secrets
+
 
 class JSONLFormatter(logging.Formatter):
     """Format log records as single-line JSON objects."""
 
     def format(self, record: logging.LogRecord) -> str:
+        # Redact credential-shaped substrings before they reach the log (#125,
+        # HC6): a key surfaced in a message/exception must not be persisted.
         entry: dict[str, object] = {
             "timestamp": datetime.fromtimestamp(record.created, tz=UTC).isoformat(),
             "level": record.levelname,
             "logger": record.name,
-            "message": record.getMessage(),
+            "message": redact_secrets(record.getMessage()),
         }
         if record.exc_info and record.exc_info[1] is not None:
-            entry["exception"] = self.formatException(record.exc_info)
+            entry["exception"] = redact_secrets(self.formatException(record.exc_info))
         if hasattr(record, "extra_data"):
             entry["data"] = record.extra_data
         return json.dumps(entry, default=str)

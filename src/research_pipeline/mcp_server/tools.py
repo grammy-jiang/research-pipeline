@@ -109,14 +109,18 @@ def _scrub_exc(exc: object) -> str:
     """Redact absolute filesystem paths from an exception message.
 
     Tool errors are returned to the client verbatim; raw exception text can
-    leak internal directory structure (and the OS username via the home dir).
-    Replace the home and working-directory prefixes with an ellipsis. See #44.
+    leak internal directory structure (and the OS username via the home dir),
+    and — since backends are built with live API keys — a credential embedded in
+    an exception (#125, HC6). Replace the home/working-directory prefixes with an
+    ellipsis, then redact credential-shaped substrings.
     """
+    from research_pipeline.infra.sanitize import redact_secrets
+
     text = str(exc)
     for base in (str(Path.home()), str(Path.cwd())):
         if base and base != "/":
             text = text.replace(base, "…")
-    return text
+    return redact_secrets(text)
 
 
 def _backend_kwargs(
