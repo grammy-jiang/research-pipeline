@@ -2,8 +2,8 @@
   "errors": [],
   "metrics": {
     "item_count": 50,
-    "link_count": 54,
-    "word_count": 3499
+    "link_count": 51,
+    "word_count": 3240
   },
   "passed": true,
   "warnings": []
