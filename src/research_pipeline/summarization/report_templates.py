@@ -239,7 +239,7 @@ without selecting an architecture.
 
 | Paper | Title | Year | Venue |
 |-------|-------|------|-------|
-{% for p in report.corpus %}
+{% for p in report.corpus -%}
 | {{ p.paper_id }} | {{ p.title }} | {{ p.year }} | {{ p.venue }} |
 {% endfor %}
 
@@ -287,7 +287,7 @@ No taxonomy entries identified.
 
 | Paper | Methods | Results | Assumptions | Limitations |
 |-------|---------|---------|-------------|-------------|
-{% for row in report.evidence_matrix %}
+{% for row in report.evidence_matrix -%}
 | {{ row.paper_id }} | {{ row.methods }} | {{ row.results }} | {{ row.assumptions }} | {{ row.limitations }} |
 {% endfor %}
 
@@ -357,7 +357,7 @@ No contradictions identified.
 
 | Item | Type | Papers | Evidence | Confidence |
 |------|------|--------|----------|------------|
-{% for row in report.traceability_appendix %}
+{% for row in report.traceability_appendix -%}
 | {{ row.item_id }} | {{ row.item_type }} | {{ row.papers }} | {{ row.evidence_ids }} | {{ row.confidence }} |
 {% endfor %}
 """

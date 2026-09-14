@@ -159,3 +159,22 @@ def test_strict_validation_rejects_malformed_mermaid_closing_fence(tmp_path):
     result = validate_report(report, strict_format=True)
     assert result["verdict"] == "FAIL"
     assert result["workflow_format_passed"] is False
+
+
+def test_structured_report_rows_render_inside_markdown_tables():
+    from markdown_it import MarkdownIt
+
+    record = CrossPaperSynthesisRecord(
+        topic="Fixture tables",
+        corpus=[{"paper_id": pid, "title": "Fixture"} for pid in ("p1", "p2")],
+        evidence_matrix=[{"paper_id": pid} for pid in ("p1", "p2")],
+        traceability_appendix=[{"item_id": pid} for pid in ("p1", "p2")],
+    )
+    html = (
+        MarkdownIt()
+        .enable("table")
+        .render(render_report(record, "structured_synthesis"))
+    )
+    # Both papers must be data cells in the corpus, evidence and traceability tables.
+    assert html.count("<td>p1</td>") == 3
+    assert html.count("<td>p2</td>") == 3

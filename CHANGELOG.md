@@ -38,6 +38,7 @@ bundled Research Pipeline manifest moves from 2.0.0 to 2.1.0.
   validation and a publication format check. Annotate MCP validation as mutating.
 - Preserve closing Markdown fences in multiline worker findings; reject
   unterminated Mermaid blocks before publication.
+- Keep structured table rows contiguous so Markdown renders actual data cells.
 - Render the selected synthesis explicitly, validate the draft, and publish
   only the exact validated content. Failed validation propagates to CLI/MCP.
 - Preserve prior reports with unique snapshots and carry prior paper IDs and
@@ -53,7 +54,7 @@ bundled Research Pipeline manifest moves from 2.0.0 to 2.1.0.
   compatibility with mcp[cli]>=1.30,<2.
 - Raise vulnerable runtime dependency floors and update the locked documentation
   and audit dependencies to patched versions identified by the release CI gate.
-- Local Python 3.12 verification: 4,863 passed, 1 skipped; coverage 84.87%.
+- Local Python 3.12 verification: 4,864 passed, 1 skipped; coverage 84.87%.
 - These changes do not establish provider recovery. Existing configs can
   override the new defaults. Shared pacing is local; SDK-internal requests,
   other hosts and streamed response bodies have the documented limitations.
