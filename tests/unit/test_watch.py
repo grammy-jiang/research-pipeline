@@ -84,6 +84,13 @@ class TestLoadQueries:
 class TestWatchCommand:
     """Tests for watch_command."""
 
+    @pytest.fixture(autouse=True)
+    def configured_watch(self, tmp_path: Path) -> None:
+        """Supply the explicit configuration path used by command fixtures."""
+        (tmp_path / "config.toml").write_text(
+            "[arxiv]\nmin_interval_seconds = 45\n", encoding="utf-8"
+        )
+
     def test_exits_when_no_queries(self, tmp_path: Path) -> None:
         """Exits with error when no queries file found."""
         from click.exceptions import Exit
@@ -137,6 +144,8 @@ class TestWatchCommand:
         )
 
         assert mock_client.search.call_count == 2
+        mock_session_fn.assert_called_once_with("", 45)
+        mock_limiter_cls.assert_called_once_with(45)
 
     @patch("research_pipeline.cli.cmd_watch.ArxivClient")
     @patch("research_pipeline.cli.cmd_watch.create_session")

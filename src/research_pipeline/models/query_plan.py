@@ -47,6 +47,10 @@ class QueryPlan(BaseModel):
         default_factory=list,
         description="3-6 arXiv query strings to execute.",
     )
+    source_queries: dict[str, list[str]] = Field(
+        default_factory=dict,
+        description="Plain queries per non-arXiv provider; logged as executed.",
+    )
     primary_months: int = Field(
         default=6,
         description="Primary search window in months.",

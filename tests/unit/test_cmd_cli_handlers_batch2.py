@@ -1709,164 +1709,146 @@ class TestCmdSearch:
                 source="arxiv",
             )
 
-    @patch("research_pipeline.cli.cmd_search.write_jsonl")
-    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
-    @patch("research_pipeline.cli.cmd_search.init_run")
+    @patch("research_pipeline.cli.cmd_search._search_arxiv")
     @patch("research_pipeline.cli.cmd_search.load_config")
-    def test_happy_path_with_topic(
-        self, mock_cfg, mock_init, mock_dedup, mock_write, tmp_path
-    ):
+    def test_happy_path_with_topic(self, mock_cfg, mock_arxiv, tmp_path):
         from research_pipeline.cli.cmd_search import run_search
+        from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.models.candidate import CandidateRecord
 
-        mock_cfg.return_value = _make_config(tmp_path)
-        run_dir = tmp_path / "run1"
-        mock_init.return_value = ("run1", run_dir)
-        (run_dir / "plan").mkdir(parents=True)
-        (run_dir / "search").mkdir(parents=True)
+        config = PipelineConfig(workspace=str(tmp_path))
+        config.search.fallback_months = config.search.primary_months
+        mock_cfg.return_value = config
+        mock_arxiv.return_value = [CandidateRecord.model_validate(_candidate_dict())]
 
-        mock_dedup.return_value = []
-
-        # Use an unknown source so it just logs a warning and skips
         run_search(
             topic="transformer architectures",
-            resume=False,
-            config_path=None,
-            workspace=tmp_path,
-            run_id="run1",
-            source="nonexistent_source",
-        )
-
-        mock_dedup.assert_called_once()
-        mock_write.assert_called_once()
-
-    @patch("research_pipeline.cli.cmd_search.write_jsonl")
-    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
-    @patch("research_pipeline.cli.cmd_search._search_arxiv")
-    @patch("research_pipeline.cli.cmd_search.init_run")
-    @patch("research_pipeline.cli.cmd_search.load_config")
-    def test_zero_yield_source_warns_and_strict_exits(
-        self, mock_cfg, mock_init, mock_arxiv, mock_dedup, mock_write, tmp_path, capsys
-    ):
-        from research_pipeline.cli.cmd_search import run_search
-
-        mock_cfg.return_value = _make_config(tmp_path)
-        run_dir = tmp_path / "run1"
-        mock_init.return_value = ("run1", run_dir)
-        (run_dir / "plan").mkdir(parents=True)
-        (run_dir / "search").mkdir(parents=True)
-        mock_dedup.return_value = []
-        mock_arxiv.return_value = []  # zero yield (#20)
-
-        run_search(
-            topic="t",
-            resume=False,
-            config_path=None,
             workspace=tmp_path,
             run_id="run1",
             source="arxiv",
         )
+
+        search_dir = tmp_path / "run1" / "search"
+        records = [
+            json.loads(line)
+            for line in (search_dir / "candidates.jsonl").read_text().splitlines()
+        ]
+        assert records[0]["arxiv_id"] == "2301.00001"
+        coverage = json.loads((search_dir / "source_coverage.json").read_text())
+        assert coverage["status"] == "ok"
+        assert coverage["candidate_count"] == 1
+        mock_arxiv.assert_called_once()
+
+        with pytest.raises(click.exceptions.Exit) as exc_info:
+            run_search(
+                topic="transformer architectures",
+                workspace=tmp_path,
+                run_id="unknown-source",
+                source="nonexistent_source",
+            )
+        assert exc_info.value.exit_code == 1
+        failed = json.loads(
+            (
+                tmp_path / "unknown-source" / "search" / "source_coverage.json"
+            ).read_text()
+        )
+        assert failed["status"] == "failed"
+        assert failed["attempts"][0]["status"] == "unavailable"
+        mock_arxiv.assert_called_once()
+
+    @patch("research_pipeline.cli.cmd_search._search_arxiv", return_value=[])
+    @patch("research_pipeline.cli.cmd_search.load_config")
+    def test_zero_yield_source_warns_and_strict_exits(
+        self, mock_cfg, mock_arxiv, tmp_path, capsys
+    ):
+        from research_pipeline.cli.cmd_search import run_search
+        from research_pipeline.config.models import PipelineConfig
+
+        config = PipelineConfig(workspace=str(tmp_path))
+        config.search.fallback_months = config.search.primary_months
+        mock_cfg.return_value = config
+
+        run_search(topic="t", workspace=tmp_path, run_id="run1", source="arxiv")
         captured = capsys.readouterr()
         assert "contributed nothing" in (captured.out + captured.err)
+        coverage = json.loads(
+            (tmp_path / "run1" / "search" / "source_coverage.json").read_text()
+        )
+        assert coverage["status"] == "empty"
+        assert coverage["attempts"][0]["status"] == "empty"
 
-        with pytest.raises(click.exceptions.Exit):
+        with pytest.raises(click.exceptions.Exit) as exc_info:
             run_search(
                 topic="t",
-                resume=False,
-                config_path=None,
                 workspace=tmp_path,
-                run_id="run1",
+                run_id="strict",
                 source="arxiv",
                 strict_sources=True,
             )
+        assert exc_info.value.exit_code == 1
+        assert mock_arxiv.call_count == 2
 
-    @patch("research_pipeline.cli.cmd_search.write_jsonl")
-    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
     @patch("research_pipeline.cli.cmd_search._search_arxiv")
-    @patch("research_pipeline.cli.cmd_search.init_run")
     @patch("research_pipeline.cli.cmd_search.load_config")
-    def test_happy_path_with_existing_plan(
-        self, mock_cfg, mock_init, mock_arxiv, mock_dedup, mock_write, tmp_path
-    ):
+    def test_happy_path_with_existing_plan(self, mock_cfg, mock_arxiv, tmp_path):
         from research_pipeline.cli.cmd_search import run_search
+        from research_pipeline.config.models import PipelineConfig
+        from research_pipeline.models.candidate import CandidateRecord
 
-        mock_cfg.return_value = _make_config(tmp_path)
-        run_dir = tmp_path / "run1"
-        mock_init.return_value = ("run1", run_dir)
-
-        plan_dir = run_dir / "plan"
+        mock_cfg.return_value = PipelineConfig(workspace=str(tmp_path))
+        plan_dir = tmp_path / "run1" / "plan"
         plan_dir.mkdir(parents=True)
-
         plan_data = {
             "topic_raw": "transformers",
             "topic_normalized": "transformers",
             "must_terms": ["transformer"],
             "nice_terms": ["attention"],
+            "primary_months": 6,
+            "fallback_months": 6,
         }
         (plan_dir / "query_plan.json").write_text(
             json.dumps(plan_data), encoding="utf-8"
         )
-        (run_dir / "search").mkdir(parents=True)
+        mock_arxiv.return_value = [CandidateRecord.model_validate(_candidate_dict())]
 
-        candidate = MagicMock()
-        candidate.model_dump.return_value = {"arxiv_id": "2301.00001"}
-        mock_arxiv.return_value = [candidate]
-        mock_dedup.return_value = [candidate]
-
-        run_search(
-            topic=None,
-            resume=False,
-            config_path=None,
-            workspace=tmp_path,
-            run_id="run1",
-            source="arxiv",
-        )
+        run_search(workspace=tmp_path, run_id="run1", source="arxiv")
 
         mock_arxiv.assert_called_once()
-        mock_dedup.assert_called_once()
+        assert mock_arxiv.call_args.args[0].topic_raw == "transformers"
+        search_dir = tmp_path / "run1" / "search"
+        record = json.loads((search_dir / "candidates.jsonl").read_text())
+        assert record["arxiv_id"] == "2301.00001"
+        coverage = json.loads((search_dir / "source_coverage.json").read_text())
+        assert coverage["status"] == "ok"
+        assert coverage["candidate_count"] == 1
 
-    @patch("research_pipeline.cli.cmd_search.write_jsonl")
-    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
-    @patch("research_pipeline.cli.cmd_search.init_run")
+    @patch(
+        "research_pipeline.cli.cmd_search._search_arxiv",
+        side_effect=ImportError("missing dep"),
+    )
     @patch("research_pipeline.cli.cmd_search.load_config")
-    def test_search_import_error_handled(
-        self, mock_cfg, mock_init, mock_dedup, mock_write, tmp_path
-    ):
-        """Source that raises ImportError is handled gracefully."""
+    def test_search_import_error_handled(self, mock_cfg, mock_arxiv, tmp_path):
+        """Unavailable sources are recorded and fail the all-source search."""
         from research_pipeline.cli.cmd_search import run_search
+        from research_pipeline.config.models import PipelineConfig
 
-        mock_cfg.return_value = _make_config(tmp_path)
-        run_dir = tmp_path / "run1"
-        mock_init.return_value = ("run1", run_dir)
-
-        plan_dir = run_dir / "plan"
-        plan_dir.mkdir(parents=True)
-        plan_data = {
-            "topic_raw": "test",
-            "topic_normalized": "test",
-            "must_terms": ["test"],
-            "nice_terms": [],
-        }
-        (plan_dir / "query_plan.json").write_text(
-            json.dumps(plan_data), encoding="utf-8"
-        )
-        (run_dir / "search").mkdir(parents=True)
-
-        mock_dedup.return_value = []
-
-        with patch(
-            "research_pipeline.cli.cmd_search._search_arxiv",
-            side_effect=ImportError("missing dep"),
-        ):
+        mock_cfg.return_value = PipelineConfig(workspace=str(tmp_path))
+        with pytest.raises(click.exceptions.Exit) as exc_info:
             run_search(
-                topic=None,
-                resume=False,
-                config_path=None,
+                topic="test",
                 workspace=tmp_path,
                 run_id="run1",
                 source="arxiv",
             )
 
-        mock_dedup.assert_called_once()
+        assert exc_info.value.exit_code == 1
+        mock_arxiv.assert_called_once()
+        search_dir = tmp_path / "run1" / "search"
+        assert (search_dir / "candidates.jsonl").read_text() == ""
+        coverage = json.loads((search_dir / "source_coverage.json").read_text())
+        assert coverage["status"] == "failed"
+        assert coverage["attempts"][0]["status"] == "unavailable"
+        assert coverage["attempts"][0]["attempted_queries"] == []
 
 
 # ── 15. cmd_summarize ────────────────────────────────────────────────────

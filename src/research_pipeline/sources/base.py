@@ -102,3 +102,22 @@ def dedup_cross_source(
             removed,
         )
     return result
+
+
+class SourceUnavailable(RuntimeError):
+    """A configured provider cannot run until configuration/dependencies change."""
+
+
+class SourceSearchFailure(RuntimeError):
+    """Retain a source's partial candidates alongside its acquisition error."""
+
+    def __init__(
+        self,
+        cause: BaseException,
+        candidates: list[CandidateRecord],
+        attempted_queries: list[str] | None = None,
+    ) -> None:
+        super().__init__(type(cause).__name__)
+        self.cause = cause
+        self.candidates = candidates
+        self.attempted_queries = attempted_queries

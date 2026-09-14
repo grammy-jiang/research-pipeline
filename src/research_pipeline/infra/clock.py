@@ -44,3 +44,17 @@ def date_window(
         "Date window: %d months back → %s to %s", months_back, from_date, to_date
     )
     return from_date, to_date
+
+
+def provider_date(value: str, *, end_of_year: bool = False) -> str:
+    """Normalize ISO, year-only or compact arXiv dates to YYYY-MM-DD."""
+    from datetime import date, datetime
+
+    if len(value) == 4 and value.isdigit():
+        return date(
+            int(value), 12 if end_of_year else 1, 31 if end_of_year else 1
+        ).isoformat()
+    if value.isdigit() and len(value) in (8, 12, 14):
+        formats = {8: "%Y%m%d", 12: "%Y%m%d%H%M", 14: "%Y%m%d%H%M%S"}
+        return datetime.strptime(value, formats[len(value)]).date().isoformat()
+    return datetime.fromisoformat(value.replace("Z", "+00:00")).date().isoformat()

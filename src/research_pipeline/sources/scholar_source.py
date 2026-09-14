@@ -1,11 +1,16 @@
 """Google Scholar search source using scholarly (free) or SerpAPI (paid)."""
 
 import contextlib
+import hashlib
 import logging
 import re
 import time
 from datetime import UTC, datetime
 
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL
+from research_pipeline.infra.http import sdk_operation
+from research_pipeline.infra.request_budget import SharedRequestBudget
+from research_pipeline.infra.retry import safe_exception
 from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -37,10 +42,11 @@ class ScholarlySource:
 
     def __init__(
         self,
-        min_interval: float = 10.0,
+        min_interval: float = DEFAULT_SOURCE_INTERVAL,
     ) -> None:
         self._min_interval = min_interval
         self._last_request: float = 0.0
+        self._budget = SharedRequestBudget(self.name, min_interval)
 
     @property
     def name(self) -> str:
@@ -77,9 +83,11 @@ class ScholarlySource:
         Returns:
             List of CandidateRecords from Scholar.
         """
+        self.last_error: BaseException | None = None
         try:
             from scholarly import scholarly  # type: ignore[import-not-found]
         except ImportError:
+            self.last_error = ImportError("Optional provider dependency is missing")
             logger.error(
                 "scholarly is not installed. "
                 "Install with: pip install 'research-pipeline[scholar]'"
@@ -90,28 +98,30 @@ class ScholarlySource:
         query_parts = must_terms[:3]
         if nice_terms:
             query_parts.extend(nice_terms[:2])
-        query = " ".join(query_parts)
+        query = " ".join(query_parts) or topic
         logger.info("Scholar query: %s (max_results=%d)", query, max_results)
 
         candidates: list[CandidateRecord] = []
         try:
-            self._rate_wait()
-            search_query = scholarly.search_pubs(query)
+            with sdk_operation(self._budget):
+                search_query = iter(scholarly.search_pubs(query))
 
-            for i, result in enumerate(search_query):
-                if i >= max_results:
+            for i in range(max_results):
+                with sdk_operation(self._budget):
+                    result = next(search_query, None)
+                if result is None:
                     break
                 try:
                     candidate = self._parse_result(result)
                     candidates.append(candidate)
                 except Exception as exc:
-                    logger.warning("Failed to parse Scholar result %d: %s", i, exc)
-
-                if i > 0 and i % 5 == 0:
-                    self._rate_wait()
+                    logger.warning(
+                        "Failed to parse Scholar result %d: %s", i, safe_exception(exc)
+                    )
 
         except Exception as exc:
-            logger.error("Scholar search failed: %s", exc)
+            self.last_error = exc
+            logger.error("Scholar search failed: %s", safe_exception(exc))
 
         logger.info("Scholar returned %d candidates", len(candidates))
         return candidates
@@ -143,7 +153,9 @@ class ScholarlySource:
             arxiv_id, version = _extract_arxiv_id(eprint_url)
         if not arxiv_id:
             # Use a hash of the title as fallback ID
-            arxiv_id = f"scholar-{abs(hash(title.lower())) % 10**10}"
+            arxiv_id = (
+                "scholar-" + hashlib.sha256(title.lower().encode()).hexdigest()[:20]
+            )
             version = ""
 
         # Categories from venue
@@ -152,6 +164,7 @@ class ScholarlySource:
 
         return CandidateRecord(
             arxiv_id=arxiv_id,
+            source="scholar",
             version=version or "v1",
             title=title,
             authors=authors,
@@ -174,11 +187,12 @@ class SerpAPISource:
     def __init__(
         self,
         api_key: str = "",
-        min_interval: float = 5.0,
+        min_interval: float = DEFAULT_SOURCE_INTERVAL,
     ) -> None:
         self._api_key = api_key
         self._min_interval = min_interval
         self._last_request: float = 0.0
+        self._budget = SharedRequestBudget(self.name, min_interval)
 
     @property
     def name(self) -> str:
@@ -214,7 +228,9 @@ class SerpAPISource:
         Returns:
             List of CandidateRecords.
         """
+        self.last_error: BaseException | None = None
         if not self._api_key:
+            self.last_error = ValueError("SerpAPI key is missing")
             logger.error(
                 "SerpAPI key not set. Set RESEARCH_PIPELINE_SERPAPI_KEY "
                 "or configure sources.serpapi.api_key in config.toml"
@@ -224,6 +240,7 @@ class SerpAPISource:
         try:
             from serpapi import GoogleSearch  # type: ignore[import-not-found]
         except ImportError:
+            self.last_error = ImportError("Optional provider dependency is missing")
             logger.error(
                 "serpapi is not installed. "
                 "Install with: pip install 'research-pipeline[serpapi]'"
@@ -233,7 +250,7 @@ class SerpAPISource:
         query_parts = must_terms[:3]
         if nice_terms:
             query_parts.extend(nice_terms[:2])
-        query = " ".join(query_parts)
+        query = " ".join(query_parts) or topic
 
         params = {
             "engine": "google_scholar",
@@ -254,19 +271,24 @@ class SerpAPISource:
         candidates: list[CandidateRecord] = []
 
         try:
-            self._rate_wait()
-            search = GoogleSearch(params)
-            results = search.get_dict()
+            with sdk_operation(self._budget):
+                search = GoogleSearch(params)
+                results = search.get_dict()
+                if results.get("error"):
+                    raise RuntimeError("SerpAPI returned an error response")
 
             for result in results.get("organic_results", []):
                 try:
                     candidate = self._parse_result(result)
                     candidates.append(candidate)
                 except Exception as exc:
-                    logger.warning("Failed to parse SerpAPI result: %s", exc)
+                    logger.warning(
+                        "Failed to parse SerpAPI result: %s", safe_exception(exc)
+                    )
 
         except Exception as exc:
-            logger.error("SerpAPI search failed: %s", exc)
+            self.last_error = exc
+            logger.error("SerpAPI search failed: %s", safe_exception(exc))
 
         logger.info("SerpAPI returned %d candidates", len(candidates))
         return candidates
@@ -300,7 +322,9 @@ class SerpAPISource:
                 if arxiv_id:
                     break
         if not arxiv_id:
-            arxiv_id = f"scholar-{abs(hash(title.lower())) % 10**10}"
+            arxiv_id = (
+                "scholar-" + hashlib.sha256(title.lower().encode()).hexdigest()[:20]
+            )
             version = ""
 
         pdf_url = ""
@@ -309,6 +333,7 @@ class SerpAPISource:
 
         return CandidateRecord(
             arxiv_id=arxiv_id,
+            source="scholar",
             version=version or "v1",
             title=title,
             authors=authors,

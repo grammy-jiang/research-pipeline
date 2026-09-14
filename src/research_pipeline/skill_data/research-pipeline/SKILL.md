@@ -43,30 +43,47 @@ SKILL_DIR=~/.claude/skills/research-pipeline     # Claude Code
 # SKILL_DIR=~/.agents/skills/research-pipeline   # Codex CLI
 CFG=$SKILL_DIR/config.toml
 
-python3 $SKILL_DIR/runners/runner.py "<topic>" --config "$CFG"
+research-pipeline-workflow "<topic>" --config "$CFG"
 ```
 
 The runner reads `manifest.json`, initialises `workflow_state.json`,
 and drives all tasks in dependency order. Each task status is written
-to `workflow_state.json` before the next task begins. Completion is
-proved by artifact existence + schema validation — not by agent claim.
+to `workflow_state.json` before the next task begins. Completion requires successful execution receipts, schema and evidence checks,
+reviewer acceptance where configured, and validation of the published content.
 
 ## Rules
 
-1. **Do not bypass the runner.** Never call pipeline CLI commands
-   directly without the orchestrator updating `workflow_state.json`.
-2. **Resume = re-run the runner.** Pass `--state <existing>.json` to
-   continue an interrupted workflow. Idempotent: accepted tasks are skipped.
-3. **Sub-agent delegation.** When the runner prints `DELEGATE TO SUB-AGENT`,
-   execute the named sub-agent with the printed contract, then update
-   `workflow_state.json tasks.<id>.status = "accepted"` and re-run.
-4. **Reviewer gates.** If a reviewer sub-agent returns `status: "rejected"`,
-   fix the artifact, reset the task to `pending`, and re-run. Do not
-   override a `rejected` verdict.
-5. **Final report.** Write `./<topic-slug>-research-report.md` only after
-   `validate-report` is `accepted`. Never write it before that gate.
-6. **Evidence-based.** Every finding in the report must cite at least one
-   paper ID traceable to `screened.jsonl` or `analysis/`.
+1. **Use the runner and record execution results.** When a CLI/MCP stage is
+   delegated, use research-pipeline-workflow --state STATE --execute-task ID.
+   This captures the actual CLI exit code. For a direct MCP call, save its
+   ToolResult JSON and submit --complete-task ID --result-file RESULT.json.
+   A plan result must include artifacts.run_id; never guess the newest run.
+2. **Resume with the existing state.** Accepted gates are revalidated. Old states
+   without execution receipts stop for reconciliation; do not manufacture
+   successful receipts. Search --resume reads saved candidates and coverage.
+3. **Delegate using the printed contract.** A worker returns its artifacts and
+   a result JSON containing success. Submit that result through the runner;
+   never edit a task's status to accepted. Keep the user's requirements
+   separate from your research hypotheses and delegated instructions.
+4. **Honor failed gates and cooldowns.** Inspect the reason before using
+   --retry-task ID. The runner invalidates dependents and limits retries.
+   A reviewer rejection requires artifact correction and another independent
+   review; it cannot be overridden by setting a status.
+5. **Publish after validation.** The report task renders report/draft.md.
+   Deep mode reviews that exact draft and its synthesis input. Validation
+   records the draft hash; publish-report copies only that validated content
+   to ./<topic-slug>-research-report.md.
+6. **Check task fit before searching.** Choose date coverage from the question:
+   a foundational survey needs older work; the default six-month window does
+   not establish historical coverage. Inspect configured sources and optional
+   dependencies, set plain-language source_queries where needed, and
+   preserve the selected model/runtime. An analysis_model setting alone
+   does not prove which model performed delegated work.
+7. **Report evidence and gaps honestly.** Cite paper IDs from shortlist.json
+   and analysis files. Read source_coverage.json: failed or cooling sources
+   are coverage limitations, not evidence of no research. Evaluate academic
+   and engineering gaps separately before another round. Record pipeline
+   failures and the actual requests attempted.
 
 ## References
 
@@ -87,3 +104,7 @@ When `workflow_state.json` shows `status: complete`:
 1. Show the final report path and the round-history table.
 2. List any remaining open gaps (ACADEMIC / ENGINEERING) not closed this run.
 3. Offer to run another round, expand citations, or hand off to `req-analysis`.
+
+## Required report format
+
+Render Contents, Round History, a meaningful Mermaid diagram and LaTeX notation before review. Record only verified rounds; the built-in renderer describes the current synthesis snapshot and does not invent prior history. Invoke validation with --strict-format. Missing format elements must fail even if the weighted quality score passes. Publish only through the runner, which uses the active package interpreter and rechecks the report format against the validated content.

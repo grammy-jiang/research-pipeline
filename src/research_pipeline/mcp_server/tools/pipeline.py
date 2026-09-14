@@ -43,24 +43,18 @@ def plan_topic(params: PlanTopicInput, ctx: Context | None = None) -> ToolResult
     """Create a query plan from a natural language topic."""
     try:
         from research_pipeline.config.loader import load_config
-        from research_pipeline.models.query_plan import QueryPlan
         from research_pipeline.storage.workspace import init_run
 
         ws = _resolve_workspace(params.workspace)
+        if params.config_path and params.workspace == "./workspace":
+            ws = Path(load_config(Path(params.config_path)).workspace)
         rid = _resolve_run_id(params.run_id)
-        config = load_config()
+        config = load_config(Path(params.config_path) if params.config_path else None)
 
         rid, run_root = init_run(ws, rid)
-        plan = QueryPlan(
-            topic_raw=params.topic,
-            topic_normalized=params.topic.lower().strip(),
-            must_terms=params.topic.lower().split()[:5],
-            nice_terms=[],
-            query_variants=[],
-            candidate_categories=[],
-            negative_terms=[],
-            primary_months=config.search.primary_months,
-        )
+        from research_pipeline.pipeline.query_planning import build_query_plan
+
+        plan = build_query_plan(params.topic, config)
         plan_path = run_root / "plan" / "query_plan.json"
         plan_path.parent.mkdir(parents=True, exist_ok=True)
         plan_path.write_text(plan.model_dump_json(indent=2))
@@ -76,174 +70,85 @@ def plan_topic(params: PlanTopicInput, ctx: Context | None = None) -> ToolResult
 
 
 def search(params: SearchInput, ctx: Context | None = None) -> ToolResult:
-    """Search configured academic paper sources using the query plan."""
+    """Search sources with the same coverage and failure semantics as the CLI."""
     try:
-        from concurrent.futures import ThreadPoolExecutor, as_completed
-
-        from research_pipeline.arxiv.client import ArxivClient
-        from research_pipeline.arxiv.dedup import dedup_across_queries
-        from research_pipeline.arxiv.query_builder import build_query_from_plan
-        from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
         from research_pipeline.config.loader import load_config
-        from research_pipeline.infra.cache import FileCache
-        from research_pipeline.infra.clock import date_window
-        from research_pipeline.infra.http import create_session
-        from research_pipeline.models.candidate import CandidateRecord
         from research_pipeline.models.query_plan import QueryPlan
-        from research_pipeline.sources.base import dedup_cross_source
+        from research_pipeline.pipeline.source_search import (
+            _resolve_sources,
+            execute_search,
+            load_search_report,
+        )
         from research_pipeline.storage.workspace import get_stage_dir
 
-        config = load_config()
+        config = load_config(Path(params.config_path) if params.config_path else None)
         ws = _resolve_workspace(params.workspace)
+        if params.config_path and params.workspace == "./workspace":
+            ws = Path(load_config(Path(params.config_path)).workspace)
         rid = _resolve_run_id(params.run_id)
         run_root = _get_run_root(ws, rid)
-
         stage_dir = get_stage_dir(run_root, "search")
         candidates_path = stage_dir / "candidates.jsonl"
-
-        if params.resume and candidates_path.exists():
-            count = sum(1 for _ in candidates_path.open())
-            return ToolResult(
-                success=True,
-                message=f"Resumed: {count} existing candidates found.",
-                artifacts={"candidates": str(candidates_path)},
-            )
-
-        # Load or create query plan
+        coverage_path = stage_dir / "source_coverage.json"
+        if params.resume:
+            saved = load_search_report(stage_dir)
+            if saved is not None:
+                return ToolResult(
+                    success=saved.status != "failed",
+                    message=(
+                        f"Resumed: {len(saved.candidates)} candidates; "
+                        f"status={saved.status}."
+                    ),
+                    artifacts={
+                        "candidates": str(candidates_path),
+                        "count": len(saved.candidates),
+                        "status": saved.status,
+                        "source_coverage": str(coverage_path),
+                        "sources": saved.sources,
+                    },
+                )
         plan_path = get_stage_dir(run_root, "plan") / "query_plan.json"
         if plan_path.exists():
-            plan_data = json.loads(plan_path.read_text())
-            plan = QueryPlan.model_validate(plan_data)
+            plan = QueryPlan.model_validate_json(plan_path.read_text())
         elif params.topic:
-            plan = QueryPlan(
-                topic_raw=params.topic,
-                topic_normalized=params.topic.lower().strip(),
-                must_terms=params.topic.lower().split()[:3],
-                nice_terms=params.topic.lower().split()[3:6],
-            )
-            plan_path.parent.mkdir(parents=True, exist_ok=True)
+            from research_pipeline.pipeline.query_planning import build_query_plan
+
+            plan = build_query_plan(params.topic, config)
             plan_path.write_text(plan.model_dump_json(indent=2))
         else:
             return ToolResult(
-                success=False,
-                message="No query plan found and no topic provided.",
+                success=False, message="No query plan found and no topic provided."
             )
 
-        # Resolve sources
-        if params.source:
-            if params.source.lower() == "all":
-                sources = ["arxiv", "scholar"]
-            else:
-                sources = [s.strip() for s in params.source.split(",")]
-        else:
-            sources = config.sources.enabled
-
-        # Shared cache from config (same as CLI)
-        cache: FileCache | None = None
-        if config.cache.enabled:
-            cache_dir = Path(config.cache.cache_dir).expanduser()
-            cache = FileCache(
-                cache_dir, ttl_hours=config.cache.search_snapshot_ttl_hours
-            )
-
-        all_candidates: list[CandidateRecord] = []
-        source_counts: dict[str, int] = {}
-
-        def _do_arxiv() -> list[CandidateRecord]:
-            rate_limiter = ArxivRateLimiter(
-                min_interval=config.arxiv.min_interval_seconds
-            )
-            session = create_session(config.contact_email)
-            client = ArxivClient(
-                session=session,
-                rate_limiter=rate_limiter,
-                cache=cache,
-                base_url=config.arxiv.base_url,
-                request_timeout=config.arxiv.request_timeout_seconds,
-            )
-            queries = build_query_from_plan(plan)
-            date_from, date_to = date_window(plan.primary_months)
-            arxiv_lists = []
-            for q in queries:
-                candidates, _ = client.search(
-                    query=q,
-                    max_results=config.arxiv.default_page_size,
-                    date_from=date_from,
-                    date_to=date_to,
-                )
-                arxiv_lists.append(candidates)
-            result = dedup_across_queries(arxiv_lists)
-            logger.info("arXiv: %d candidates", len(result))
-            return result
-
-        def _do_scholar() -> list[CandidateRecord]:
-            backend = config.sources.scholar_backend
-            if backend == "serpapi":
-                from research_pipeline.sources.scholar_source import SerpAPISource
-
-                source_obj = SerpAPISource(
-                    api_key=config.sources.serpapi_key,
-                    min_interval=config.sources.serpapi_min_interval,
-                )
-            else:
-                from research_pipeline.sources.scholar_source import ScholarlySource
-
-                source_obj = ScholarlySource(  # type: ignore[assignment]
-                    min_interval=config.sources.scholar_min_interval,
-                )
-            result = source_obj.search(
-                topic=plan.topic_raw,
-                must_terms=plan.must_terms,
-                nice_terms=plan.nice_terms,
-                max_results=min(config.arxiv.default_page_size, 20),
-            )
-            logger.info("Scholar (%s): %d candidates", backend, len(result))
-            return result
-
-        # Run sources in parallel
-        futures = {}
-        with ThreadPoolExecutor(max_workers=len(sources)) as executor:
-            if "arxiv" in sources:
-                futures[executor.submit(_do_arxiv)] = "arxiv"
-            if "scholar" in sources:
-                futures[executor.submit(_do_scholar)] = "scholar"
-
-            total_sources = len(futures)
-            for completed, future in enumerate(as_completed(futures), start=1):
-                source_name = futures[future]
-                try:
-                    candidates = future.result()
-                    all_candidates.extend(candidates)
-                    source_counts[source_name] = len(candidates)
-                except Exception as exc:
-                    logger.error("%s search failed: %s", source_name, exc)
-                    source_counts[source_name] = -1  # indicates failure
-                _report_progress(
-                    ctx, completed, total_sources, f"Searched {source_name}"
-                )
-
-        deduped = dedup_cross_source(all_candidates)
-
-        # Sanitize untrusted scraped fields before persisting (issue #104) — the
-        # CLI orchestrator does the same at this stage boundary.
-        _sanitize_candidates(deduped)
-
+        sources = _resolve_sources(params.source, config.sources.enabled)
+        report = execute_search(plan, config, sources, stage_dir)
+        _sanitize_candidates(report.candidates)
         stage_dir.mkdir(parents=True, exist_ok=True)
-        with candidates_path.open("w") as fh:
-            for c in deduped:
-                fh.write(c.model_dump_json() + "\n")
-
-        source_summary = ", ".join(
-            f"{k}: {v}" if v >= 0 else f"{k}: FAILED" for k, v in source_counts.items()
+        candidates_path.write_text(
+            "".join(
+                candidate.model_dump_json() + "\n" for candidate in report.candidates
+            )
         )
-        logger.info("Search returned %d unique candidates", len(deduped))
+        coverage = report.model_dump(mode="json", exclude={"candidates"})
+        coverage["candidate_count"] = len(report.candidates)
+        coverage_path.write_text(json.dumps(coverage, indent=2))
+        _report_progress(ctx, len(sources), len(sources), "Search coverage recorded")
         return ToolResult(
-            success=True,
-            message=(f"Found {len(deduped)} unique candidates ({source_summary})."),
+            success=report.status != "failed",
+            message=(
+                f"Found {len(report.candidates)} candidates; status={report.status}."
+            ),
             artifacts={
                 "candidates": str(candidates_path),
-                "count": len(deduped),
-                "sources": source_counts,
+                "count": len(report.candidates),
+                "source_coverage": str(coverage_path),
+                "status": report.status,
+                "sources": {
+                    name: sum(
+                        a.candidate_count for a in report.attempts if a.source == name
+                    )
+                    for name in sources
+                },
             },
         )
     except Exception as exc:
@@ -304,8 +209,17 @@ def screen_candidates(
                 fh.write(s.model_dump_json() + "\n")
 
         shortlist_path = screen_dir / "shortlist.json"
+        from research_pipeline.models.screening import RelevanceDecision
+
         shortlist_data = [
-            {"candidate": c.model_dump(), "score": s.model_dump()} for c, s in shortlist
+            RelevanceDecision(
+                paper=c,
+                cheap=score,
+                final_score=score.cheap_score,
+                download=True,
+                download_reason="score_threshold",
+            ).model_dump(mode="json")
+            for c, score in shortlist[: config.screen.download_top_n]
         ]
         shortlist_path.write_text(json.dumps(shortlist_data, indent=2))
 
@@ -353,18 +267,27 @@ def download_pdfs(params: DownloadPdfsInput, ctx: Context | None = None) -> Tool
         download_dir.mkdir(parents=True, exist_ok=True)
 
         shortlist = json.loads(shortlist_path.read_text())
-        session = create_session()
-        rate_limiter = ArxivRateLimiter()
+        papers = [
+            entry.get("paper", entry.get("candidate", entry))
+            for entry in shortlist
+            if entry.get("download", True)
+        ]
+        session = create_session(
+            config.contact_email, config.arxiv.min_interval_seconds
+        )
+        rate_limiter = ArxivRateLimiter(config.arxiv.min_interval_seconds)
 
         results = download_batch(
-            shortlist,
+            papers,
             download_dir,
             session,
             rate_limiter,
             max_downloads=config.download.max_per_run,
         )
 
-        manifest_path = download_dir / "download_manifest.jsonl"
+        manifest_path = (
+            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+        )
         with manifest_path.open("w") as fh:
             for r in results:
                 fh.write(r.model_dump_json() + "\n")
@@ -408,8 +331,9 @@ def extract_content(
             )
 
         # Load download manifest to get arxiv_id/version per file
-        download_dir = get_stage_dir(run_root, "download")
-        manifest_path = download_dir / "download_manifest.jsonl"
+        manifest_path = (
+            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+        )
         id_map = _load_id_map(manifest_path)
 
         results = []
@@ -474,8 +398,9 @@ def summarize_papers(
         topic = plan_data.get("topic_raw", "")
 
         # Load download manifest for arxiv_id/version/title
-        download_dir = get_stage_dir(run_root, "download")
-        manifest_path = download_dir / "download_manifest.jsonl"
+        manifest_path = (
+            get_stage_dir(run_root, "download_root") / "download_manifest.jsonl"
+        )
         id_map = _load_id_map(manifest_path)
 
         summaries = []

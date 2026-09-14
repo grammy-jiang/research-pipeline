@@ -14,8 +14,10 @@ from datetime import UTC, datetime
 
 import requests
 
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL
+from research_pipeline.infra.http import SourceSession
 from research_pipeline.infra.rate_limit import RateLimiter
-from research_pipeline.infra.retry import retry
+from research_pipeline.infra.retry import retry, safe_exception
 from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -33,13 +35,13 @@ class HuggingFaceSource:
 
     def __init__(
         self,
-        min_interval: float = 0.5,
+        min_interval: float = DEFAULT_SOURCE_INTERVAL,
         limit: int = 100,
         session: requests.Session | None = None,
     ) -> None:
         self._rate_limiter = RateLimiter(min_interval=min_interval, name="huggingface")
         self._limit = limit
-        self._session = session or requests.Session()
+        self._session = session or SourceSession("huggingface", min_interval)
 
     @property
     def name(self) -> str:
@@ -93,6 +95,7 @@ class HuggingFaceSource:
         Returns:
             List of CandidateRecords with ``source="huggingface"``.
         """
+        self.last_error: BaseException | None = None
         logger.info(
             "HuggingFace search: topic=%s, must_terms=%s (limit=%d)",
             topic,
@@ -106,7 +109,8 @@ class HuggingFaceSource:
         try:
             data = self._api_get(url, params)
         except requests.RequestException as exc:
-            logger.error("HuggingFace daily papers API failed: %s", exc)
+            self.last_error = exc
+            logger.error("HuggingFace daily papers API failed: %s", safe_exception(exc))
             return []
 
         if not isinstance(data, list):

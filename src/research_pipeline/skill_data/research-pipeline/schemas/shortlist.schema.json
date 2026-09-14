@@ -1,0 +1,389 @@
+{
+  "$defs": {
+    "CandidateRecord": {
+      "description": "A single paper record from any search source.",
+      "properties": {
+        "arxiv_id": {
+          "description": "Base arXiv ID, e.g. \"2501.12345\".",
+          "title": "Arxiv Id",
+          "type": "string"
+        },
+        "version": {
+          "description": "Version string, e.g. \"v2\".",
+          "title": "Version",
+          "type": "string"
+        },
+        "title": {
+          "description": "Paper title.",
+          "title": "Title",
+          "type": "string"
+        },
+        "authors": {
+          "description": "List of author names.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Authors",
+          "type": "array"
+        },
+        "published": {
+          "description": "v1 submission time (UTC).",
+          "format": "date-time",
+          "title": "Published",
+          "type": "string"
+        },
+        "updated": {
+          "description": "This version's submission time (UTC).",
+          "format": "date-time",
+          "title": "Updated",
+          "type": "string"
+        },
+        "categories": {
+          "description": "All arXiv categories.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Categories",
+          "type": "array"
+        },
+        "primary_category": {
+          "default": "",
+          "description": "Primary arXiv category.",
+          "title": "Primary Category",
+          "type": "string"
+        },
+        "abstract": {
+          "description": "Paper abstract text.",
+          "title": "Abstract",
+          "type": "string"
+        },
+        "abs_url": {
+          "description": "URL to the abstract page.",
+          "title": "Abs Url",
+          "type": "string"
+        },
+        "pdf_url": {
+          "description": "URL to the PDF.",
+          "title": "Pdf Url",
+          "type": "string"
+        },
+        "source": {
+          "default": "arxiv",
+          "description": "Which source found this paper.",
+          "title": "Source",
+          "type": "string"
+        },
+        "doi": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Digital Object Identifier.",
+          "title": "Doi"
+        },
+        "semantic_scholar_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Semantic Scholar paper ID.",
+          "title": "Semantic Scholar Id"
+        },
+        "openalex_id": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "OpenAlex work ID.",
+          "title": "Openalex Id"
+        },
+        "citation_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Total citation count.",
+          "title": "Citation Count"
+        },
+        "influential_citation_count": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Influential citation count (Semantic Scholar).",
+          "title": "Influential Citation Count"
+        },
+        "venue": {
+          "anyOf": [
+            {
+              "type": "string"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Publication venue name.",
+          "title": "Venue"
+        },
+        "year": {
+          "anyOf": [
+            {
+              "type": "integer"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "Publication year.",
+          "title": "Year"
+        }
+      },
+      "required": [
+        "arxiv_id",
+        "version",
+        "title",
+        "authors",
+        "published",
+        "updated",
+        "abstract",
+        "abs_url",
+        "pdf_url"
+      ],
+      "title": "CandidateRecord",
+      "type": "object"
+    },
+    "CheapScoreBreakdown": {
+      "description": "Heuristic scoring breakdown for a single candidate.",
+      "properties": {
+        "bm25_title": {
+          "description": "BM25 score on title.",
+          "title": "Bm25 Title",
+          "type": "number"
+        },
+        "bm25_abstract": {
+          "description": "BM25 score on abstract.",
+          "title": "Bm25 Abstract",
+          "type": "number"
+        },
+        "cat_match": {
+          "description": "Category match bonus.",
+          "title": "Cat Match",
+          "type": "number"
+        },
+        "negative_penalty": {
+          "description": "Penalty for negative term matches.",
+          "title": "Negative Penalty",
+          "type": "number"
+        },
+        "recency_bonus": {
+          "description": "Bonus for recent papers.",
+          "title": "Recency Bonus",
+          "type": "number"
+        },
+        "semantic_score": {
+          "anyOf": [
+            {
+              "type": "number"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null,
+          "description": "SPECTER2 semantic similarity score (0-1). None when disabled.",
+          "title": "Semantic Score"
+        },
+        "cheap_score": {
+          "description": "Aggregated heuristic score.",
+          "title": "Cheap Score",
+          "type": "number"
+        }
+      },
+      "required": [
+        "bm25_title",
+        "bm25_abstract",
+        "cat_match",
+        "negative_penalty",
+        "recency_bonus",
+        "cheap_score"
+      ],
+      "title": "CheapScoreBreakdown",
+      "type": "object"
+    },
+    "EvidenceQuote": {
+      "description": "An evidence quote extracted by the LLM judge.",
+      "properties": {
+        "text": {
+          "description": "The quoted text.",
+          "title": "Text",
+          "type": "string"
+        },
+        "source": {
+          "description": "Which field the quote came from.",
+          "enum": [
+            "title",
+            "abstract",
+            "category",
+            "date"
+          ],
+          "title": "Source",
+          "type": "string"
+        }
+      },
+      "required": [
+        "text",
+        "source"
+      ],
+      "title": "EvidenceQuote",
+      "type": "object"
+    },
+    "LLMJudgment": {
+      "description": "LLM-based relevance judgment for a single candidate.",
+      "properties": {
+        "llm_score": {
+          "description": "LLM relevance score (0-1).",
+          "title": "Llm Score",
+          "type": "number"
+        },
+        "label": {
+          "description": "Relevance label.",
+          "enum": [
+            "high",
+            "medium",
+            "low",
+            "off_topic"
+          ],
+          "title": "Label",
+          "type": "string"
+        },
+        "rationale": {
+          "description": "Reasoning steps for the decision.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Rationale",
+          "type": "array"
+        },
+        "evidence_quotes": {
+          "description": "Supporting evidence from the paper metadata.",
+          "items": {
+            "$ref": "#/$defs/EvidenceQuote"
+          },
+          "title": "Evidence Quotes",
+          "type": "array"
+        },
+        "uncertainties": {
+          "description": "Aspects the LLM is uncertain about.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Uncertainties",
+          "type": "array"
+        },
+        "needs_fulltext_validation": {
+          "description": "Claims that need full-text validation.",
+          "items": {
+            "type": "string"
+          },
+          "title": "Needs Fulltext Validation",
+          "type": "array"
+        },
+        "parse_degraded": {
+          "default": false,
+          "description": "True when the LLM response was missing required fields (llm_score / label) and defaults were substituted \u2014 this judgment is not a real score and downstream fusion should discount or skip it.",
+          "title": "Parse Degraded",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "llm_score",
+        "label"
+      ],
+      "title": "LLMJudgment",
+      "type": "object"
+    },
+    "RelevanceDecision": {
+      "description": "Final relevance decision combining heuristic and LLM scores.",
+      "properties": {
+        "paper": {
+          "$ref": "#/$defs/CandidateRecord"
+        },
+        "cheap": {
+          "$ref": "#/$defs/CheapScoreBreakdown"
+        },
+        "llm": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/LLMJudgment"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
+        },
+        "final_score": {
+          "description": "Combined final relevance score.",
+          "title": "Final Score",
+          "type": "number"
+        },
+        "download": {
+          "description": "Whether to download this paper.",
+          "title": "Download",
+          "type": "boolean"
+        },
+        "download_reason": {
+          "description": "Why this paper was selected for download.",
+          "enum": [
+            "score_threshold",
+            "topn_fill",
+            "manual_override"
+          ],
+          "title": "Download Reason",
+          "type": "string"
+        }
+      },
+      "required": [
+        "paper",
+        "cheap",
+        "final_score",
+        "download",
+        "download_reason"
+      ],
+      "title": "RelevanceDecision",
+      "type": "object"
+    }
+  },
+  "items": {
+    "$ref": "#/$defs/RelevanceDecision"
+  },
+  "type": "array",
+  "minItems": 1
+}

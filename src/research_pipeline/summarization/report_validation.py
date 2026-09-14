@@ -6,6 +6,7 @@ template sections, confidence-level annotations, evidence citations, and gap
 classifications.
 """
 
+import hashlib
 import json
 import logging
 import re
@@ -228,10 +229,47 @@ def _check_latex(text: str) -> int:
     return inline + display
 
 
+def _mermaid_fences_are_closed(text: str) -> bool:
+    """Reject an unterminated Mermaid block even when another diagram is valid."""
+    active: str | None = None
+    mermaid = False
+    for line in text.splitlines():
+        if active is not None:
+            # Closing fences cannot carry citations or other trailing text.
+            closing = (
+                r" {0,3}" + re.escape(active[0]) + "{" + str(len(active)) + r",}[ \t]*"
+            )
+            if re.fullmatch(closing, line):
+                active = None
+                mermaid = False
+            continue
+        opening = re.fullmatch(r" {0,3}(`{3,}|~{3,})(.*)", line)
+        if opening:
+            active = opening.group(1)
+            mermaid = opening.group(2).strip().lower() == "mermaid"
+    return not (active is not None and mermaid)
+
+
+def workflow_format_checks(text: str) -> dict[str, bool]:
+    """Check the mandatory presentation contract independently of weighted scores."""
+    history = re.search(
+        r"^##\s+Round History\s*$(.*?)(?=^##\s|\Z)",
+        text,
+        flags=re.IGNORECASE | re.MULTILINE | re.DOTALL,
+    )
+    return {
+        "contents": _check_contents(text),
+        "round_history": history is not None and bool(history.group(1).strip()),
+        "mermaid": _check_mermaid(text) > 0 and _mermaid_fences_are_closed(text),
+        "latex": _check_latex(text) > 0,
+    }
+
+
 def validate_report(
     report_path: Path,
     paper_ids: list[str] | None = None,
     paper_titles: list[str] | None = None,
+    strict_format: bool = False,
 ) -> dict[str, Any]:
     """Validate a research report against template requirements.
 
@@ -289,7 +327,7 @@ def validate_report(
         "has_evidence_citations": has_citations,
         "has_tables": has_tables,
         "has_gap_classification": has_gaps or has_assumption_and_contradiction,
-        "has_mermaid_diagram": mermaid_count > 0 or structured_mode,
+        "has_mermaid_diagram": mermaid_count > 0,
         "has_latex_formula": latex_count > 0,
         "has_table_of_contents": has_contents,
     }
@@ -313,7 +351,7 @@ def validate_report(
         )
     if not has_gaps and not has_assumption_and_contradiction:
         issues.append("No gap classification (ACADEMIC/ENGINEERING) found")
-    if mermaid_count == 0 and not structured_mode:
+    if mermaid_count == 0:
         issues.append("No Mermaid diagrams found (required for methodology)")
     if not has_contents:
         issues.append("No '## Contents' table-of-contents section found")
@@ -323,6 +361,12 @@ def validate_report(
         issues.append(f"Too few tables ({table_count} found, need ≥2)")
 
     verdict = "PASS" if overall_score >= 0.7 and not effective_missing else "FAIL"
+    format_checks = workflow_format_checks(text)
+    format_passed = all(format_checks.values())
+    if strict_format and not format_passed:
+        verdict = "FAIL"
+        missing_format = [name for name, passed in format_checks.items() if not passed]
+        issues.append("Missing required workflow format: " + ", ".join(missing_format))
 
     # RACE report quality scoring (additive)
     race = compute_race_score(text)
@@ -349,6 +393,9 @@ def validate_report(
 
     result: dict[str, Any] = {
         "report_path": str(report_path),
+        "strict_format": strict_format,
+        "workflow_format": format_checks,
+        "workflow_format_passed": format_passed,
         "verdict": verdict,
         "overall_score": overall_score,
         "section_score": round(section_score, 2),
@@ -382,7 +429,8 @@ def run_validate(
     workspace: Path | None = None,
     run_id: str | None = None,
     output: Path | None = None,
-) -> None:
+    strict_format: bool = False,
+) -> bool:
     """Validate a research report for completeness and quality.
 
     When --run-id is provided, also loads paper IDs and titles from the
@@ -437,14 +485,19 @@ def run_validate(
 
     if report_path is None or not report_path.exists():
         logger.error("No report found. Use --report PATH or --run-id with --workspace.")
-        return
+        return False
 
     logger.info("Validating report: %s", report_path)
     result = validate_report(
         report_path,
         paper_ids=paper_ids or None,
         paper_titles=paper_titles or None,
+        strict_format=strict_format,
     )
+
+    result["passed"] = result["verdict"] == "PASS"
+    result["report_sha256"] = hashlib.sha256(report_path.read_bytes()).hexdigest()
+    result["report_path"] = str(report_path.resolve())
 
     # Log summary
     verdict = result["verdict"]
@@ -471,6 +524,7 @@ def run_validate(
 
     # Write output
     if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(result, indent=2))
         logger.info("Validation report written to %s", output)
     else:
@@ -478,3 +532,5 @@ def run_validate(
         out_path = report_path.parent / "validation_result.json"
         out_path.write_text(json.dumps(result, indent=2))
         logger.info("Validation report written to %s", out_path)
+
+    return result["passed"] is True

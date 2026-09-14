@@ -1,17 +1,14 @@
-"""Semantic Scholar search source.
-
-Uses the Semantic Scholar Academic Graph API ``/paper/search`` endpoint.
-Free tier supports 1 request/sec without an API key; with a free key,
-rate limits are more generous (~100 req/5min).
-"""
+"""Semantic Scholar API search with configurable conservative request pacing."""
 
 import logging
 from datetime import UTC, datetime
 
 import requests
 
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL
+from research_pipeline.infra.http import SourceSession
 from research_pipeline.infra.rate_limit import RateLimiter
-from research_pipeline.infra.retry import retry
+from research_pipeline.infra.retry import retry, safe_exception
 from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -44,14 +41,14 @@ class SemanticScholarSource:
     def __init__(
         self,
         api_key: str = "",
-        min_interval: float = 1.0,
+        min_interval: float = DEFAULT_SOURCE_INTERVAL,
         session: requests.Session | None = None,
     ) -> None:
         self._api_key = api_key
         self._rate_limiter = RateLimiter(
             min_interval=min_interval, name="semantic_scholar"
         )
-        self._session = session or requests.Session()
+        self._session = session or SourceSession("semantic_scholar", min_interval)
         if api_key:
             self._session.headers["x-api-key"] = api_key
 
@@ -101,6 +98,7 @@ class SemanticScholarSource:
         Returns:
             List of CandidateRecords with ``source="semantic_scholar"``.
         """
+        self.last_error: BaseException | None = None
         query_parts = must_terms[:3]
         if nice_terms:
             query_parts.extend(nice_terms[:2])
@@ -135,7 +133,8 @@ class SemanticScholarSource:
             try:
                 data = self._api_get(url, params)
             except requests.RequestException as exc:
-                logger.error("Semantic Scholar search failed: %s", exc)
+                self.last_error = exc
+                logger.error("Semantic Scholar search failed: %s", safe_exception(exc))
                 break
 
             papers = data.get("data", [])

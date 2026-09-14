@@ -12,25 +12,20 @@ description: |
   For OUT_OF_SCOPE gaps, explain why they fall outside the research topic.
 
 inputs:
-  - path: "{run_dir}/summarize/synthesis_report.json"
-    description: "Primary: Synthesis report from the summarize stage (standard + deep profiles)"
-    optional: false
-  - path: "{run_dir}/analysis/synthesis.json"
-    description: "Alternative: Richer synthesis from paper-synthesizer (deep profile only, may not exist)"
-    optional: true
+  - path: "{synthesis_path}"
+    description: "Exact synthesis used by the published report"
+  - path: "{final_report}"
+    description: "Validated report for the completed round"
+  - path: "{run_dir}/search/source_coverage.json"
+    description: "Distinguish acquisition failures from academic gaps"
   - path: "{skill_dir}/schemas/gap_classification.schema.json"
-    description: "Output schema"
 
 instructions: |
-  1. First check if {run_dir}/summarize/synthesis_report.json exists — use it as the
-     primary source for open_gaps.
-  2. If {run_dir}/analysis/synthesis.json also exists (deep profile), merge any additional
-     gaps from it that are not already present.
-  3. {run_dir} = {cwd}/runs/{run_id}
-  4. Populate the `convergence` object: set `should_continue: true` with reason
-     `open_gaps_remain` if any ACADEMIC gaps remain and the current round is below
-     `max_rounds`; otherwise set `should_continue: false` with the appropriate reason
-     (`no_open_gaps`, `round_cap_reached`, `no_new_papers`, or `user_marked_out_of_scope`).
+  Read unresolved_questions, risk_register, and the report's gap discussion.
+  Classify material unresolved questions and propose precise next actions.
+  The convergence object is advice to the parent agent for the next round.
+  Completing this task does not automatically start another search.
+  Do not classify failed retrieval as evidence that the literature is absent.
 
 outputs:
   - path: "{cwd}/gaps.json"
@@ -44,7 +39,7 @@ allowed_tools:
 forbidden_actions:
   - Do NOT re-synthesize or summarize papers
   - Do NOT call search tools (only classify; searches run in next round)
-  - Do NOT write outside the run workspace
+  - Write only the declared output at {cwd}/gaps.json
 
 classification_criteria:
   ACADEMIC: |
@@ -91,4 +86,4 @@ status_update: |
   After classification:
   1. Verify gaps.json exists and all gaps are classified
   2. Do NOT mark task accepted
-  3. Re-run runner.py — it will validate and accept
+  3. Submit the completed result using --complete-task and --result-file; then re-run research-pipeline-workflow — it will validate and accept

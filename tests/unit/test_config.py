@@ -13,7 +13,16 @@ class TestLoadConfig:
         monkeypatch.delenv("RESEARCH_PIPELINE_CONFIG", raising=False)  # type: ignore[attr-defined]
         config = load_config()
         assert isinstance(config, PipelineConfig)
-        assert config.arxiv.min_interval_seconds == 5.0
+        assert config.arxiv.min_interval_seconds == 30.0
+        for name in (
+            "scholar_min_interval",
+            "serpapi_min_interval",
+            "semantic_scholar_min_interval",
+            "openalex_min_interval",
+            "dblp_min_interval",
+            "huggingface_min_interval",
+        ):
+            assert getattr(config.sources, name) == 30.0
         assert config.arxiv.base_url == "https://export.arxiv.org/api/query"
 
     def test_load_from_toml(self, tmp_path: Path, monkeypatch: object) -> None:

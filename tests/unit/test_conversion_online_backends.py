@@ -272,14 +272,23 @@ class TestMistralOcrBackend:
         assert entry.status == "skipped_exists"
         assert entry.converter_name == "mistral_ocr"
 
-    def test_convert_import_error(self, pdf_file: Path, output_dir: Path) -> None:
+    @patch("research_pipeline.conversion.mistral_ocr_backend.requests.post")
+    def test_convert_http_error(
+        self, mock_post: MagicMock, pdf_file: Path, output_dir: Path
+    ) -> None:
+        import requests
+
         from research_pipeline.conversion.mistral_ocr_backend import MistralOcrBackend
 
-        b = MistralOcrBackend(api_key="test_key")
-        # mistralai is not installed in test env
-        entry = b.convert(pdf_file, output_dir)
+        mock_post.side_effect = requests.RequestException("service unavailable")
+        backend = MistralOcrBackend(api_key="test_key")
+
+        entry = backend.convert(pdf_file, output_dir)
+
         assert entry.status == "failed"
         assert entry.error is not None
+        assert "service unavailable" in entry.error
+        mock_post.assert_called_once()
 
 
 # ---------------------------------------------------------------------------

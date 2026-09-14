@@ -16,7 +16,9 @@ from __future__ import annotations
 
 import argparse
 import contextlib
+import hashlib
 import json
+import os
 import re
 import shlex
 import subprocess
@@ -132,13 +134,224 @@ def profile_includes(task_id: str, profile: str, manifest: dict[str, Any]) -> bo
 # ---------------------------------------------------------------------------
 
 
+def artifact_paths(output: dict[str, Any], ctx: dict[str, str]) -> list[Path]:
+    template = output.get("path") or output.get("glob")
+    if not template:
+        return []
+    rendered = template.format(**ctx)
+    path = Path(rendered)
+    if not path.is_absolute():
+        path = Path(ctx.get("cwd", ".")) / path
+    if "glob" in output:
+        import glob
+
+        return [Path(p) for p in sorted(glob.glob(str(path), recursive=True))]
+    return [path]
+
+
+def _documents(path: Path) -> list[Any]:
+    text = path.read_text()
+    if path.suffix == ".jsonl":
+        return [json.loads(line) for line in text.splitlines() if line.strip()]
+    return [json.loads(text)]
+
+
+def validation_errors(
+    task: dict[str, Any], ctx: dict[str, str], result: dict[str, Any]
+) -> list[str]:
+    """Enforce declared gates, including tool success and reviewer rejection."""
+    errors: list[str] = []
+    output = task.get("output", {})
+    checks = task.get("validation", [])
+    try:
+        paths = artifact_paths(output, ctx)
+        for check in checks:
+            if check == "exit_code_zero":
+                if result.get("success") is not True:
+                    errors.append("Missing or unsuccessful execution result")
+                if "exit_code" in result and result["exit_code"] != 0:
+                    errors.append("Command exit code was not zero")
+            elif check in ("artifact_exists", "non_empty"):
+                if not paths or any(not p.exists() for p in paths):
+                    errors.append("Required output artifact is missing")
+                elif check == "non_empty" and any(
+                    not p.is_file() or not p.read_bytes().strip() for p in paths
+                ):
+                    errors.append("Required output artifact is empty")
+            elif check == "schema_valid":
+                if not paths or not output.get("schema"):
+                    errors.append("Schema validation requires an artifact and schema")
+                    continue
+                import jsonschema
+
+                schema = json.loads((SKILL_DIR / output["schema"]).read_text())
+                validator_cls = jsonschema.validators.validator_for(schema)
+                validator_cls.check_schema(schema)
+                validator = validator_cls(schema)
+                for path in paths:
+                    documents = _documents(path)
+                    if not documents:
+                        errors.append(f"No records in {path.name}")
+                    for document in documents:
+                        errors.extend(
+                            f"{path.name}: {err.message}"
+                            for err in validator.iter_errors(document)
+                        )
+            elif check == "evidence_present":
+                for path in paths:
+                    docs = _documents(path)
+                    if len(docs) == 1 and isinstance(docs[0], list):
+                        docs = docs[0]
+                    for doc in docs:
+                        if task["id"] == "paper-analyzer":
+                            findings = doc.get("key_findings", [])
+                            if not findings or any(
+                                not (f.get("section") or f.get("quote"))
+                                for f in findings
+                            ):
+                                errors.append(
+                                    "Every paper finding needs a source locator"
+                                )
+                        elif task["id"] == "paper-synthesizer":
+                            corpus = {
+                                p.get("paper_id", p.get("arxiv_id", ""))
+                                for p in doc.get("corpus", [])
+                            }
+                            if not corpus:
+                                errors.append("Synthesis corpus is empty")
+                            shortlist = json.loads(
+                                (
+                                    Path(ctx["run_dir"]) / "screen/shortlist.json"
+                                ).read_text()
+                            )
+                            allowed = set()
+                            for entry in shortlist:
+                                paper = entry.get("paper", entry)
+                                paper_id = paper.get(
+                                    "arxiv_id", paper.get("paper_id", "")
+                                )
+                                if paper_id:
+                                    allowed.add(paper_id)
+                                    allowed.add(paper_id + paper.get("version", ""))
+                            if not corpus <= allowed:
+                                errors.append(
+                                    "Synthesis corpus contains papers "
+                                    "outside the shortlist"
+                                )
+
+                            for field in (
+                                "taxonomy",
+                                "recurring_patterns",
+                                "evidence_strength_map",
+                                "operational_implications",
+                                "production_readiness",
+                                "design_implications",
+                                "risk_register",
+                            ):
+                                for finding in doc.get(field, []):
+                                    cited = set(finding.get("supporting_papers", []))
+                                    if not cited or not cited <= corpus:
+                                        errors.append(
+                                            f"{field}: missing or unknown paper IDs"
+                                        )
+                        elif task["id"] == "paper-screener":
+                            paper = doc.get("paper", doc)
+                            if not paper.get("abstract", "").strip():
+                                errors.append("Screened paper has no abstract evidence")
+                            judgment = doc.get("llm") or {}
+                            if doc.get("download", True) and (
+                                judgment.get("llm_score", 0) < 0.6
+                                or not judgment.get("rationale")
+                                or not judgment.get("evidence_quotes")
+                            ):
+                                errors.append(
+                                    "LLM shortlist lacks a supported relevance judgment"
+                                )
+
+                        else:
+                            errors.append("Unknown evidence contract")
+            elif check == "per_paper_complete":
+                run_dir = Path(ctx["run_dir"])
+                expected = {
+                    p.stem
+                    for folder in (
+                        "convert/markdown",
+                        "convert",
+                        "convert_rough",
+                        "convert_fine",
+                    )
+                    for p in (run_dir / folder).glob("*.md")
+                }
+                actual = {p.name.removesuffix(".analysis.json") for p in paths}
+                if not expected or expected - actual:
+                    errors.append(
+                        f"Missing paper analyses: {sorted(expected - actual)}"
+                    )
+            elif check == "validation_passed":
+                for path in paths:
+                    doc = json.loads(path.read_text())
+                    if doc.get("passed") is not True:
+                        errors.append("Report validation did not pass")
+                    if doc.get("workflow_format_passed") is not True:
+                        errors.append("Required report format did not pass")
+                    target = Path(ctx["draft_report"])
+                    if (
+                        doc.get("report_sha256")
+                        != hashlib.sha256(target.read_bytes()).hexdigest()
+                    ):
+                        errors.append("Report validation hash is stale")
+            else:
+                errors.append(f"Unknown validator: {check}")
+        if task.get("executor", {}).get("kind") == "llm_reviewer":
+            if not paths:
+                errors.append("Reviewer verdict is missing")
+            for path in paths:
+                verdict = json.loads(path.read_text())
+                if verdict.get("reviewer_task_id") != task.get("id"):
+                    errors.append("Reviewer task ID does not match")
+                if verdict.get("status") not in ("accepted", "accepted_with_issues"):
+                    errors.append("Reviewer rejected this artifact")
+                if verdict.get("required_fixes") or verdict.get("unsupported_claims"):
+                    errors.append("Reviewer still requires fixes")
+                target = Path(ctx.get("draft_report", ""))
+                if verdict.get("target_artifact") != str(target):
+                    errors.append("Reviewer did not review the rendered draft")
+                if (
+                    target.is_file()
+                    and verdict.get("target_sha256")
+                    != hashlib.sha256(target.read_bytes()).hexdigest()
+                ):
+                    errors.append("Reviewer target hash is stale")
+                scores = verdict.get("scores", {})
+                for key, threshold in (
+                    ("faithfulness", 0.75),
+                    ("coherence", 0.70),
+                    ("gap_completeness", 0.60),
+                ):
+                    value = scores.get(key)
+                    if not isinstance(value, int | float) or value < threshold:
+                        errors.append(f"Reviewer {key} is below the contract threshold")
+                if scores.get("citation_integrity") is not True:
+                    errors.append("Reviewer citation integrity did not pass")
+    except (OSError, ValueError, KeyError, TypeError, ImportError) as exc:
+        errors.append(f"Cannot validate artifacts: {exc}")
+    return errors
+
+
 def validate_artifact(output: dict[str, Any], ctx: dict[str, str]) -> bool:
-    """Check that the expected output artifact exists on disk."""
-    path_template = output.get("path", "")
-    if not path_template:
-        return True
-    path = Path(path_template.format(**ctx))
-    return path.exists()
+    checks = ["artifact_exists"] + (["schema_valid"] if output.get("schema") else [])
+    return not validation_errors({"output": output, "validation": checks}, ctx, {})
+
+
+def output_fingerprints(task: dict[str, Any], ctx: dict[str, str]) -> dict[str, str]:
+    """Bind report/review acceptance to the actual files consumed and produced."""
+    if not task.get("bind_artifacts"):
+        return {}
+    paths = artifact_paths(task.get("output", {}), ctx)
+    paths += [Path(p.format(**ctx)) for p in task.get("inputs", [])]
+    return {
+        str(p): hashlib.sha256(p.read_bytes()).hexdigest() for p in paths if p.is_file()
+    }
 
 
 # ---------------------------------------------------------------------------
@@ -152,13 +365,15 @@ def run_deterministic(task: dict[str, Any], ctx: dict[str, str]) -> tuple[bool, 
     cmd = executor.get("command", "")
     if not cmd:
         return True, "no command — MCP tool invocation handled by agent"
-    for key, val in ctx.items():
-        cmd = cmd.replace(f"{{{key}}}", str(val))
     try:
         result = subprocess.run(
-            shlex.split(cmd), capture_output=True, text=True, timeout=300
+            command_args(cmd, ctx),
+            cwd=ctx.get("cwd", "."),
+            capture_output=True,
+            text=True,
+            timeout=300,
         )
-    except subprocess.TimeoutExpired:
+    except (subprocess.TimeoutExpired, OSError):
         return False, f"command timed out after 300s: {cmd[:120]}"
     if result.returncode != 0:
         return False, (result.stderr or result.stdout).strip()
@@ -188,9 +403,10 @@ def print_llm_delegation(task: dict[str, Any], ctx: dict[str, Any]) -> None:
             contract_text = contract_text.replace(f"{{{key}}}", str(val))
         print(f"\n{contract_text}")
     print("=" * 60)
-    print("After the sub-agent completes and the artifact exists,")
-    print(f"update workflow_state.json: tasks.{task['id']}.status = 'accepted'")
-    print("Then re-run runner.py to continue the workflow.\n")
+    print(
+        f"Submit the result with --complete-task {task['id']} --result-file RESULT.json"
+    )
+    print("The runner validates the output. Do not edit accepted status by hand.\n")
 
 
 # ---------------------------------------------------------------------------
@@ -227,6 +443,207 @@ def capture_run_id(
     return run_id
 
 
+def workflow_context(state: dict[str, Any]) -> dict[str, str]:
+    context = state.get("context", {})
+    cwd = str(context.get("cwd", Path.cwd()))
+    workspace = context.get("workspace") or os.environ.get(
+        "RESEARCH_PIPELINE_WORKSPACE"
+    )
+    if not workspace:
+        config_path = context.get("config")
+        config = {}
+        if config_path:
+            import tomllib
+
+            config = tomllib.loads(Path(config_path).read_text())
+        workspace = config.get("workspace", "./runs")
+    workspace_path = Path(workspace).expanduser()
+    if not workspace_path.is_absolute():
+        workspace_path = Path(cwd) / workspace_path
+    run_id = state.get("run_id", "")
+    run_dir = workspace_path / run_id
+    return {
+        "skill_dir": str(SKILL_DIR),
+        "python_executable": sys.executable,
+        "cwd": cwd,
+        "workspace": str(workspace_path),
+        "run_id": run_id,
+        "run_dir": str(run_dir),
+        "topic": state.get("topic", ""),
+        "topic_slug": state.get("topic_slug", ""),
+        "config": str(context.get("config", "")),
+        "prior_paper_ids": ",".join(context.get("prior_paper_ids", [])),
+        "fine_paper_ids": ",".join(context.get("fine_paper_ids", [])),
+        "synthesis_path": str(
+            run_dir
+            / (
+                "analysis/synthesis.json"
+                if state.get("profile") == "deep"
+                else "summarize/synthesis_report.json"
+            )
+        ),
+        "draft_report": str(run_dir / "report/draft.md"),
+        "draft_sha256": hashlib.sha256(
+            (run_dir / "report/draft.md").read_bytes()
+        ).hexdigest()
+        if (run_dir / "report/draft.md").is_file()
+        else "",
+        "validation_path": str(run_dir / "validate/validation_result.json"),
+        "final_report": str(
+            Path(cwd) / f"{state.get('topic_slug', '')}-research-report.md"
+        ),
+    }
+
+
+def command_args(template: str, ctx: dict[str, str]) -> list[str]:
+    # Split BEFORE substitution: a quoted topic remains exactly one argument.
+    tokens = [token.format(**ctx) for token in shlex.split(template)]
+    for flag in ("--config", "--run-id"):
+        if flag in tokens:
+            i = tokens.index(flag)
+            if i + 1 < len(tokens) and not tokens[i + 1]:
+                del tokens[i : i + 2]
+    return tokens
+
+
+def task_failed(task: dict[str, Any], current: dict[str, Any], reason: str) -> bool:
+    skip = task.get("failure_policy", {}).get("on_failure") == "skip"
+    current.update(status="skipped_by_policy" if skip else "failed", reason=reason)
+    return not skip
+
+
+def submit_task(
+    manifest: dict[str, Any],
+    state: dict[str, Any],
+    state_path: Path,
+    task_id: str,
+    result: dict[str, Any],
+) -> int:
+    task = next(t for t in manifest["tasks"] if t["id"] == task_id)
+    current = state["tasks"].get(task_id, {})
+    if current.get("status") != "delegated":
+        raise ValueError("Only a delegated task can receive a result")
+    if result.get("task_id", task_id) != task_id:
+        raise ValueError("Result task ID does not match")
+    current["result"] = result
+    if task_id == "plan" and result.get("success") is True:
+        rid = result.get("artifacts", {}).get("run_id")
+        problem = ""
+        if not isinstance(rid, str) or not re.fullmatch(r"[A-Za-z0-9_-]+", rid):
+            problem = "Plan result must include artifacts.run_id"
+        elif state.get("run_id") and state["run_id"] != rid:
+            problem = "Plan result run ID does not match this workflow"
+        if problem:
+            task_failed(task, current, problem)
+            state["status"] = "blocked"
+            save_state(state, state_path)
+            return 1
+        state["run_id"] = rid
+    ctx = workflow_context(state)
+    current["result"] = result
+    errors = validation_errors(task, ctx, result)
+    if result.get("success") is not True:
+        errors.insert(0, "Task execution was not successful")
+    if errors:
+        blocking = task_failed(task, current, "; ".join(errors))
+        state["status"] = "blocked" if blocking else "running"
+        save_state(state, state_path)
+        return int(blocking)
+    current.update(
+        status="accepted",
+        ended_at=datetime.now(UTC).isoformat(),
+        fingerprints=output_fingerprints(task, ctx),
+    )
+    state["status"] = "running"
+    save_state(state, state_path)
+    return 0
+
+
+def execute_delegated(
+    manifest: dict[str, Any], state: dict[str, Any], state_path: Path, task_id: str
+) -> int:
+    task = next(t for t in manifest["tasks"] if t["id"] == task_id)
+    if state["tasks"].get(task_id, {}).get("status") != "delegated":
+        raise ValueError("Task is not currently delegated")
+    if task["executor"]["kind"] != "deterministic_mcp_tool":
+        raise ValueError("LLM work requires the printed contract and a result file")
+    ctx = workflow_context(state)
+    try:
+        process = subprocess.run(
+            command_args(task["executor"]["cli"], ctx),
+            cwd=ctx["cwd"],
+            env={**os.environ, "RESEARCH_PIPELINE_WORKSPACE": ctx["workspace"]},
+            capture_output=True,
+            text=True,
+            timeout=task["executor"].get("timeout_seconds", 3600),
+        )
+        result = {
+            "success": process.returncode == 0,
+            "exit_code": process.returncode,
+            "task_id": task_id,
+            "artifacts": {},
+        }
+        receipt_dir = state_path.parent / "execution"
+        receipt_dir.mkdir(parents=True, exist_ok=True)
+        log_path = (
+            receipt_dir / f"{task_id}-{state['tasks'][task_id].get('attempts', 1)}.log"
+        )
+        log_path.write_text(process.stdout + process.stderr)
+        result["log_path"] = str(log_path)
+        if task_id == "plan":
+            match = re.search(
+                r"^Run ID: ([A-Za-z0-9_-]+)$", process.stdout, re.MULTILINE
+            )
+            if match:
+                result["artifacts"]["run_id"] = match.group(1)
+    except (OSError, subprocess.TimeoutExpired) as exc:
+        result = {
+            "success": False,
+            "task_id": task_id,
+            "error_type": type(exc).__name__,
+        }
+    return submit_task(manifest, state, state_path, task_id, result)
+
+
+def retry_task(manifest: dict[str, Any], state: dict[str, Any], task_id: str) -> None:
+    tasks = {t["id"]: t for t in manifest["tasks"]}
+    if task_id not in tasks:
+        raise ValueError("Unknown task")
+    affected = {task_id}
+    while True:
+        expanded = affected | {
+            tid
+            for tid, task in tasks.items()
+            if set(task.get("depends_on", [])) & affected
+        }
+        if expanded == affected:
+            break
+        affected = expanded
+    for tid in affected:
+        current = state["tasks"].get(tid, {})
+        policy = tasks[tid].get("failure_policy", {})
+        retries = policy.get(
+            "retries", 1 if policy.get("on_failure") == "retry_once_then_block" else 0
+        )
+        if tid == task_id and current.get("attempts", 0) >= retries + 1:
+            raise ValueError(
+                "Task retry budget exhausted; investigate before starting a new run"
+            )
+        if tid == "review-synthesis" and current.get("attempts", 0) >= retries + 1:
+            raise ValueError("Reviewer retry budget exhausted")
+    for tid in affected:
+        current = state["tasks"].get(tid, {})
+        history = current.get("history", [])
+        if current.get("status") != "pending":
+            history = [*history, {k: v for k, v in current.items() if k != "history"}]
+        state["tasks"][tid] = {
+            "status": "pending",
+            "attempts": current.get("attempts", 0),
+            "history": history,
+        }
+    state.update(status="running", completed_at=None)
+
+
 def run_workflow(
     manifest: dict[str, Any],
     state: dict[str, Any],
@@ -235,205 +652,127 @@ def run_workflow(
     dry_run: bool,
 ) -> int:
     task_states = state.setdefault("tasks", {})
-    cwd_str = state.get("context", {}).get("cwd", ".")
-    run_id = state.get("run_id", "")
-    ctx = {
-        "skill_dir": str(SKILL_DIR),
-        "run_id": run_id,
-        "topic": state.get("topic", ""),
-        "topic_slug": state.get("topic_slug", ""),
-        "config": state.get("context", {}).get("config", ""),
-        "cwd": cwd_str,
-        # Derived: default workspace location for this run (./runs/<run_id>).
-        "run_dir": str(Path(cwd_str) / "runs" / run_id) if run_id else "",
-        "prior_paper_ids": ",".join(
-            state.get("context", {}).get("prior_paper_ids", [])
-        ),
-        "fine_paper_ids": ",".join(state.get("context", {}).get("fine_paper_ids", [])),
-    }
-
-    changed = True
-    while changed:
-        changed = False
-        for task in manifest["tasks"]:
-            task_id = task["id"]
-            current = task_states.get(task_id, {})
-
-            # Skip tasks already in a terminal state.
-            if current.get("status") in TERMINAL_STATUSES:
-                continue
-
-            # Skip tasks excluded from the requested profile.
-            if not profile_includes(task_id, profile, manifest):
-                if current.get("status") != "skipped_by_policy":
-                    task_states[task_id] = {
-                        "status": "skipped_by_policy",
-                        "reason": f"not in profile '{profile}'",
-                    }
-                    save_state(state, state_path)
-                continue
-
-            # Skip if dependencies are not yet accepted.
-            if not task_ready(task, task_states):
-                continue
-
-            # Guard: skip convert-fine when no paper IDs have been selected.
-            # Passing --paper-ids "" to the CLI causes an error; skipping is safe
-            # because convert-fine is an enrichment step, not a core stage.
-            if task_id == "convert-fine" and not ctx.get("fine_paper_ids"):
-                if current.get("status") != "skipped_by_policy":
-                    task_states[task_id] = {
-                        "status": "skipped_by_policy",
-                        "reason": "fine_paper_ids not set in workflow context",
-                    }
-                    save_state(state, state_path)
-                    changed = True
-                continue
-
-            kind = task.get("executor", {}).get("kind", "deterministic_script")
-            label = task.get("label", task_id)
-
-            if dry_run:
-                print(f"  READY  [{kind:30s}]  {task_id}")
-                continue
-
-            # ---- LLM worker / reviewer — delegate to sub-agent ----
-            if kind in LLM_KINDS:
-                if current.get("status") == "delegated":
-                    # Already delegated; waiting for agent to mark accepted.
-                    continue
-                print(f"\n[DELEGATING] {task_id}: {label}")
-                print_llm_delegation(task, ctx)
-                task_states[task_id] = {
-                    "status": "delegated",
-                    "started_at": datetime.now(UTC).isoformat(),
-                }
-                save_state(state, state_path)
-                changed = True
-                # Pause: agent must complete the sub-agent and re-run runner.
-                return 0
-
-            # ---- MCP tool — delegate to the agent, validate on re-run ----
-            if kind == "deterministic_mcp_tool":
-                output = task.get("output", {})
-                if current.get("status") == "delegated":
-                    # Re-run: capture the run id the plan tool generated, then
-                    # accept only if the declared artifact exists + validates —
-                    # no optimistic accept (#17).
-                    capture_run_id(state, ctx, cwd_str)
-                    if output and not validate_artifact(output, ctx):
-                        print(
-                            f"\n[MCP TOOL] {task_id}: awaiting artifact "
-                            f"{output.get('path', '?')}"
-                        )
-                        continue  # stay delegated; the DAG pauses below
-                    task_states[task_id] = {
-                        "status": "accepted",
-                        "ended_at": datetime.now(UTC).isoformat(),
-                        "note": "MCP tool output validated",
-                    }
-                    save_state(state, state_path)
-                    changed = True
-                    continue
-                # First encounter: show the invocation and pause the DAG.
-                cli = task.get("executor", {}).get("cli", "")
-                for key, val in ctx.items():
-                    cli = cli.replace(f"{{{key}}}", str(val))
-                print(f"\n[MCP TOOL] {task_id}: {label}")
-                if cli:
-                    print(f"  Invoke: {cli}")
-                task_states[task_id] = {
-                    "status": "delegated",
-                    "started_at": datetime.now(UTC).isoformat(),
-                    "note": "awaiting MCP tool invocation by agent",
-                }
-                save_state(state, state_path)
-                changed = True
-                return 0
-
-            # ---- Deterministic script ----
-            print(f"\n[RUNNING] {task_id}: {label}")
-            task_states[task_id] = {
-                "status": "running",
-                "started_at": datetime.now(UTC).isoformat(),
-            }
-            save_state(state, state_path)
-
-            success, msg = run_deterministic(task, ctx)
-            if not success:
-                policy = task.get("failure_policy", {}).get("on_failure", "block")
-                task_states[task_id].update({"status": "failed", "reason": msg})
-                save_state(state, state_path)
-                print(f"  FAILED: {msg}", file=sys.stderr)
-                if policy in ("block", "retry_once_then_block"):
-                    return 1
-                task_states[task_id]["status"] = "skipped_by_policy"
-                save_state(state, state_path)
-                changed = True
-                continue
-
-            # Validate artifact existence.
-            output = task.get("output", {})
-            if output and not validate_artifact(output, ctx):
-                policy = task.get("failure_policy", {}).get(
-                    "on_artifact_missing",
-                    task.get("failure_policy", {}).get("on_failure", "block"),
-                )
-                reason = f"artifact not found: {output.get('path', '?')}"
-                task_states[task_id].update({"status": "failed", "reason": reason})
-                save_state(state, state_path)
-                print(f"  BLOCKED — {reason}", file=sys.stderr)
-                if policy in ("block", "retry_once_then_block"):
-                    return 1
-                task_states[task_id]["status"] = "skipped_by_policy"
-
-            else:
-                task_states[task_id].update(
-                    {
-                        "status": "accepted",
-                        "ended_at": datetime.now(UTC).isoformat(),
-                        "message": msg[:200] if msg else "",
-                    }
-                )
-                print("  ACCEPTED")
-
-            save_state(state, state_path)
-            changed = True
-
-    # ---- Check overall completion ----
-    terminal = {
-        tid for tid, ts in task_states.items() if ts.get("status") in TERMINAL_STATUSES
-    }
-    in_scope = {
+    ctx = workflow_context(state)
+    included = {
         t["id"]
         for t in manifest["tasks"]
         if profile_includes(t["id"], profile, manifest)
     }
-    delegated = {
-        tid for tid, ts in task_states.items() if ts.get("status") == "delegated"
-    }
-
-    if delegated:
-        print(f"\nWorkflow paused. Delegated tasks: {sorted(delegated)}")
-        print(
-            "Complete the sub-agent task and update workflow_state.json, then re-run."
-        )
-        return 0
-
-    remaining = in_scope - terminal
-    if not remaining:
-        state["status"] = "complete"
-        state["completed_at"] = datetime.now(UTC).isoformat()
+    if set(manifest.get("mandatory_gates", [])) - included:
+        state["status"] = "blocked"
         save_state(state, state_path)
-        print("\nWorkflow COMPLETE. Read workflow_state.json for full status.")
-        print(f"Final report: {ctx['cwd']}/{ctx['topic_slug']}-research-report.md")
-    else:
-        pending_blocked = [
-            f"{tid}={task_states.get(tid, {}).get('status', 'pending')}"
-            for tid in sorted(remaining)
-        ]
-        print(f"\nWorkflow paused. Remaining: {pending_blocked}")
-
+        return 1
+    for task in manifest["tasks"]:
+        tid = task["id"]
+        current = task_states.setdefault(tid, {"status": "pending"})
+        if tid not in included:
+            current.update(
+                status="skipped_by_policy", reason=f"not in profile '{profile}'"
+            )
+            continue
+        if current["status"] in ("failed", "blocked"):
+            state["status"] = "blocked"
+            save_state(state, state_path)
+            print(f"BLOCKED: {tid}: {current.get('reason', '')}", file=sys.stderr)
+            return 1
+        if current["status"] == "accepted":
+            errors = validation_errors(task, ctx, current.get("result", {}))
+            if not current.get("result"):
+                errors.append("Legacy accepted task has no execution receipt")
+            if current.get("fingerprints", {}) != output_fingerprints(task, ctx):
+                errors.append("Accepted report inputs or outputs changed")
+            if errors:
+                current.update(status="blocked", reason="; ".join(errors))
+                state["status"] = "blocked"
+                save_state(state, state_path)
+                return 1
+    changed = True
+    while changed:
+        changed = False
+        for task in manifest["tasks"]:
+            tid = task["id"]
+            current = task_states[tid]
+            if tid not in included or current["status"] in READY_STATUSES:
+                continue
+            if not task_ready(task, task_states):
+                continue
+            if current["status"] == "delegated":
+                state["status"] = "paused"
+                save_state(state, state_path)
+                print(
+                    f"Awaiting result for {tid}; use --execute-task "
+                    "or --complete-task/--result-file."
+                )
+                return 0
+            if tid in ("convert-fine", "expand") and not ctx.get(
+                "fine_paper_ids" if tid == "convert-fine" else "prior_paper_ids"
+            ):
+                current.update(
+                    status="skipped_by_policy", reason="No paper IDs selected"
+                )
+                changed = True
+                continue
+            kind = task.get("executor", {}).get("kind", "deterministic_script")
+            if dry_run:
+                print(f"READY [{kind}] {tid}")
+                continue
+            current.update(
+                status="delegated" if kind != "deterministic_script" else "running",
+                started_at=datetime.now(UTC).isoformat(),
+                attempts=current.get("attempts", 0) + 1,
+            )
+            save_state(state, state_path)
+            if kind in LLM_KINDS:
+                print_llm_delegation(task, ctx)
+                return 0
+            if kind == "deterministic_mcp_tool":
+                print(f"[MCP TOOL] {tid}: {task.get('label', tid)}")
+                print(
+                    "  CLI: "
+                    + shlex.join(command_args(task["executor"].get("cli", ""), ctx))
+                )
+                print(f"  Record actual CLI execution: --execute-task {tid}")
+                return 0
+            success, message = run_deterministic(task, ctx)
+            if tid == "resume-check" and success:
+                resume = json.loads(
+                    (Path(ctx["cwd"]) / "resume_context.json").read_text()
+                )
+                context = state.setdefault("context", {})
+                context["prior_paper_ids"] = sorted(
+                    set(
+                        context.get("prior_paper_ids", [])
+                        + resume.get("prior_paper_ids", [])
+                    )
+                )
+                context["prior_gaps"] = context.get("prior_gaps", []) or resume.get(
+                    "open_gaps_raw", []
+                )
+                ctx = workflow_context(state)
+            result = {"success": success, "exit_code": 0 if success else 1}
+            errors = validation_errors(task, ctx, result)
+            current["result"] = result
+            if not success or errors:
+                blocking = task_failed(task, current, message or "; ".join(errors))
+                state["status"] = "blocked" if blocking else "running"
+                save_state(state, state_path)
+                if blocking:
+                    return 1
+            else:
+                current.update(
+                    status="accepted",
+                    ended_at=datetime.now(UTC).isoformat(),
+                    fingerprints=output_fingerprints(task, ctx),
+                )
+            changed = True
+            save_state(state, state_path)
+    complete = all(task_states[tid]["status"] in READY_STATUSES for tid in included)
+    state["status"] = "complete" if complete else "paused"
+    if complete:
+        state["completed_at"] = datetime.now(UTC).isoformat()
+        state["final_report_path"] = ctx["final_report"]
+        print(f"Workflow COMPLETE. Final report: {ctx['final_report']}")
+    save_state(state, state_path)
     return 0
 
 
@@ -465,6 +804,24 @@ def main() -> int:
     )
     parser.add_argument(
         "--dry-run", action="store_true", help="Print ready tasks without executing"
+    )
+    parser.add_argument(
+        "--execute-task",
+        default="",
+        help="Execute a delegated CLI task and capture its actual exit code",
+    )
+    parser.add_argument(
+        "--complete-task", default="", help="Validate a delegated worker/MCP result"
+    )
+    parser.add_argument(
+        "--result-file",
+        type=Path,
+        help="Saved result JSON with success and artifacts.run_id for planning",
+    )
+    parser.add_argument(
+        "--retry-task",
+        default="",
+        help="Invalidate this task and dependents within the retry budget",
     )
     args = parser.parse_args()
 
@@ -529,6 +886,30 @@ def main() -> int:
             state["run_id"] = args.run_id
         if args.config:
             state.setdefault("context", {})["config"] = args.config
+
+    try:
+        if args.retry_task:
+            retry_task(manifest, state, args.retry_task)
+            save_state(state, state_path)
+        if args.execute_task:
+            code = execute_delegated(manifest, state, state_path, args.execute_task)
+            if code:
+                return code
+        if args.complete_task:
+            if not args.result_file:
+                raise ValueError("--complete-task requires --result-file")
+            code = submit_task(
+                manifest,
+                state,
+                state_path,
+                args.complete_task,
+                json.loads(args.result_file.read_text()),
+            )
+            if code:
+                return code
+    except (ValueError, KeyError, OSError, StopIteration) as exc:
+        print(f"ERROR: {exc}", file=sys.stderr)
+        return 1
 
     if args.dry_run:
         print(f"\nDRY RUN — profile: {state.get('profile', 'standard')}")

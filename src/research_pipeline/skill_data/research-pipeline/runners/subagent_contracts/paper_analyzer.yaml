@@ -14,8 +14,12 @@ description: |
 
 inputs:
   - path: "{run_dir}/convert/markdown/"
-    description: "Converted Markdown versions of downloaded papers"
-  - path: "{run_dir}/screen/screened.jsonl"
+    description: "Converted Markdown; this directory may be empty for a two-tier run"
+  - path: "{run_dir}/convert_rough/*.md"
+    description: "Rough conversion output"
+  - path: "{run_dir}/convert_fine/*.md"
+    description: "Prefer fine conversion for the same paper if present"
+  - path: "{run_dir}/screen/shortlist.json"
     description: "Shortlist metadata for context"
 
 outputs:
@@ -69,6 +73,6 @@ completion_criteria:
 self_reporting_forbidden: true
 status_update: |
   After analysis is complete:
-  1. Run tool_analyze_papers --collect to validate JSON schema
+  1. Write one <Markdown-file-stem>.analysis.json per converted paper, using paper_analysis.schema.json
   2. Do NOT mark the task accepted
-  3. Re-run runner.py — it will validate and accept
+  3. Return success and the output paths; the parent submits --complete-task paper-analyzer --result-file RESULT.json

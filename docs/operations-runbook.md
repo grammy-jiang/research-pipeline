@@ -37,7 +37,7 @@ pip install "research-pipeline[docling,marker,scholar,serpapi,reranker,llm,dev]"
 ### 2.3 Verify installation
 
 ```bash
-research-pipeline version
+research-pipeline --version
 # Expected output: research-pipeline 0.17.14
 ```
 
@@ -478,4 +478,4 @@ Before deploying in a shared or production environment:
 | Memory stats | `research-pipeline memory-stats` |
 | MCP server | `research-pipeline mcp serve` |
 | Install AI skill | `research-pipeline setup` |
-| Show version | `research-pipeline version` |
+| Show version | `research-pipeline --version` |

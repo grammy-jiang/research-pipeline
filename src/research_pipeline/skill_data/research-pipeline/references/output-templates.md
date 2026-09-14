@@ -1,3 +1,9 @@
+> This reference supplies presentation templates. The manifest's structured
+> renderer and schema determine the executable report contract. Additional
+> Contents or Round History sections, when requested, belong in the draft before
+> review and validation. Never edit the published file after those gates.
+> The final response must report the actual completed rounds and remaining gaps.
+
 # Output Templates
 
 ## Formatting Guidelines

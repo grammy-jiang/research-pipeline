@@ -2,205 +2,27 @@
 
 import json
 import logging
-from concurrent.futures import Future, ThreadPoolExecutor, as_completed
 from pathlib import Path
-from typing import Any
 
 import typer
 
-from research_pipeline.arxiv.client import ArxivClient
-from research_pipeline.arxiv.dedup import dedup_across_queries
-from research_pipeline.arxiv.query_builder import build_query_from_plan
-from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.config.loader import load_config
-from research_pipeline.config.models import PipelineConfig
-from research_pipeline.infra.cache import FileCache
-from research_pipeline.infra.clock import date_window
-from research_pipeline.infra.http import create_session
-from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.models.query_plan import QueryPlan
-from research_pipeline.sources.base import dedup_cross_source
+from research_pipeline.pipeline.source_search import (
+    _resolve_sources,
+    _search_arxiv,
+    _search_dblp,
+    _search_huggingface,
+    _search_openalex,
+    _search_scholar,
+    _search_semantic_scholar,
+    execute_search,
+    load_search_report,
+)
 from research_pipeline.storage.manifests import write_jsonl
 from research_pipeline.storage.workspace import get_stage_dir, init_run
 
 logger = logging.getLogger(__name__)
-
-
-def _resolve_sources(source_arg: str | None, config_sources: list[str]) -> list[str]:
-    """Resolve which sources to use from CLI arg and config.
-
-    Args:
-        source_arg: CLI --source value (e.g. 'arxiv', 'scholar', 'all').
-        config_sources: Default sources from config.
-
-    Returns:
-        List of source names to query.
-    """
-    if source_arg:
-        if source_arg.lower() == "all":
-            return [
-                "arxiv",
-                "scholar",
-                "semantic_scholar",
-                "openalex",
-                "dblp",
-                "huggingface",
-            ]
-        return [s.strip() for s in source_arg.split(",")]
-    return config_sources
-
-
-def _search_arxiv(
-    plan: QueryPlan, config: PipelineConfig, search_dir: Path
-) -> list[CandidateRecord]:
-    """Search arXiv API and return deduplicated candidates."""
-    rate_limiter = ArxivRateLimiter(min_interval=config.arxiv.min_interval_seconds)
-    session = create_session(config.contact_email)
-    cache: FileCache | None = None
-    if config.cache.enabled:
-        cache = FileCache(
-            Path(config.cache.cache_dir).expanduser(),
-            ttl_hours=config.cache.search_snapshot_ttl_hours,
-        )
-    client = ArxivClient(
-        rate_limiter=rate_limiter,
-        cache=cache,
-        session=session,
-        base_url=config.arxiv.base_url,
-        request_timeout=config.arxiv.request_timeout_seconds,
-    )
-
-    queries = build_query_from_plan(plan)
-    date_from, date_to = date_window(plan.primary_months)
-
-    raw_dir = search_dir / "raw"
-    raw_dir.mkdir(parents=True, exist_ok=True)
-
-    arxiv_lists = []
-    for q in queries:
-        candidates, _ = client.search(
-            query=q,
-            max_results=config.arxiv.default_page_size,
-            date_from=date_from,
-            date_to=date_to,
-            save_raw_dir=raw_dir,
-        )
-        arxiv_lists.append(candidates)
-
-    result = dedup_across_queries(arxiv_lists)
-    logger.info("arXiv: %d candidates", len(result))
-    return result
-
-
-def _search_scholar(plan: QueryPlan, config: PipelineConfig) -> list[CandidateRecord]:
-    """Search Google Scholar and return candidates."""
-    backend = config.sources.scholar_backend
-    if backend == "serpapi":
-        from research_pipeline.sources.scholar_source import SerpAPISource
-
-        source = SerpAPISource(
-            api_key=config.sources.serpapi_key,
-            min_interval=config.sources.serpapi_min_interval,
-        )
-    else:
-        from research_pipeline.sources.scholar_source import ScholarlySource
-
-        source = ScholarlySource(  # type: ignore[assignment]
-            min_interval=config.sources.scholar_min_interval,
-        )
-
-    result = source.search(
-        topic=plan.topic_raw,
-        must_terms=plan.must_terms,
-        nice_terms=plan.nice_terms,
-        max_results=min(config.arxiv.default_page_size, 20),
-    )
-    logger.info("Scholar (%s): %d candidates", backend, len(result))
-    return result
-
-
-def _search_huggingface(
-    plan: QueryPlan, config: PipelineConfig
-) -> list[CandidateRecord]:
-    """Search HuggingFace daily papers and return candidates."""
-    from research_pipeline.sources.huggingface_source import HuggingFaceSource
-
-    source = HuggingFaceSource(
-        min_interval=config.sources.huggingface_min_interval,
-        limit=config.sources.huggingface_limit,
-    )
-    date_from, date_to = date_window(plan.primary_months)
-    result = source.search(
-        topic=plan.topic_raw,
-        must_terms=plan.must_terms,
-        nice_terms=plan.nice_terms,
-        max_results=min(config.arxiv.default_page_size, 20),
-        date_from=date_from,
-        date_to=date_to,
-    )
-    logger.info("HuggingFace: %d candidates", len(result))
-    return result
-
-
-def _search_semantic_scholar(
-    plan: QueryPlan, config: PipelineConfig
-) -> list[CandidateRecord]:
-    """Search Semantic Scholar and return candidates."""
-    from research_pipeline.sources.semantic_scholar_source import SemanticScholarSource
-
-    source = SemanticScholarSource(
-        api_key=config.sources.semantic_scholar_api_key,
-        min_interval=config.sources.semantic_scholar_min_interval,
-    )
-    date_from, date_to = date_window(plan.primary_months)
-    result = source.search(
-        topic=plan.topic_raw,
-        must_terms=plan.must_terms,
-        nice_terms=plan.nice_terms,
-        max_results=min(config.arxiv.default_page_size, 50),
-        date_from=date_from,
-        date_to=date_to,
-    )
-    logger.info("Semantic Scholar: %d candidates", len(result))
-    return result
-
-
-def _search_openalex(plan: QueryPlan, config: PipelineConfig) -> list[CandidateRecord]:
-    """Search OpenAlex and return candidates."""
-    from research_pipeline.sources.openalex_source import OpenAlexSource
-
-    source = OpenAlexSource(
-        api_key=config.sources.openalex_api_key,
-        min_interval=config.sources.openalex_min_interval,
-    )
-    date_from, date_to = date_window(plan.primary_months)
-    result = source.search(
-        topic=plan.topic_raw,
-        must_terms=plan.must_terms,
-        nice_terms=plan.nice_terms,
-        max_results=min(config.arxiv.default_page_size, 50),
-        date_from=date_from,
-        date_to=date_to,
-    )
-    logger.info("OpenAlex: %d candidates", len(result))
-    return result
-
-
-def _search_dblp(plan: QueryPlan, config: PipelineConfig) -> list[CandidateRecord]:
-    """Search DBLP and return candidates."""
-    from research_pipeline.sources.dblp_source import DBLPSource
-
-    source = DBLPSource(
-        min_interval=config.sources.dblp_min_interval,
-    )
-    result = source.search(
-        topic=plan.topic_raw,
-        must_terms=plan.must_terms,
-        nice_terms=plan.nice_terms,
-        max_results=min(config.arxiv.default_page_size, 30),
-    )
-    logger.info("DBLP: %d candidates", len(result))
-    return result
 
 
 def run_search(
@@ -230,6 +52,18 @@ def run_search(
     ws = workspace or Path(config.workspace)
     run_id, run_root = init_run(ws, run_id)
 
+    search_dir = get_stage_dir(run_root, "search")
+    if resume:
+        saved = load_search_report(search_dir)
+        if saved is not None:
+            typer.echo(
+                f"Resumed {len(saved.candidates)} candidates; status={saved.status}"
+            )
+            typer.echo(f"Coverage: {search_dir / 'source_coverage.json'}")
+            if saved.status == "failed" or (strict_sources and saved.status != "ok"):
+                raise typer.Exit(1)
+            return
+
     # Load existing plan or create one
     plan_path = get_stage_dir(run_root, "plan") / "query_plan.json"
     if plan_path.exists():
@@ -237,12 +71,9 @@ def run_search(
             json.loads(plan_path.read_text(encoding="utf-8"))
         )
     elif topic:
-        plan = QueryPlan(
-            topic_raw=topic,
-            topic_normalized=topic.lower().strip(),
-            must_terms=topic.lower().split()[:3],
-            nice_terms=topic.lower().split()[3:6],
-        )
+        from research_pipeline.pipeline.query_planning import build_query_plan
+
+        plan = build_query_plan(topic, config)
         plan_path.parent.mkdir(parents=True, exist_ok=True)
         plan_path.write_text(plan.model_dump_json(indent=2), encoding="utf-8")
     else:
@@ -255,94 +86,51 @@ def run_search(
 
     sources = _resolve_sources(source, config.sources.enabled)
     search_dir = get_stage_dir(run_root, "search")
-    all_candidates: list[CandidateRecord] = []
-    # Per-source outcome: >=0 candidate count, -1 failed, -2 not installed (#20).
-    source_results: dict[str, int] = {}
-
-    # Run sources in parallel using ThreadPoolExecutor
-    source_dispatch: dict[str, tuple[Any, tuple[Any, ...]]] = {
-        "arxiv": (_search_arxiv, (plan, config, search_dir)),
-        "scholar": (_search_scholar, (plan, config)),
-        "semantic_scholar": (_search_semantic_scholar, (plan, config)),
-        "openalex": (_search_openalex, (plan, config)),
-        "dblp": (_search_dblp, (plan, config)),
-        "huggingface": (_search_huggingface, (plan, config)),
+    handlers = {
+        "arxiv": lambda p: _search_arxiv(p, config, search_dir),
+        "scholar": lambda p: _search_scholar(p, config),
+        "semantic_scholar": lambda p: _search_semantic_scholar(p, config),
+        "openalex": lambda p: _search_openalex(p, config),
+        "dblp": lambda p: _search_dblp(p, config),
+        "huggingface": lambda p: _search_huggingface(p, config),
     }
+    report = execute_search(plan, config, sources, search_dir, handlers=handlers)
+    search_dir.mkdir(parents=True, exist_ok=True)
+    candidates_path = search_dir / "candidates.jsonl"
+    write_jsonl(
+        candidates_path,
+        [candidate.model_dump(mode="json") for candidate in report.candidates],
+    )
+    coverage = report.model_dump(mode="json", exclude={"candidates"})
+    coverage["candidate_count"] = len(report.candidates)
+    (search_dir / "source_coverage.json").write_text(json.dumps(coverage, indent=2))
 
-    futures: dict[Future[Any], str] = {}
-    with ThreadPoolExecutor(max_workers=len(sources)) as executor:
-        for src_name in sources:
-            entry = source_dispatch.get(src_name)
-            if entry:
-                fn, args = entry
-                futures[executor.submit(fn, *args)] = src_name
-            else:
-                logger.warning("Unknown source '%s', skipping", src_name)
-
-        for future in as_completed(futures):
-            source_name = futures[future]
-            try:
-                candidates = future.result()
-                all_candidates.extend(candidates)
-                source_results[source_name] = len(candidates)
-            except ImportError as exc:
-                install_hint = (
-                    "pipx inject research-pipeline scholarly"
-                    if source_name == "scholar"
-                    else str(exc)
-                )
-                logger.error(
-                    "%s search failed (missing dependency): %s — install: %s",
-                    source_name,
-                    exc,
-                    install_hint,
-                )
-                source_results[source_name] = -2
-            except Exception as exc:
-                logger.error("%s search failed: %s", source_name, exc)
-                source_results[source_name] = -1
-
-    # Per-source summary table + loud warning on zero-yield / failed sources so
-    # multi-source recall silently degrading to single-source is visible (#20).
     typer.echo("Per-source results:")
-    degraded: list[str] = []
-    for src_name in sources:
-        outcome = source_results.get(src_name, -1)
-        if outcome == -2:
-            label = "SKIPPED (not installed)"
-            degraded.append(src_name)
-        elif outcome < 0:
-            label = "FAILED"
-            degraded.append(src_name)
-        else:
-            label = f"{outcome} candidates"
-            if outcome == 0:
-                degraded.append(src_name)
-        typer.echo(f"  {src_name:<16} {label}")
-    if degraded:
-        logger.warning(
-            "%d of %d source(s) contributed nothing (zero-yield or failed): %s",
-            len(degraded),
-            len(sources),
-            ", ".join(degraded),
+    degraded = []
+    for name in sources:
+        attempts = [attempt for attempt in report.attempts if attempt.source == name]
+        count = sum(attempt.candidate_count for attempt in attempts)
+        failures = [
+            attempt for attempt in attempts if attempt.status not in ("ok", "empty")
+        ]
+        label = (
+            failures[-1].status.upper()
+            if failures
+            else f"{count} candidates before dedup"
         )
+        typer.echo(f"  {name:<16} {label}")
+        if failures or count == 0:
+            degraded.append(name)
+    if degraded:
         typer.echo(
-            f"WARNING: {len(degraded)}/{len(sources)} source(s) contributed "
-            f"nothing: {', '.join(degraded)}",
+            f"WARNING: {len(degraded)}/{len(sources)} source(s) contributed nothing "
+            f"or incomplete coverage: {', '.join(degraded)}",
             err=True,
         )
-        if strict_sources:
-            raise typer.Exit(1)
-
-    # Cross-source dedup
-    deduped = dedup_cross_source(all_candidates)
-
-    candidates_path = search_dir / "candidates.jsonl"
-    write_jsonl(candidates_path, [c.model_dump(mode="json") for c in deduped])
-
     typer.echo(f"Run ID: {run_id}")
-    typer.echo(f"Sources: {', '.join(sources)}")
-    before = len(all_candidates)
-    typer.echo(f"Found {len(deduped)} unique candidates (before dedup: {before})")
+    typer.echo(
+        f"Found {len(report.candidates)} unique candidates; status={report.status}"
+    )
     typer.echo(f"Saved to: {candidates_path}")
-    logger.info("Search stage complete: %d candidates from %s", len(deduped), sources)
+    if report.status == "failed" or (strict_sources and degraded):
+        raise typer.Exit(1)

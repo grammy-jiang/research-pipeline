@@ -273,14 +273,18 @@ class TestEnrichCandidates:
 
         assert count == 0
 
+    @patch(
+        "research_pipeline.sources.enrichment._s2_lookup_by_title", return_value=None
+    )
     @patch("research_pipeline.sources.enrichment._s2_lookup_by_doi")
-    def test_multiple_candidates_partial_enrichment(self, mock_doi: MagicMock) -> None:
-        """Mix of enrichable and non-enrichable candidates."""
+    def test_multiple_candidates_partial_enrichment(
+        self, mock_doi: MagicMock, mock_title: MagicMock
+    ) -> None:
+        """Mix of enrichable and non-enrichable candidates, without live fallback."""
         mock_doi.side_effect = [
             _mock_s2_response(abstract="Enriched 1"),
-            None,  # Second candidate not found
+            None,
         ]
-
         candidates = [
             _make_candidate(arxiv_id="2401.00001", abstract="", doi="10.1/a"),
             _make_candidate(arxiv_id="2401.00002", abstract="", doi="10.1/b"),
@@ -291,9 +295,10 @@ class TestEnrichCandidates:
 
         count = enrich_candidates(candidates)
 
-        assert count == 1  # Only first one enriched
+        assert count == 1
         assert candidates[0].abstract == "Enriched 1"
-        assert candidates[1].abstract == ""  # Not found
+        assert candidates[1].abstract == ""
+        mock_title.assert_called_once()
 
     @patch("research_pipeline.sources.enrichment._s2_lookup_by_doi")
     def test_enriches_influential_citation_count(self, mock_doi: MagicMock) -> None:
@@ -311,20 +316,25 @@ class TestEnrichCandidates:
         count = enrich_candidates([])
         assert count == 0
 
-    @patch("research_pipeline.sources.enrichment._s2_lookup_by_doi")
-    def test_s2_api_key_set_in_session(self, mock_doi: MagicMock) -> None:
-        """When API key provided, it's set on session headers."""
-        mock_doi.return_value = None
-
+    @patch(
+        "research_pipeline.sources.enrichment._s2_lookup_by_title", return_value=None
+    )
+    @patch("research_pipeline.sources.enrichment._s2_lookup_by_doi", return_value=None)
+    def test_s2_api_key_set_in_session(
+        self, mock_doi: MagicMock, mock_title: MagicMock
+    ) -> None:
+        """A configured API key is set on the coordinated source session."""
         candidates = [_make_candidate(abstract="", doi="10.1/x")]
-
-        # Capture the session used internally
-        with patch("requests.Session") as mock_session_cls:
-            mock_session = MagicMock()
-            mock_session_cls.return_value = mock_session
+        with patch(
+            "research_pipeline.sources.enrichment.SourceSession"
+        ) as mock_session_cls:
+            mock_session = mock_session_cls.return_value
 
             enrich_candidates(candidates, s2_api_key="test-key-123")
 
+            mock_session_cls.assert_called_once_with("semantic_scholar", 30.0)
             mock_session.headers.__setitem__.assert_called_with(
                 "x-api-key", "test-key-123"
             )
+            mock_doi.assert_called_once()
+            mock_title.assert_called_once()

@@ -10,6 +10,8 @@ from datetime import UTC, datetime
 
 import requests
 
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL
+from research_pipeline.infra.http import SourceSession
 from research_pipeline.infra.rate_limit import RateLimiter
 from research_pipeline.infra.retry import retry
 from research_pipeline.models.candidate import CandidateRecord
@@ -53,9 +55,11 @@ class CitationGraphClient:
         session: requests.Session | None = None,
     ) -> None:
         self._rate_limiter = rate_limiter or RateLimiter(
-            min_interval=1.0, name="s2_citations"
+            min_interval=DEFAULT_SOURCE_INTERVAL, name="s2_citations"
         )
-        self._session = session or requests.Session()
+        self._session = session or SourceSession(
+            "semantic_scholar", self._rate_limiter.min_interval
+        )
         if api_key:
             self._session.headers["x-api-key"] = api_key
 

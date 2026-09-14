@@ -46,6 +46,7 @@ def report_cmd(
         help="Output Markdown file path (default: auto in run dir).",
     ),
     config_path: Path | None = None,
+    synthesis_path: Path | None = None,
 ) -> None:
     """Render a synthesis report using a configurable template.
 
@@ -87,8 +88,12 @@ def report_cmd(
         if template == "structured_synthesis"
         else [legacy_json, structured_json]
     )
-    synthesis_json = next((path for path in candidates if path.exists()), None)
-    if synthesis_json is None:
+    synthesis_json = (
+        synthesis_path
+        if synthesis_path is not None
+        else next((path for path in candidates if path.exists()), None)
+    )
+    if synthesis_json is None or not synthesis_json.is_file():
         logger.error(
             "No synthesis_report.json or synthesis.json in %s. "
             "Run the summarize stage first.",

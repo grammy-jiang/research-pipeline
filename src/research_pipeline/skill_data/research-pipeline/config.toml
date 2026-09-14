@@ -13,7 +13,7 @@
 # Leave unused backends empty — they won't be called.
 
 [arxiv]
-min_interval_seconds = 5.0
+min_interval_seconds = 30.0
 default_page_size = 100
 daily_query_cache = true
 
@@ -136,16 +136,16 @@ min_downloads = 5
 # Add "scholar" only if scholarly or SerpAPI is installed.
 enabled = ["arxiv", "semantic_scholar", "openalex", "dblp", "huggingface"]
 scholar_backend = "scholarly"   # scholarly or serpapi
-scholar_min_interval = 10.0
+scholar_min_interval = 30.0
 serpapi_key = ""
-serpapi_min_interval = 5.0
+serpapi_min_interval = 30.0
 semantic_scholar_api_key = ""
-semantic_scholar_min_interval = 1.0
+semantic_scholar_min_interval = 30.0
 openalex_api_key = ""
-openalex_min_interval = 0.1
-dblp_min_interval = 1.0
+openalex_min_interval = 30.0
+dblp_min_interval = 30.0
 huggingface_enabled = true
-huggingface_min_interval = 0.5
+huggingface_min_interval = 30.0
 huggingface_limit = 100
 
 # Quality evaluation (citations, venue, author, recency)

@@ -2,10 +2,12 @@
 
 from typing import Any
 
+DEFAULT_SOURCE_INTERVAL = 30.0
+
 DEFAULTS: dict[str, dict[str, Any]] = {
     "arxiv": {
         "base_url": "https://export.arxiv.org/api/query",
-        "min_interval_seconds": 5.0,
+        "min_interval_seconds": DEFAULT_SOURCE_INTERVAL,
         "single_connection": True,
         "default_page_size": 100,
         "max_page_size": 500,
@@ -78,8 +80,8 @@ DEFAULTS: dict[str, dict[str, Any]] = {
     "sources": {
         "enabled": ["arxiv"],
         "scholar_backend": "scholarly",
-        "scholar_min_interval": 10.0,
+        "scholar_min_interval": DEFAULT_SOURCE_INTERVAL,
         "serpapi_key": "",
-        "serpapi_min_interval": 5.0,
+        "serpapi_min_interval": DEFAULT_SOURCE_INTERVAL,
     },
 }

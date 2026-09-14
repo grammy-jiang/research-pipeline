@@ -1,3 +1,8 @@
+> Workflow 2.1: submit execution results through research-pipeline-workflow;
+> never mark tasks accepted by editing state. The manifest and printed contracts
+> determine exact paths. Deep synthesis JSON is rendered into report/draft.md,
+> reviewed, validated, then published by the runner.
+
 # Command Reference
 
 Use this file when you need exact CLI/MCP command names or source/backend
@@ -33,7 +38,7 @@ assistant host:
 Example:
 
 ```bash
-research-pipeline search --run-id <RUN_ID> --source all --config CFG
+research-pipeline search --run-id <RUN_ID> --config CFG
 ```
 
 ## Core Pipeline Commands
@@ -41,8 +46,8 @@ research-pipeline search --run-id <RUN_ID> --source all --config CFG
 | Step | CLI | Output |
 |---|---|---|
 | Plan | `research-pipeline plan "topic" --config CFG` | `plan/query_plan.json` |
-| Search | `research-pipeline search --run-id ID --source all --config CFG` | `search/candidates.jsonl` |
-| Screen | `research-pipeline screen --run-id ID --diversity --config CFG` | `screen/screened.jsonl` |
+| Search | `research-pipeline search --run-id ID --config CFG` | `search/candidates.jsonl` |
+| Screen | `research-pipeline screen --run-id ID --diversity --config CFG` | `screen/shortlist.json` |
 | Download | `research-pipeline download --run-id ID --config CFG` | `download/pdf/*.pdf` |
 | Convert | `research-pipeline convert --run-id ID --backend docling --config CFG` | `convert/markdown/*.md` |
 | Extract | `research-pipeline extract --run-id ID --config CFG` | `extract/*.extract.json` |
