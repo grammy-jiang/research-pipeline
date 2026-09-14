@@ -118,8 +118,8 @@ def _dl_entry_dict(
 class TestCmdPlan:
     """Tests for the plan CLI handler."""
 
-    @patch("research_pipeline.cli.cmd_plan.augment_query_plan")
-    @patch("research_pipeline.cli.cmd_plan.clean_query_terms")
+    @patch("research_pipeline.pipeline.query_planning.augment_query_plan")
+    @patch("research_pipeline.pipeline.query_planning.clean_query_terms")
     @patch("research_pipeline.cli.cmd_plan.load_config")
     def test_run_plan_basic(
         self,
@@ -146,16 +146,7 @@ class TestCmdPlan:
         assert plan_data["topic_raw"] == "transformer architectures for time series"
         assert len(plan_data["must_terms"]) > 0
 
-    @patch("research_pipeline.cli.cmd_plan.augment_query_plan")
-    @patch("research_pipeline.cli.cmd_plan.clean_query_terms")
-    @patch("research_pipeline.cli.cmd_plan.load_config")
-    def test_run_plan_stop_words_removed(
-        self,
-        mock_config: MagicMock,
-        mock_clean: MagicMock,
-        mock_augment: MagicMock,
-        tmp_path: Path,
-    ) -> None:
+    def test_run_plan_stop_words_removed(self) -> None:
         from research_pipeline.arxiv.query_builder import split_topic_terms
 
         must, nice = split_topic_terms("the best approach for deep learning")
@@ -209,25 +200,24 @@ class TestCmdSearch:
         result = _resolve_sources(None, ["arxiv", "dblp"])
         assert result == ["arxiv", "dblp"]
 
-    @patch("research_pipeline.cli.cmd_search.dedup_cross_source")
     @patch("research_pipeline.cli.cmd_search._search_arxiv")
     @patch("research_pipeline.cli.cmd_search.load_config")
     def test_run_search_with_topic(
         self,
         mock_config: MagicMock,
         mock_search_arxiv: MagicMock,
-        mock_dedup: MagicMock,
         tmp_path: Path,
     ) -> None:
         from research_pipeline.cli.cmd_search import run_search
+        from research_pipeline.config.models import PipelineConfig
         from research_pipeline.models.candidate import CandidateRecord
 
-        cfg = _make_config(tmp_path)
+        cfg = PipelineConfig(workspace=str(tmp_path))
+        cfg.search.fallback_months = cfg.search.primary_months
         mock_config.return_value = cfg
-
-        cand = CandidateRecord.model_validate(_candidate_dict())
-        mock_search_arxiv.return_value = [cand]
-        mock_dedup.return_value = [cand]
+        mock_search_arxiv.return_value = [
+            CandidateRecord.model_validate(_candidate_dict())
+        ]
 
         run_search(
             topic="deep learning",
@@ -236,8 +226,12 @@ class TestCmdSearch:
             source="arxiv",
         )
 
-        candidates_path = tmp_path / "test-search-001" / "search" / "candidates.jsonl"
-        assert candidates_path.exists()
+        run_dir = tmp_path / "test-search-001"
+        candidate = json.loads((run_dir / "search" / "candidates.jsonl").read_text())
+        assert candidate["arxiv_id"] == "2301.00001"
+        plan = json.loads((run_dir / "plan" / "query_plan.json").read_text())
+        assert plan["topic_raw"] == "deep learning"
+        mock_search_arxiv.assert_called_once()
 
     @patch("research_pipeline.cli.cmd_search.load_config")
     def test_run_search_no_topic_no_plan_exits(
@@ -1668,26 +1662,22 @@ class TestArxivClient:
         assert len(results) == 1
         assert results[0].arxiv_id == "2301.00001"
 
-    @patch("research_pipeline.arxiv.client.build_api_url")
-    @patch("research_pipeline.arxiv.client.canonical_cache_key")
-    def test_fetch_page_cache_hit(
-        self,
-        mock_cache_key: MagicMock,
-        mock_build_url: MagicMock,
-    ) -> None:
+    def test_fetch_page_cache_hit(self) -> None:
         from research_pipeline.arxiv.client import ArxivClient
 
         mock_cache = MagicMock()
         mock_cache.get.return_value = "<xml>cached</xml>"
-
+        session = MagicMock()
         client = ArxivClient(
             cache=mock_cache,
-            rate_limiter=MagicMock(),
+            rate_limiter=MagicMock(min_interval=0.0),
+            session=session,
         )
 
         result = client._fetch_page("http://example.com", "key1")
         assert result == "<xml>cached</xml>"
         mock_cache.get.assert_called_once_with("key1")
+        session.get.assert_not_called()
 
     @patch("research_pipeline.arxiv.client.build_api_url")
     @patch("research_pipeline.arxiv.client.canonical_cache_key")

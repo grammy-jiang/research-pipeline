@@ -1027,34 +1027,35 @@ Both commands run in the `security` CI job.
 
 ## 11. Release Process
 
-Releases are triggered by creating a GitHub Release (tag format: `vX.Y.Z`).
-The `publish` workflow (`publish.yml`) runs automatically:
+The Publish workflow is triggered by pushing a version tag (vX.Y.Z), or by
+explicit workflow dispatch for an existing tag. Creating a GitHub Release alone
+does not trigger it. The workflow checks out the tagged commit, builds the wheel
+and sdist, publishes them to PyPI through trusted publishing, and creates or
+updates the GitHub Release with the same artifacts.
 
-1. **Build** — `uv build` produces wheel and sdist in `dist/`
-2. **Publish to PyPI** — via `pypa/gh-action-pypi-publish` using trusted
-   publishing (OIDC, no API token required)
-3. **Attach to GitHub Release** — wheel and sdist uploaded via `gh release upload`
+Before pushing a tag:
 
-Pre-release checklist:
+1. Bump the version in pyproject.toml, update CHANGELOG.md and regenerate uv.lock.
+2. Run the local quality gate below. Keep the unit-test external-network guard
+   enabled so incomplete mocks cannot contact providers.
+3. Push the review branch, open a pull request, and require its CI checks to pass.
+4. Merge the reviewed change, tag that verified commit and push the tag.
+5. Wait for every Publish job to complete; verify both PyPI and GitHub artifacts
+   before announcing a release or upgrading a production installation.
 
-```bash
-# 1. Bump version in pyproject.toml
-#    (version is read at runtime via importlib.metadata)
-
-# 2. Update CHANGELOG.md
-
-# 3. Run full quality gate
+~~~bash
 uv run pre-commit run --all-files
-uv run pytest tests/unit/ -x -q --cov=src/research_pipeline --cov-fail-under=83
+PYTHONPATH=tests uv run pytest -p test_offline_guard tests/unit/ -x -q \
+  --cov=src/research_pipeline --cov-fail-under=83
 uv run mypy src/
 
-# 4. Tag and push (triggers CI; CI must be green before creating the Release)
+# After review and CI are complete:
 git tag vX.Y.Z
 git push origin vX.Y.Z
-```
+~~~
 
-Creating the GitHub Release (not just the tag) is what triggers the publish
-workflow.
+Runtime version reporting uses importlib.metadata, so verify it from the built
+or installed distribution rather than an unrelated editable environment.
 
 ---
 

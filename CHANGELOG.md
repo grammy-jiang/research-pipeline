@@ -2,6 +2,54 @@
 
 All notable changes to research-pipeline.
 
+## [v0.33.0] — 2026-09-14
+
+Harden source acquisition and the Research Pipeline workflow after blocked
+research runs exposed retry, coverage and report-publication defects. The
+bundled Research Pipeline manifest moves from 2.0.0 to 2.1.0.
+
+### Source acquisition
+
+- Default every academic provider interval to 30 seconds in code, the bundled
+  Skill and the example configuration. Explicit existing settings still apply.
+- Coordinate local provider requests across processes and persist HTTP 429
+  cooldowns. Honor numeric and HTTP-date Retry-After values without shortening
+  them through jitter; use a 15-minute local fallback when no usable value exists.
+- Stop retrying permanent parameter errors and stop sleeping after the final
+  arXiv attempt. Normalize OpenAlex date filters.
+- Share query planning and search outcomes between CLI and MCP. Report empty,
+  partial, failed and unavailable coverage accurately; all-source failure is
+  unsuccessful. Preserve partial pages and saved search evidence on resume.
+- Honor configured sources, record actual query/date coverage, and avoid date
+  fallback for failed or cooling-down providers. Reject invalid arXiv feed
+  responses and preserve Scholar provenance.
+- Emit credential-safe HTTP timing, status and cooldown diagnostics.
+
+### Workflow and Skill
+
+- Add the research-pipeline-workflow entry point and align manifest, schemas,
+  CLI/MCP artifacts and worker contracts.
+- Require actual execution receipts, semantic artifact checks, LLM screening
+  evidence and accepted reviewer decisions. Reject missing mandatory work,
+  unknown paper references and stale accepted artifacts.
+- Render the selected synthesis explicitly, validate the draft, and publish
+  only the exact validated content. Failed validation propagates to CLI/MCP.
+- Preserve prior reports with unique snapshots and carry prior paper IDs and
+  gaps into resumed workflow context. Enforce run identity and bounded retries.
+- Clarify that the parent evaluates remaining gaps and starts each additional
+  research cycle deliberately.
+
+### Verification and compatibility
+
+- Add focused reliability regressions and block external requests during unit
+  tests, including CI. Repair obsolete fixture assumptions without live probes.
+- Make jsonschema an explicit runtime dependency and retain MCP SDK 1.x
+  compatibility with mcp[cli]>=1.0,<2.
+- Local Python 3.12 verification: 4,852 passed, 1 skipped; coverage 84.86%.
+- These changes do not establish provider recovery. Existing configs can
+  override the new defaults. Shared pacing is local/POSIX; SDK-internal requests,
+  other hosts and streamed response bodies have the documented limitations.
+
 ## [v0.32.0] — 2026-07-10
 
 Continued the bundled `blueprint` design-chain skill review: closed a second

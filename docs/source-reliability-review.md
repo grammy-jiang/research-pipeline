@@ -2,6 +2,19 @@
 
 Date: 2026-09-14
 
+## Release preparation update
+
+The user approved the existing-test and root-example maintenance, publishing a
+new release and updating the local installation. Version 0.33.0 includes those
+changes, MCP SDK <2 compatibility, and CI external-network blocking. The 12
+formerly failing cases now pass. Full local Python 3.12 verification is green:
+4,852 passed, 1 skipped, coverage 84.86% (job a085efc88473).
+
+The sections below preserve the original review checkpoint and its historical
+test failures. Its "pending approval" and "not installed" statements describe
+that earlier checkpoint; release/install completion is recorded separately in
+the msgloom issue ledger.
+
 ## Review status
 
 Implemented in /home/grammy-jiang/Projects/research-pipeline-reliability on branch
