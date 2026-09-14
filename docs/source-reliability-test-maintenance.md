@@ -34,6 +34,17 @@ installation authorizes this previously proposed maintenance scope.
 | tests/unit/test_enrichment.py | TestEnrichCandidates.test_s2_api_key_set_in_session | Patch the SourceSession factory used by enrichment and mock title fallback; retain the API-key header assertion with synthetic values. |
 | tests/unit/test_conversion_online_backends.py | TestMistralOcrBackend.test_convert_import_error | Replace the obsolete absent-SDK assumption with a mocked HTTP failure, rename the test accordingly, and assert failure reporting without sending the fixture PDF externally. |
 
+## Release-review follow-up
+
+The release's configuration propagation repairs also require concrete sparsity
+values in the batch3 config fixture, a configured interval in the enrichment
+session-factory assertion, and a real config file for watch command fixtures.
+The watch search test additionally verifies that both the HTTP session and
+limiter receive the configured 45-second interval. No behavioral assertion was
+removed. The missing-config fixture failed after 4,734 tests passed in the
+guarded suite (job b4150b7fdb9d); the watch and new review regressions then passed
+together (25 passed, job ec352289d971).
+
 ## Root example changes
 
 | Key | Existing seconds | Applied seconds |

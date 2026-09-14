@@ -11,6 +11,7 @@ from pathlib import Path
 import typer
 
 from research_pipeline.config.loader import load_config
+from research_pipeline.infra.rate_limit import RateLimiter
 from research_pipeline.models.candidate import CandidateRecord
 from research_pipeline.sources.enrichment import enrich_candidates
 from research_pipeline.storage.manifests import read_jsonl, write_jsonl
@@ -65,11 +66,12 @@ def enrich_command(
         missing_citations,
     )
 
-    s2_api_key = getattr(config, "semantic_scholar_api_key", "") or ""
+    s2_api_key = config.sources.semantic_scholar_api_key
 
     enriched_count = enrich_candidates(
         records,
         s2_api_key=s2_api_key,
+        s2_rate_limiter=RateLimiter(config.sources.semantic_scholar_min_interval),
     )
 
     output_file = stage_dir / f"{jsonl_file.stem}_enriched.jsonl"

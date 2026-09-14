@@ -14,6 +14,7 @@ import typer
 
 from research_pipeline.arxiv.client import ArxivClient
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
+from research_pipeline.config.loader import load_config
 from research_pipeline.infra.http import create_session
 from research_pipeline.infra.watch_state import (
     DEFAULT_QUERIES_FILE,
@@ -55,8 +56,9 @@ def watch_command(
     state_path = queries_file.parent / "watch_state.json"
     state = load_watch_state(state_path)
 
-    session = create_session()
-    rate_limiter = ArxivRateLimiter()
+    config = load_config(config_path)
+    session = create_session(config.contact_email, config.arxiv.min_interval_seconds)
+    rate_limiter = ArxivRateLimiter(config.arxiv.min_interval_seconds)
     client = ArxivClient(session=session, rate_limiter=rate_limiter)
 
     now = datetime.now(tz=UTC)

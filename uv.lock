@@ -3893,6 +3893,7 @@ source = { editable = "." }
 dependencies = [
     { name = "click" },
     { name = "cryptography" },
+    { name = "filelock" },
     { name = "idna" },
     { name = "jinja2" },
     { name = "jsonschema" },
@@ -3981,6 +3982,7 @@ requires-dist = [
     { name = "cryptography", specifier = ">=50.0.0" },
     { name = "datalab-python-sdk", marker = "extra == 'datalab'", specifier = ">=0.1" },
     { name = "docling", marker = "extra == 'docling'", specifier = ">=2.0" },
+    { name = "filelock", specifier = ">=3.20,<4" },
     { name = "google-search-results", marker = "extra == 'serpapi'", specifier = ">=2.4" },
     { name = "hypothesis", marker = "extra == 'dev'", specifier = ">=6.100" },
     { name = "idna", specifier = ">=3.15" },

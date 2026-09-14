@@ -104,3 +104,7 @@ When `workflow_state.json` shows `status: complete`:
 1. Show the final report path and the round-history table.
 2. List any remaining open gaps (ACADEMIC / ENGINEERING) not closed this run.
 3. Offer to run another round, expand citations, or hand off to `req-analysis`.
+
+## Required report format
+
+Render Contents, Round History, a meaningful Mermaid diagram and LaTeX notation before review. Record only verified rounds; the built-in renderer describes the current synthesis snapshot and does not invent prior history. Invoke validation with --strict-format. Missing format elements must fail even if the weighted quality score passes. Publish only through the runner, which uses the active package interpreter and rechecks the report format against the validated content.

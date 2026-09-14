@@ -332,7 +332,7 @@ class TestEnrichCandidates:
 
             enrich_candidates(candidates, s2_api_key="test-key-123")
 
-            mock_session_cls.assert_called_once_with("semantic_scholar")
+            mock_session_cls.assert_called_once_with("semantic_scholar", 30.0)
             mock_session.headers.__setitem__.assert_called_with(
                 "x-api-key", "test-key-123"
             )

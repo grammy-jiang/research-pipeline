@@ -67,6 +67,9 @@ def _make_config(tmp_path: Path) -> MagicMock:
     cfg.conversion.openai_vision.model = "gpt-4o"
     cfg.conversion.mineru.parse_method = "auto"
     cfg.conversion.mineru.timeout_seconds = 300
+    cfg.search.min_candidates = 40
+    cfg.search.min_highscore = 10
+    cfg.search.min_downloads = 5
     cfg.search.max_query_variants = 5
     cfg.search.primary_months = 6
     cfg.search.fallback_months = 12

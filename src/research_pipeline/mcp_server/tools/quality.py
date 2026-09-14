@@ -280,7 +280,7 @@ def validate_report(
                 message="No report found. Provide report_path or run_id.",
             )
 
-        result = _validate(report_path)
+        result = _validate(report_path, strict_format=params.strict_format)
         import hashlib
 
         result["passed"] = result["verdict"] == "PASS"
@@ -841,8 +841,14 @@ def enrich_tool(
         missing_before = sum(1 for r in records if not r.abstract)
 
         _report_progress(ctx, 1, 3, "Enriching via Semantic Scholar")
-        s2_api_key = getattr(config, "semantic_scholar_api_key", "") or ""
-        enriched_count = enrich_candidates(records, s2_api_key=s2_api_key)
+        s2_api_key = config.sources.semantic_scholar_api_key
+        from research_pipeline.infra.rate_limit import RateLimiter
+
+        enriched_count = enrich_candidates(
+            records,
+            s2_api_key=s2_api_key,
+            s2_rate_limiter=RateLimiter(config.sources.semantic_scholar_min_interval),
+        )
 
         # Enrichment pulls abstracts from Semantic Scholar (untrusted external
         # content); sanitize at this stage boundary before persisting (#104).
@@ -977,8 +983,13 @@ def watch_tool(
         state = load_watch_state(state_path)
 
         _report_progress(ctx, 1, 3, "Checking arXiv for new papers")
-        session = create_session()
-        rate_limiter = ArxivRateLimiter()
+        from research_pipeline.config.loader import load_config
+
+        config = load_config(Path(params.config_path) if params.config_path else None)
+        session = create_session(
+            config.contact_email, config.arxiv.min_interval_seconds
+        )
+        rate_limiter = ArxivRateLimiter(config.arxiv.min_interval_seconds)
         client = ArxivClient(session=session, rate_limiter=rate_limiter)
 
         from datetime import UTC, datetime, timedelta

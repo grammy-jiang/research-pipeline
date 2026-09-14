@@ -142,7 +142,11 @@ def check(run_id: str, slug: str, workspace: str, cwd: str) -> dict:
                 and val_data.get("report_sha256")
                 == hashlib.sha256(report_path.read_bytes()).hexdigest()
             )
-            if passed is True and report_matches:
+            if (
+                passed is True
+                and report_matches
+                and val_data.get("workflow_format_passed") is True
+            ):
                 result["checks"]["validation"] = {
                     "status": "PASS",
                     "path": str(val_path),

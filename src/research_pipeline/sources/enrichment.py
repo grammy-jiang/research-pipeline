@@ -120,14 +120,14 @@ def enrich_candidates(
     Returns:
         Number of candidates that were enriched.
     """
-    if session is None:
-        session = SourceSession("semantic_scholar")
-    if s2_api_key:
-        session.headers["x-api-key"] = s2_api_key
     if s2_rate_limiter is None:
         s2_rate_limiter = RateLimiter(
             min_interval=DEFAULT_SOURCE_INTERVAL, name="s2_enrichment"
         )
+    if session is None:
+        session = SourceSession("semantic_scholar", s2_rate_limiter.min_interval)
+    if s2_api_key:
+        session.headers["x-api-key"] = s2_api_key
 
     enriched_count = 0
 

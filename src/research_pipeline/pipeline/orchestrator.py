@@ -529,7 +529,7 @@ def run_pipeline(
 
     # Setup shared resources
     rate_limiter = ArxivRateLimiter(min_interval=config.arxiv.min_interval_seconds)
-    session = create_session(config.contact_email)
+    session = create_session(config.contact_email, config.arxiv.min_interval_seconds)
     cache: FileCache | None = None
     if config.cache.enabled:
         cache_dir = Path(config.cache.cache_dir).expanduser()

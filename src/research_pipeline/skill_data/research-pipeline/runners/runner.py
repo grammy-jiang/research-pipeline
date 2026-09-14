@@ -292,6 +292,8 @@ def validation_errors(
                     doc = json.loads(path.read_text())
                     if doc.get("passed") is not True:
                         errors.append("Report validation did not pass")
+                    if doc.get("workflow_format_passed") is not True:
+                        errors.append("Required report format did not pass")
                     target = Path(ctx["draft_report"])
                     if (
                         doc.get("report_sha256")
@@ -462,6 +464,7 @@ def workflow_context(state: dict[str, Any]) -> dict[str, str]:
     run_dir = workspace_path / run_id
     return {
         "skill_dir": str(SKILL_DIR),
+        "python_executable": sys.executable,
         "cwd": cwd,
         "workspace": str(workspace_path),
         "run_id": run_id,

@@ -5,7 +5,7 @@ from research_pipeline.arxiv.query_builder import (
     split_topic_terms,
 )
 from research_pipeline.config.models import PipelineConfig
-from research_pipeline.models.query_plan import QueryPlan
+from research_pipeline.models.query_plan import QueryPlan, SparsityThresholds
 from research_pipeline.screening.q2d_augmentation import augment_query_plan
 from research_pipeline.screening.query_cleanup import clean_query_terms
 
@@ -40,4 +40,9 @@ def build_query_plan(topic: str, config: PipelineConfig) -> QueryPlan:
         query_variants=query_variants,
         primary_months=config.search.primary_months,
         fallback_months=config.search.fallback_months,
+        sparsity_thresholds=SparsityThresholds(
+            min_candidates=config.search.min_candidates,
+            min_highscore=config.search.min_highscore,
+            min_downloads=config.search.min_downloads,
+        ),
     )

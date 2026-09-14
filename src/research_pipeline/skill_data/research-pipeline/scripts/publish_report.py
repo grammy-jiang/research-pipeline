@@ -8,6 +8,8 @@ import os
 import tempfile
 from pathlib import Path
 
+from research_pipeline.summarization.report_validation import workflow_format_checks
+
 
 def publish(draft: Path, validation: Path, destination: Path) -> None:
     data = draft.read_bytes()
@@ -16,6 +18,10 @@ def publish(draft: Path, validation: Path, destination: Path) -> None:
         raise ValueError("Report validation did not pass")
     if verdict.get("report_sha256") != hashlib.sha256(data).hexdigest():
         raise ValueError("Report validation hash does not match the draft")
+    if verdict.get("workflow_format_passed") is not True or not all(
+        workflow_format_checks(data.decode("utf-8")).values()
+    ):
+        raise ValueError("Required report format did not pass")
     destination.parent.mkdir(parents=True, exist_ok=True)
     with tempfile.NamedTemporaryFile(dir=destination.parent, delete=False) as fh:
         temporary = Path(fh.name)

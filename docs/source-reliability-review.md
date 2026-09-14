@@ -16,6 +16,17 @@ exceptions. In the resulting isolated environment, 4,852 unit tests pass
 (1 skipped, job d024db14dfa0); the existing vulnerability policy, license gate
 and strict mypy pass. See RP-024 in the issue ledger for the original CI evidence.
 
+PR #193 review identified additional release regressions. The repair now uses
+portable inter-process locks, carries configured pacing/credentials and sparsity
+thresholds into all affected call paths, and enforces Contents, Round History,
+Mermaid and LaTeX as mandatory workflow publication checks. MCP report validation
+is correctly marked as mutating, and the publication helper uses the runner's
+Python interpreter. Nine new regressions reproduced the review findings before
+the fixes and pass afterward. Watch fixtures now supply a real explicit config
+and verify a 45-second override, while retaining all original behavior assertions.
+The final guarded local suite passed: 4,861 passed, 1 skipped, coverage 84.86%
+(job 7690fc7318e8). Fresh independent quick/deep execution remains a release gate.
+
 The sections below preserve the original review checkpoint and its historical
 test failures. Its "pending approval" and "not installed" statements describe
 that earlier checkpoint; release/install completion is recorded separately in

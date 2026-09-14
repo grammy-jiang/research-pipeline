@@ -829,7 +829,7 @@ def tool_analyze_papers(
 
 @mcp.tool(
     annotations=ToolAnnotations(
-        readOnlyHint=True,
+        readOnlyHint=False,
         destructiveHint=False,
         idempotentHint=True,
         openWorldHint=False,
@@ -841,6 +841,7 @@ def tool_validate_report(
     workspace: str = "./workspace",
     run_id: str = "",
     output: str = "",
+    strict_format: bool = False,
 ) -> ToolResult:
     """Validate a research report for completeness and quality.
 
@@ -850,7 +851,11 @@ def tool_validate_report(
     """
     result = validate_report(
         ValidateReportInput(
-            report_path=report_path, workspace=workspace, run_id=run_id, output=output
+            report_path=report_path,
+            workspace=workspace,
+            run_id=run_id,
+            output=output,
+            strict_format=strict_format,
         ),
         ctx=ctx,
     )

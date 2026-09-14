@@ -1082,6 +1082,11 @@ def validate(
     run_id: str | None = typer.Option(
         None, "--run-id", help="Run ID to find synthesis report."
     ),
+    strict_format: bool = typer.Option(
+        False,
+        "--strict-format",
+        help="Require Contents, Round History, Mermaid and LaTeX.",
+    ),
     output: Path | None = typer.Option(
         None, "--output", "-o", help="Output path for validation JSON."
     ),
@@ -1106,6 +1111,7 @@ def validate(
         workspace=workspace,
         run_id=run_id,
         output=output,
+        strict_format=strict_format,
     )
 
     if passed is False:

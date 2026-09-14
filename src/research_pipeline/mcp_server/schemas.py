@@ -356,6 +356,10 @@ class AnalyzePapersInput(CommonParams):
 class ValidateReportInput(BaseModel):
     """Input for the validate_report tool."""
 
+    strict_format: bool = Field(
+        default=False, description="Require the workflow report format."
+    )
+
     output: PathStr = Field(default="", description="Validation JSON output path.")
 
     report_path: PathStr = Field(

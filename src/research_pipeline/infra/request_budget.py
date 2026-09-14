@@ -12,6 +12,7 @@ from datetime import UTC, datetime
 from pathlib import Path
 
 import requests
+from filelock import FileLock
 
 
 class SourceCooldown(requests.HTTPError):
@@ -55,24 +56,16 @@ class SharedRequestBudget:
 
     @contextlib.contextmanager
     def _locked(self) -> Iterator[dict[str, float]]:
-        # fcntl is intentionally imported at use time: pure parsing remains
-        # available on platforms without POSIX locks.
-        import fcntl
-
         self.directory.mkdir(parents=True, exist_ok=True, mode=0o700)
         path = self.directory / f"{self.key}.json"
-        with self._lock, (self.directory / f"{self.key}.lock").open("a+") as lock:
-            fcntl.flock(lock.fileno(), fcntl.LOCK_EX)
-            try:
-                state = json.loads(path.read_text()) if path.exists() else {}
-                if not isinstance(state, dict) or any(
-                    not isinstance(value, (int, float)) or not math.isfinite(value)
-                    for value in state.values()
-                ):
-                    raise ValueError("Invalid shared request-budget state")
-                yield state
-            finally:
-                fcntl.flock(lock.fileno(), fcntl.LOCK_UN)
+        with self._lock, FileLock(str(self.directory / f"{self.key}.lock")):
+            state = json.loads(path.read_text()) if path.exists() else {}
+            if not isinstance(state, dict) or any(
+                not isinstance(value, (int, float)) or not math.isfinite(value)
+                for value in state.values()
+            ):
+                raise ValueError("Invalid shared request-budget state")
+            yield state
 
     def _save(self, state: dict[str, float]) -> None:
         target = self.directory / f"{self.key}.json"
