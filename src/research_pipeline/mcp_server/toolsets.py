@@ -1,6 +1,6 @@
 """Capability-domain toolsets for the MCP server (#46).
 
-All 64 tools are statically injected on every session, so a client pays the
+By default all tools are injected on every session, so a client pays the
 whole schema set (~tens of K tokens) even when it only needs the research
 pipeline. This module groups the tools into capability domains and lets an
 operator select a subset via the ``RESEARCH_PIPELINE_MCP_TOOLSETS`` environment
