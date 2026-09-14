@@ -313,6 +313,13 @@ The pipeline classifies failures into these categories:
 | `timeout` | Stage exceeded time limit | Reduce scope; check network latency |
 | `config_error` | Invalid configuration | Check `config.toml` against `config.example.toml` |
 
+### Public search access checks
+
+Run `research-pipeline probe-sources --source openalex` for one bounded public
+API check, or omit `--source` for all four supported endpoints. Existing
+cooldowns are honored. See [Public source access probe](source-access-probe.md)
+for status meanings, JSON output and the MCP entry point.
+
 ### 7.2 Run recovery
 
 If a run fails partway through, resume it without re-running completed stages:

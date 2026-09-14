@@ -9,6 +9,7 @@ import typer
 from research_pipeline import __version__
 from research_pipeline.cli.cmd_brief import brief_app
 from research_pipeline.infra.logging import setup_logging
+from research_pipeline.models.source_probe import ProbeSource
 
 logger = logging.getLogger(__name__)
 
@@ -53,6 +54,28 @@ def _version_callback(value: bool) -> None:
     if value:
         typer.echo(f"research-pipeline {__version__}")
         raise typer.Exit()
+
+
+@app.command("probe-sources")
+def probe_sources_command(
+    source: Annotated[
+        ProbeSource, typer.Option("--source", help="Public search endpoint to check.")
+    ] = ProbeSource.ALL,
+    config: ConfigOption = None,
+    json_output: Annotated[
+        bool, typer.Option("--json", help="Emit a machine-readable JSON report.")
+    ] = False,
+    output: Annotated[
+        Path | None,
+        typer.Option("--output", "-o", help="Also save the JSON report to this file."),
+    ] = None,
+) -> None:
+    """Check public APIs once each, at least 30s apart; respect cooldowns."""
+    from research_pipeline.cli.cmd_probe_sources import run_probe_sources
+
+    run_probe_sources(
+        source, config_path=config, json_output=json_output, output=output
+    )
 
 
 @app.callback()

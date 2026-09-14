@@ -56,7 +56,8 @@ class TestServerRegistration:
         # + 2 deprecated aliases kept after the verb-clarity renames
         #   tool_evaluate -> tool_validate_output and
         #   tool_evaluate_quality -> tool_score_quality (#120) = 67
-        assert len(mcp._tool_manager._tools) == 67
+        # + 1 public source-access diagnostic = 68
+        assert len(mcp._tool_manager._tools) == 68
 
     def test_all_tools_have_annotations(self) -> None:
         """Every registered tool must have ToolAnnotations set."""

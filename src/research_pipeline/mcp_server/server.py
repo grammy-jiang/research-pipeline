@@ -68,6 +68,7 @@ from research_pipeline.mcp_server.schemas import (
     MemorySearchInput,
     MemoryStatsInput,
     PlanTopicInput,
+    ProbeSourcesInput,
     ReportInput,
     RRPDiagnosticInput,
     RunPipelineInput,
@@ -133,6 +134,7 @@ from research_pipeline.mcp_server.tools import (
     memory_stats_tool,
     model_routing_info_tool,
     plan_topic,
+    probe_sources_tool,
     query_eval_log,
     record_feedback,
     report_tool,
@@ -147,6 +149,7 @@ from research_pipeline.mcp_server.tools import (
     verify_stage,
     watch_tool,
 )
+from research_pipeline.models.source_probe import ProbeSource
 
 logger = logging.getLogger(__name__)
 
@@ -202,6 +205,33 @@ mcp = FastMCP(
         "screen, download, convert, extract, summarize papers."
     ),
 )
+
+
+@mcp.tool(
+    annotations=ToolAnnotations(
+        readOnlyHint=False,
+        destructiveHint=False,
+        idempotentHint=False,
+        openWorldHint=True,
+    ),
+)
+async def tool_probe_sources(
+    ctx: Context,
+    source: ProbeSource = ProbeSource.ALL,
+    config_path: str = "",
+) -> ToolResult:
+    """Probe public search API access: arXiv, Semantic Scholar, DBLP, OpenAlex.
+
+    Makes at most one anonymous request per source, at least 30s apart, with no
+    retries or redirects. Active shared cooldowns skip network access. All four
+    checks take at least 90s plus network time when no source is cooling down.
+    Distinguishes usable search, 429, bot challenges, authentication and transport
+    failures. This cannot establish whether an IP-specific ban has been lifted.
+    Does not start research, test API keys, or reset cooldowns.
+    """
+    return await probe_sources_tool(
+        ProbeSourcesInput(source=source, config_path=config_path), ctx=ctx
+    )
 
 
 @mcp._mcp_server.set_logging_level()
