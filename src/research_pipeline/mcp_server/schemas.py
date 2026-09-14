@@ -9,6 +9,7 @@ from typing import Annotated, Literal
 from pydantic import AfterValidator, BaseModel, Field, field_validator
 
 from research_pipeline.conversion.registry import KNOWN_BACKENDS
+from research_pipeline.models.source_probe import ProbeSource
 
 # Single source of truth for the backend list in tool descriptions (#120).
 _BACKEND_CHOICES = ", ".join(KNOWN_BACKENDS)
@@ -59,6 +60,18 @@ _WORKSPACE_DESC = (
     "against the MCP server's working directory (not the caller's) — pass an "
     "absolute path for a predictable output location."
 )
+
+
+class ProbeSourcesInput(BaseModel):
+    """Public connectivity checks; no run/workspace or credential input."""
+
+    source: ProbeSource = Field(
+        default=ProbeSource.ALL, description="Public search endpoint to check once."
+    )
+    config_path: PathStr = Field(
+        default="",
+        description="Optional pipeline TOML for request pacing; API keys are not sent.",
+    )
 
 
 class CommonParams(BaseModel):

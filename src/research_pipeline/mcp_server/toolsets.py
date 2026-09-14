@@ -90,6 +90,7 @@ TOOLSETS: dict[str, frozenset[str]] = {
             "tool_dual_metrics",
             "tool_horizon_metric",
             "tool_rrp_diagnostic",
+            "tool_probe_sources",
         }
     ),
     "knowledge": frozenset(

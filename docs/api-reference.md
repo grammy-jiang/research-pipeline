@@ -1517,6 +1517,16 @@ research-pipeline watch --lookback 14 --queries my-queries.json
 
 ## 10. System and Administration Commands
 
+### Public source access probe
+
+`research-pipeline probe-sources [--source all|arxiv|semantic_scholar|dblp|openalex]
+[--config PATH] [--json] [--output PATH]` makes at most one anonymous request per
+source and preserves shared cooldowns. All-source checks take at least 90 seconds
+plus network/budget waits. The MCP equivalent is `tool_probe_sources` in the
+`diagnostics` toolset. See [Public source access probe](source-access-probe.md)
+for exact results, exit codes and limitations.
+
+
 ---
 
 ### `inspect`

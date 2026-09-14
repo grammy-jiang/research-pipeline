@@ -101,6 +101,7 @@ from research_pipeline.mcp_server.tools.quality import (
     validate_report,
     watch_tool,
 )
+from research_pipeline.mcp_server.tools.source_probe import probe_sources_tool
 
 __all__ = [
     "McpToolError",
@@ -166,6 +167,7 @@ __all__ = [
     "memory_stats_tool",
     "model_routing_info_tool",
     "plan_topic",
+    "probe_sources_tool",
     "query_eval_log",
     "record_feedback",
     "report_tool",
