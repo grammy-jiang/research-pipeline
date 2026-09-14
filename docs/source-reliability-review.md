@@ -24,8 +24,14 @@ is correctly marked as mutating, and the publication helper uses the runner's
 Python interpreter. Nine new regressions reproduced the review findings before
 the fixes and pass afterward. Watch fixtures now supply a real explicit config
 and verify a 45-second override, while retaining all original behavior assertions.
-The final guarded local suite passed: 4,861 passed, 1 skipped, coverage 84.86%
-(job 7690fc7318e8). Fresh independent quick/deep execution remains a release gate.
+Independent workflow use then reproduced a valid worker Mermaid closing fence
+being corrupted by appended citations. The renderer now separates citations from
+multiline content; strict publication checks reject unterminated Mermaid blocks.
+Original failures are archived and recorded as RP-029. Legacy confidence and
+opaque-ID quality diagnostics remain a recorded limitation (RP-030).
+The final guarded local suite passed: 4,863 passed, 1 skipped, coverage 84.87%
+(job 4e46c84a54ba). Fresh independent quick/deep completion evidence is recorded
+in the issue ledger before publishing the tag.
 
 The sections below preserve the original review checkpoint and its historical
 test failures. Its "pending approval" and "not installed" statements describe

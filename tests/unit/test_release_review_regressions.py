@@ -120,3 +120,42 @@ def test_mcp_validation_is_annotated_as_mutating():
     )
     assert tool.annotations is not None
     assert tool.annotations.readOnlyHint is False
+
+
+def test_renderer_preserves_closed_worker_mermaid_blocks(tmp_path):
+    fence = chr(96) * 3
+    finding = "Two paths.\n\n" + fence + "mermaid\nflowchart TD\n A --> B\n" + fence
+    record = CrossPaperSynthesisRecord(
+        topic="Fixture Markdown",
+        taxonomy=[
+            {
+                "finding_id": "f1",
+                "finding_type": "pattern",
+                "finding": finding,
+                "confidence": "LOW",
+                "supporting_papers": ["p1"],
+            }
+        ],
+    )
+    report_text = render_report(record, "structured_synthesis")
+    assert fence + " [p1]" not in report_text
+    assert "\n" + fence + "\n" in report_text
+    report = tmp_path / "report.md"
+    report.write_text(report_text)
+    assert validate_report(report, strict_format=True)["workflow_format_passed"]
+
+
+def test_strict_validation_rejects_malformed_mermaid_closing_fence(tmp_path):
+    fence = chr(96) * 3
+    report = tmp_path / "report.md"
+    report.write_text(
+        _report()
+        + "\n"
+        + fence
+        + "mermaid\nflowchart TD\n A --> B\n"
+        + fence
+        + " [p1]\n"
+    )
+    result = validate_report(report, strict_format=True)
+    assert result["verdict"] == "FAIL"
+    assert result["workflow_format_passed"] is False

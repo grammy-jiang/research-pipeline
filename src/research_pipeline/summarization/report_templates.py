@@ -277,7 +277,7 @@ the finding is true or independently replicated.
 
 ## Taxonomy of Approaches
 {% for f in report.taxonomy %}
-- **{{ f.confidence }}** {{ f.finding }} [{{ f.supporting_papers|join(', ') }}]
+- **{{ f.confidence }}** {{ f.finding }}{{ '\n\n' if '\n' in f.finding else ' ' }}[{{ f.supporting_papers|join(', ') }}]
 {% endfor %}
 {% if not report.taxonomy %}
 No taxonomy entries identified.
@@ -293,7 +293,7 @@ No taxonomy entries identified.
 
 ## Recurring Mechanisms and Patterns
 {% for f in report.recurring_patterns %}
-- **{{ f.confidence }}** {{ f.finding }} [{{ f.supporting_papers|join(', ') }}]
+- **{{ f.confidence }}** {{ f.finding }}{{ '\n\n' if '\n' in f.finding else ' ' }}[{{ f.supporting_papers|join(', ') }}]
 {% endfor %}
 {% if not report.recurring_patterns %}
 No recurring patterns identified.
@@ -301,7 +301,7 @@ No recurring patterns identified.
 
 ## Assumption Map
 {% for a in report.assumption_map %}
-- **{{ a.assumption_id }}** {{ a.assumption }} [{{ a.source_papers|join(', ') }}]
+- **{{ a.assumption_id }}** {{ a.assumption }}{{ '\n\n' if '\n' in a.assumption else ' ' }}[{{ a.source_papers|join(', ') }}]
 {% endfor %}
 {% if not report.assumption_map %}
 No assumptions identified.
@@ -320,7 +320,7 @@ No contradictions identified.
 
 ## Evidence Strength Map
 {% for f in report.evidence_strength_map %}
-- **{{ f.confidence }}** {{ f.finding }} [evidence: {{ f.evidence_ids|join(', ') }}]
+- **{{ f.confidence }}** {{ f.finding }}{{ '\n\n' if '\n' in f.finding else ' ' }}[evidence: {{ f.evidence_ids|join(', ') }}]
 {% endfor %}
 
 ## Operational Implications
@@ -335,7 +335,7 @@ No contradictions identified.
 
 ## Reusable Mechanism Inventory
 {% for m in report.reusable_mechanism_inventory %}
-- **{{ m.mechanism_id }}** {{ m.name }}: {{ m.description }} [{{ m.source_papers|join(', ') }}]
+- **{{ m.mechanism_id }}** {{ m.name }}: {{ m.description }}{{ '\n\n' if '\n' in m.description else ' ' }}[{{ m.source_papers|join(', ') }}]
 {% endfor %}
 
 ## Design Implications

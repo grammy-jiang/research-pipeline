@@ -36,6 +36,8 @@ bundled Research Pipeline manifest moves from 2.0.0 to 2.1.0.
   unknown paper references and stale accepted artifacts.
 - Render mandatory Contents, Round History, Mermaid and LaTeX; use strict format
   validation and a publication format check. Annotate MCP validation as mutating.
+- Preserve closing Markdown fences in multiline worker findings; reject
+  unterminated Mermaid blocks before publication.
 - Render the selected synthesis explicitly, validate the draft, and publish
   only the exact validated content. Failed validation propagates to CLI/MCP.
 - Preserve prior reports with unique snapshots and carry prior paper IDs and
@@ -51,10 +53,12 @@ bundled Research Pipeline manifest moves from 2.0.0 to 2.1.0.
   compatibility with mcp[cli]>=1.30,<2.
 - Raise vulnerable runtime dependency floors and update the locked documentation
   and audit dependencies to patched versions identified by the release CI gate.
-- Local Python 3.12 verification: 4,861 passed, 1 skipped; coverage 84.86%.
+- Local Python 3.12 verification: 4,863 passed, 1 skipped; coverage 84.87%.
 - These changes do not establish provider recovery. Existing configs can
   override the new defaults. Shared pacing is local; SDK-internal requests,
   other hosts and streamed response bodies have the documented limitations.
+- Legacy quality diagnostics can undercount bold confidence labels and opaque
+  corpus identifiers; these limitations remain recorded for follow-up.
 
 ## [v0.32.0] — 2026-07-10
 

@@ -229,6 +229,27 @@ def _check_latex(text: str) -> int:
     return inline + display
 
 
+def _mermaid_fences_are_closed(text: str) -> bool:
+    """Reject an unterminated Mermaid block even when another diagram is valid."""
+    active: str | None = None
+    mermaid = False
+    for line in text.splitlines():
+        if active is not None:
+            # Closing fences cannot carry citations or other trailing text.
+            closing = (
+                r" {0,3}" + re.escape(active[0]) + "{" + str(len(active)) + r",}[ \t]*"
+            )
+            if re.fullmatch(closing, line):
+                active = None
+                mermaid = False
+            continue
+        opening = re.fullmatch(r" {0,3}(`{3,}|~{3,})(.*)", line)
+        if opening:
+            active = opening.group(1)
+            mermaid = opening.group(2).strip().lower() == "mermaid"
+    return not (active is not None and mermaid)
+
+
 def workflow_format_checks(text: str) -> dict[str, bool]:
     """Check the mandatory presentation contract independently of weighted scores."""
     history = re.search(
@@ -239,7 +260,7 @@ def workflow_format_checks(text: str) -> dict[str, bool]:
     return {
         "contents": _check_contents(text),
         "round_history": history is not None and bool(history.group(1).strip()),
-        "mermaid": _check_mermaid(text) > 0,
+        "mermaid": _check_mermaid(text) > 0 and _mermaid_fences_are_closed(text),
         "latex": _check_latex(text) > 0,
     }
 
