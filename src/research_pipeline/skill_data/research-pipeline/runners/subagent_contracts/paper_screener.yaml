@@ -17,8 +17,9 @@ inputs:
     description: "Raw search candidates (fallback if cheap_scores.jsonl is not present)"
 
 outputs:
-  - path: "{run_dir}/screen/screened.jsonl"
-    description: "Shortlisted candidates with relevance scores"
+  - path: "{run_dir}/screen/shortlist.json"
+    description: "JSON array of RelevanceDecision records; preserve paper/cheap and populate llm rationale/evidence"
+    schema: "../../schemas/shortlist.schema.json"
 
 allowed_tools:
   - tool_screen_candidates
@@ -56,9 +57,9 @@ evidence_requirements:
   - Rejection reasons must be explicit (irrelevant / out_of_scope / low_quality / duplicate)
 
 completion_criteria:
-  - "{run_dir}/screen/screened.jsonl exists"
-  - "Shortlist contains 5–30 papers"
-  - "All accepted papers have relevance_score ≥ 0.6"
+  - "{run_dir}/screen/shortlist.json exists"
+  - "Shortlist is nonempty; explain limited coverage instead of inventing papers"
+  - "Accepted papers have llm.llm_score >= 0.6 and nonempty llm.rationale/evidence_quotes"
   - "All rejected papers have rejection_reason"
 
 validation_gate:
@@ -68,6 +69,6 @@ validation_gate:
 self_reporting_forbidden: true
 status_update: |
   After completing screening:
-  1. Verify screened.jsonl exists at {run_dir}/screen/screened.jsonl and has ≥ 5 entries
+  1. Verify shortlist.json exists at {run_dir}/screen/shortlist.json and has at least one supported entry
   2. Do NOT mark the task accepted yourself
-  3. Re-run runner.py — it will validate and accept the task
+  3. Return success and the shortlist path; the parent submits --complete-task paper-screener --result-file RESULT.json

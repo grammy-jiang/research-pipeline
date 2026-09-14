@@ -78,6 +78,8 @@ def parse_atom_response(xml_text: str) -> list[CandidateRecord]:
         etree.XMLSyntaxError: If the XML is malformed.
     """
     root = etree.fromstring(xml_text.encode(), parser=_SAFE_PARSER)
+    if root.tag != f"{{{ATOM_NS}}}feed":
+        raise ValueError("Expected an arXiv Atom feed, received another document")
     entries = root.findall(f"{{{ATOM_NS}}}entry")
     logger.info("Parsing %d entries from Atom response", len(entries))
 
@@ -90,6 +92,8 @@ def parse_atom_response(xml_text: str) -> list[CandidateRecord]:
             entry_id = _find_text(entry, "id")
             logger.error("Failed to parse entry %s: %s", entry_id, exc)
 
+    if entries and not candidates:
+        raise ValueError("Atom feed contained entries but none were valid papers")
     logger.info("Successfully parsed %d candidates", len(candidates))
     return candidates
 

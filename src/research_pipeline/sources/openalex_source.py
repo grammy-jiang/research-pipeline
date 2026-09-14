@@ -1,9 +1,4 @@
-"""OpenAlex search source.
-
-Uses the OpenAlex API ``/works`` endpoint.  Requires an API key (free,
-mandatory since Feb 2026).  Rate limit: 5 req/sec (well within the
-100K credits/day free tier).
-"""
+"""OpenAlex works search with provider-specific date serialization."""
 
 import logging
 import re
@@ -11,8 +6,11 @@ from datetime import UTC, datetime
 
 import requests
 
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL
+from research_pipeline.infra.clock import provider_date
+from research_pipeline.infra.http import SourceSession
 from research_pipeline.infra.rate_limit import RateLimiter
-from research_pipeline.infra.retry import retry
+from research_pipeline.infra.retry import retry, safe_exception
 from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -30,12 +28,12 @@ class OpenAlexSource:
     def __init__(
         self,
         api_key: str = "",
-        min_interval: float = 0.2,
+        min_interval: float = DEFAULT_SOURCE_INTERVAL,
         session: requests.Session | None = None,
     ) -> None:
         self._api_key = api_key
         self._rate_limiter = RateLimiter(min_interval=min_interval, name="openalex")
-        self._session = session or requests.Session()
+        self._session = session or SourceSession("openalex", min_interval)
 
     @property
     def name(self) -> str:
@@ -85,6 +83,7 @@ class OpenAlexSource:
         Returns:
             List of CandidateRecords with ``source="openalex"``.
         """
+        self.last_error: BaseException | None = None
         query_parts = must_terms[:3]
         if nice_terms:
             query_parts.extend(nice_terms[:2])
@@ -100,9 +99,11 @@ class OpenAlexSource:
         # Date filter
         filters: list[str] = []
         if date_from:
-            filters.append(f"from_publication_date:{date_from[:10]}")
+            filters.append(f"from_publication_date:{provider_date(date_from)}")
         if date_to:
-            filters.append(f"to_publication_date:{date_to[:10]}")
+            filters.append(
+                f"to_publication_date:{provider_date(date_to, end_of_year=True)}"
+            )
         if filters:
             params["filter"] = ",".join(filters)
 
@@ -112,7 +113,8 @@ class OpenAlexSource:
         try:
             data = self._api_get(url, params)
         except requests.RequestException as exc:
-            logger.error("OpenAlex search failed: %s", exc)
+            self.last_error = exc
+            logger.error("OpenAlex search failed: %s", safe_exception(exc))
             return []
 
         results = data.get("results", [])

@@ -5,7 +5,7 @@
 | Error | Cause | Solution |
 |-------|-------|----------|
 | `command not found: research-pipeline` | Not installed | `pipx install research-pipeline` |
-| No candidates found | Query too specific or window too narrow | Broaden terms, use `--source all`, expand to 12 months |
+| No candidates found | Empty result or acquisition failure | Inspect source_coverage.json; broaden only after successful empty searches |
 | Important paper missed | Synonym-blind queries | Add query variants with different vocabulary; check HuggingFace daily papers |
 | Shortlist mostly irrelevant | Broad `must_terms` in BM25 | Cap must_terms to 2; use paper-screener for intelligent re-screening |
 | Docling not installed | Missing docling extra | `pipx inject research-pipeline docling` |
@@ -13,7 +13,7 @@
 | PyMuPDF4LLM not installed | Missing pymupdf4llm extra | `pipx inject research-pipeline pymupdf4llm` |
 | scholarly not installed | Missing scholarly package | `pipx inject research-pipeline scholarly` |
 | Scholar SKIPPED on `--source all` | scholarly not injected into pipx venv | `pipx inject research-pipeline scholarly` (v0.3.1+ shows clear message) |
-| Rate limit 429 | Too many API calls | Pipeline retries automatically with exponential backoff |
+| Rate limit 429 | Server rate limit; other clients or shared IPs may contribute | Stop this source and respect the persisted cooldown and Retry-After |
 | SerpAPI key not set | Using serpapi without key | Set `RESEARCH_PIPELINE_SERPAPI_KEY` env var |
 | Quality scoring slow | Author h-index lookup via S2 API | Results are cached; subsequent runs faster |
 | SPECTER2 model download | First use downloads ~440MB model | Cached after first download |
@@ -38,14 +38,29 @@ These bugs existed in v0.3.0 and are resolved in v0.3.1:
 5. **Scholar fails silently**: When `--source all` was used without scholarly installed,
    the error message was generic. Now shows specific install instructions.
 
-## Rate Limits
+## Request Pacing
 
-| Source | Limit | Notes |
-|--------|-------|-------|
-| arXiv | 1 req / 3s, single connection | Never parallel. 429 triggers exponential backoff |
-| Google Scholar (free) | 10s+ between requests | May get captchas under heavy use |
-| SerpAPI | 5s between requests | Paid, more reliable |
-| Semantic Scholar | 1s between requests | Search source; also used by `expand` and `quality` |
+All source interval defaults are 30 seconds. This is a conservative application
+default, not a claim about provider quotas or a guarantee of unblocking.
+Existing explicit config overrides remain in effect; update them intentionally.
+
+Default HTTP source clients share one budget per provider across processes under
+~/.cache/research-pipeline/request-budgets. The lock serializes in-flight
+requests. HTTP 429 ends acquisition for that source and persists a cooldown:
+at least the source interval and the server's Retry-After value, or 15 minutes
+when no usable Retry-After is provided. HTTP-date and numeric values work.
+No retry is scheduled after the last attempt; deterministic 400 errors stop.
+
+RESEARCH_PIPELINE_REQUEST_STATE_DIR can select a persistent shared directory.
+Do not rotate or clear it to bypass a cooldown. Separate hosts/IP-sharing clients
+need coordination beyond this directory. Custom injected HTTP sessions
+remain the caller's responsibility. Scholar SDK operations use the same
+coordination, but SDK-internal requests are not individually observable.
+
+Inspect credential-safe source_http events for dispatch times, status,
+content type, duration, and Retry-After. source_sdk events count SDK operations,
+not wire requests. source_coverage.json records application query attempts,
+date windows, source outcomes, and cooldown deadlines. Keep these levels distinct.
 
 ## Search Sources
 
@@ -77,10 +92,10 @@ enabled = ["arxiv"]             # Searchable: arxiv, scholar, semantic_scholar, 
 scholar_backend = "scholarly"   # scholarly or serpapi
 serpapi_key = ""
 semantic_scholar_api_key = ""
-semantic_scholar_min_interval = 1.0
+semantic_scholar_min_interval = 30.0
 openalex_api_key = ""
-openalex_min_interval = 0.1
-dblp_min_interval = 1.0
+openalex_min_interval = 30.0
+dblp_min_interval = 30.0
 huggingface_limit = 100
 
 [screen]
@@ -119,7 +134,7 @@ If found, it copies to the run directory instead of re-downloading.
 
 - **Query terms**: Cap AND-ed terms at 3. Prefer 2 `must_terms` for recall.
 - **Synonym coverage**: ALWAYS generate variants with different vocabulary.
-- **Time window**: Default 6 months. Expand to 12 only if sparse results.
+- **Time window**: Choose task-appropriate coverage. Automatic 6-to-12-month fallback applies only to successful sparse searches on date-aware sources.
 - **Evidence-based**: Every summary claim must cite source (paper_id, section).
 - CLI and MCP server share the same cache directory.
 

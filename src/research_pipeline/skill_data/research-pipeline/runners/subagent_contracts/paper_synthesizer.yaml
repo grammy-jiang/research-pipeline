@@ -1,77 +1,39 @@
-# paper_synthesizer subagent contract
-# Task: paper-synthesizer (paper_synthesizer)
-# Executor kind: llm_worker
-
+# Cross-paper synthesis contract: the JSON is the renderer's actual input.
 role: paper_synthesizer
 task_id: paper-synthesizer
-
 description: |
-  Synthesize the per-paper analysis files into a cross-paper synthesis report.
-  Identify themes, contradictions, open gaps, and actionable insights.
-  For system-building mode: classify gaps as ENGINEERING or ACADEMIC.
-
+  Synthesize the analyzed papers into the CrossPaperSynthesisRecord schema.
+  Preserve disagreements, evidence limitations, and gaps relevant to the user's
+  research questions. Distinguish source findings from system inference.
 inputs:
-  - path: "{run_dir}/analysis/"
-    description: "Per-paper JSON analysis files"
-  - path: "{run_dir}/screen/screened.jsonl"
-    description: "Paper metadata and quality scores"
+  - path: "{run_dir}/analysis/*.analysis.json"
+  - path: "{run_dir}/screen/shortlist.json"
+  - path: "{run_dir}/search/source_coverage.json"
   - path: "{skill_dir}/schemas/synthesis_report.schema.json"
-    description: "Output schema to conform to"
-
 outputs:
   - path: "{run_dir}/analysis/synthesis.json"
-    description: "Machine-readable synthesis report"
     schema: "../../schemas/synthesis_report.schema.json"
-  - path: "{run_dir}/analysis/synthesis.md"
-    description: "Human-readable synthesis narrative"
-
-allowed_tools:
-  - tool_summarize_papers
-  - tool_aggregate_evidence
-  - tool_kg_ingest
-  - tool_memory_search
-  - view
-  - grep
-
+allowed_tools: [view, grep, glob]
 forbidden_actions:
-  - Do NOT fabricate claims not present in the analysis files
-  - Do NOT include citation counts or h-indexes you have not verified
-  - Do NOT call tool_analyze_papers or tool_analyze_claims (already done)
-  - Do NOT write outside the run workspace directory ({run_dir})
-
-synthesis_structure:
-  required_sections:
-    - executive_summary      # 100–150 words
-    - themes                 # list of recurring cross-paper themes
-    - contradictions         # papers with conflicting findings
-    - open_gaps              # classified as ENGINEERING or ACADEMIC
-    - actionable_insights    # concrete take-aways
-    - confidence_summary     # overall confidence with calibration note
-    - limitations            # synthesis limitations and coverage gaps
-  optional_sections:
-    - system_building_readiness  # filled only in system-building mode
-    - suggested_queries          # for ACADEMIC gaps, proposed follow-up searches
-
-gap_classification:
-  ENGINEERING: "Gap fillable by reviewing documentation, code, or benchmarks"
-  ACADEMIC:    "Gap requiring additional paper searches to close"
-  OUT_OF_SCOPE: "Gap is outside the research topic and does not require new papers or implementation work"
-
+  - Do not fabricate evidence, citations, retrieval coverage, or user requirements.
+  - Do not edit the per-paper analyses or publish the final report.
+required_content:
+  - corpus with paper_id, title, and available bibliographic metadata
+  - methodology including actual source and date coverage and acquisition failures
+  - taxonomy, recurring_patterns, and evidence_strength_map with supporting_papers
+  - contradiction_map preserving unresolved disagreements and their sources
+  - operational_implications, design_implications, and reusable_mechanism_inventory
+  - unresolved_questions with ACADEMIC or ENGINEERING labels and targeted next steps
+  - traceability_appendix connecting claims to paper IDs and source locations
 evidence_requirements:
-  - Every claim in the synthesis must cite at least one paper by paper_id
-  - Open gaps must each have a classification field (ACADEMIC, ENGINEERING, or OUT_OF_SCOPE)
-  - Contradictions must name the papers on both sides
-
+  - Every finding must cite supporting_papers present in corpus and the shortlist.
+  - Mark uncertain interpretations; retrieval failures are coverage limitations.
+  - Use empty arrays for absent categories and explain material coverage limits.
 completion_criteria:
-  - "{run_dir}/analysis/synthesis.json exists and validates against synthesis_report.schema.json"
-  - "{run_dir}/analysis/synthesis.md exists and has all required sections"
-  - "No section is empty"
-  - "open_gaps list present (may be empty if no gaps found)"
-
+  - synthesis.json validates against the declared schema.
+  - The report task renders this exact JSON into report/draft.md for review.
 self_reporting_forbidden: true
 status_update: |
-  After synthesis:
-  1. Verify synthesis.json validates against the schema
-  2. Verify synthesis.md has all required sections
-  3. Do NOT mark the task accepted
-  4. Re-run runner.py — it will validate and accept
+  Return a result JSON with success=true and the output path.
+  The parent submits --complete-task paper-synthesizer --result-file RESULT.json.
+  Only the runner accepts the task. Do not edit workflow_state.json directly.

@@ -1,6 +1,12 @@
+> The runner completes one round at a time. Re-running a complete state validates
+> that round; it does not start new searches. The parent must inspect gaps.json
+> and source coverage, decide whether a focused follow-up can help, and initialize
+> a separate round state as described below. Preserve all prior run evidence.
+> Do not automatically repeat failed or cooling-down sources.
+
 # Iterative Gap-Closure Rounds
 
-Every research run iterates up to **4 rounds**, stopping early when the
+The parent agent evaluates up to **4 rounds**, stopping early when the
 report has no remaining gaps. This applies to **all** goals — pure
 literature reviews, system-building tasks, surveys — not only
 system-design work. Gaps are the visible signal; closing them
@@ -21,9 +27,9 @@ A round is one full pipeline cycle that **replaces** the prior report
    --paper-ids ...`) with the new evidence. The new report is the
    single source of truth for the next round.
 
-The prior report is snapshot-renamed with the date
+The prior report is copied to a uniquely named snapshot with the date
 (`<topic-slug>-research-report.<YYYY-MM-DD>.md`) before regeneration,
-but is never referenced from the new report body.
+and remains published until the replacement passes validation.
 
 ## Per-round procedure
 
@@ -51,21 +57,22 @@ but is never referenced from the new report body.
      sequencing and state persistence.
 
      **Prepare `workflow_state.json` before invoking:**
-     1. Copy `workflow_state_template.json` to `workflow_state.json`
+     1. Preserve the completed state and gap artifacts, then copy `workflow_state_template.json` to a new per-round state file
         (this resets all task statuses to `pending`).
-     2. Set `run_id` to a new unique ID (e.g. `"<topic-slug>-r<N+1>-<yyyymmdd>"`).
+     2. Populate topic, topic_slug, profile, context.cwd, context.config, and context.skill_dir. Preserve the original topic slug and prior evidence paths. Set `run_id` to a new unique ID (e.g. `"<topic-slug>-r<N+1>-<yyyymmdd>"`).
      3. Set `round` to `<N+1>`.
      4. Under `context.prior_paper_ids`, list the arXiv IDs accepted in
         round N (so the global index skips already-downloaded PDFs).
      5. Under `context.prior_gaps`, paste the gap objects from the
         previous round's `gaps.json` (for reference context).
 
+     The prepared state carries the gap-specific topic and the original report slug.
+     Do not pass another positional topic when resuming this prepared state.
      Then invoke the runner:
      ```bash
      python3 {skill_dir}/runners/runner.py \
-       "<gap-specific topic>" \
        --profile standard \
-       --state "{cwd}/workflow_state.json" \
+       --state "{cwd}/workflow_state.round-N.json" \
        --config {config}
      ```
      The runner will plan, search, screen, expand (seeded from
@@ -82,7 +89,8 @@ but is never referenced from the new report body.
    `ACADEMIC, LOW — no new literature found`, or to
    `ENGINEERING`).
 
-5. **Append to the round history table** at the top of the report
+5. **Present the round history table** in the final response; if the report needs it,
+   add it to the draft before review and validation, never edit a published report
    (under `## Round History`, right after `## Contents`):
 
    ```markdown

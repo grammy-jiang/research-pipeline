@@ -281,6 +281,19 @@ def validate_report(
             )
 
         result = _validate(report_path)
+        import hashlib
+
+        result["passed"] = result["verdict"] == "PASS"
+        result["report_sha256"] = hashlib.sha256(report_path.read_bytes()).hexdigest()
+        result["report_path"] = str(report_path.resolve())
+        validation_path = (
+            Path(params.output)
+            if params.output
+            else report_path.parent / "validation_result.json"
+        )
+        validation_path.parent.mkdir(parents=True, exist_ok=True)
+        validation_path.write_text(json.dumps(result, indent=2))
+        result["validation_path"] = str(validation_path)
         verdict = result["verdict"]
         score = result["overall_score"]
 
@@ -653,8 +666,12 @@ def report_tool(
             if template_name == "structured_synthesis"
             else [legacy_json, structured_json]
         )
-        synthesis_json = next((path for path in candidates if path.exists()), None)
-        if synthesis_json is None:
+        synthesis_json = (
+            Path(params.synthesis_path)
+            if params.synthesis_path
+            else next((path for path in candidates if path.exists()), None)
+        )
+        if synthesis_json is None or not synthesis_json.is_file():
             return ToolResult(
                 success=False,
                 message=f"No synthesis_report.json or synthesis.json in {stage_dir}.",

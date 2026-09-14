@@ -1,3 +1,8 @@
+> Workflow 2.1: submit execution results through research-pipeline-workflow;
+> never mark tasks accepted by editing state. The manifest and printed contracts
+> determine exact paths. Deep synthesis JSON is rendered into report/draft.md,
+> reviewed, validated, then published by the runner.
+
 # Sub-Agent Orchestration
 
 Three specialized sub-agents extend the pipeline with intelligent analysis.
@@ -74,7 +79,7 @@ Return: total screened, shortlist count, top papers with relevance, coverage gap
 ```
 
 **Reads**: `runs/{run_id}/screen/cheap_scores.jsonl` (BM25 scores from the screen stage; falls back to `search/candidates.jsonl`)
-**Writes**: `{run_dir}/screen/screened.jsonl` (improved shortlist replacing the BM25 result)
+**Writes**: `{run_dir}/screen/shortlist.json` (improved shortlist replacing the BM25 result)
 
 ## paper-analyzer
 
@@ -113,8 +118,8 @@ Cross-paper synthesis: themes, contradictions, gaps, recommendations.
 
 **Agent type**: `paper-synthesizer`
 
-**Outputs**: `{run_dir}/analysis/synthesis.md` (human-readable) +
-`{run_dir}/analysis/synthesis.json` (structured).
+**Output**: {run_dir}/analysis/synthesis.json, using the bundled synthesis schema.
+The report task renders it to report/draft.md.
 Note: `synthesis_report.md`, `synthesis_report.json`, and `synthesis_traceability.json`
 are written by the deterministic CLI `summarize` stage, not this sub-agent.
 
@@ -143,12 +148,12 @@ Synthesize findings from N analyzed papers on "<topic>".
    Mermaid diagrams (`flowchart TD`/`TB`) for charts, and internal links
    between contents, themes, papers, evidence, gaps, and recommendations
 
-Write both the Markdown synthesis and the structured JSON output to:
+Write the schema-valid synthesis JSON to:
 /absolute/path/to/runs/<run_id>/analysis/
 ```
 
 **Reads**: Paper analysis summaries (provided in prompt)
-**Writes**: `runs/{run_id}/analysis/synthesis.md` and `runs/{run_id}/analysis/synthesis.json`
+**Writes**: {run_dir}/analysis/synthesis.json; the renderer produces the reviewed draft.
 
 ## Typical Orchestration Flow
 

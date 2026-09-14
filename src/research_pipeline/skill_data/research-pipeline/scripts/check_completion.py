@@ -20,6 +20,7 @@ Outputs:
 """
 
 import argparse
+import hashlib
 import json
 import sys
 from pathlib import Path
@@ -29,7 +30,7 @@ from pathlib import Path
 REQUIRED_ARTIFACTS: list[tuple[str, str, bool]] = [
     ("plan/query_plan.json", "plan", True),
     ("search/candidates.jsonl", "search", True),
-    ("screen/screened.jsonl", "screen", True),
+    ("screen/shortlist.json", "screen", True),
 ]
 
 # At least one of these must exist (summarize stage).
@@ -136,7 +137,12 @@ def check(run_id: str, slug: str, workspace: str, cwd: str) -> dict:
                 "passed",
                 val_data.get("valid", val_data.get("status") == "pass"),
             )
-            if passed:
+            report_matches = (
+                report_path.is_file()
+                and val_data.get("report_sha256")
+                == hashlib.sha256(report_path.read_bytes()).hexdigest()
+            )
+            if passed is True and report_matches:
                 result["checks"]["validation"] = {
                     "status": "PASS",
                     "path": str(val_path),
@@ -157,14 +163,14 @@ def check(run_id: str, slug: str, workspace: str, cwd: str) -> dict:
             result["blocking"].append("validation")
     else:
         result["checks"]["validation"] = {
-            "status": "WARN",
+            "status": "FAIL",
             "message": (
                 "validation.json not found. "
                 "Run 'research-pipeline validate --report <path>'"
                 " before declaring complete."
             ),
         }
-        result["warnings"].append("validation_missing")
+        result["blocking"].append("validation_missing")
 
     result["all_passed"] = len(result["blocking"]) == 0
     return result

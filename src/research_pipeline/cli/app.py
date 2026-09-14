@@ -1101,12 +1101,15 @@ def validate(
     level = logging.DEBUG if verbose else logging.INFO
     setup_logging(level=level)
 
-    run_validate(
+    passed = run_validate(
         report=report,
         workspace=workspace,
         run_id=run_id,
         output=output,
     )
+
+    if passed is False:
+        raise typer.Exit(1)
 
 
 @app.command()
@@ -1805,6 +1808,9 @@ def report_command(
         help="Path to config TOML (for workspace resolution), for parity with "
         "sibling stage commands.",
     ),
+    synthesis: Path | None = typer.Option(
+        None, "--synthesis", help="Exact synthesis JSON input."
+    ),
     verbose: bool = typer.Option(False, "--verbose", "-v", help="Verbose output."),
 ) -> None:
     """Render synthesis report using a configurable template.
@@ -1827,6 +1833,7 @@ def report_command(
         custom_template=custom_template,
         output=output,
         config_path=Path(config) if config else None,
+        synthesis_path=synthesis,
     )
 
 

@@ -17,6 +17,7 @@ from research_pipeline.arxiv.query_builder import (
 from research_pipeline.arxiv.rate_limit import ArxivRateLimiter
 from research_pipeline.infra.cache import FileCache
 from research_pipeline.infra.http import create_session
+from research_pipeline.infra.retry import parse_retry_after
 from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -46,7 +47,9 @@ class ArxivClient:
     ) -> None:
         self.rate_limiter = rate_limiter or ArxivRateLimiter()
         self.cache = cache
-        self.session = session or create_session(contact_email)
+        self.session = session or create_session(
+            contact_email, self.rate_limiter.min_interval
+        )
         self.base_url = base_url
         self.request_timeout = request_timeout
         self.max_retries = max_retries
@@ -77,7 +80,7 @@ class ArxivClient:
         last_exc: Exception | None = None
         for attempt in range(self.max_retries + 1):
             self.rate_limiter.wait()
-            logger.info("Fetching: %s", url[:120])
+            logger.info("Fetching arXiv API page")
             try:
                 response = self.session.get(url, timeout=self.request_timeout)
             except requests.ReadTimeout as exc:
@@ -89,17 +92,21 @@ class ArxivClient:
                     self.max_retries + 1,
                     wait,
                 )
-                time.sleep(wait)
+                if attempt < self.max_retries:
+                    time.sleep(wait)
                 continue
 
             if response.status_code == 429:
-                retry_after = response.headers.get("Retry-After")
-                if retry_after and retry_after.isdigit():
-                    wait = int(retry_after)
-                else:
-                    wait = self.backoff_base * (2**attempt)
+                last_exc = requests.HTTPError(
+                    f"arXiv API returned 429 after {attempt + 1} attempts",
+                    response=response,
+                )
+                if attempt == self.max_retries:
+                    break
+                retry_after = parse_retry_after(response.headers.get("Retry-After"))
+                wait = max(self.backoff_base * (2**attempt), retry_after or 0.0)
                 logger.warning(
-                    "arXiv rate limit (429) hit (attempt %d/%d). Backing off %ds...",
+                    "arXiv rate limit (429) hit (attempt %d/%d). Backing off %.2fs...",
                     attempt + 1,
                     self.max_retries + 1,
                     wait,
@@ -148,6 +155,7 @@ class ArxivClient:
         """
         page_size = min(max_results, 100)
         all_candidates: list[CandidateRecord] = []
+        self.partial_candidates = all_candidates
         raw_paths: list[str] = []
         start = 0
 

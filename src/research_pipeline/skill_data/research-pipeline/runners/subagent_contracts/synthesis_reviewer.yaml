@@ -13,8 +13,10 @@ description: |
 inputs:
   - path: "{run_dir}/analysis/synthesis.json"
     description: "Synthesis report to review"
-  - path: "{run_dir}/analysis/synthesis.md"
-    description: "Human-readable synthesis narrative"
+  - path: "{draft_report}"
+    description: "Rendered draft that will be validated and published"
+  - path: "{run_dir}/search/source_coverage.json"
+    description: "Actual retrieval successes, failures, queries, and date windows"
   - path: "{run_dir}/analysis/"
     description: "Per-paper analysis files — ground truth for faithfulness checks"
   - path: "{skill_dir}/schemas/reviewer_result.schema.json"
@@ -31,7 +33,7 @@ allowed_tools:
   - glob
 
 forbidden_actions:
-  - Do NOT edit synthesis.json or synthesis.md
+  - Do NOT edit synthesis.json or report/draft.md
   - Do NOT edit any analysis file
   - Do NOT accept or reject the task yourself — only write the verdict file
   - Do NOT call any MCP tool that modifies pipeline state
@@ -47,13 +49,14 @@ review_dimensions:
     description: "All open gaps are classified and no obvious gap is missing"
     verdict_field: "gap_completeness"  # float 0–1; stored in scores.gap_completeness
   citation_integrity:
-    description: "All paper_id references in the synthesis match papers in screened.jsonl"
+    description: "All paper_id references in the synthesis match papers in shortlist.json"
     verdict_field: "citation_integrity"  # bool; stored in scores.citation_integrity
 
 verdict_schema:
   # Required fields (must match reviewer_result.schema.json)
   reviewer_task_id: "review-synthesis"
-  target_artifact:  "{run_dir}/analysis/synthesis.json"
+  target_artifact:  "{draft_report}"
+  target_sha256: "{draft_sha256}"
   status:           "accepted | rejected | accepted_with_issues"
   # Optional fields (all additional properties are allowed by the schema)
   issues:           list[str]   # specific issues found (replaces deprecated findings)
@@ -83,8 +86,8 @@ completion_criteria:
 
 self_reporting_forbidden: true
 note: |
-  The reviewer ONLY writes synthesis_review.json. After writing the file, do NOT
-  mark the task accepted yourself. Re-run runner.py — it will validate the artifact
-  and accept the task. If status is 'rejected', the orchestrating agent must reset
-  the 'report' and 'review-synthesis' tasks to 'pending' in workflow_state.json
-  before re-running runner.py.
+  Return the verdict path and a result JSON with success=true to indicate the
+  review was performed. The parent submits --complete-task review-synthesis
+  --result-file RESULT.json. The runner checks the verdict, score thresholds,
+  outstanding required fixes, and target hash. Rejection blocks publication.
+  Use the bounded --retry-task repair workflow; do not edit statuses.

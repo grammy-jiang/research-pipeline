@@ -230,6 +230,7 @@ def tool_plan_topic(
     ctx: Context,
     workspace: str = "./workspace",
     run_id: str = "",
+    config_path: str = "",
 ) -> ToolResult:
     """Create a structured query plan from a natural language research topic.
 
@@ -237,7 +238,10 @@ def tool_plan_topic(
     categories. This is the first step in the pipeline.
     """
     result = plan_topic(
-        PlanTopicInput(topic=topic, workspace=workspace, run_id=run_id), ctx=ctx
+        PlanTopicInput(
+            topic=topic, workspace=workspace, run_id=run_id, config_path=config_path
+        ),
+        ctx=ctx,
     )
     return result
 
@@ -257,6 +261,7 @@ def tool_search(
     topic: str = "",
     resume: bool = False,
     source: str = "",
+    config_path: str = "",
 ) -> ToolResult:
     """Search configured academic paper sources.
 
@@ -272,6 +277,7 @@ def tool_search(
             topic=topic,
             resume=resume,
             source=source,
+            config_path=config_path,
         ),
         ctx=ctx,
     )
@@ -834,6 +840,7 @@ def tool_validate_report(
     report_path: str = "",
     workspace: str = "./workspace",
     run_id: str = "",
+    output: str = "",
 ) -> ToolResult:
     """Validate a research report for completeness and quality.
 
@@ -843,7 +850,7 @@ def tool_validate_report(
     """
     result = validate_report(
         ValidateReportInput(
-            report_path=report_path, workspace=workspace, run_id=run_id
+            report_path=report_path, workspace=workspace, run_id=run_id, output=output
         ),
         ctx=ctx,
     )
@@ -1573,6 +1580,7 @@ async def tool_report(
     custom_template: str = "",
     output: str = "",
     workspace: str = "./workspace",
+    synthesis_path: str = "",
 ) -> ToolResult:
     """Render a synthesis report using a configurable template.
 
@@ -1592,6 +1600,7 @@ async def tool_report(
         template=template,
         custom_template=custom_template,
         output=output,
+        synthesis_path=synthesis_path,
         workspace=workspace,
     )
     result = report_tool(params=params, ctx=ctx)

@@ -55,6 +55,7 @@ classifiers = [
 ]
 dependencies = [
   "pydantic>=2.0,<3",
+  "jsonschema>=4.20,<5",
   "typer>=0.12,<1",
   "requests>=2.31,<3",
   "tomli>=2.0;python_version<'3.11'",
@@ -120,6 +121,7 @@ reranker = [
 
 [project.scripts]
 research-pipeline = "research_pipeline.cli.app:app"
+research-pipeline-workflow = "research_pipeline.workflow:main"
 
 [project.urls]
 Documentation = "https://grammy-jiang.github.io/research-pipeline/"

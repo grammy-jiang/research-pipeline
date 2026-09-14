@@ -2,7 +2,7 @@
 
 from pydantic import BaseModel, Field
 
-from research_pipeline.config.defaults import DEFAULTS
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL, DEFAULTS
 
 
 class ArxivConfig(BaseModel):
@@ -217,20 +217,20 @@ class SourcesConfig(BaseModel):
     # Semantic Scholar
     semantic_scholar_enabled: bool = False
     semantic_scholar_api_key: str = ""
-    semantic_scholar_min_interval: float = 1.0
+    semantic_scholar_min_interval: float = DEFAULT_SOURCE_INTERVAL
 
     # OpenAlex
     openalex_enabled: bool = False
     openalex_api_key: str = ""
-    openalex_min_interval: float = 0.2
+    openalex_min_interval: float = DEFAULT_SOURCE_INTERVAL
 
     # DBLP
     dblp_enabled: bool = False
-    dblp_min_interval: float = 2.0
+    dblp_min_interval: float = DEFAULT_SOURCE_INTERVAL
 
     # HuggingFace daily papers
     huggingface_enabled: bool = False
-    huggingface_min_interval: float = 0.5
+    huggingface_min_interval: float = DEFAULT_SOURCE_INTERVAL
     huggingface_limit: int = 100
 
 

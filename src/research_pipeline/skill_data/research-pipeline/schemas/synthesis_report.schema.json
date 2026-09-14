@@ -1,55 +1,397 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "title": "SynthesisReport",
-  "description": "Schema for the cross-paper synthesis report produced by the summarize stage.",
-  "type": "object",
-  "required": ["topic", "findings", "gaps"],
-  "properties": {
-    "topic": {"type": "string", "minLength": 1},
-    "run_id": {"type": "string"},
-    "generated_at": {"type": "string"},
-    "findings": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["statement", "confidence", "evidence"],
-        "properties": {
-          "statement":  {"type": "string", "minLength": 1},
-          "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
-          "evidence": {
-            "type": "array",
-            "items": {
-              "type": "object",
-              "required": ["paper_id"],
-              "properties": {
-                "paper_id":   {"type": "string"},
-                "section":    {"type": "string"},
-                "quote":      {"type": "string"}
-              }
-            },
-            "minItems": 1
-          }
+  "$defs": {
+    "AssumptionRecord": {
+      "description": "Assumption consolidated across Step 1 records.",
+      "properties": {
+        "assumption_id": {
+          "description": "Stable assumption identifier.",
+          "title": "Assumption Id",
+          "type": "string"
+        },
+        "assumption": {
+          "description": "Assumption text.",
+          "title": "Assumption",
+          "type": "string"
+        },
+        "source_papers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Papers",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "scope": {
+          "default": "",
+          "title": "Scope",
+          "type": "string"
+        },
+        "risk_if_false": {
+          "default": "",
+          "title": "Risk If False",
+          "type": "string"
         }
-      }
+      },
+      "required": [
+        "assumption_id",
+        "assumption"
+      ],
+      "title": "AssumptionRecord",
+      "type": "object"
     },
-    "gaps": {
-      "type": "array",
-      "items": {
-        "type": "object",
-        "required": ["description"],
-        "properties": {
-          "description":        {"type": "string", "minLength": 1},
-          "classification":     {"type": "string", "enum": ["ACADEMIC", "ENGINEERING", "OUT_OF_SCOPE"]},
-          "priority":           {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
-          "suggested_query":    {"type": "string"}
+    "ConfidenceLevel": {
+      "description": "Confidence label used for extracted and synthesized statements.",
+      "enum": [
+        "HIGH",
+        "MEDIUM",
+        "LOW"
+      ],
+      "title": "ConfidenceLevel",
+      "type": "string"
+    },
+    "ContradictionRecord": {
+      "description": "Contradiction or unresolved tension across papers.",
+      "properties": {
+        "contradiction_id": {
+          "description": "Stable contradiction identifier.",
+          "title": "Contradiction Id",
+          "type": "string"
+        },
+        "topic": {
+          "description": "Contested topic.",
+          "title": "Topic",
+          "type": "string"
+        },
+        "positions": {
+          "additionalProperties": {
+            "type": "string"
+          },
+          "title": "Positions",
+          "type": "object"
+        },
+        "source_papers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Papers",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "severity": {
+          "$ref": "#/$defs/ConfidenceLevel",
+          "default": "MEDIUM"
+        },
+        "resolution_status": {
+          "default": "unresolved",
+          "title": "Resolution Status",
+          "type": "string"
         }
-      }
+      },
+      "required": [
+        "contradiction_id",
+        "topic"
+      ],
+      "title": "ContradictionRecord",
+      "type": "object"
     },
-    "themes": {
-      "type": "array",
-      "items": {"type": "string"}
+    "ReusableMechanism": {
+      "description": "Reusable method, component, or pattern found across papers.",
+      "properties": {
+        "mechanism_id": {
+          "description": "Stable mechanism identifier.",
+          "title": "Mechanism Id",
+          "type": "string"
+        },
+        "name": {
+          "description": "Short mechanism name.",
+          "title": "Name",
+          "type": "string"
+        },
+        "description": {
+          "description": "Mechanism description.",
+          "title": "Description",
+          "type": "string"
+        },
+        "source_papers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Source Papers",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "generality": {
+          "default": "",
+          "title": "Generality",
+          "type": "string"
+        },
+        "known_constraints": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Known Constraints",
+          "type": "array"
+        }
+      },
+      "required": [
+        "mechanism_id",
+        "name",
+        "description"
+      ],
+      "title": "ReusableMechanism",
+      "type": "object"
     },
-    "paper_count": {"type": "integer", "minimum": 0}
+    "SynthesisFinding": {
+      "description": "Evidence-backed finding produced by cross-paper synthesis.",
+      "properties": {
+        "finding_id": {
+          "description": "Stable finding identifier.",
+          "title": "Finding Id",
+          "type": "string"
+        },
+        "finding": {
+          "description": "Synthesized finding.",
+          "title": "Finding",
+          "type": "string"
+        },
+        "finding_type": {
+          "description": "agreement, pattern, implication, etc.",
+          "title": "Finding Type",
+          "type": "string"
+        },
+        "supporting_papers": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Supporting Papers",
+          "type": "array"
+        },
+        "evidence_ids": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Evidence Ids",
+          "type": "array"
+        },
+        "confidence": {
+          "$ref": "#/$defs/ConfidenceLevel",
+          "default": "LOW"
+        },
+        "limitations": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Limitations",
+          "type": "array"
+        },
+        "interpretation_notes": {
+          "default": "",
+          "title": "Interpretation Notes",
+          "type": "string"
+        }
+      },
+      "required": [
+        "finding_id",
+        "finding",
+        "finding_type"
+      ],
+      "title": "SynthesisFinding",
+      "type": "object"
+    },
+    "SynthesisQuality": {
+      "description": "Quality checks for a cross-paper synthesis.",
+      "properties": {
+        "coverage_score": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Coverage Score",
+          "type": "number"
+        },
+        "traceability_score": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Traceability Score",
+          "type": "number"
+        },
+        "neutrality_score": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Neutrality Score",
+          "type": "number"
+        },
+        "contradiction_coverage_score": {
+          "default": 0.0,
+          "maximum": 1.0,
+          "minimum": 0.0,
+          "title": "Contradiction Coverage Score",
+          "type": "number"
+        },
+        "warnings": {
+          "items": {
+            "type": "string"
+          },
+          "title": "Warnings",
+          "type": "array"
+        }
+      },
+      "title": "SynthesisQuality",
+      "type": "object"
+    }
   },
-  "additionalProperties": true
+  "description": "Design-neutral cross-paper synthesis built from Step 1 extractions.",
+  "properties": {
+    "topic": {
+      "description": "Research topic.",
+      "title": "Topic",
+      "type": "string"
+    },
+    "corpus": {
+      "items": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "title": "Corpus",
+      "type": "array",
+      "minItems": 1
+    },
+    "methodology": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Methodology",
+      "type": "array"
+    },
+    "taxonomy": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Taxonomy",
+      "type": "array"
+    },
+    "evidence_matrix": {
+      "items": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "title": "Evidence Matrix",
+      "type": "array"
+    },
+    "recurring_patterns": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Recurring Patterns",
+      "type": "array"
+    },
+    "assumption_map": {
+      "items": {
+        "$ref": "#/$defs/AssumptionRecord"
+      },
+      "title": "Assumption Map",
+      "type": "array"
+    },
+    "contradiction_map": {
+      "items": {
+        "$ref": "#/$defs/ContradictionRecord"
+      },
+      "title": "Contradiction Map",
+      "type": "array"
+    },
+    "evidence_strength_map": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Evidence Strength Map",
+      "type": "array"
+    },
+    "operational_implications": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Operational Implications",
+      "type": "array"
+    },
+    "production_readiness": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Production Readiness",
+      "type": "array"
+    },
+    "reusable_mechanism_inventory": {
+      "items": {
+        "$ref": "#/$defs/ReusableMechanism"
+      },
+      "title": "Reusable Mechanism Inventory",
+      "type": "array"
+    },
+    "design_implications": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Design Implications",
+      "type": "array"
+    },
+    "unresolved_questions": {
+      "items": {
+        "type": "string"
+      },
+      "title": "Unresolved Questions",
+      "type": "array"
+    },
+    "risk_register": {
+      "items": {
+        "$ref": "#/$defs/SynthesisFinding"
+      },
+      "title": "Risk Register",
+      "type": "array"
+    },
+    "traceability_appendix": {
+      "items": {
+        "additionalProperties": {
+          "type": "string"
+        },
+        "type": "object"
+      },
+      "title": "Traceability Appendix",
+      "type": "array"
+    },
+    "quality": {
+      "$ref": "#/$defs/SynthesisQuality"
+    }
+  },
+  "required": [
+    "topic",
+    "corpus",
+    "taxonomy",
+    "unresolved_questions",
+    "traceability_appendix"
+  ],
+  "title": "CrossPaperSynthesisRecord",
+  "type": "object"
 }

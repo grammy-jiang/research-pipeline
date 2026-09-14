@@ -10,8 +10,11 @@ import logging
 
 import requests
 
+from research_pipeline.config.defaults import DEFAULT_SOURCE_INTERVAL
+from research_pipeline.infra.http import SourceSession
 from research_pipeline.infra.rate_limit import RateLimiter
-from research_pipeline.infra.retry import retry
+from research_pipeline.infra.request_budget import SourceCooldown
+from research_pipeline.infra.retry import retry, safe_exception
 from research_pipeline.models.candidate import CandidateRecord
 
 logger = logging.getLogger(__name__)
@@ -118,11 +121,13 @@ def enrich_candidates(
         Number of candidates that were enriched.
     """
     if session is None:
-        session = requests.Session()
+        session = SourceSession("semantic_scholar")
     if s2_api_key:
         session.headers["x-api-key"] = s2_api_key
     if s2_rate_limiter is None:
-        s2_rate_limiter = RateLimiter(min_interval=1.0, name="s2_enrichment")
+        s2_rate_limiter = RateLimiter(
+            min_interval=DEFAULT_SOURCE_INTERVAL, name="s2_enrichment"
+        )
 
     enriched_count = 0
 
@@ -137,22 +142,27 @@ def enrich_candidates(
         if candidate.doi:
             try:
                 paper = _s2_lookup_by_doi(candidate.doi, session, s2_rate_limiter)
+            except SourceCooldown:
+                break
             except requests.RequestException as exc:
                 logger.warning(
                     "Enrichment DOI lookup failed for %s (DOI: %s): %s",
                     candidate.arxiv_id,
                     candidate.doi,
-                    exc,
+                    safe_exception(exc),
                 )
+                continue
 
         if paper is None and candidate.title:
             try:
                 paper = _s2_lookup_by_title(candidate.title, session, s2_rate_limiter)
+            except SourceCooldown:
+                break
             except requests.RequestException as exc:
                 logger.warning(
                     "Enrichment title lookup failed for %s: %s",
                     candidate.arxiv_id,
-                    exc,
+                    safe_exception(exc),
                 )
 
         if paper is None:

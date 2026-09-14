@@ -1,3 +1,8 @@
+> Workflow 2.1: submit execution results through research-pipeline-workflow;
+> never mark tasks accepted by editing state. The manifest and printed contracts
+> determine exact paths. Deep synthesis JSON is rendered into report/draft.md,
+> reviewed, validated, then published by the runner.
+
 # Workflow Steps — research-pipeline
 
 > **Governed by the orchestrator.** The runner (`runners/runner.py`) drives
@@ -28,7 +33,7 @@ CFG=$SKILL_DIR/config.toml
 The runner executes this gate before every other task. It looks for
 `./<topic-slug>-research-report.md` in the CWD.
 
-If found: snapshot-renames the old file and writes `resume_context.json`
+If found: copies the old file to a unique snapshot and retains the published report and writes `resume_context.json`
 with `prior_paper_ids` and `open_gaps_raw` to seed the new run.
 
 ```bash
@@ -42,7 +47,7 @@ Manual inspection of the context JSON:
 import json
 ctx = json.load(open("resume_context.json"))
 # ctx["resume"]           — bool (True if a prior report was found)
-# ctx["snapshot"]         — snapshot path of the renamed prior report
+# ctx["snapshot"]         — snapshot path of the copied prior report
 # ctx["prior_paper_ids"]  — IDs to feed into expand --paper-ids
 # ctx["open_gaps_raw"]    — open gap lines to seed new query_variants
 ```
@@ -62,7 +67,7 @@ Review `runs/<run_id>/plan/query_plan.json`:
 ## Tasks `[search]` + `[paper-screener]` — Search and screen
 
 ```bash
-research-pipeline search --run-id <RUN_ID> --source all --config "$CFG"
+research-pipeline search --run-id <RUN_ID> --config "$CFG"
 research-pipeline screen --run-id <RUN_ID> --diversity --config "$CFG"
 ```
 
@@ -134,37 +139,21 @@ Reads `synthesis_report.json` open_gaps (and optionally `{run_dir}/analysis/synt
 for deep profile). Writes `{cwd}/gaps.json` with each gap typed as `ACADEMIC`
 (requires new papers) or `ENGINEERING` (fillable from docs/code).
 
-## Task `[report]` — Write final report
+## Report, review, validation, and publication
 
-```bash
-research-pipeline report --run-id <RUN_ID> --template structured_synthesis --config "$CFG"
-```
+Use the runner's printed commands and explicit paths. The report task reads
+the selected synthesis JSON and writes {run_dir}/report/draft.md. In deep mode,
+the reviewer reads that exact draft and its source synthesis. Submit every
+CLI or MCP result using the runner's result interface.
 
-Then the report is written to `./<topic-slug>-research-report.md`. Required sections:
+The validate-report task writes {run_dir}/validate/validation_result.json.
+It must report passed=true and the SHA-256 of the draft. The publish-report
+task then copies that content to {cwd}/{topic_slug}-research-report.md.
+Changes after validation require another validation; changes after review
+require another review. Export HTML/BibTeX only from the accepted artifacts.
 
-- `## Contents` — table of contents with internal Markdown links
-- `## Round History` — per-round table (see `references/output-templates.md`)
-- `## Executive Summary`, `## Research Question`, `## Methodology`, `## Papers Reviewed`
-- `## Research Landscape`, `## Confidence-Graded Findings`, `## Research Gaps`
-- `## Practical Recommendations`, `## Evidence Map`, `## References`
-
-Required formatting:
-- Confidence annotations: `[HIGH]`, `[MEDIUM]`, `[LOW]`
-- Mermaid diagrams: `flowchart TD`/`TB` (never ASCII art)
-- LaTeX formulas: `$...$` inline, `$$...$$` display
-- Gap labels: `[ACADEMIC]` / `[ENGINEERING]` in Research Gaps
-
-## Task `[validate-report]` ⛔ GATE — Validate
-
-```bash
-research-pipeline validate --report "./<topic-slug>-research-report.md" --config "$CFG"
-research-pipeline export-html --markdown "./<topic-slug>-research-report.md" \
-    -o "./<topic-slug>-research-report.html" --config "$CFG"
-research-pipeline export-bibtex --run-id <RUN_ID> --stage screen -o refs.bib
-```
-
-The runner blocks on this gate. Validation failures must be fixed before
-`[check-completion]` can run.
+The user's final response includes a round-history table derived from actual
+completed runs. Do not invent rounds to populate it.
 
 ## Task `[check-completion]` ⛔ GATE — Completion gate
 
@@ -180,7 +169,7 @@ Exit 1: fix the reported issues before delivering to the user.
 After `[check-completion]` passes, read `gaps.json`. If
 `convergence.should_continue: true` and the round cap has not been reached:
 
-1. Take ACADEMIC gaps → new search queries → start a new round (re-run runner).
+1. Take ACADEMIC gaps → new search queries → initialize a separate per-round state as described in iterative-synthesis.md; re-running a complete state does not create a round.
 2. Take ENGINEERING gaps → fill from documentation/code knowledge.
 3. Stop when: no open gaps, round 4 complete, zero new papers found, or user
    marks remaining gaps out-of-scope.
@@ -210,6 +199,6 @@ candidate set before rewriting prose.
 | `auto` | runner decides | Let the CLI choose based on query complexity |
 
 ```bash
-python3 $SKILL_DIR/runners/runner.py "<topic>" --profile standard --config "$CFG"
-python3 $SKILL_DIR/runners/runner.py "<topic>" --profile deep    --config "$CFG"
+research-pipeline-workflow "<topic>" --profile standard --config "$CFG"
+research-pipeline-workflow "<topic>" --profile deep    --config "$CFG"
 ```

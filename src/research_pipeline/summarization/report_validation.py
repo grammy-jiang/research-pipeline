@@ -6,6 +6,7 @@ template sections, confidence-level annotations, evidence citations, and gap
 classifications.
 """
 
+import hashlib
 import json
 import logging
 import re
@@ -382,7 +383,7 @@ def run_validate(
     workspace: Path | None = None,
     run_id: str | None = None,
     output: Path | None = None,
-) -> None:
+) -> bool:
     """Validate a research report for completeness and quality.
 
     When --run-id is provided, also loads paper IDs and titles from the
@@ -437,7 +438,7 @@ def run_validate(
 
     if report_path is None or not report_path.exists():
         logger.error("No report found. Use --report PATH or --run-id with --workspace.")
-        return
+        return False
 
     logger.info("Validating report: %s", report_path)
     result = validate_report(
@@ -445,6 +446,10 @@ def run_validate(
         paper_ids=paper_ids or None,
         paper_titles=paper_titles or None,
     )
+
+    result["passed"] = result["verdict"] == "PASS"
+    result["report_sha256"] = hashlib.sha256(report_path.read_bytes()).hexdigest()
+    result["report_path"] = str(report_path.resolve())
 
     # Log summary
     verdict = result["verdict"]
@@ -471,6 +476,7 @@ def run_validate(
 
     # Write output
     if output:
+        output.parent.mkdir(parents=True, exist_ok=True)
         output.write_text(json.dumps(result, indent=2))
         logger.info("Validation report written to %s", output)
     else:
@@ -478,3 +484,5 @@ def run_validate(
         out_path = report_path.parent / "validation_result.json"
         out_path.write_text(json.dumps(result, indent=2))
         logger.info("Validation report written to %s", out_path)
+
+    return result["passed"] is True

@@ -64,6 +64,10 @@ _WORKSPACE_DESC = (
 class CommonParams(BaseModel):
     """Parameters shared by all MCP tools."""
 
+    config_path: PathStr = Field(
+        default="", description="Optional pipeline config TOML."
+    )
+
     workspace: PathStr = Field(
         default="./workspace",
         description=_WORKSPACE_DESC,
@@ -351,6 +355,8 @@ class AnalyzePapersInput(CommonParams):
 
 class ValidateReportInput(BaseModel):
     """Input for the validate_report tool."""
+
+    output: PathStr = Field(default="", description="Validation JSON output path.")
 
     report_path: PathStr = Field(
         default="",
@@ -740,6 +746,10 @@ class ExportBibtexInput(CommonParams):
 
 class ReportInput(CommonParams):
     """Input for the report tool."""
+
+    synthesis_path: PathStr = Field(
+        default="", description="Exact synthesis JSON input."
+    )
 
     template: str = Field(
         default="survey",
