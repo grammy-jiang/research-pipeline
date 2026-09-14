@@ -10,6 +10,12 @@ changes, MCP SDK <2 compatibility, and CI external-network blocking. The 12
 formerly failing cases now pass. Full local Python 3.12 verification is green:
 4,852 passed, 1 skipped, coverage 84.86% (job a085efc88473).
 
+Release CI additionally exposed six vulnerable locked dependencies. Their
+runtime/development floors and lock entries were updated without adding audit
+exceptions. In the resulting isolated environment, 4,852 unit tests pass
+(1 skipped, job d024db14dfa0); the existing vulnerability policy, license gate
+and strict mypy pass. See RP-024 in the issue ledger for the original CI evidence.
+
 The sections below preserve the original review checkpoint and its historical
 test failures. Its "pending approval" and "not installed" statements describe
 that earlier checkpoint; release/install completion is recorded separately in

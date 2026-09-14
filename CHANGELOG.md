@@ -44,7 +44,9 @@ bundled Research Pipeline manifest moves from 2.0.0 to 2.1.0.
 - Add focused reliability regressions and block external requests during unit
   tests, including CI. Repair obsolete fixture assumptions without live probes.
 - Make jsonschema an explicit runtime dependency and retain MCP SDK 1.x
-  compatibility with mcp[cli]>=1.0,<2.
+  compatibility with mcp[cli]>=1.30,<2.
+- Raise vulnerable runtime dependency floors and update the locked documentation
+  and audit dependencies to patched versions identified by the release CI gate.
 - Local Python 3.12 verification: 4,852 passed, 1 skipped; coverage 84.86%.
 - These changes do not establish provider recovery. Existing configs can
   override the new defaults. Shared pacing is local/POSIX; SDK-internal requests,
