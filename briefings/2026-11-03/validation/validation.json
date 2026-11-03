@@ -1,0 +1,10 @@
+{
+  "errors": [],
+  "metrics": {
+    "item_count": 50,
+    "link_count": 62,
+    "word_count": 3640
+  },
+  "passed": true,
+  "warnings": []
+}
